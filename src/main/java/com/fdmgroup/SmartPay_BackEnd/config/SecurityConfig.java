@@ -14,7 +14,8 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth-> auth
-                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/h2-console/**", "/api/v*/registration/**")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/**"))
