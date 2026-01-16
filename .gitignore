@@ -1,0 +1,78 @@
+# ----------------------------
+# Dependencies
+# ----------------------------
+node_modules/
+.pnp/
+.pnp.js
+
+# ----------------------------
+# Production builds
+# ----------------------------
+build/
+dist/
+out/
+
+# ----------------------------
+# Environment variables
+# ----------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ----------------------------
+# Logs
+# ----------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ----------------------------
+# OS / Editor files
+# ----------------------------
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# IntelliJ / WebStorm
+.idea/
+*.iml
+
+# ----------------------------
+# Cache & tooling
+# ----------------------------
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.vite/
+.turbo/
+.next/
+.nuxt/
+.svelte-kit/
+
+# ----------------------------
+# Test coverage
+# ----------------------------
+coverage/
+
+# ----------------------------
+# Firebase / Amplify / Netlify
+# ----------------------------
+.firebase/
+.firebaserc
+amplify/
+.netlify/
+
+# ----------------------------
+# Misc
+# ----------------------------
+*.log
+*.tsbuildinfo
