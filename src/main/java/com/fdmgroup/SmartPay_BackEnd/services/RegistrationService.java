@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 public class RegistrationService {
     private final UserService userService;
 
-    public String register(RegisterUserDTO userDto) {
+    public User register(RegisterUserDTO userDto) {
         User user = new User(userDto.getEmail(), userDto.getPassword());
         return userService.signUpUser(user);
     }
