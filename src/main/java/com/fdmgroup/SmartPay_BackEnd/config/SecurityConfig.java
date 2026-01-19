@@ -14,7 +14,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth-> auth
-                        .requestMatchers("/h2-console/**", "/api/v*/registration/**")
+                        .requestMatchers("/h2-console/**", "/api/v*/registration/**", "/api/v*/email/sendemail/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
