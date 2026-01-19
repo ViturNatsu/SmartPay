@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+import com.fdmgroup.SmartPay_BackEnd.services.impl.PasswordResetServiceImpl;
 
 @RestController
 @RequestMapping("api/v1/password-reset")
 public class PasswordResetController {
     
-	private PasswordResetService service;
+	private PasswordResetServiceImpl service;
 
-	public PasswordResetController(PasswordResetService service) {
+	public PasswordResetController(PasswordResetServiceImpl service) {
 		super();
 		this.service = service;
 	}
