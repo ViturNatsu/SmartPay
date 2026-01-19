@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 
 @RestController
@@ -21,7 +22,9 @@ public class PasswordResetController {
 	}
 	
 	@PostMapping
-	public ResponseEntity<String> startResetRequest(@RequestBody String email) {
-		return ResponseEntity.status(service.startResetRequest(email)).build();
+	public ResponseEntity<String> startResetRequest(@RequestBody PasswordResetDTO dto) {
+		String 		email 	= dto.getEmail();
+		HttpStatus 	status 	= service.startResetRequest(email);
+		return ResponseEntity.status(status).build();
 	}
 }

@@ -13,14 +13,10 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class PasswordResetService {
-	private static final Pattern VALID_EMAIL_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
-	
+
 	private EmailService emailService;
 	
 	public HttpStatus startResetRequest(String email) {
-		if (!validateEmailFormat(email))
-			return HttpStatus.BAD_REQUEST;
-		
 		// TODO -- Check if account is currently locked and return TOO_MANY_REQUESTS if so.
 		
 		String	resetCode	= ""; // TODO
@@ -40,9 +36,5 @@ public class PasswordResetService {
 		
 		emailService.sendSimpleMail(new EmailDetails(email, msgBody, "Reset your Password"));
 		return HttpStatus.ACCEPTED;
-	}
-	
-	public boolean validateEmailFormat(String email) {
-		return VALID_EMAIL_REGEX.matcher(email).matches();
 	}
 }
