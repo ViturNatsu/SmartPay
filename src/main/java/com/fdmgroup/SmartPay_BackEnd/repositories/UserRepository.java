@@ -1,5 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.repositories;
 
-public class UserRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+
+public interface UserRepository extends JpaRepository<User, Long>{
     // TODO
 }
