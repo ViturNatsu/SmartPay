@@ -10,24 +10,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 
 @Entity
-public class AccountLock {
-	
+public class LockedAccount {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ACCOUNTLOCK_SEQ_GEN")
 	@SequenceGenerator(name = "ACCOUNTLOCK_SEQ_GEN", sequenceName = "ACCOUNTLOCK_SEQ_GEN")
-	private long id;
-	private String email;
-	private Date locked_at;
+	private long 	id;
 	
-	public AccountLock() {
+	private String 	email;
+	private Date 	locked_at;
+	
+	public LockedAccount() {
 		super();
 	}
 
-	public AccountLock(long id, String email, Date locked_at) {
+	public LockedAccount(long id, String email, Date locked_at) {
 		super();
-		this.id = id;
-		this.email = email;
-		this.locked_at = locked_at;
+		this.id 		= id;
+		this.email 		= email;
+		this.locked_at 	= locked_at;
 	}
 
 	public String getEmail() {
@@ -64,7 +64,7 @@ public class AccountLock {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AccountLock other = (AccountLock) obj;
+		LockedAccount other = (LockedAccount) obj;
 		return Objects.equals(email, other.email) && id == other.id && Objects.equals(locked_at, other.locked_at);
 	}
 

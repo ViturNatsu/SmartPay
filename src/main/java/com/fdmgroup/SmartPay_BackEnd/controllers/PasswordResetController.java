@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,8 +22,6 @@ public class PasswordResetController {
 	
 	@PostMapping
 	public ResponseEntity<String> startResetRequest(@RequestBody String email) {
-		service.startResetRequest(email);
-		return ResponseEntity.accepted().build();
+		return ResponseEntity.status(service.startResetRequest(email)).build();
 	}
-	
 }
