@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public interface PasswordResetService {
     HttpStatus startResetRequest(String email);
-    boolean validateEmailFormat(String email);
     void createPasswordResetCode(PasswordReset passwordReset);
     String generatePasswordResetCode();
 }
