@@ -4,7 +4,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpPasswordResetService;
+import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/user/auth/password-reset")
 @Slf4j
 public class PasswordResetController {
-    OtpPasswordResetService otpPasswordResetService;
+    PasswordResetService passwordResetService;
 
-    public PasswordResetController(OtpPasswordResetService optPasswordResetService){
-        this.otpPasswordResetService = optPasswordResetService;
+    public PasswordResetController(PasswordResetService passwordResetService){
+        this.passwordResetService = passwordResetService;
     }
 
     /**
@@ -34,7 +34,7 @@ public class PasswordResetController {
             HttpServletRequest httpRequest) {
 
         try {
-            otpPasswordResetService.resetPasswordWithOTP(request, httpRequest);
+            passwordResetService.resetPasswordWithOTP(request, httpRequest);
             return ResponseEntity.ok("Password Reset Successful");
         } catch (InvalidTokenException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
