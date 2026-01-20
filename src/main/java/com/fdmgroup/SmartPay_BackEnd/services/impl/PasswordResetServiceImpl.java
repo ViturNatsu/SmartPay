@@ -3,10 +3,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
@@ -24,8 +24,9 @@ import lombok.AllArgsConstructor;
 public class PasswordResetServiceImpl implements PasswordResetService {
     private EmailService 			emailService;
     private LockedAccountService	lockedAccountService;
-    private PasswordResetService 	passwordResetService;
+    //private PasswordResetService 	passwordResetService;
     private PasswordResetRepository passwordResetRepository;
+    private PasswordEncoder         passwordEncoder;
 
     public HttpStatus startResetRequest(String email) {
     	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestEntryByEmail(email);
@@ -64,17 +65,15 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     }
 
     // Generates/Updates entry in PASSWORD_RESET table
-    // TODO: Add hashing to encrypt the reset code
     public String createPasswordResetCode(String email) {
-        //passwordResetRepository.findByEmail(email);
         PasswordReset passwordReset;
         Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
         LocalDateTime now = LocalDateTime.now();
-        String resetCode = generatePasswordResetCode();
+        String resetCodeHashed = passwordEncoder.encode(generatePasswordResetCode());
         if(passwordResetOpt.isPresent()){
             passwordReset = passwordResetOpt.get();
 
-            passwordReset.setTokenHash(resetCode);
+            passwordReset.setTokenHash(resetCodeHashed);
             passwordReset.setType("CODE");
             passwordReset.setStatus("VALID");
             passwordReset.setCreatedAt(now);
@@ -86,29 +85,40 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 if(now.isAfter(resetTime)){
                     passwordReset.setAttemptsRemaining(4);
                 } else {
-                    // TODO: Reject their request
-                    return "";
+                    // TODO: Reject their request by locking their account
+
                 }
             }
         } else {
             // Not present in DB need to create entry
             passwordReset = new PasswordReset(email);
-            passwordReset.setTokenHash(resetCode);
+            passwordReset.setTokenHash(resetCodeHashed);
             passwordReset.setType("CODE");
             passwordReset.setStatus("VALID");
             passwordReset.setAttemptsRemaining(4);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
         }
-
         passwordResetRepository.save(passwordReset);
-        return resetCode;
+        return resetCodeHashed;
     }
 
     public String generatePasswordResetCode() {
         SecureRandom random = new SecureRandom();
         int code = random.nextInt(10_000_000);
         return String.format("%07d", code);
+    }
+
+    public int checkPasswordAttemptsRemaining(String email) {
+        PasswordReset passwordReset;
+        Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
+        if(passwordResetOpt.isPresent()){
+            passwordReset = passwordResetOpt.get();
+            return passwordReset.getAttemptsRemaining();
+        } else {
+            // Not present in DB
+            return -1;
+        }
     }
 
 }
