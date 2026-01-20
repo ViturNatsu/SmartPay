@@ -1,32 +1,39 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
-
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "password_reset")
-@Getter
-@Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Table(name = "otp")
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PasswordReset {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "reset_id")
-    private long id;
+    @GeneratedValue(generator = "UUID")
+    @Column(name = "reset_id", updatable = false, nullable = false)
+    private UUID reset_id;
 
     @Column(unique = true, name = "user_email")
     private String email;
 
-    @Column(name = "token_hash")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "token_hash", nullable = false)
     private String tokenHash;
 
-    @Column(name = "type")
-    private String type;
+    @Column(name = "type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TokenType type;
 
     @Column(name = "attempts_remaining")
     int attemptsRemaining;
@@ -37,13 +44,17 @@ public class PasswordReset {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name="expires_at")
+    @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiresAt);
+    }
 
     @Override
     public String toString() {
         return "PasswordReset{" +
-                "id=" + id +
+                "reset_id=" + reset_id +
                 ", email='" + email + '\'' +
                 ", tokenHash='" + tokenHash + '\'' +
                 ", type='" + type + '\'' +
@@ -54,8 +65,12 @@ public class PasswordReset {
                 '}';
     }
 
-    public PasswordReset(String email) {
-        this.email = email;
+    public enum TokenType {
+        PASSWORD_RESET,
+        EMAIL_VERIFICATION,
+        MFA,
+        LOGIN
     }
-
 }
+
+
