@@ -58,7 +58,7 @@ public class PasswordResetController {
     /**
      * Reset password using OTP code
      */
-    @PutMapping("/reset")
+    @PutMapping("/change-password")
     public ResponseEntity<String> resetPasswordWithOTP(
             @Valid @RequestBody PasswordResetWithOtpDto request,
             HttpServletRequest httpRequest) {

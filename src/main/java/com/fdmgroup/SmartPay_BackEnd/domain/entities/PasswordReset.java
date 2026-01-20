@@ -33,7 +33,7 @@ public class PasswordReset {
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TokenType type;
+    private String type;
 
     @Column(name = "attempts_remaining")
     int attemptsRemaining;
@@ -64,13 +64,10 @@ public class PasswordReset {
                 ", expiresAt=" + expiresAt +
                 '}';
     }
-
-    public enum TokenType {
-        PASSWORD_RESET,
-        EMAIL_VERIFICATION,
-        MFA,
-        LOGIN
+    public PasswordReset(String email) {
+        this.email = email;
     }
+
 }
 
 

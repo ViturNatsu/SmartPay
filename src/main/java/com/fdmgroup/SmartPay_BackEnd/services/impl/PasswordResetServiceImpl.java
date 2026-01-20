@@ -8,27 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
-import jakarta.servlet.http.HttpServletRequest;
-
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -38,7 +23,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 public class PasswordResetServiceImpl implements PasswordResetService {
@@ -159,6 +143,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         // Mark OTP as used
         // Log successful password reset
+        // audit the record of change password
 
     }
 
