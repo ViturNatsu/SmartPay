@@ -29,29 +29,29 @@ import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
-@AllArgsConstructor
 public class PasswordResetServiceImpl implements PasswordResetService {
 
     PasswordResetRepository passwordResetRepository;
     AuditService auditService;
     private EmailService emailService;
-    private PasswordResetService passwordResetService;
-    private PasswordResetRepository passwordResetRepository;
-
-    @Autowired
-    public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository) {
-        this.passwordResetRepository = passwordResetRepository;
-    }
 
     public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
-                                    AuditService auditService){
+                                    AuditService auditService, EmailService emailService){
         this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
+        this.emailService = emailService;
     }
 
     public HttpStatus startResetRequest(String email) {

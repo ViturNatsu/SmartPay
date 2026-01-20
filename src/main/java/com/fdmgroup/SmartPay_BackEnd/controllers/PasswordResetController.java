@@ -10,10 +10,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AccessCodePayload;
@@ -43,7 +40,7 @@ public class PasswordResetController {
     @PostMapping("/code")
     public String createPasswordResetCode() {
         String email = "bob@gmail.com";
-        String code = service.createPasswordResetCode(email);
+        String code = passwordResetService.createPasswordResetCode(email);
         System.out.println(code);
         return code;
     }
@@ -61,7 +58,7 @@ public class PasswordResetController {
     /**
      * Reset password using OTP code
      */
-    @PostMapping("/reset")
+    @PutMapping("/reset")
     public ResponseEntity<String> resetPasswordWithOTP(
             @Valid @RequestBody PasswordResetWithOtpDto request,
             HttpServletRequest httpRequest) {
