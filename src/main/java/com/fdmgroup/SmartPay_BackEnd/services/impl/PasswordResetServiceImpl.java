@@ -1,39 +1,50 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
-import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.LockedAccountService;
+import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 
 import lombok.AllArgsConstructor;
-
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 @AllArgsConstructor
 public class PasswordResetServiceImpl implements PasswordResetService {
-    private EmailService emailService;
-    private PasswordResetService passwordResetService;
+    private EmailService 			emailService;
+    private LockedAccountService	lockedAccountService;
+    private PasswordResetService 	passwordResetService;
     private PasswordResetRepository passwordResetRepository;
 
-    @Autowired
-    public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository) {
-        this.passwordResetRepository = passwordResetRepository;
-    }
-
     public HttpStatus startResetRequest(String email) {
-        // TODO -- Check if account is currently locked and return TOO_MANY_REQUESTS if so.
+    	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestEntryByEmail(email);
+    	if (lockedAccount.isPresent()) {
+    		LockedAccount account = lockedAccount.get();
+    		
+    		// Get the current time and subtract 24 hours from it.
+    		Calendar calendar = Calendar.getInstance();
+    		calendar.add(Calendar.HOUR_OF_DAY, -24);
+    		
+    		// Check if the account's locked at date is AFTER the date above (This means it's still within
+    		// the 24 hour locking period). If so, return a 429 code. Otherwise, continue to the code below.
+    		if (account.getLockedAt().after(calendar.getTime()))
+    			return HttpStatus.TOO_MANY_REQUESTS;
+    	}
+    	
+    	// TODO -- Check for too many password requests; add to locked account table if so.
 
-        String	resetCode	= ""; // TODO
+        String	resetCode	= generatePasswordResetCode();
         String	resetUrl	= ""; // TODO
         String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
                 "A password change was requested for your SmartPay account.\n\n" +
