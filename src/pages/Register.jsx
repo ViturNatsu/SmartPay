@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import axios from 'axios';
 export const Register = () =>{
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -12,8 +12,11 @@ export const Register = () =>{
         }
         const api = 'http://localhost:8080/api/v1/registration';
         e.preventDefault();
-
-        axios.post(api, userInfo)
+        const auth = {
+            username: 'admin',
+            password: 'admin'
+        }
+        axios.post(api, userInfo,auth)
             .then(response => {
                 console.log('success')
             })
