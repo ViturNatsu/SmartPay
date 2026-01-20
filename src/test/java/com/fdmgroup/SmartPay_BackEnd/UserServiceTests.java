@@ -1,6 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
-import com.fdmgroup.SmartPay_BackEnd.config.PasswordEncoderConfig;
+import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
@@ -19,13 +19,13 @@ public class UserServiceTests {
     @Mock
     UserRepository mockUserRepo;
 
-    PasswordEncoderConfig passwordEncoderConfig;
+    EncoderConfig encoderConfig;
 
     UserService userService;
 
     @BeforeEach
     void setup() {
-        userService = new UserServiceImpl(mockUserRepo, passwordEncoderConfig);
+        userService = new UserServiceImpl(mockUserRepo, encoderConfig);
     }
 
     @Test
