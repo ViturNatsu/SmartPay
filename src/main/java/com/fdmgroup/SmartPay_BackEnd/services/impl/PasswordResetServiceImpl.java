@@ -7,6 +7,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
@@ -16,12 +17,8 @@ import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -34,14 +31,16 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     AuditService auditService;
     private EmailService emailService;
     UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
 
     public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
                                     AuditService auditService, EmailService emailService,
-                                    UserRepository userRepository){
+                                    UserRepository userRepository, PasswordEncoder passwordEncoder){
         this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public HttpStatus startResetRequest(String email) {
@@ -116,8 +115,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
 
         // Hash the code to look it up
-        //need impl
-        String codeHash = hashCode(request.getCode());
+        String codeHash = passwordEncoder.encode(request.getCode());
 
         // Find the otp record
         PasswordReset otp = passwordResetRepository.findByTokenHashAndType(codeHash, PasswordReset.PasswordResetType.PASSWORD_RESET)
@@ -165,8 +163,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             );
         }
         // Update password
-        // need encoding impl
-        user.setPassword(request.getNewPassword());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setLastPasswordChangeAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -179,16 +176,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         auditService.logEvent(AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
         log.info("Password successfully reset with OTP for user: {}", user.getEmail());
 
-    }
-
-    private String hashCode(String code) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(code.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing code", e);
-        }
     }
 
     public String generatePasswordResetCode() {
