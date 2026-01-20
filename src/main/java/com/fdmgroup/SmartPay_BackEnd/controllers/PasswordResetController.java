@@ -40,17 +40,25 @@ public class PasswordResetController {
 		return ResponseEntity.status(status).build();
 	}
 
-	@PostMapping
-	public ResponseEntity<String> validate7DigitCode(@RequestBody AccessCodePayload payload) {
-		try {
-			accessCodeValidatorService.validate(payload);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-		}
-		return ResponseEntity.ok("Code validated successfully");
-	}
+    @PostMapping("/code")
+    public String createPasswordResetCode() {
+        String email = "bob@gmail.com";
+        String code = service.createPasswordResetCode(email);
+        System.out.println(code);
+        return code;
+    }
 
-	/**
+    @PostMapping
+    public ResponseEntity<String> validate7DigitCode(@RequestBody AccessCodePayload payload) {
+        try {
+            accessCodeValidatorService.validate(payload);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        return ResponseEntity.ok("Code validated successfully");
+    }
+
+    /**
      * Reset password using OTP code
      */
     @PostMapping("/reset")

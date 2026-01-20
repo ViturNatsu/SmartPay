@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 public interface PasswordResetService {
     void resetPasswordWithOTP(@Valid PasswordResetWithOtpDto request, HttpServletRequest httpRequest);
     HttpStatus startResetRequest(String email);
-    void createPasswordResetCode(PasswordReset passwordReset);
+    String createPasswordResetCode(String email);
     String generatePasswordResetCode();
 
 }

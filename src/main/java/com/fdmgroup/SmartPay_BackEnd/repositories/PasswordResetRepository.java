@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface PasswordResetRepository extends JpaRepository<PasswordReset, UUID> {
     Optional<PasswordReset> findByTokenHashAndType(String tokenHash, PasswordReset.TokenType type);
     Optional<PasswordReset> findTopByEmailOrderByCreatedAtDesc(String email);
+    Optional<PasswordReset> findByEmail(String email);
+
 }
