@@ -6,12 +6,17 @@ export const Register = () =>{
     const [confirmPassword, setConfirmPassword] = useState("");
     
     const handleSubmit = (e) => {
+        e.preventDefault();
+        if(password !== confirmPassword){
+            alert("passwords do not match. ")
+            return
+        }
         const userInfo = {
             email: email,
             password: password
         }
         const api = 'http://localhost:8080/api/v1/registration';
-        e.preventDefault();
+        
         const auth = {
             username: 'admin',
             password: 'admin'
