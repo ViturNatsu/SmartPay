@@ -44,7 +44,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     	}
     	
     	// TODO -- Check for too many password requests; add to locked account table if so.
-
+    	
+    	
+    	// TODO -- Check if account exists before generating the email.
         String	resetCode	= generatePasswordResetCode();
         String	resetUrl	= ""; // TODO
         String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +

@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
 
 public interface LockedAccountRepository extends JpaRepository<LockedAccount,Long> {
-//	@Query("SELECT LockedAccount FROM locked_accounts a "
-//			+ "WHERE a.email = email "
-//			+ "ORDER BY e.locked_at DESC LIMIT 1")
+	@Query("SELECT a FROM locked_accounts a "
+			+ "WHERE a.email = ?1 "
+			+ "ORDER BY e.locked_at DESC LIMIT 1")
 	Optional<LockedAccount> findLatestEntryByEmail(String email);
 }
