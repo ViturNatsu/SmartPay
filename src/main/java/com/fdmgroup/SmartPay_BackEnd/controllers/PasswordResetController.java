@@ -12,30 +12,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.AccessCodePayload;
-import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidatorService;
-
+import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 
 @RestController
 @RequestMapping("api/v1/password-reset")
 @Slf4j
 public class PasswordResetController {
     PasswordResetService passwordResetService;
-	AccessCodeValidatorService accessCodeValidatorService;
+    AccessCodeValidator accessCodeValidatorService;
 
     public PasswordResetController(PasswordResetService passwordResetService,
-								   AccessCodeValidatorService accessCodeValidatorService){
+            AccessCodeValidator accessCodeValidatorService) {
         this.passwordResetService = passwordResetService;
-		this.accessCodeValidatorService = accessCodeValidatorService;
-	}
+        this.accessCodeValidatorService = accessCodeValidatorService;
+    }
 
-	@PostMapping
-	public ResponseEntity<String> startResetRequest(@RequestBody PasswordResetDTO dto) {
-		String email = dto.getEmail();
-		HttpStatus status = passwordResetService.startResetRequest(email);
-		return ResponseEntity.status(status).build();
-	}
+    @PostMapping
+    public ResponseEntity<String> startResetRequest(@RequestBody PasswordResetDTO dto) {
+        String email = dto.getEmail();
+        HttpStatus status = passwordResetService.startResetRequest(email);
+        return ResponseEntity.status(status).build();
+    }
 
     @PostMapping("/code")
     public String createPasswordResetCode() {
@@ -45,8 +44,8 @@ public class PasswordResetController {
         return code;
     }
 
-    @PostMapping
-    public ResponseEntity<String> validate7DigitCode(@RequestBody AccessCodePayload payload) {
+    @PostMapping("/confirm-code")
+    public ResponseEntity<String> validate7DigitCode(@RequestBody ConfirmCodeDTO payload) {
         try {
             accessCodeValidatorService.validate(payload);
         } catch (IllegalArgumentException e) {
