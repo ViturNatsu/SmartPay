@@ -21,7 +21,7 @@ public class LockedAccountServiceImpl implements LockedAccountService {
 	}
 
 	@Override
-	public Optional<LockedAccount> findLatestEntryByEmail(String email) {
-		return lockedAccountRepo.findLatestEntryByEmail(email);
+	public Optional<LockedAccount> findLatestLockEntry(String email) {
+		return lockedAccountRepo.findFirstByEmailOrderByLockedAtDesc(email);
 	}
 }

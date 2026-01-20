@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private PasswordEncoder         passwordEncoder;
 
     public HttpStatus startResetRequest(String email) {
-    	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestEntryByEmail(email);
+    	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestLockEntry(email);
     	if (lockedAccount.isPresent()) {
     		LockedAccount account = lockedAccount.get();
     		
@@ -43,11 +44,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     			return HttpStatus.TOO_MANY_REQUESTS;
     	}
     	
-    	// TODO -- Check for too many password requests; add to locked account table if so.
-    	
+    	if (checkPasswordAttemptsRemaining(email) == 0) {
+    		LockedAccount newLockedAccount = new LockedAccount(email, new Date());
+    		lockedAccountService.AddLockedAccount(newLockedAccount);
+    		return HttpStatus.TOO_MANY_REQUESTS;
+    	}
     	
     	// TODO -- Check if account exists before generating the email.
-        String	resetCode	= generatePasswordResetCode();
+        String	resetCode	= createPasswordResetCode(email);
         String	resetUrl	= ""; // TODO
         String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
                 "A password change was requested for your SmartPay account.\n\n" +

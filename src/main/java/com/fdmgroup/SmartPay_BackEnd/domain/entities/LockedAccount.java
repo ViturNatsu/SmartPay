@@ -31,6 +31,12 @@ public class LockedAccount {
 	public LockedAccount() {
 		super();
 	}
+	
+	public LockedAccount(String email, Date lockedAt) {
+		super();
+		this.email 		= email;
+		this.lockedAt 	= lockedAt;
+	}
 
 	public LockedAccount(long id, String email, Date lockedAt) {
 		super();

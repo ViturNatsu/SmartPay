@@ -13,7 +13,7 @@ public class UserServiceImpl implements UserService {
     // TODO
 
     @Autowired
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Override
     public User signUpUser(User user) {
