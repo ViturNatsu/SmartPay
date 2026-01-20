@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
+import com.fdmgroup.SmartPay_BackEnd.config.PasswordEncoderConfig;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
@@ -15,8 +16,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private final UserRepository userRepository;
 
+    private final PasswordEncoderConfig passwordEncoderConfig;
+
     @Override
     public User signUpUser(User user) {
+
+        // TODO encoder user password before saving
 
         return userRepository.save(user);
     }
