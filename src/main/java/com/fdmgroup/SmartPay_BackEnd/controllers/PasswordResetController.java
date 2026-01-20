@@ -1,6 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
@@ -48,10 +50,14 @@ public class PasswordResetController {
     public ResponseEntity<String> validate7DigitCode(@RequestBody ConfirmCodeDTO payload) {
         try {
             accessCodeValidatorService.validate(payload);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalArgumentException | AccessCodeMismatchException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Code is invalid");
+        } catch (AccessCodeExpiredException e) {
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("This password reset link has expired or has already been used. Please request a new password reset link.");
         }
-        return ResponseEntity.ok("Code validated successfully");
+        return ResponseEntity.ok("Code validated successfully"); 
     }
 
     /**
