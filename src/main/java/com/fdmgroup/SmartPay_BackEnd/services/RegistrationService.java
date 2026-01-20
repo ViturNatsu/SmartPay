@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +18,20 @@ public class RegistrationService {
     private final UserRepository userRepository;
 
     public User register(RegisterUserDTO userDto) {
-        List<User> users =  userRepository.findByEmail(userDto.getEmail());
+        String email = consistentEmail(userDto.getEmail());
+
+        List<User> users =  userRepository.findByEmail(email);
         if(users.isEmpty()){
-            User user = new User(userDto.getEmail(), userDto.getPassword());
+            User user = new User(email, userDto.getPassword());
             return userService.signUpUser(user);
         }
         else {
-            throw new RuntimeException("Email already in use");
+            throw new DuplicateEmailException("Email already in use");
         }
     }
+
+    private String consistentEmail(String email) {
+        return email.trim().toLowerCase();
+    }
+
 }
