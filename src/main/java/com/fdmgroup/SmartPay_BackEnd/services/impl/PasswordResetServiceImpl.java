@@ -64,12 +64,13 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         return HttpStatus.ACCEPTED;
     }
 
-    // Generates/Updates entry in PASSWORD_RESET table
+    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code
     public String createPasswordResetCode(String email) {
         PasswordReset passwordReset;
         Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
         LocalDateTime now = LocalDateTime.now();
-        String resetCodeHashed = passwordEncoder.encode(generatePasswordResetCode());
+        String resetCodeRaw = generatePasswordResetCode();
+        String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
         if(passwordResetOpt.isPresent()){
             passwordReset = passwordResetOpt.get();
 
@@ -100,7 +101,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             passwordReset.setExpiresAt(now.plusMinutes(45));
         }
         passwordResetRepository.save(passwordReset);
-        return resetCodeHashed;
+        return resetCodeRaw;
     }
 
     public String generatePasswordResetCode() {
