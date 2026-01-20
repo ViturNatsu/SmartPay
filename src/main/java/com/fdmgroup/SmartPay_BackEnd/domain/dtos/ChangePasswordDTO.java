@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class ChangePasswordRequest {
+public class ChangePasswordDTO {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
