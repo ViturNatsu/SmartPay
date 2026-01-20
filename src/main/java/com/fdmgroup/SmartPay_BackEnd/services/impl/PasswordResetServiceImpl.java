@@ -2,14 +2,15 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Reset_password;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.ResetPasswordRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -19,16 +20,70 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
+import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
+import org.springframework.http.HttpStatus;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+
+
 @Service
+@AllArgsConstructor
 public class PasswordResetServiceImpl implements PasswordResetService {
 
-    ResetPasswordRepository resetPasswordRepository;
+    PasswordResetRepository passwordResetRepository;
     AuditService auditService;
+    private EmailService emailService;
 
-    public PasswordResetServiceImpl(ResetPasswordRepository resetPasswordRepository,
+    public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
                                     AuditService auditService){
-        this.resetPasswordRepository = resetPasswordRepository;
+        this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
+    }
+
+    public HttpStatus startResetRequest(String email) {
+        // TODO -- Check if account is currently locked and return TOO_MANY_REQUESTS if so.
+
+        String	resetCode	= ""; // TODO
+        String	resetUrl	= ""; // TODO
+        String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
+                "A password change was requested for your SmartPay account.\n\n" +
+                "Here is your password reset code: " + resetCode + "\n\n" +
+                "If this was you, follow the link below to reset your password:\n\n" +
+
+                resetUrl +
+
+                "\n\n" +
+                "This link and code will expire in 40 minutes.\n\n" +
+                "If you did not request this change, you can safely ignore this email.\n\n" +
+                "Thank you,\n" +
+                "The SmartPay Support Team";
+
+        emailService.sendSimpleMail(new EmailDetails(email, msgBody, "Reset your Password"));
+        return HttpStatus.ACCEPTED;
+    }
+
+    // Generates a 7 digit password reset code
+    // TODO: Add hashing to encrypt the reset code
+    public void createPasswordResetCode(PasswordReset passwordReset) {
+        if(passwordReset.getAttemptsRemaining() > 0){
+            passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
+            //TODO: Work
+            String resetCode = generatePasswordResetCode();
+
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
+            if(now.isAfter(resetTime)){
+                passwordReset.setAttemptsRemaining(4);
+                //TODO: Work
+            }
+            else{
+                // REJECT
+            }
+        }
+
     }
 
     @Override
@@ -42,7 +97,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         String codeHash = hashCode(request.getCode());
 
         // Find the otp record
-        Reset_password otp = resetPasswordRepository.findByTokenHashAndType(codeHash, Reset_password.TokenType.PASSWORD_RESET)
+        PasswordReset otp = passwordResetRepository.findByTokenHashAndType(codeHash, PasswordReset.TokenType.PASSWORD_RESET)
                 .orElseThrow(() -> new InvalidTokenException(
                         "Invalid or expired reset code. Please request a new code."
                 ));
@@ -84,4 +139,11 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new RuntimeException("Error hashing code", e);
         }
     }
+
+    public String generatePasswordResetCode() {
+        SecureRandom random = new SecureRandom();
+        int code = random.nextInt(10_000_000);
+        return String.format("%07d", code);
+    }
+
 }

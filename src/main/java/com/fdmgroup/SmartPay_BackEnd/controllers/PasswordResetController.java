@@ -15,17 +15,42 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.AccessCodePayload;
+import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidatorService;
+
+
 @RestController
-@RequestMapping("/api/v1/user/auth/password-reset")
+@RequestMapping("api/v1/password-reset")
 @Slf4j
 public class PasswordResetController {
     PasswordResetService passwordResetService;
+	AccessCodeValidatorService accessCodeValidatorService;
 
-    public PasswordResetController(PasswordResetService passwordResetService){
+    public PasswordResetController(PasswordResetService passwordResetService,
+								   AccessCodeValidatorService accessCodeValidatorService){
         this.passwordResetService = passwordResetService;
-    }
+		this.accessCodeValidatorService = accessCodeValidatorService;
+	}
 
-    /**
+	@PostMapping
+	public ResponseEntity<String> startResetRequest(@RequestBody PasswordResetDTO dto) {
+		String email = dto.getEmail();
+		HttpStatus status = passwordResetservice.startResetRequest(email);
+		return ResponseEntity.status(status).build();
+	}
+
+	@PostMapping
+	public ResponseEntity<String> validate7DigitCode(@RequestBody AccessCodePayload payload) {
+		try {
+			accessCodeValidatorService.validate(payload);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
+		return ResponseEntity.ok("Code validated successfully");
+	}
+
+	/**
      * Reset password using OTP code
      */
     @PostMapping("/reset")
