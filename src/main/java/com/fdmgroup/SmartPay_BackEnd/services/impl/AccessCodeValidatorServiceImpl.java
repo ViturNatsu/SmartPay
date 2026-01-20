@@ -22,6 +22,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
         this.argonPasswordEncoder = argonPasswordEncoder;
     }
 
+    @Override
     public void validate(ConfirmCodeDTO payload) {
 
         String accessCode = payload.getAccessCode();
@@ -31,12 +32,13 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
         PasswordReset resetRequest = passwordResetRepository.findTopByEmailOrderByCreatedAtDesc(email)
                 .orElseThrow(() -> new IllegalArgumentException("No reset request found for the provided email"));
 
-        if (resetRequest.isExpired()) {
-            throw new AccessCodeExpiredException("Code has expired!");
+        if (resetRequest.isExpired() || resetRequest.isUsed()) {
+            throw new AccessCodeExpiredException(
+                    "This code has expired or has already been used. Please request a new one.");
         }
 
         if (!argonPasswordEncoder.matches(accessCode, resetRequest.getTokenHash())) {
-            throw new AccessCodeMismatchException("Code is invalid!");
+            throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
         }
     }
 }
