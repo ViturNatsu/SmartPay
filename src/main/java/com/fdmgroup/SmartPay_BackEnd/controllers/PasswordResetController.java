@@ -52,10 +52,7 @@ public class PasswordResetController {
 	}
 
     @PostMapping("/code")
-    public String createPasswordResetCode() {
-        String email = "bob@gmail.com";
-        String code = service.createPasswordResetCode(email);
-        System.out.println(code);
-        return code;
+    public String createPasswordResetCode(String email) {
+        return service.createPasswordResetCode(email);
     }
 }

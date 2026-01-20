@@ -6,4 +6,5 @@ public interface PasswordResetService {
     HttpStatus startResetRequest(String email);
     String createPasswordResetCode(String email);
     String generatePasswordResetCode();
+    int checkPasswordAttemptsRemaining(String email);
 }
