@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -14,11 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PasswordResetWithOtpDto {
     @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address (example: name@domain.com).")
     private String email;
-
-    @NotBlank(message = "Code is required")
-    @Pattern(regexp = "^\\d{7}$", message = "Code must be exactly 7 digits")
-    private String code;
 
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
@@ -30,6 +28,10 @@ public class PasswordResetWithOtpDto {
 
     @NotBlank(message = "Password confirmation is required")
     private String confirmPassword;
+
+    @NotBlank(message = "Code is required")
+    @Pattern(regexp = "^\\d{7}$", message = "Code must be exactly 7 digits")
+    private String code;
 
     public boolean passwordsMatch() {
         return newPassword != null && newPassword.equals(confirmPassword);

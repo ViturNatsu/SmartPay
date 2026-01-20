@@ -2,8 +2,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
@@ -25,17 +27,21 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class PasswordResetServiceImpl implements PasswordResetService {
 
     PasswordResetRepository passwordResetRepository;
     AuditService auditService;
     private EmailService emailService;
+    UserRepository userRepository;
 
     public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
-                                    AuditService auditService, EmailService emailService){
+                                    AuditService auditService, EmailService emailService,
+                                    UserRepository userRepository){
         this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
         this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     public HttpStatus startResetRequest(String email) {
@@ -72,8 +78,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             passwordReset = passwordResetOpt.get();
 
             passwordReset.setTokenHash(resetCode);
-            passwordReset.setType("CODE");
-            passwordReset.setStatus("VALID");
+            passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
             if(passwordReset.getAttemptsRemaining() > 0){
@@ -91,8 +97,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             // Not present in DB need to create entry
             passwordReset = new PasswordReset(email);
             passwordReset.setTokenHash(resetCode);
-            passwordReset.setType("CODE");
-            passwordReset.setStatus("VALID");
+            passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setAttemptsRemaining(4);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
@@ -110,19 +116,20 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
 
         // Hash the code to look it up
+        //need impl
         String codeHash = hashCode(request.getCode());
 
         // Find the otp record
-        PasswordReset otp = passwordResetRepository.findByTokenHashAndType(codeHash, PasswordReset.TokenType.PASSWORD_RESET)
+        PasswordReset otp = passwordResetRepository.findByTokenHashAndType(codeHash, PasswordReset.PasswordResetType.PASSWORD_RESET)
                 .orElseThrow(() -> new InvalidTokenException(
                         "Invalid or expired reset code. Please request a new code."
                 ));
 
-        // user contain user id need to fetch user with userRepository
+        String email = otp.getEmail();
         User user = otp.getUser();
 
         // Verify email matches
-        if (!user.getEmail().equals(request.getEmail())) {
+        if (email.equals(request.getEmail())) {
             throw new InvalidTokenException("Invalid reset code for this email address.");
         }
 
@@ -133,17 +140,44 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_EXPIRED, user, eventData, httpRequest);
 
             throw new InvalidTokenException(
-                    "This reset code has expired. Please request a new code."
+                    "This password reset link has expired or has already been used. Please request a new password reset link"
             );
         }
 
         // Check if OTP is already used
+        if (otp.isUsed()) {
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("reason", "already_used");
+            auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_USED, user, eventData, httpRequest);
+
+            throw new InvalidTokenException(
+                    "This password reset link has expired or has already been used. Please request a new password reset link"
+            );
+        }
         // Check if OTP has attempts remaining
+        if (otp.getAttemptsRemaining() <= 0) {
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("reason", "no_attempts_remaining");
+            auditService.logEvent(AuditLog.INVALID_RESET_CODE, user, eventData, httpRequest);
+
+            throw new InvalidTokenException(
+                    "We can’t process this request right now. Please try again later"
+            );
+        }
         // Update password
+        // need encoding impl
+        user.setPassword(request.getNewPassword());
+        user.setLastPasswordChangeAt(LocalDateTime.now());
+        userRepository.save(user);
 
         // Mark OTP as used
+        otp.markAsUsed();
+        passwordResetRepository.save(otp);
+
         // Log successful password reset
         // audit the record of change password
+        auditService.logEvent(AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
+        log.info("Password successfully reset with OTP for user: {}", user.getEmail());
 
     }
 
