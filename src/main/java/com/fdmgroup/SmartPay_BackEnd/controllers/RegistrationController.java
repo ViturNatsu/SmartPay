@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.controllers;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +18,9 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @PostMapping
+    @Operation(summary = "Register and create new user")
+    @ApiResponse(responseCode = "201", description = "User registered/created.")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User creation payload", required = true)
     public User register(@RequestBody RegisterUserDTO userDto) {
         return registrationService.register(userDto);
     }
