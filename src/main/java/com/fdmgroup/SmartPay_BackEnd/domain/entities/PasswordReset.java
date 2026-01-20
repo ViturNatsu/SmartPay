@@ -33,13 +33,13 @@ public class PasswordReset {
 
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TokenType type;
+    private PasswordResetType type;
 
     @Column(name = "attempts_remaining")
     int attemptsRemaining;
 
     @Column(name = "status")
-    private String status;
+    private PasswordResetStatus status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -48,7 +48,28 @@ public class PasswordReset {
     private LocalDateTime expiresAt;
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt.isBefore(LocalDateTime.now());
+    }
+
+    public boolean isUsed() {
+        return status == PasswordResetStatus.USED;
+    }
+
+    public boolean isActive() {
+        return status == PasswordResetStatus.ACTIVE && !isExpired();
+    }
+
+    public void markAsUsed() {
+        if (!isActive()) {
+            throw new IllegalStateException("Password reset token is not active");
+        }
+        this.status = PasswordResetStatus.USED;
+    }
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.status = PasswordResetStatus.ACTIVE;
     }
 
     @Override
@@ -64,12 +85,20 @@ public class PasswordReset {
                 ", expiresAt=" + expiresAt +
                 '}';
     }
+    public PasswordReset(String email) {
+        this.email = email;
+    }
 
-    public enum TokenType {
+    public enum PasswordResetType {
         PASSWORD_RESET,
         EMAIL_VERIFICATION,
-        MFA,
-        LOGIN
+        ACCOUNT_RECOVERY
+    }
+    public enum PasswordResetStatus {
+        ACTIVE,
+        USED,
+        EXPIRED,
+        LOCKED
     }
 }
 
