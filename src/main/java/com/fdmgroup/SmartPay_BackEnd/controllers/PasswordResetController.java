@@ -27,4 +27,12 @@ public class PasswordResetController {
 		HttpStatus 	status 	= service.startResetRequest(email);
 		return ResponseEntity.status(status).build();
 	}
+
+    @PostMapping("/code")
+    public String createPasswordResetCode() {
+        String email = "bob@gmail.com";
+        String code = service.createPasswordResetCode(email);
+        System.out.println(code);
+        return code;
+    }
 }

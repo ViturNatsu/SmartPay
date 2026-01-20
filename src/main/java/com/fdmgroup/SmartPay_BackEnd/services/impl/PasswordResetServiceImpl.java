@@ -54,10 +54,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     // Generates/Updates entry in PASSWORD_RESET table
     // TODO: Add hashing to encrypt the reset code
-    public void createPasswordResetCode(String email) {
+    public String createPasswordResetCode(String email) {
         //passwordResetRepository.findByEmail(email);
         PasswordReset passwordReset;
-        Optional<PasswordReset> passwordResetOpt = Optional.of(passwordResetRepository.findByEmail(email));
+        Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
         LocalDateTime now = LocalDateTime.now();
         String resetCode = generatePasswordResetCode();
         if(passwordResetOpt.isPresent()){
@@ -76,6 +76,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                     passwordReset.setAttemptsRemaining(4);
                 } else {
                     // TODO: Reject their request
+                    return "";
                 }
             }
         } else {
@@ -90,6 +91,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
 
         passwordResetRepository.save(passwordReset);
+        return resetCode;
     }
 
     public String generatePasswordResetCode() {
