@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,12 +26,13 @@ public class UserServiceTests {
 
     @BeforeEach
     void setup() {
+        encoderConfig = new EncoderConfig();
         userService = new UserServiceImpl(mockUserRepo, encoderConfig);
     }
 
     @Test
     void test_userService_signUpUser_CallsUserRepo_And_SavesUser() {
-        User newUser = new User("John", "john@gmail.com");
+        User newUser = new User("john@gmail.com", "12345");
 
         Mockito.when(mockUserRepo.save(newUser)).thenReturn(newUser);
         User expectedUser = userService.signUpUser(newUser);

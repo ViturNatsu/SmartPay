@@ -1,7 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
-import java.util.List;
-
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -11,7 +10,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
+@AllArgsConstructor
 public class SecurityConfig {
 
     @Bean
