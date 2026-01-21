@@ -1,9 +1,11 @@
+import axios from "axios";
 import { useState } from "react";
-import axios from 'axios';
+
 export const Register = () =>{
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [result, setResult] = useState("");
     
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -24,9 +26,14 @@ export const Register = () =>{
         axios.post(api, userInfo,auth)
             .then(response => {
                 console.log('success')
+                setEmail("");
+                setPassword("");
+                setConfirmPassword("");
+                setResult("Account created successfully")
             })
             .catch(error => {
                 console.log('error')
+                setResult('We can’t create an account with that email. Please sign in, or reset your password if you already have an account.')
             })
 
     }
@@ -59,6 +66,7 @@ export const Register = () =>{
                 Create Account
                 </button>
             </form>
+            <div>{result}</div>
         </div>
     )
 }
