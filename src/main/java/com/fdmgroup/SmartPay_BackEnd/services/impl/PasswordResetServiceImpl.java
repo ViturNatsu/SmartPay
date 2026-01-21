@@ -75,7 +75,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         return HttpStatus.ACCEPTED;
     }
 
-    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code
+    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code on success or empty string on fail
     public String createPasswordResetCode(String email) {
         PasswordReset passwordReset;
         Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
@@ -100,6 +100,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                     passwordReset.setStatus("VALID");
                     passwordReset.setCreatedAt(now);
                     passwordReset.setExpiresAt(now.plusMinutes(45));
+                } else {
+                    return "";
                 }
             }
         } else {
