@@ -14,7 +14,11 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth-> auth
-                        .requestMatchers("/h2-console/**", "/api/v*/registration/**", "/api/v*/email/sendemail/**", "/api/v*/password-reset/**")
+                        .requestMatchers("/h2-console/**", "/api/v*/registration/**",
+                                "/api/v*/email/sendemail/**", "/api/v*/password-reset/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

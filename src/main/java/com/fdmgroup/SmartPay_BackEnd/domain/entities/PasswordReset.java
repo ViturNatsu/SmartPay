@@ -59,8 +59,7 @@ public class PasswordReset {
         return status == PasswordResetStatus.ACTIVE && !isExpired();
     }
 
-    public void
-    markAsUsed() {
+    public void markAsUsed() {
         if (!isActive()) {
             throw new IllegalStateException("Password reset token is not active");
         }

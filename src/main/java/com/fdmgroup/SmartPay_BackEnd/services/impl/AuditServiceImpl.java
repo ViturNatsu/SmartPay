@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import java.util.Map;
 public class AuditServiceImpl implements AuditService {
     private final AuditLogRepository auditLogRepository;
 
-    @Transactional
     public void logEvent(String eventType, User user, Map<String, Object> eventData, HttpServletRequest request) {
         try {
             AuditLog auditLog = AuditLog.builder()
@@ -37,7 +37,6 @@ public class AuditServiceImpl implements AuditService {
         }
     }
 
-    @Transactional
     public void logEvent(String eventType, User user, HttpServletRequest request) {
         logEvent(eventType, user, new HashMap<>(), request);
     }

@@ -3,10 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
-import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+import com.fdmgroup.SmartPay_BackEnd.services.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +13,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,18 +27,18 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     PasswordResetRepository passwordResetRepository;
     AuditService auditService;
     private EmailService emailService;
-    UserRepository userRepository;
+    UserService userService;
     PasswordEncoder passwordEncoder;
     AccessCodeValidator accessCodeValidator;
 
     public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
                                     AuditService auditService, EmailService emailService,
-                                    UserRepository userRepository, PasswordEncoder passwordEncoder,
+                                    UserService userService, PasswordEncoder passwordEncoder,
                                     AccessCodeValidator accessCodeValidator){
         this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
         this.emailService = emailService;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.accessCodeValidator = accessCodeValidator;
     }
@@ -125,7 +121,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setLastPasswordChangeAt(LocalDateTime.now());
-        userRepository.save(user);
+        userService.save(user);
 
         // Mark OTP as used
         passwordResetEntity.markAsUsed();

@@ -33,7 +33,7 @@ public class AuditLog {
     private String eventType;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "event_data", columnDefinition = "jsonb")
+    @Column(name = "event_data", columnDefinition = "text")// change columnDefinition = "jsonb" for production postgres
     private Map<String, Object> eventData;
 
     @Column(name = "ip_address")

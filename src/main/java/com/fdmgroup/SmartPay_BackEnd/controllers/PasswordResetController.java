@@ -6,6 +6,11 @@ import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +67,26 @@ public class PasswordResetController {
     /**
      * Reset password using OTP code
      */
+    @Operation(
+            summary = "Reset password using OTP",
+            description = "Submits a new password along with a one-time access code to reset the user's password."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset successful",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Passwords do not match",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Email address not found",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "422", description = "Password is too weak or validation failed",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later",
+                    content = @Content(schema = @Schema(implementation = String.class)))
+    })
     @PutMapping("/change-password")
     public ResponseEntity<String> resetPasswordWithOTP(
             @Valid @RequestBody PasswordResetWithOtpDto request,

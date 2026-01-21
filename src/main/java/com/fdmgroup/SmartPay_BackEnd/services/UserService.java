@@ -4,4 +4,5 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 
 public interface UserService {
     User signUpUser(User user);
+    void save(User user);
 }
