@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,9 +15,11 @@ import lombok.Setter;
 public class ConfirmCodeDTO {
 
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Email(message = "Enter a valid email address (example: name@domain.com).")
     private String email;
 
     @JsonProperty("access-code")
+    @NotBlank(message = "Code is required")
+    @Pattern(regexp = "^\\d{7}$", message = "Code must be exactly 7 digits")
     private String accessCode;
 }
