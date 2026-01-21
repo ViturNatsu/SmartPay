@@ -36,7 +36,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT,"/api/v*/password-reset/**").permitAll()
                 .requestMatchers("/api/v*/password-reset","/api/v*/password-reset/**","/api/v*/registration/**","/api/v*/email/sendemail/**","/h2-console/**", "/error/**").permitAll()
                 .anyRequest().authenticated()
-        src/main/java/com/fdmgroup/SmartPay_BackEnd/config/SecurityConfig.java
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .httpBasic(Customizer.withDefaults());
