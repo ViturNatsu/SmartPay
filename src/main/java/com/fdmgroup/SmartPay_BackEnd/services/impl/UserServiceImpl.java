@@ -16,6 +16,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     private final EncoderConfig encoderConfig;
+    
+    public UserServiceImpl(UserRepository userRepository, EncoderConfig encoderConfig) {
+        this.userRepository = userRepository;
+        this.encoderConfig = encoderConfig;
+    }
 
     @Override
     public User signUpUser(User user) {
@@ -28,4 +33,35 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(user);
     }
+    
+    // US-F02-02-01 (Sign In)
+    @Override
+    public User validateCredentials(String email, String password) {
+
+        // Basic null/blank validation
+        if (email == null || password == null ||
+            email.isBlank() || password.isBlank()) {
+            throw new IllegalArgumentException("Email and password are required.");
+        }
+
+        // Normalize email for consistent lookup
+        String normalizedEmail = email.trim().toLowerCase();
+
+        // Attempt to find user by email
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials."));
+
+        // Compare raw password to encoded password from DB
+        boolean passwordMatches = encoderConfig
+                .passwordEncoder()
+                .matches(password, user.getPassword());
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException("Invalid credentials.");
+        }
+
+        // Login successful
+        return user;
+    }
+
 }
