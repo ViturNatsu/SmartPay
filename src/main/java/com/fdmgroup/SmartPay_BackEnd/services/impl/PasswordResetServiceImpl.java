@@ -57,7 +57,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     		return HttpStatus.ACCEPTED;
     	
         String	resetCode	= createPasswordResetCode(email);
-        String	resetUrl	= ""; // TODO
+        String	resetUrl	= "http://localhost:5173/verify-email"; // TODO CHANGE FOR DEPLOYMENT
         String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
                 "A password change was requested for your SmartPay account.\n\n" +
                 "Here is your password reset code: " + resetCode + "\n\n" +
