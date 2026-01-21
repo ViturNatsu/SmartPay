@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Box, Button, Grid, TextField } from "@mui/material";
+import { Box, Button, Grid, TextField, InputLabel } from "@mui/material";
+import Alert from '@mui/material/Alert';
 import axios from "axios";
 export const Register = () => {
   const [email, setEmail] = useState("");
@@ -44,8 +45,8 @@ export const Register = () => {
           <p>Sign up to start managing your finances with SmartPay</p>
           <form onSubmit={handleSubmit}>
             <Box display="flex" flexDirection="column" gap={2}>
+              <InputLabel shrink>Email</InputLabel>
               <TextField
-                label="Email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -55,17 +56,15 @@ export const Register = () => {
                   )
                 }
               />
-
+              <InputLabel shrink>Password</InputLabel>
               <TextField
                 type="password"
-                label="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-
+              <InputLabel shrink>Confirm Password</InputLabel>
               <TextField
-                type="password"
-                label="Confirm Password"
+                type="password"             
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
