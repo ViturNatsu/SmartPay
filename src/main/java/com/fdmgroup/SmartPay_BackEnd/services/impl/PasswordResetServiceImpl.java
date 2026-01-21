@@ -88,7 +88,15 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
         if(passwordResetOpt.isPresent()){
             passwordReset = passwordResetOpt.get();
-            if(passwordReset.getAttemptsRemaining() > 0){
+            LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
+            if(now.isAfter(resetTime)) {
+                passwordReset.setAttemptsRemaining(4);
+                passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setType("CODE");
+                passwordReset.setStatus("VALID");
+                passwordReset.setCreatedAt(now);
+                passwordReset.setExpiresAt(now.plusMinutes(45));
+            } else if(passwordReset.getAttemptsRemaining() > 0) {
                 passwordReset.setTokenHash(resetCodeHashed);
                 passwordReset.setType("CODE");
                 passwordReset.setStatus("VALID");
@@ -96,17 +104,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 passwordReset.setExpiresAt(now.plusMinutes(45));
                 passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
             } else {
-                LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
-                if(now.isAfter(resetTime)){
-                    passwordReset.setAttemptsRemaining(4);
-                    passwordReset.setTokenHash(resetCodeHashed);
-                    passwordReset.setType("CODE");
-                    passwordReset.setStatus("VALID");
-                    passwordReset.setCreatedAt(now);
-                    passwordReset.setExpiresAt(now.plusMinutes(45));
-                } else {
-                    return "";
-                }
+                return "";
             }
         } else {
             // Not present in DB need to create entry
