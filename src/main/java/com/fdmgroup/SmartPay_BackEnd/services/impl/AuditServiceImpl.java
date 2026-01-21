@@ -20,6 +20,7 @@ import java.util.Map;
 public class AuditServiceImpl implements AuditService {
     private final AuditLogRepository auditLogRepository;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logEvent(String eventType, User user, Map<String, Object> eventData, HttpServletRequest request) {
         try {
             AuditLog auditLog = AuditLog.builder()
@@ -37,6 +38,7 @@ public class AuditServiceImpl implements AuditService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logEvent(String eventType, User user, HttpServletRequest request) {
         logEvent(eventType, user, new HashMap<>(), request);
     }

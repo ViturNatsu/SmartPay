@@ -50,14 +50,14 @@ public class TestDeleteLater implements CommandLineRunner {
                 .attemptsRemaining(5)
                 .status(PasswordReset.PasswordResetStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusHours(24))
+                .expiresAt(LocalDateTime.now().plusMinutes(45))
                 .build();
 
         resetRepository.save(dummyReset);
 
 
-        dummyReset.markAsUsed();
-        resetRepository.save(dummyReset);
+        //dummyReset.markAsUsed();
+        //resetRepository.save(dummyReset);
 
         System.out.println("DEBUG: Created dummy record for test@gmail.com with code: " + rawCode);
     }
