@@ -79,7 +79,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         return HttpStatus.ACCEPTED;
     }
 
-    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code
+    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code on success or empty string on fail
     public String createPasswordResetCode(String email) {
         PasswordReset passwordReset;
         Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
@@ -88,21 +88,24 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
         if(passwordResetOpt.isPresent()){
             passwordReset = passwordResetOpt.get();
-
-            passwordReset.setTokenHash(resetCodeHashed);
-            passwordReset.setType("CODE");
-            passwordReset.setStatus("VALID");
-            passwordReset.setCreatedAt(now);
-            passwordReset.setExpiresAt(now.plusMinutes(45));
             if(passwordReset.getAttemptsRemaining() > 0){
+                passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setType("CODE");
+                passwordReset.setStatus("VALID");
+                passwordReset.setCreatedAt(now);
+                passwordReset.setExpiresAt(now.plusMinutes(45));
                 passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
             } else {
                 LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
                 if(now.isAfter(resetTime)){
                     passwordReset.setAttemptsRemaining(4);
+                    passwordReset.setTokenHash(resetCodeHashed);
+                    passwordReset.setType("CODE");
+                    passwordReset.setStatus("VALID");
+                    passwordReset.setCreatedAt(now);
+                    passwordReset.setExpiresAt(now.plusMinutes(45));
                 } else {
-                    // TODO: Reject their request by locking their account
-
+                    return "";
                 }
             }
         } else {
