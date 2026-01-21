@@ -7,13 +7,13 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 
 import lombok.AllArgsConstructor;
 
-//@Service
-//@AllArgsConstructor
+@Service
+@AllArgsConstructor
 public class RegistrationService {
-    /*private final UserService userService;
+    private final UserService userService;
 
     public User register(RegisterUserDTO userDto) {
         User user = new User(userDto.getEmail(), userDto.getPassword());
         return userService.signUpUser(user);
-    }*/
+    }
 }

@@ -14,11 +14,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.LockedAccountService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
 import lombok.AllArgsConstructor;
 
@@ -27,11 +28,18 @@ import lombok.AllArgsConstructor;
 public class PasswordResetServiceImpl implements PasswordResetService {
     private EmailService 			emailService;
     private LockedAccountService	lockedAccountService;
-    private UserRepository			userRepository;
+    private UserService				userService;
     private PasswordResetRepository passwordResetRepository;
     private PasswordEncoder         passwordEncoder;
 
     public HttpStatus startResetRequest(String email) {
+    	try { // Make sure a user actually exists before attempting any reset request logic.
+    		User user = userService.findUserByEmail(email);
+    	} catch (UserNotFoundException e) {
+    		System.out.println(e.getMessage());
+    		return HttpStatus.ACCEPTED;
+    	}
+    	
     	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestLockEntry(email);
     	if (lockedAccount.isPresent()) {
     		LockedAccount account = lockedAccount.get();
@@ -51,10 +59,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     		lockedAccountService.AddLockedAccount(newLockedAccount);
     		return HttpStatus.TOO_MANY_REQUESTS;
     	}
-    	
-    	Optional<User> user = userRepository.findByEmail(email);
-    	if (!user.isPresent())
-    		return HttpStatus.ACCEPTED;
     	
         String	resetCode	= createPasswordResetCode(email);
         String	resetUrl	= "http://localhost:5173/verify-email"; // TODO CHANGE FOR DEPLOYMENT

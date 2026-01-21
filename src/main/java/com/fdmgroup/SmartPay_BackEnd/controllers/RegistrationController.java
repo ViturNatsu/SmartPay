@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-//@RestController
-//@RequestMapping("api/v1/registration")
-//@AllArgsConstructor
+@RestController
+@RequestMapping("api/v1/registration")
+@AllArgsConstructor
 public class RegistrationController {
-    /*private final RegistrationService registrationService;
+    private final RegistrationService registrationService;
 
     @PostMapping
     public User register(@RequestBody RegisterUserDTO userDto) {
         return registrationService.register(userDto);
-    }*/
+    }
 }
 
