@@ -1,7 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +11,24 @@ import lombok.Setter;
 @Setter
 public class RegisterUserDTO {
 
-    @NotBlank(message = "Email is required")
+    @NotNull
+    @Email(message = "Please enter a valid email address.")
     private String email;
+    @NotNull
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "Password must be at least 8 characters long and include at least one uppercase letter one lowercase letter, one number, and one special character."
+                            )
 
-    //@NotBlank(message = "Password is required")
     private String password;
+    @NotNull
+    private String confirmPassword;
 
+    public void setEmail(String email) {
+        if (email == null) {
+            this.email = null;
+        } else {
+            this.email = email.trim().toLowerCase();
+        }
+    }
 }
