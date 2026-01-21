@@ -34,12 +34,12 @@ export const Register = () => {
   };
 
   return (
-    <Grid container spacing={2}>
-      <Grid size={6}>
-        <h1>Register</h1>
+    <Grid container height="100vh">
+      <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+          <h1>SmartPay</h1>
+          <p>Join thousands of business managing their finances with ease.</p>
       </Grid>
-      <Grid size={6}>
-        <Box display="flex" flexDirection="column" alignItems={"center"}  gap={2}>
+      <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
           <h1>Create Your Account</h1>
           <p>Sign up to start managing your finances with SmartPay</p>
           <form onSubmit={handleSubmit}>
@@ -76,7 +76,7 @@ export const Register = () => {
             </Box>
           </form>
           <p>Already have an account? Sign in</p>
-        </Box>
+        
       </Grid>
     </Grid>
   );
