@@ -50,6 +50,28 @@ public class PasswordResetController {
         return code;
     }
 
+    @Operation(
+        summary = "Confirm 7-digit access code",
+        description = "Validates the OTP. Handles format validation (422), business logic mismatch (400), and expiration/security checks (401)."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Code validated successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Bad Request - Code is invalid (doesn't match the database record)."
+        ),
+        @ApiResponse(
+            responseCode = "401", 
+            description = "Unauthorized - Reset code has expired or has already been used."
+        ),
+        @ApiResponse(
+            responseCode = "422", 
+            description = "Unprocessable Entity - Validation failed (e.g., Invalid email format, code is not 7 digits, or missing fields)."
+        )
+    })
     @PostMapping("/confirm-code")
     public ResponseEntity<String> validate7DigitCode(@Valid @RequestBody ConfirmCodeDTO payload) {
         try {
