@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.LockedAccountService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
@@ -25,7 +27,7 @@ import lombok.AllArgsConstructor;
 public class PasswordResetServiceImpl implements PasswordResetService {
     private EmailService 			emailService;
     private LockedAccountService	lockedAccountService;
-    //private PasswordResetService 	passwordResetService;
+    private UserRepository			userRepository;
     private PasswordResetRepository passwordResetRepository;
     private PasswordEncoder         passwordEncoder;
 
@@ -50,7 +52,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     		return HttpStatus.TOO_MANY_REQUESTS;
     	}
     	
-    	// TODO -- Check if account exists before generating the email.
+    	Optional<User> user = userRepository.findByEmail(email);
+    	if (!user.isPresent())
+    		return HttpStatus.ACCEPTED;
+    	
         String	resetCode	= createPasswordResetCode(email);
         String	resetUrl	= ""; // TODO
         String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
