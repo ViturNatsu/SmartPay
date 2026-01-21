@@ -1,11 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetException;
+import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -51,11 +50,11 @@ public class PasswordResetController {
         try {
             accessCodeValidatorService.validate(payload);
         } catch (IllegalArgumentException | AccessCodeMismatchException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Code is invalid");
-        } catch (AccessCodeExpiredException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (InvalidTokenException e) {
             
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("This password reset link has expired or has already been used. Please request a new password reset link.");
+                    .body(e.getMessage());
         }
         return ResponseEntity.ok("Code validated successfully"); 
     }
@@ -71,16 +70,29 @@ public class PasswordResetController {
         try {
             passwordResetService.resetPasswordWithOTP(request, httpRequest);
             return ResponseEntity.ok("Password Reset Successful");
-        } catch (InvalidTokenException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMessage());
-        } catch (PasswordResetException e) {
+
+        } catch (PasswordResetDoNotMatchException e) {
+            // 400 – passwords mismatch
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(e.getMessage());
+
+        } catch (InvalidTokenException | AccessCodeMismatchException e) {
+            // 401 – invalid or expired reset code
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            // 404 – resource not found (e.g., email not found)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+
         } catch (AccountLockedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            // 429 – too many failed attempts
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("We can't process this request right now. Please try again later.");
+
         } catch (Exception e) {
+            // 500 – unexpected error
             log.error("Error resetting password with OTP", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred. Please try again later.");

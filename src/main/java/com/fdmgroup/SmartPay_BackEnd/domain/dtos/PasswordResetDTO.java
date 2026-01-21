@@ -1,7 +1,11 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class PasswordResetDTO {
 	@NotBlank
 	private String email;
@@ -10,12 +14,5 @@ public class PasswordResetDTO {
 		super();
 		this.email = email;
 	}
-	
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	
-	public String getEmail() {
-		return email;
-	}
+
 }
