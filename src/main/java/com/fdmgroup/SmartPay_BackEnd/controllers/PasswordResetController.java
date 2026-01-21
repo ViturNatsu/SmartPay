@@ -46,7 +46,7 @@ public class PasswordResetController {
     }
 
     @PostMapping("/confirm-code")
-    public ResponseEntity<String> validate7DigitCode(@RequestBody ConfirmCodeDTO payload) {
+    public ResponseEntity<String> validate7DigitCode(@Valid @RequestBody ConfirmCodeDTO payload) {
         try {
             accessCodeValidatorService.validate(payload);
         } catch (IllegalArgumentException | AccessCodeMismatchException e) {
