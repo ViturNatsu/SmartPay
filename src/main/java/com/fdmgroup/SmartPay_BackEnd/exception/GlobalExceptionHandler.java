@@ -32,6 +32,34 @@ public class GlobalExceptionHandler {
                                 .body(errors);
         }
 
+        @ExceptionHandler(PasswordResetDoNotMatchException.class)
+        public ResponseEntity<Map<String, String>> handlePasswordResetDoNotMatchExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Passwords does not match!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(AccessCodeUsedException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeUsedExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "401");
+                errorBody.put(ERROR, "Code has already been used!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
         @ExceptionHandler(AccessCodeExpiredException.class)
         public ResponseEntity<Map<String, String>> handleAccessCodeExpiredExceptions(RuntimeException ex) {
 
