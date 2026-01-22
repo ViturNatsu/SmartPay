@@ -22,6 +22,11 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
 import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("api/v1/password-reset")
 @Slf4j
@@ -34,20 +39,35 @@ public class PasswordResetController {
         this.passwordResetService = passwordResetService;
         this.accessCodeValidatorService = accessCodeValidatorService;
     }
-
-    @PostMapping
-    public ResponseEntity<String> startResetRequest(@RequestBody PasswordResetDTO dto) {
-        String email = dto.getEmail();
-        HttpStatus status = passwordResetService.startResetRequest(email);
-        return ResponseEntity.status(status).build();
-    }
+	
+	@Operation(
+		summary = "Request password reset",
+		description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists."
+	)
+	@ApiResponses(value = {
+			@ApiResponse(
+					responseCode = "202",
+					description = "Reset request accepted (Email sent if account exists)"
+			),
+			@ApiResponse(
+					responseCode = "400", 
+					description = "Invalid input (Empty email or wrong format)"
+			),
+	        @ApiResponse(
+	        		responseCode = "429", 
+	        		description = "Too many requests. Limit: 5 per 24 hours. Account locked for 24 hours."
+	        )
+	})
+	@PostMapping
+	public ResponseEntity<Void> startResetRequest(@Valid @RequestBody PasswordResetDTO dto) {
+		String 		email 	= dto.getEmail();
+		HttpStatus 	status 	= service.startResetRequest(email);
+		return ResponseEntity.status(status).build();
+	}
 
     @PostMapping("/code")
-    public String createPasswordResetCode() {
-        String email = "bob@gmail.com";
-        String code = passwordResetService.createPasswordResetCode(email);
-        System.out.println(code);
-        return code;
+    public String createPasswordResetCode(String email) {
+        return service.createPasswordResetCode(email);
     }
 
     @Operation(summary = "Confirm 7-digit access code", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")

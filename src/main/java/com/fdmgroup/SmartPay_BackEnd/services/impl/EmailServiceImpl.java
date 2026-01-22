@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
@@ -19,6 +20,7 @@ public class EmailServiceImpl implements EmailService{
         this.javaMailSender = javaMailSender;
     }
 
+    @Async
     @Override
     public String sendSimpleMail(EmailDetails details) {
         try {
