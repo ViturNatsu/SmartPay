@@ -1,7 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Calendar;
