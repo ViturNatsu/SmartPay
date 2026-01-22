@@ -2,22 +2,20 @@ import axios from "axios";
 import { useState } from "react";
 import { Box, Button, Grid, TextField, InputLabel } from "@mui/material";
 import Alert from '@mui/material/Alert';
-import axios from "axios";
+
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [error, setError] = useState("");
   const handleSubmit = (e) => {
+    setError("");
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("passwords do not match. ");
-      return;
-    }
 
     const userInfo = {
       email: email,
       password: password,
+      confirmPassword, confirmPassword
     };
     const api = "http://localhost:8080/api/v1/registration";
 
@@ -31,8 +29,11 @@ export const Register = () => {
         console.log("success");
       })
       .catch((error) => {
-        console.log("error");
-      });
+    const data = error.response?.data;
+    const message = data?.errors?.[0]?.defaultMessage || data?.message || "Registration failed. Please try again.";
+    setError(message);
+    
+  });
   };
 
   return (
@@ -44,6 +45,15 @@ export const Register = () => {
       <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
           <h1>Create Your Account</h1>
           <p>Sign up to start managing your finances with SmartPay</p>
+                    
+          {error && (
+  <Alert severity="error" sx={{ mb: 2 }}>
+    {error}
+  </Alert>
+)}
+
+
+
           <form onSubmit={handleSubmit}>
             <Box display="flex" flexDirection="column" gap={2}>
               <InputLabel shrink>Email</InputLabel>
@@ -51,11 +61,7 @@ export const Register = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onInvalid={(e) =>
-                  e.target.setCustomValidity(
-                    "Enter a valid email address (example: name@domain.com).",
-                  )
-                }
+
               />
               <InputLabel shrink>Password</InputLabel>
               <TextField
