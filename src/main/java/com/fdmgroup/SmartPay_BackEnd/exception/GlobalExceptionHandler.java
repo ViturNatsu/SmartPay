@@ -102,6 +102,20 @@ public class GlobalExceptionHandler {
                                 .body(errorBody);
         }
 
+        @ExceptionHandler(UserNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleUserNotFoundExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "User not found!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
         @ExceptionHandler(AccountLockedException.class)
         public ResponseEntity<Map<String, String>> handleAccountLockedExceptions(RuntimeException ex) {
 
