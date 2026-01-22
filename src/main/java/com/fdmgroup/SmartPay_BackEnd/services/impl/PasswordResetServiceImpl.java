@@ -9,39 +9,28 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
+import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.LockedAccountService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
-import lombok.AllArgsConstructor;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
