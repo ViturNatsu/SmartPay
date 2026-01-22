@@ -31,18 +31,19 @@ export const Register = () => {
         setErrorMessage("")
       })
       .catch((error) => {
-    const data = error.response?.data;
-    const message = data?.errors?.[0]?.defaultMessage || data?.message || "Registration failed. Please try again.";
-    setErrorMessage(message);
-    
+      const data = error.response?.data;
+      const message = data?.errors?.[0]?.defaultMessage || data?.message || "Registration failed. Please try again.";
+      setErrorMessage(message);
+      
   
 
     
         
         const status = error.response.status;
-
+         if (status === 429) {
+          setErrorMessage("We can’t process your request right now. Please try again later.");
+         }
         if (status === 409) {
-        
           setErrorMessage(
             <>
               We can’t create an account with that email.{" "}
