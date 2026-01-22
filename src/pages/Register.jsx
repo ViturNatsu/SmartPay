@@ -18,6 +18,7 @@ export const Register = () => {
     const userInfo = {
       email: email,
       password: password,
+      confirmPassword: confirmPassword
     };
     const api = "http://localhost:8080/api/v1/registration";
 
@@ -32,10 +33,25 @@ export const Register = () => {
         setErrorMessage("")
       })
       .catch((error) => {
-        console.log("error");
-        setErrorMessage(
-          "We can’t create an account with that email. Please sign in, or reset your password if you already have an account."
-        );
+        if (!error.response) {
+          setErrorMessage("Network error. Please try again later.");
+          return;
+        }
+        
+        const status = error.response.status;
+
+        if (status === 429) {
+          setErrorMessage("We can’t process your request right now. Please try again later.");
+        } else {
+          setErrorMessage(
+            <>
+              We can’t create an account with that email.{" "}
+              <Link href="/login" underline="hover">Sign in</Link> or{" "}
+              <Link href="/reset-password" underline="hover">reset your password</Link>{" "}
+              if you already have an account.
+            </>
+          );
+        }
       });
   };
 
@@ -86,15 +102,7 @@ export const Register = () => {
           </p>
           {errorMessage && (
             <Alert severity="error" sx={{ mt: 2, maxWidth: 420 }}>
-              {`We can’t create an account with that email. `}
-              <Link href="/login" underline="hover">
-                Sign in
-              </Link>
-              {` or `}
-              <Link href="/reset-password" underline="hover">
-                reset your password
-              </Link>
-              {` if you already have an account.`}
+              {errorMessage}
             </Alert>
           )}
         
