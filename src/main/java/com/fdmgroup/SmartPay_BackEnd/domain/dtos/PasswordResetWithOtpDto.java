@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -30,10 +31,11 @@ public class PasswordResetWithOtpDto {
     @Schema(description = "Confirm the new password", example = "Password@123")
     private String password2;
 
+    @JsonProperty("access-code")
     @NotBlank(message = "Code is required")
     @Pattern(regexp = "^\\d{7}$", message = "Code must be exactly 7 digits")
-    @Schema(description = "7-digit access code sent via email or SMS", example = "1234567")
-    private String code;
+    @Schema(example = "1234567", description = "The 7-digit OTP")
+    private String accessCode;
 
     public boolean passwordsMatch() {
         return password1 != null && password1.equals(password2);
