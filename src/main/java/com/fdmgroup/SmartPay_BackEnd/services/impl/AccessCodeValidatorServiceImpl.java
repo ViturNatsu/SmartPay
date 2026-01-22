@@ -4,6 +4,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.*;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
+import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,24 +24,28 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
     private final PasswordResetRepository passwordResetRepository;
     private final PasswordEncoder argonPasswordEncoder;
     private final AuditService auditService;
+    private final UserService userService;
 
     public AccessCodeValidatorServiceImpl(PasswordResetRepository passwordResetRepository,
-                                        PasswordEncoder argonPasswordEncoder, AuditService auditService) {
+            PasswordEncoder argonPasswordEncoder, AuditService auditService, UserService userService) {
         this.passwordResetRepository = passwordResetRepository;
         this.argonPasswordEncoder = argonPasswordEncoder;
         this.auditService = auditService;
+        this.userService = userService;
     }
 
     @Override
-    public PasswordReset validate(ConfirmCodeDTO payload,HttpServletRequest httpRequest){
+    public PasswordReset validate(ConfirmCodeDTO payload, HttpServletRequest httpRequest) {
         String accessCode = payload.getAccessCode();
-        PasswordReset resetRequest = passwordResetRepository.findTopByEmailOrderByCreatedAtDesc(payload.getEmail())
-                .orElseThrow(() -> new InvalidTokenException("This code is invalid. Please verify the code and try again."));
+        PasswordReset resetRequest = passwordResetRepository.findByEmail(payload.getEmail())
+                .orElseThrow(
+                        () -> new EmailNotFoundException(
+                                "No request is found for the provided email address."));
 
         if (!argonPasswordEncoder.matches(accessCode, resetRequest.getTokenHash())) {
             throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
         }
-        User user = resetRequest.getUser();
+        User user = userService.findByEmail(payload.getEmail());
 
         // Check if OTP is expired
         if (resetRequest.isExpired()) {
@@ -48,8 +54,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_EXPIRED, user, eventData, httpRequest);
 
             throw new AccessCodeExpiredException(
-                    "This password reset link has expired or has already been used. Please request a new password reset link"
-            );
+                    "This code has expired or has already been used. Please request a new code");
         }
 
         // Check if OTP is already used
@@ -59,8 +64,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_USED, user, eventData, httpRequest);
 
             throw new AccessCodeUsedException(
-                    "This password reset link has expired or has already been used. Please request a new password reset link"
-            );
+                    "This code has expired or has already been used. Please request a new code");
         }
         // Check if OTP has attempts remaining
         if (resetRequest.getAttemptsRemaining() <= 0) {
@@ -69,8 +73,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             auditService.logEvent(AuditLog.INVALID_RESET_CODE, user, eventData, httpRequest);
 
             throw new AccountLockedException(
-                    "We can’t process this request right now. Please try again later"
-            );
+                    "We can’t process this request right now. Please try again later");
         }
 
         return resetRequest;

@@ -1,6 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
-
 import java.time.LocalDateTime;
 
 import org.springframework.boot.CommandLineRunner;
@@ -19,9 +18,9 @@ public class TestDeleteLater implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public TestDeleteLater(PasswordResetRepository resetRepository, 
-                           UserRepository userRepository, 
-                           PasswordEncoder passwordEncoder) {
+    public TestDeleteLater(PasswordResetRepository resetRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.resetRepository = resetRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,14 +36,13 @@ public class TestDeleteLater implements CommandLineRunner {
                 .emailVerified(true)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         userRepository.save(testUser);
 
         // 2. Create the PasswordReset using its Builder
         String rawCode = "1234567";
         PasswordReset dummyReset = PasswordReset.builder()
                 .email("test@gmail.com")
-                .user(testUser)
                 .tokenHash(passwordEncoder.encode(rawCode)) // Matches your service logic
                 .type(PasswordReset.PasswordResetType.PASSWORD_RESET)
                 .attemptsRemaining(5)
@@ -55,9 +53,8 @@ public class TestDeleteLater implements CommandLineRunner {
 
         resetRepository.save(dummyReset);
 
-
-        //dummyReset.markAsUsed();
-        //resetRepository.save(dummyReset);
+        // dummyReset.markAsUsed();
+        // resetRepository.save(dummyReset);
 
         System.out.println("DEBUG: Created dummy record for test@gmail.com with code: " + rawCode);
     }

@@ -50,58 +50,35 @@ public class PasswordResetController {
         return code;
     }
 
-    @Operation(
-        summary = "Confirm 7-digit access code",
-        description = "Validates the OTP. Handles format validation (422), business logic mismatch (400), and expiration/security checks (401)."
-    )
+    @Operation(summary = "Confirm 7-digit access code", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "Code validated successfully"
-        ),
-        @ApiResponse(
-            responseCode = "400", 
-            description = "Bad Request - Code is invalid (doesn't match the database record)."
-        ),
-        @ApiResponse(
-            responseCode = "401", 
-            description = "Unauthorized - Reset code has expired or has already been used."
-        ),
-        @ApiResponse(
-            responseCode = "422", 
-            description = "Unprocessable Entity - Validation failed (e.g., Invalid email format, code is not 7 digits, or missing fields)."
-        )
+            @ApiResponse(responseCode = "200", description = "Code validated successfully", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Email address not found", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "422", description = "Code is too weak or validation failed", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @PostMapping("/confirm-code")
     public ResponseEntity<String> validate7DigitCode(
             @Valid @RequestBody ConfirmCodeDTO payload,
             HttpServletRequest httpRequest) {
         accessCodeValidatorService.validate(payload, httpRequest);
-        return ResponseEntity.ok("Code validated successfully"); 
+        return ResponseEntity.ok("Code validated successfully");
     }
 
     /**
      * Reset password using OTP code
      */
-    @Operation(
-            summary = "Reset password using OTP",
-            description = "Submits a new password along with a one-time access code to reset the user's password."
-    )
+    @Operation(summary = "Reset password using OTP", description = "Submits a new password along with a one-time access code to reset the user's password.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset successful",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "400", description = "Passwords do not match",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "404", description = "Email address not found",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "422", description = "Password is too weak or validation failed",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later",
-                    content = @Content(schema = @Schema(implementation = String.class)))
+            @ApiResponse(responseCode = "200", description = "Password reset successful", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Passwords do not match", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Email address not found", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "422", description = "Password is too weak or validation failed", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @PutMapping("/change-password")
     public ResponseEntity<String> resetPasswordWithOTP(
