@@ -115,14 +115,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             if(now.isAfter(resetTime)) {
                 passwordReset.setAttemptsRemaining(4);
                 passwordReset.setTokenHash(resetCodeHashed);
-                passwordReset.setType("CODE");
-                passwordReset.setStatus("VALID");
+                passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+                passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
                 passwordReset.setCreatedAt(now);
                 passwordReset.setExpiresAt(now.plusMinutes(45));
             } else if(passwordReset.getAttemptsRemaining() > 0) {
                 passwordReset.setTokenHash(resetCodeHashed);
-                passwordReset.setType("CODE");
-                passwordReset.setStatus("VALID");
+                passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+                passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
                 passwordReset.setCreatedAt(now);
                 passwordReset.setExpiresAt(now.plusMinutes(45));
                 passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
