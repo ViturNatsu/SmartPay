@@ -6,10 +6,11 @@ import { ResetPassword } from './pages/ResetPassword';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { BrowserRouter as Router, Routes, Route  } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute';
-
+import { GlobalStyles } from './GlobalStyles';
 export default function App() {
   return (
     <Router>
+      <GlobalStyles />
       <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
