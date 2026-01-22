@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/v*/password-reset/**","/api/v*/registration/**","/api/v*/email/sendemail/**","/h2-console/**").permitAll()
+                .requestMatchers("/api/v*/password-reset/**","/api/v*/registration/**","/api/v*/email/send-email/**","/h2-console/**").permitAll()
                 .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
