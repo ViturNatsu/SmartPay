@@ -1,5 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -46,7 +48,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     public HttpStatus startResetRequest(String email) {
     	try { // Make sure a user actually exists before attempting any reset request logic.
-    		User user = userService.findUserByEmail(email);
+    		userService.findUserByEmail(email);
     	} catch (UserNotFoundException e) {
     		System.out.println(e.getMessage());
     		return HttpStatus.ACCEPTED;

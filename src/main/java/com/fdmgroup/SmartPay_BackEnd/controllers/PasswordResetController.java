@@ -1,11 +1,19 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
+import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,18 +22,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
-import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/v1/password-reset")
@@ -61,13 +57,13 @@ public class PasswordResetController {
 	@PostMapping
 	public ResponseEntity<Void> startResetRequest(@Valid @RequestBody PasswordResetDTO dto) {
 		String 		email 	= dto.getEmail();
-		HttpStatus 	status 	= service.startResetRequest(email);
+		HttpStatus 	status 	= passwordResetService.startResetRequest(email);
 		return ResponseEntity.status(status).build();
 	}
 
     @PostMapping("/code")
     public String createPasswordResetCode(String email) {
-        return service.createPasswordResetCode(email);
+        return passwordResetService.createPasswordResetCode(email);
     }
 
     @Operation(summary = "Confirm 7-digit access code", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")
