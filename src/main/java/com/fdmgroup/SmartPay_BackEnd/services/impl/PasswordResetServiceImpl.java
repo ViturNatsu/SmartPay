@@ -153,7 +153,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         // Find the otp record and validate
         PasswordReset passwordResetEntity = accessCodeValidator
                 .validate(new ConfirmCodeDTO(request.getEmail(), request.getAccessCode()), httpRequest);
-        User user = userService.findByEmail(passwordResetEntity.getEmail());
+        User user = userService.findUserByEmail(passwordResetEntity.getEmail());
 
         // Update password
         user.setPassword(passwordEncoder.encode(request.getPassword1()));
