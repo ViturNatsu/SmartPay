@@ -33,4 +33,8 @@ public class UserServiceImpl implements UserService {
 			throw new UserNotFoundException("No user exists with matching email address!");
 		return user.get();
 	}
+    @Override
+    public void save(User user){
+        userRepository.save(user);
+    }
 }

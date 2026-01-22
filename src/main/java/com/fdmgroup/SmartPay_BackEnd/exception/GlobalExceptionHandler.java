@@ -1,0 +1,133 @@
+package com.fdmgroup.SmartPay_BackEnd.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+        private static final String STATUS = "status";
+        private static final String ERROR = "error";
+        private static final String MESSAGE = "message";
+
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<Map<String, String>> handleValidationErrors(
+                        MethodArgumentNotValidException exception) {
+                Map<String, String> errors = new HashMap<>();
+
+                exception.getBindingResult()
+                                .getFieldErrors()
+                                .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+
+                return ResponseEntity
+                                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                                .body(errors);
+        }
+
+        @ExceptionHandler(PasswordResetDoNotMatchException.class)
+        public ResponseEntity<Map<String, String>> handlePasswordResetDoNotMatchExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Passwords does not match!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(AccessCodeUsedException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeUsedExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "401");
+                errorBody.put(ERROR, "Code has already been used!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(AccessCodeExpiredException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeExpiredExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "401");
+                errorBody.put(ERROR, "Code has expired!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(AccessCodeMismatchException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeMismatchExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Code is invalid!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(EmailNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleEmailNotFoundExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Email not found!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(AccountLockedException.class)
+        public ResponseEntity<Map<String, String>> handleAccountLockedExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "429");
+                errorBody.put(ERROR, "Account is locked!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.TOO_MANY_REQUESTS)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "500");
+                errorBody.put(ERROR, "Internal Server Error");
+                errorBody.put(MESSAGE, ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred");
+
+                return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+}

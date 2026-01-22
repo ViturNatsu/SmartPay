@@ -22,10 +22,33 @@ import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
 import lombok.AllArgsConstructor;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class PasswordResetServiceImpl implements PasswordResetService {
+    private AuditService            auditService;
+    private AccessCodeValidator     accessCodeValidator;
     private EmailService 			emailService;
     private LockedAccountService	lockedAccountService;
     private UserService				userService;
@@ -70,7 +93,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 resetUrl +
 
                 "\n\n" +
-                "This link and code will expire in 40 minutes.\n\n" +
+                "This link and code will expire in 45 minutes.\n\n" +
                 "If you did not request this change, you can safely ignore this email.\n\n" +
                 "Thank you,\n" +
                 "The SmartPay Support Team";
@@ -110,14 +133,42 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             // Not present in DB need to create entry
             passwordReset = new PasswordReset(email);
             passwordReset.setTokenHash(resetCodeHashed);
-            passwordReset.setType("CODE");
-            passwordReset.setStatus("VALID");
+            passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setAttemptsRemaining(4);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
         }
         passwordResetRepository.save(passwordReset);
         return resetCodeRaw;
+    }
+
+    @Override
+    @Transactional
+    public void resetPasswordWithOTP(PasswordResetWithOtpDto request, HttpServletRequest httpRequest) {
+        // validate password match
+        if (!request.passwordsMatch()) {
+            throw new PasswordResetDoNotMatchException("Password does not match.");
+        }
+        // Find the otp record and validate
+        PasswordReset passwordResetEntity = accessCodeValidator
+                .validate(new ConfirmCodeDTO(request.getEmail(), request.getAccessCode()), httpRequest);
+        User user = userService.findByEmail(passwordResetEntity.getEmail());
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getPassword1()));
+        user.setLastPasswordChangeAt(LocalDateTime.now());
+        userService.save(user);
+
+        // Mark OTP as used
+        passwordResetEntity.markAsUsed();
+        passwordResetRepository.save(passwordResetEntity);
+
+        // Log successful password reset
+        // audit the record of change password
+        auditService.logEvent(AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
+        log.info("Password successfully reset with OTP for user: {}", user.getEmail());
+
     }
 
     public String generatePasswordResetCode() {
