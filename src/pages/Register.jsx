@@ -1,21 +1,22 @@
 import axios from "axios";
 import { useState } from "react";
-import { Box, Button, Grid, TextField, InputLabel } from "@mui/material";
+import { Box, Button, Grid, TextField, InputLabel, Link } from "@mui/material";
 import Alert from '@mui/material/Alert';
 
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleSubmit = (e) => {
-    setError("");
+    
     e.preventDefault();
 
     const userInfo = {
       email: email,
       password: password,
-      confirmPassword, confirmPassword
+      confirmPassword: confirmPassword
     };
     const api = "http://localhost:8080/api/v1/registration";
 
@@ -27,13 +28,32 @@ export const Register = () => {
       .post(api, userInfo, auth)
       .then((response) => {
         console.log("success");
+        setErrorMessage("")
       })
       .catch((error) => {
     const data = error.response?.data;
     const message = data?.errors?.[0]?.defaultMessage || data?.message || "Registration failed. Please try again.";
-    setError(message);
+    setErrorMessage(message);
     
-  });
+  
+
+    
+        
+        const status = error.response.status;
+
+        if (status === 409) {
+        
+          setErrorMessage(
+            <>
+              We can’t create an account with that email.{" "}
+              <Link href="/login" underline="hover">Sign in</Link> or{" "}
+              <Link href="/reset-password" underline="hover">reset your password</Link>{" "}
+              if you already have an account.
+            </>
+          );
+        }
+      });
+
   };
 
   return (
@@ -46,9 +66,9 @@ export const Register = () => {
           <h1>Create Your Account</h1>
           <p>Sign up to start managing your finances with SmartPay</p>
                     
-          {error && (
+          {errorMessage && (
   <Alert severity="error" sx={{ mb: 2 }}>
-    {error}
+    {errorMessage}
   </Alert>
 )}
 
@@ -81,7 +101,12 @@ export const Register = () => {
               </Button>
             </Box>
           </form>
-          <p>Already have an account? Sign in</p>
+          <p>Already have an account?{" "}
+            <Link href="/login" underline="hover">
+                Sign in
+            </Link>
+          </p>
+
         
       </Grid>
     </Grid>
