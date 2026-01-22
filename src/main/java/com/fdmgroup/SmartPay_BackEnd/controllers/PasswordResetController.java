@@ -73,16 +73,10 @@ public class PasswordResetController {
         )
     })
     @PostMapping("/confirm-code")
-    public ResponseEntity<String> validate7DigitCode(@Valid @RequestBody ConfirmCodeDTO payload) {
-        try {
-            accessCodeValidatorService.validate(payload);
-        } catch (IllegalArgumentException | AccessCodeMismatchException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (InvalidTokenException e) {
-            
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMessage());
-        }
+    public ResponseEntity<String> validate7DigitCode(
+            @Valid @RequestBody ConfirmCodeDTO payload,
+            HttpServletRequest httpRequest) {
+        accessCodeValidatorService.validate(payload, httpRequest);
         return ResponseEntity.ok("Code validated successfully"); 
     }
 
@@ -113,36 +107,7 @@ public class PasswordResetController {
     public ResponseEntity<String> resetPasswordWithOTP(
             @Valid @RequestBody PasswordResetWithOtpDto request,
             HttpServletRequest httpRequest) {
-
-        try {
-            passwordResetService.resetPasswordWithOTP(request, httpRequest);
-            return ResponseEntity.ok("Password Reset Successful");
-
-        } catch (PasswordResetDoNotMatchException e) {
-            // 400 – passwords mismatch
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
-
-        } catch (InvalidTokenException | AccessCodeMismatchException e) {
-            // 401 – invalid or expired reset code
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMessage());
-
-        } catch (IllegalArgumentException e) {
-            // 404 – resource not found (e.g., email not found)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(e.getMessage());
-
-        } catch (AccountLockedException e) {
-            // 429 – too many failed attempts
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("We can't process this request right now. Please try again later.");
-
-        } catch (Exception e) {
-            // 500 – unexpected error
-            log.error("Error resetting password with OTP", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred. Please try again later.");
-        }
+        passwordResetService.resetPasswordWithOTP(request, httpRequest);
+        return ResponseEntity.ok("Password Reset Successful");
     }
 }

@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,10 +24,9 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class PasswordResetServiceImpl implements PasswordResetService {
-
     PasswordResetRepository passwordResetRepository;
     AuditService auditService;
-    private EmailService emailService;
+    EmailService emailService;
     UserService userService;
     PasswordEncoder passwordEncoder;
     AccessCodeValidator accessCodeValidator;
@@ -116,7 +116,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
         // Find the otp record and validate
         PasswordReset passwordResetEntity = accessCodeValidator.validate(new ConfirmCodeDTO(request.getEmail(),request.getCode()), httpRequest);
-        User user = passwordResetEntity.getUser();
+        User user = userService.findByEmail(passwordResetEntity.getEmail());
 
         // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

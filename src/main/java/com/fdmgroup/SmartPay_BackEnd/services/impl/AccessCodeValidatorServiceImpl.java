@@ -2,8 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.InvalidTokenException;
+import com.fdmgroup.SmartPay_BackEnd.exception.*;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,8 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.PasswordResetRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 
@@ -34,33 +31,14 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
     }
 
     @Override
-    public void validate(ConfirmCodeDTO payload) {
-
+    public PasswordReset validate(ConfirmCodeDTO payload,HttpServletRequest httpRequest){
         String accessCode = payload.getAccessCode();
-
-        String email = payload.getEmail();
-
-        PasswordReset resetRequest = passwordResetRepository.findTopByEmailOrderByCreatedAtDesc(email)
-                .orElseThrow(() -> new IllegalArgumentException("No reset request found for the provided email"));
-
-        if (resetRequest.isExpired() || resetRequest.isUsed()) {
-            throw new AccessCodeExpiredException(
-                    "This password reset link has expired or has already been used. Please request a new password reset link");
-        }
+        PasswordReset resetRequest = passwordResetRepository.findTopByEmailOrderByCreatedAtDesc(payload.getEmail())
+                .orElseThrow(() -> new InvalidTokenException("This code is invalid. Please verify the code and try again."));
 
         if (!argonPasswordEncoder.matches(accessCode, resetRequest.getTokenHash())) {
             throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
         }
-    }
-    
-    @Override
-    public PasswordReset validate(ConfirmCodeDTO payload,HttpServletRequest httpRequest){
-        String accessCode = payload.getAccessCode();
-        String email = payload.getEmail();
-
-        PasswordReset resetRequest = passwordResetRepository.findTopByEmailOrderByCreatedAtDesc(email)
-                .orElseThrow(() -> new IllegalArgumentException("No reset request found for the provided email"));
-
         User user = resetRequest.getUser();
 
         // Check if OTP is expired
@@ -69,7 +47,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             eventData.put("reason", "expired");
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_EXPIRED, user, eventData, httpRequest);
 
-            throw new InvalidTokenException(
+            throw new AccessCodeExpiredException(
                     "This password reset link has expired or has already been used. Please request a new password reset link"
             );
         }
@@ -80,7 +58,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             eventData.put("reason", "already_used");
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_USED, user, eventData, httpRequest);
 
-            throw new InvalidTokenException(
+            throw new AccessCodeUsedException(
                     "This password reset link has expired or has already been used. Please request a new password reset link"
             );
         }
@@ -93,10 +71,6 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             throw new AccountLockedException(
                     "We can’t process this request right now. Please try again later"
             );
-        }
-
-        if (!argonPasswordEncoder.matches(accessCode, resetRequest.getTokenHash())) {
-            throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
         }
 
         return resetRequest;

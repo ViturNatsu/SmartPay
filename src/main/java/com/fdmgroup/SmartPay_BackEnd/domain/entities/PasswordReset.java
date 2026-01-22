@@ -34,10 +34,6 @@ public class PasswordReset {
     @Column(unique = true, name = "user_email")
     private String email;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Column(name = "token_hash", nullable = false)
     private String tokenHash;
 
