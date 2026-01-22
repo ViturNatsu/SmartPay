@@ -50,12 +50,12 @@ public class GlobalExceptionHandler {
         public ResponseEntity<Map<String, String>> handleAccessCodeMismatchExceptions(RuntimeException ex) {
 
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "401");
+                errorBody.put(STATUS, "400");
                 errorBody.put(ERROR, "Code is invalid!");
                 errorBody.put(MESSAGE, ex.getMessage());
 
                 return ResponseEntity
-                                .status(HttpStatus.UNAUTHORIZED)
+                                .status(HttpStatus.BAD_REQUEST)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(errorBody);
         }

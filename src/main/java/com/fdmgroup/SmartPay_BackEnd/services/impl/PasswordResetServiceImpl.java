@@ -32,9 +32,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     AccessCodeValidator accessCodeValidator;
 
     public PasswordResetServiceImpl(PasswordResetRepository passwordResetRepository,
-                                    AuditService auditService, EmailService emailService,
-                                    UserService userService, PasswordEncoder passwordEncoder,
-                                    AccessCodeValidator accessCodeValidator){
+            AuditService auditService, EmailService emailService,
+            UserService userService, PasswordEncoder passwordEncoder,
+            AccessCodeValidator accessCodeValidator) {
         this.passwordResetRepository = passwordResetRepository;
         this.auditService = auditService;
         this.emailService = emailService;
@@ -44,11 +44,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     }
 
     public HttpStatus startResetRequest(String email) {
-        // TODO -- Check if account is currently locked and return TOO_MANY_REQUESTS if so.
+        // TODO -- Check if account is currently locked and return TOO_MANY_REQUESTS if
+        // so.
 
-        String	resetCode	= ""; // TODO
-        String	resetUrl	= ""; // TODO
-        String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
+        String resetCode = ""; // TODO
+        String resetUrl = ""; // TODO
+        String msgBody = "--- PASSWORD RESET --- \n\n" +
                 "A password change was requested for your SmartPay account.\n\n" +
                 "Here is your password reset code: " + resetCode + "\n\n" +
                 "If this was you, follow the link below to reset your password:\n\n" +
@@ -68,12 +69,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     // Generates/Updates entry in PASSWORD_RESET table
     // TODO: Add hashing to encrypt the reset code
     public String createPasswordResetCode(String email) {
-        //passwordResetRepository.findByEmail(email);
+        // passwordResetRepository.findByEmail(email);
         PasswordReset passwordReset;
         Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
         LocalDateTime now = LocalDateTime.now();
         String resetCode = generatePasswordResetCode();
-        if(passwordResetOpt.isPresent()){
+        if (passwordResetOpt.isPresent()) {
             passwordReset = passwordResetOpt.get();
 
             passwordReset.setTokenHash(resetCode);
@@ -81,11 +82,11 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
-            if(passwordReset.getAttemptsRemaining() > 0){
+            if (passwordReset.getAttemptsRemaining() > 0) {
                 passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
             } else {
                 LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
-                if(now.isAfter(resetTime)){
+                if (now.isAfter(resetTime)) {
                     passwordReset.setAttemptsRemaining(4);
                 } else {
                     // TODO: Reject their request
@@ -111,15 +112,16 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Transactional
     public void resetPasswordWithOTP(PasswordResetWithOtpDto request, HttpServletRequest httpRequest) {
         // validate password match
-        if(!request.passwordsMatch()){
+        if (!request.passwordsMatch()) {
             throw new PasswordResetDoNotMatchException("Password does not match.");
         }
         // Find the otp record and validate
-        PasswordReset passwordResetEntity = accessCodeValidator.validate(new ConfirmCodeDTO(request.getEmail(),request.getCode()), httpRequest);
+        PasswordReset passwordResetEntity = accessCodeValidator
+                .validate(new ConfirmCodeDTO(request.getEmail(), request.getCode()), httpRequest);
         User user = userService.findByEmail(passwordResetEntity.getEmail());
 
         // Update password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword1()));
         user.setLastPasswordChangeAt(LocalDateTime.now());
         userService.save(user);
 

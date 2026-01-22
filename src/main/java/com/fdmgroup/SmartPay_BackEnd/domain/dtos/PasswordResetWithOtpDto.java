@@ -22,16 +22,13 @@ public class PasswordResetWithOtpDto {
 
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
-    @Pattern(
-            regexp = "^(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).*$",
-            message = "Password must contain at least 1 special character"
-    )
+    @Pattern(regexp = "^(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).*$", message = "Password must contain at least 1 special character")
     @Schema(description = "New password (min 8 chars, at least 1 special character)", example = "Password@123")
-    private String newPassword;
+    private String password1;
 
     @NotBlank(message = "Password confirmation is required")
     @Schema(description = "Confirm the new password", example = "Password@123")
-    private String confirmPassword;
+    private String password2;
 
     @NotBlank(message = "Code is required")
     @Pattern(regexp = "^\\d{7}$", message = "Code must be exactly 7 digits")
@@ -39,6 +36,6 @@ public class PasswordResetWithOtpDto {
     private String code;
 
     public boolean passwordsMatch() {
-        return newPassword != null && newPassword.equals(confirmPassword);
+        return password1 != null && password1.equals(password2);
     }
 }
