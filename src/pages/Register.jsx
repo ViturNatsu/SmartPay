@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Box, Button, Grid, TextField, InputLabel } from "@mui/material";
+import { Box, Button, Grid, TextField, InputLabel, Link } from "@mui/material";
 import Alert from '@mui/material/Alert';
 import axios from "axios";
 export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,9 +29,13 @@ export const Register = () => {
       .post(api, userInfo, auth)
       .then((response) => {
         console.log("success");
+        setErrorMessage("")
       })
       .catch((error) => {
         console.log("error");
+        setErrorMessage(
+          "We can’t create an account with that email. Please sign in, or reset your password if you already have an account."
+        );
       });
   };
 
@@ -74,7 +79,24 @@ export const Register = () => {
               </Button>
             </Box>
           </form>
-          <p>Already have an account? Sign in</p>
+          <p>Already have an account?{" "}
+            <Link href="/login" underline="hover">
+                Sign in
+            </Link>
+          </p>
+          {errorMessage && (
+            <Alert severity="error" sx={{ mt: 2, maxWidth: 420 }}>
+              {`We can’t create an account with that email. `}
+              <Link href="/login" underline="hover">
+                Sign in
+              </Link>
+              {` or `}
+              <Link href="/reset-password" underline="hover">
+                reset your password
+              </Link>
+              {` if you already have an account.`}
+            </Alert>
+          )}
         
       </Grid>
     </Grid>
