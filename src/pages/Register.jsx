@@ -14,6 +14,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person"
 import MailIcon from "@mui/icons-material/Mail";
 import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
@@ -23,13 +24,19 @@ import CheckIcon from '@mui/icons-material/Check';
 import logo from "../assets/logo.png";
 import Alert from '@mui/material/Alert';
 import { register } from "../api/authApi";
+import { use } from "react";
+
 export const Register = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
+  const [institution, setInstitution] = useState("");
 
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -163,8 +170,12 @@ export const Register = () => {
         </Box>
       </Box>
       <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
-        <h1>Create Your Account</h1>
-        <p>Sign up to start managing your finances with SmartPay</p>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+        Create Your Account
+        </Typography>
+        <Typography sx={{ color: "text.secondary", mb: 3 }}>
+        Sign up to start managing your finances with SmartPay
+        </Typography>
 
               {errorMessage && (
   <Alert severity="error" sx={{ mb: 2 }}>
@@ -174,43 +185,244 @@ export const Register = () => {
 
         <form onSubmit={handleSubmit}>
           <Box display="flex" flexDirection="column" gap={2}>
+            <Box display="flex" gap={2}>
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  First Name
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Last Name
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Typography
+              sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+              }}
+              >
+              Financial Institution
+            </Typography>
             <TextField
-              label="Email"
+              select
+              fullWidth
+              slotProps={{
+                  input: {
+                  startAdornment: (
+                      <InputAdornment position="start">
+                      <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                      </InputAdornment>
+                  ),
+                  },
+              }}
+              value={institution}
+              onChange={(e) => setInstitution(e.target.value)}
+              placeholder="Select institution"
+              sx={{ mb: 0 }}
+              >
+              <MenuItem value="">Select institution</MenuItem>
+              <MenuItem value="chase">Chase</MenuItem>
+              <MenuItem value="boa">Bank of America</MenuItem>
+              <MenuItem value="wells">Wells Fargo</MenuItem>
+              <MenuItem value="other">Other</MenuItem>
+            </TextField>  
+              
+            <Typography
+              sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+              }}
+              >
+              Email Address
+            </Typography>
+            <TextField
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
+              slotProps={{
+                  input: {
+                  startAdornment: (
+                      <InputAdornment position="start">
+                      <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                      </InputAdornment>
+                  ),
+                  },
+              }}
             />
 
+            <Typography
+              sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+              }}
+              >
+              Password
+            </Typography>
             <TextField
-              type="password"
-              label="Password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={passwordError}
-              helperText={passwordError ? "Password must be at least 8 characters and include a mix of letters, numbers, and symbols." : ""}
+              helperText={"Must be at least 8 characters with uppercase, lowercase, numbers, and symbols"}
+              slotProps={{
+                input: {
+                startAdornment: (
+                    <InputAdornment position="start">
+                    <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                    </InputAdornment>
+                ),
+                endAdornment: (
+                    <InputAdornment position="end">
+                    <IconButton
+                        edge="end"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                        }
+                        sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                    >
+                        {showPassword ? (
+                        <VisibilityOffIcon />
+                        ) : (
+                        <VisibilityIcon />
+                        )}
+                    </IconButton>
+                    </InputAdornment>
+                ),
+                },
+            }}
             />
 
+            <Typography
+              sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+              }}
+              >
+              Confirm Password
+            </Typography>
             <TextField
-              type="password"
-              label="Confirm Password"
+              type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={confirmPasswordError}
               helperText={confirmPasswordError ? "Passwords must match" : ""}
+              slotProps={{
+                input: {
+                startAdornment: (
+                    <InputAdornment position="start">
+                    <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                    </InputAdornment>
+                ),
+                endAdornment: (
+                    <InputAdornment position="end">
+                    <IconButton
+                        edge="end"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                        }
+                        sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                    >
+                        {showConfirmPassword ? (
+                        <VisibilityOffIcon />
+                        ) : (
+                        <VisibilityIcon />
+                        )}
+                    </IconButton>
+                    </InputAdornment>
+                ),
+                },
+            }}
             />
 
-            <Button variant="contained" type="submit">
+            <Button 
+              variant="contained" 
+              type="submit"
+              sx={{
+                py: 1.2,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+                mb: 2,
+                boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+              }}
+              >
               Create Account
             </Button>
           </Box>
         </form>
-        <p>Already have an account?{" "}
-          <Link href="/login" underline="hover">
-            Sign in
+        <Typography
+          sx={{
+              fontSize: 13,
+              color: "text.secondary",
+              textAlign: "center",
+          }}
+          >
+          Already have an account?{" "}
+          <Link href="/login" underline="hover" sx={{ fontWeight: 700 }}>
+              Sign in
           </Link>
-        </p>
+        </Typography>
+
         {
           successMessage && (
           <Alert icon={<CheckIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
