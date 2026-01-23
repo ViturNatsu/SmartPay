@@ -4,8 +4,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,9 +23,6 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @PostMapping
-    @Operation(summary = "Register and create new user")
-    @ApiResponse(responseCode = "201", description = "User registered/created.")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User creation payload", required = true)
     public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDTO userDto) {
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             throw new IllegalArgumentException("Password and confirm password do not match");

@@ -1,15 +1,15 @@
 package com.fdmgroup.SmartPay_BackEnd.services;
 
-import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -20,10 +20,10 @@ public class RegistrationService {
     public User register(RegisterUserDTO userDto) {
         String email = consistentEmail(userDto.getEmail());
 
-        List<User> users =  userRepository.findByEmail(email);
-        if(users.isEmpty()){
-            User user = new User(email, userDto.getPassword());
-            return userService.signUpUser(user);
+        Optional<User> user =  userRepository.findByEmail(email);
+        if(!user.isPresent()){
+            User addUser = new User(email, userDto.getPassword());
+            return userService.signUpUser(addUser);
         }
         else {
             throw new DuplicateEmailException("Email already in use");
