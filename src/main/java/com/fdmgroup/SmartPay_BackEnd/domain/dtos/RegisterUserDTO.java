@@ -24,4 +24,11 @@ public class RegisterUserDTO {
     @NotNull
     private String confirmPassword;
 
+    public void setEmail(String email) {
+        if (email == null) {
+            this.email = null;
+        } else {
+            this.email = email.trim().toLowerCase();
+        }
+    }
 }
