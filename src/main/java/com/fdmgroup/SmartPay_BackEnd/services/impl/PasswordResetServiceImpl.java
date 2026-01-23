@@ -45,13 +45,15 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private PasswordEncoder         passwordEncoder;
 
     public HttpStatus startResetRequest(String email) {
-    	try { // Make sure a user actually exists before attempting any reset request logic.
+    	// Make sure user exists before attempting reset request logic.
+    	try {
     		userService.findUserByEmail(email);
     	} catch (UserNotFoundException e) {
     		System.out.println(e.getMessage());
     		return HttpStatus.ACCEPTED;
     	}
     	
+    	// Check if account is locked
     	Optional<LockedAccount> lockedAccount = lockedAccountService.findLatestLockEntry(email);
     	if (lockedAccount.isPresent()) {
     		LockedAccount account = lockedAccount.get();
@@ -66,18 +68,47 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     			return HttpStatus.TOO_MANY_REQUESTS;
     	}
     	
-    	if (checkPasswordAttemptsRemaining(email) == 0) {
-    		LockedAccount newLockedAccount = new LockedAccount(email, new Date());
-    		lockedAccountService.AddLockedAccount(newLockedAccount);
-    		return HttpStatus.TOO_MANY_REQUESTS;
-    	}
+    	PasswordReset passwordReset;
+        Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
+        LocalDateTime now = LocalDateTime.now();
+        String resetCodeRaw = generatePasswordResetCode();
+        String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
+        
+        if(passwordResetOpt.isPresent()){
+            passwordReset = passwordResetOpt.get();
+            LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
+            if(now.isAfter(resetTime)) {
+                passwordReset.setAttemptsRemaining(4);
+                passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setCreatedAt(now);
+                passwordReset.setExpiresAt(now.plusMinutes(45));
+            } else if(passwordReset.getAttemptsRemaining() > 0) {
+                passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
+                passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setExpiresAt(now.plusMinutes(45));
+            } else {
+            	LockedAccount newLockedAccount = new LockedAccount(email, new Date());
+        		lockedAccountService.AddLockedAccount(newLockedAccount);
+        		return HttpStatus.TOO_MANY_REQUESTS;
+            }
+        } else {
+            // Not present in DB need to create entry
+            passwordReset = new PasswordReset(email);
+            passwordReset.setTokenHash(resetCodeHashed);
+            passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
+            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
+            passwordReset.setAttemptsRemaining(4);
+            passwordReset.setCreatedAt(now);
+            passwordReset.setExpiresAt(now.plusMinutes(45));
+        }
+        passwordResetRepository.save(passwordReset);
     	
     	EmailDetails emailDetails = new EmailDetails();
     	
     	emailDetails.setRecipient(email);
         emailDetails.setSubject("Reset your Password");
     	
-        String	resetCode	= createPasswordResetCode(email);
+        String	resetCode	= resetCodeRaw;
         String	resetUrl	= "http://localhost:5173/verify-email"; // TODO CHANGE FOR DEPLOYMENT
         emailDetails.setMsgBody("--- PASSWORD RESET --- \n\n" +
             "A password change was requested for your SmartPay account.\n\n" +
@@ -95,42 +126,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         
         emailService.sendSimpleMail(emailDetails);
         return HttpStatus.ACCEPTED;
-    }
-
-    // Generates/Updates entry in PASSWORD_RESET table. Returns raw code on success or empty string on fail
-    public String createPasswordResetCode(String email) {
-        PasswordReset passwordReset;
-        Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
-        LocalDateTime now = LocalDateTime.now();
-        String resetCodeRaw = generatePasswordResetCode();
-        String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
-        if(passwordResetOpt.isPresent()){
-            passwordReset = passwordResetOpt.get();
-            LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
-            if(now.isAfter(resetTime)) {
-                passwordReset.setAttemptsRemaining(4);
-                passwordReset.setTokenHash(resetCodeHashed);
-                passwordReset.setCreatedAt(now);
-                passwordReset.setExpiresAt(now.plusMinutes(45));
-            } else if(passwordReset.getAttemptsRemaining() > 0) {
-                passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
-                passwordReset.setTokenHash(resetCodeHashed);
-                passwordReset.setExpiresAt(now.plusMinutes(45));
-            } else {
-                return "";
-            }
-        } else {
-            // Not present in DB need to create entry
-            passwordReset = new PasswordReset(email);
-            passwordReset.setTokenHash(resetCodeHashed);
-            passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
-            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
-            passwordReset.setAttemptsRemaining(4);
-            passwordReset.setCreatedAt(now);
-            passwordReset.setExpiresAt(now.plusMinutes(45));
-        }
-        passwordResetRepository.save(passwordReset);
-        return resetCodeRaw;
     }
 
     @Override
@@ -165,18 +160,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         SecureRandom random = new SecureRandom();
         int code = random.nextInt(10_000_000);
         return String.format("%07d", code);
-    }
-
-    public int checkPasswordAttemptsRemaining(String email) {
-        PasswordReset passwordReset;
-        Optional<PasswordReset> passwordResetOpt = passwordResetRepository.findByEmail(email);
-        if(passwordResetOpt.isPresent()){
-            passwordReset = passwordResetOpt.get();
-            return passwordReset.getAttemptsRemaining();
-        } else {
-            // Not present in DB
-            return -1;
-        }
     }
 
 }

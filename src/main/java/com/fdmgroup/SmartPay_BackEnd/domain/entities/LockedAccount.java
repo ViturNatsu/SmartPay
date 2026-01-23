@@ -11,7 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "locked_accounts")
@@ -24,7 +24,7 @@ public class LockedAccount {
 	@Email
 	private String 	email;
 	
-	@NotBlank
+	@NotNull
 	@Column(name = "locked_at")
 	private Date 	lockedAt;
 	
