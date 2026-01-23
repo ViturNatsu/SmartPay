@@ -11,8 +11,6 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
 
-import java.util.List;
-
 @Service
 @AllArgsConstructor
 public class RegistrationService {
@@ -22,10 +20,10 @@ public class RegistrationService {
     public User register(RegisterUserDTO userDto) {
         String email = consistentEmail(userDto.getEmail());
 
-        Optional<User> user =  userRepository.findByEmail(email);
-        if(!user.isPresent()){
-            User addUser = new User(email, userDto.getPassword());
-            return userService.signUpUser(addUser);
+        Optional<User> users =  userRepository.findByEmail(email);
+        if(users.isPresent()){
+            User user = new User(email, userDto.getPassword());
+            return userService.signUpUser(user);
         }
         else {
             throw new DuplicateEmailException("Email already in use");
