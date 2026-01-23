@@ -37,7 +37,7 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @Column(name = "last_password_changed)_at")
+    @Column(name = "last_password_changed_at")
     private LocalDateTime lastPasswordChangeAt;
 
     @Column(name = "created_at")
