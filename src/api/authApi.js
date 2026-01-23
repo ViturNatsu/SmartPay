@@ -2,6 +2,7 @@ import axiosInstance,{handleAxiosError} from "./axios";
 
 const AUTH_URL = "/auth";
 const PASSWORD_RESET_URL = "/api/v1/password-reset"
+const REGISTER_URL = "/api/v1/registration"
 
 //use authApi to make axios calls to the server and use AuthProvider to process the response
 export async function login(payload) {
@@ -44,6 +45,15 @@ export async function sendResetCode(payload) {
 export async function resetPassword(payload) {
   try {
     let res = await axiosInstance.put(`${PASSWORD_RESET_URL}/reset`, payload);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function register(payload) {
+  try {
+    let res = await axiosInstance.post(`${REGISTER_URL}/register`, payload);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
