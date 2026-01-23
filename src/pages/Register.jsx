@@ -56,8 +56,8 @@ export const Register = () => {
   console.log(`success: ${result}`);
   setErrorMessage("");
 } catch (error) {
-  const data = error.response?.data;
-  const status = error.response?.status;
+  const data = error.data;
+  const status = error.status;
 
   if (status === 429) {
     setErrorMessage("We can't process your request right now. Please try again later.");
@@ -78,7 +78,8 @@ export const Register = () => {
     setErrorMessage(message);
   }
 
-  console.error(`error: ${error}`);
+
+  console.error(`error: ${error.data.message}`);
 }
   };
 
