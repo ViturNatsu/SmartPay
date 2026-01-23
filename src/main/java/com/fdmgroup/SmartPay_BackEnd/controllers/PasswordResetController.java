@@ -61,10 +61,6 @@ public class PasswordResetController {
 		return ResponseEntity.status(status).build();
 	}
 
-    @PostMapping("/code")
-    public String createPasswordResetCode(String email) {
-        return passwordResetService.createPasswordResetCode(email);
-    }
 
     @Operation(summary = "Confirm 7-digit access code", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")
     @ApiResponses(value = {
