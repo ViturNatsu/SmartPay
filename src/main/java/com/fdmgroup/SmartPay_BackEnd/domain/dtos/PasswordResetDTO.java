@@ -23,4 +23,8 @@ public class PasswordResetDTO {
 		this.email = email;
 	}
 
+    public String getEmail() {
+        return email;
+    }
+
 }
