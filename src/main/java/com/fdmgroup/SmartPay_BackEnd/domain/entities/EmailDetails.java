@@ -2,13 +2,13 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@Setter
 @Entity
 public class EmailDetails {
     @Id
@@ -16,7 +16,4 @@ public class EmailDetails {
     private String recipient;
     private String msgBody;
     private String subject;
-
-    public EmailDetails(String email, String msgBody, String resetYourPassword) {
-    }
 }

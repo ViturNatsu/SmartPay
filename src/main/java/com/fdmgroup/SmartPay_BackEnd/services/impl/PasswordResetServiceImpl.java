@@ -72,22 +72,28 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     		return HttpStatus.TOO_MANY_REQUESTS;
     	}
     	
+    	EmailDetails emailDetails = new EmailDetails();
+    	
+    	emailDetails.setRecipient(email);
+        emailDetails.setSubject("Reset your Password");
+    	
         String	resetCode	= createPasswordResetCode(email);
         String	resetUrl	= "http://localhost:5173/verify-email"; // TODO CHANGE FOR DEPLOYMENT
-        String 	msgBody 	= "--- PASSWORD RESET --- \n\n" +
-                "A password change was requested for your SmartPay account.\n\n" +
-                "Here is your password reset code: " + resetCode + "\n\n" +
-                "If this was you, follow the link below to reset your password:\n\n" +
+        emailDetails.setMsgBody("--- PASSWORD RESET --- \n\n" +
+            "A password change was requested for your SmartPay account.\n\n" +
+            "Here is your password reset code: " + resetCode + "\n\n" +
+            "If this was you, follow the link below to reset your password:\n\n" +
 
-                resetUrl +
+            resetUrl +
 
-                "\n\n" +
-                "This link and code will expire in 45 minutes.\n\n" +
-                "If you did not request this change, you can safely ignore this email.\n\n" +
-                "Thank you,\n" +
-                "The SmartPay Support Team";
-
-        emailService.sendSimpleMail(new EmailDetails(email, msgBody, "Reset your Password"));
+            "\n\n" +
+            "This link and code will expire in 45 minutes.\n\n" +
+            "If you did not request this change, you can safely ignore this email.\n\n" +
+            "Thank you,\n" +
+            "The SmartPay Support Team"
+        );
+        
+        emailService.sendSimpleMail(emailDetails);
         return HttpStatus.ACCEPTED;
     }
 
