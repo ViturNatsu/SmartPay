@@ -33,8 +33,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers(HttpMethod.PUT,"/api/v*/password-reset/**").permitAll()
             .requestMatchers("/api/v*/password-reset/**","/api/v*/registration/**","/api/v*/email/send-email/**",
-                "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/actuator/**")
+                "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/actuator/**", "/error/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ public class User {
     @Column(name = "user_id")
     private long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
     @Column(name = "password_hash")
