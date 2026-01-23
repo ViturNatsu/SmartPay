@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Link,
   MenuItem,
+  Avatar,
 } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person"
@@ -21,6 +22,8 @@ import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import CheckIcon from '@mui/icons-material/Check';
+import SecurityIcon from '@mui/icons-material/Security';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
 import logo from "../assets/logo.png";
 import Alert from '@mui/material/Alert';
 import { register } from "../api/authApi";
@@ -43,6 +46,53 @@ export const Register = () => {
   const [successMessage, setSuccessMessage] = useState("")
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+
+  const bulletContainerSx = {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: "0px",
+    gap: "16px",
+    width: "427.86px",
+    maxWidth: "448px",
+    height: "68px"
+  }
+  
+  const bulletBoxSx = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    padding: "0px",
+    gap: "4px"
+  }
+
+  const bulletBoxHeadingSx = {
+    width: "150.39px",
+    height: "24px",
+    fontStyle: "normal",
+    fontWeight: 600,
+    fontSize: "16px",
+    lineHeight: "24px",
+    /* identical to box height, or 150% */
+    display: "flex",
+    alignItems: "center",
+    color: "#111827",
+
+  }
+
+  const bulletBoxInfoSx = {
+
+    width: "341.13px",
+    height: "40px",
+    fontStyle: "normal",
+    fontWeight: "400",
+    fontSize: "14px",
+    lineHeight: "20px",
+    display: "flex",
+    color: "#4B5563",
+    textAlign: 'left'
+  }
 
   const handleSubmit = async(e) => {
     
@@ -167,6 +217,38 @@ export const Register = () => {
           >
             Join thousands of businessess managing their finances with ease
           </Typography>
+          {/* small bullet points section w icons */}
+          <Box sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              padding: "16px 0px 0px",
+              gap: "24px",
+              width: "427.86px",
+              height: "176px",
+          }}
+          >
+
+            <Box sx={bulletContainerSx}>
+                <Avatar  variant="rounded" sx={{backgroundColor: '#DBEAFE', borderRadius: 2 }}>
+                  <SecurityIcon sx={{color: '#2563EB'}}></SecurityIcon>
+                </Avatar>
+                <Box sx={bulletBoxSx}>
+                    <Typography sx={bulletBoxHeadingSx}>Bank-level Security</Typography>
+                    <Typography sx={bulletBoxInfoSx}>Your data is encrypted and protected with industry-leading security standards.</Typography>
+                </Box>
+            </Box>
+            <Box sx={bulletContainerSx}>
+                <Avatar variant="rounded" sx={{backgroundColor: '#d4fafe', borderRadius: 2 }}>
+                  <FlashOnIcon sx={{color: '#0891B2'}}></FlashOnIcon>
+                </Avatar>
+                <Box sx={bulletBoxSx}>
+                  <Typography sx={bulletBoxHeadingSx}> Instant Setup</Typography>
+                  <Typography sx={bulletBoxInfoSx}>Get started in minutes and connect your financial institutions seamlessly.</Typography>
+                </Box>
+            </Box>
+          </Box>
         </Box>
       </Box>
       <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
