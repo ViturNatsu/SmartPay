@@ -89,7 +89,7 @@ export const Register = () => {
           <>
             We can't create an account with that email.{" "}
             <Link href="/login" underline="hover">Sign in</Link> or{" "}
-            <Link href="/reset-password" underline="hover">reset your password</Link>{" "}
+            <Link href="/forgot-password" underline="hover">reset your password</Link>{" "}
             if you already have an account.
           </>
         );
@@ -189,7 +189,7 @@ export const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={passwordError}
-              helperText={passwordError ? "Must meet password requirements" : ""}
+              helperText={passwordError ? "Password must be at least 8 characters and include a mix of letters, numbers, and symbols." : ""}
             />
 
             <TextField
@@ -206,7 +206,11 @@ export const Register = () => {
             </Button>
           </Box>
         </form>
-        <p>Already have an account? Sign in</p>
+        <p>Already have an account?{" "}
+          <Link href="/login" underline="hover">
+            Sign in
+          </Link>
+        </p>
         {
           successMessage && (
           <Alert icon={<CheckIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
