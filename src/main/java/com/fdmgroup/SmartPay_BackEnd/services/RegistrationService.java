@@ -11,6 +11,8 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class RegistrationService {
