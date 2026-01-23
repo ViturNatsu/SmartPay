@@ -1,16 +1,15 @@
 package com.fdmgroup.SmartPay_BackEnd.services;
 
-import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor

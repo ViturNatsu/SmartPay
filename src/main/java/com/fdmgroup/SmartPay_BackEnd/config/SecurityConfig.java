@@ -10,7 +10,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.fdmgroup.SmartPay_BackEnd.security.JwtAuthFilter;
+
+import lombok.AllArgsConstructor;
+
 @Configuration
+@AllArgsConstructor
 public class SecurityConfig {
 
     @Bean
@@ -27,7 +32,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
