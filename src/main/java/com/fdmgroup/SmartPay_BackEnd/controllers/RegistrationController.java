@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +32,7 @@ public class RegistrationController {
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             throw new IllegalArgumentException("Password and confirm password do not match");
         }
-        return ResponseEntity.ok(registrationService.register(userDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(registrationService.register(userDto));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
