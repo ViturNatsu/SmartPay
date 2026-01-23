@@ -10,6 +10,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -20,8 +21,8 @@ public class RegistrationService {
     public User register(RegisterUserDTO userDto) {
         String email = consistentEmail(userDto.getEmail());
 
-        List<User> users =  userRepository.findByEmail(email);
-        if(users.isEmpty()){
+        Optional<User> users =  userRepository.findByEmail(email);
+        if(users.isPresent()){
             User user = new User(email, userDto.getPassword());
             return userService.signUpUser(user);
         }

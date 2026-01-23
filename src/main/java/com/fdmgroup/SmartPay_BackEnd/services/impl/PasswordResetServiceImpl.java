@@ -47,7 +47,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     public HttpStatus startResetRequest(String email) {
     	// Make sure user exists before attempting reset request logic.
     	try {
-    		userService.findUserByEmail(email);
+    		userService.findByEmail(email);
     	} catch (UserNotFoundException e) {
     		System.out.println(e.getMessage());
     		return HttpStatus.ACCEPTED;
@@ -138,7 +138,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         // Find the otp record and validate
         PasswordReset passwordResetEntity = accessCodeValidator
                 .validate(new ConfirmCodeDTO(request.getEmail(), request.getAccessCode()), httpRequest);
-        User user = userService.findUserByEmail(passwordResetEntity.getEmail());
+        User user = userService.findByEmail(passwordResetEntity.getEmail());
 
         // Update password
         user.setPassword(passwordEncoder.encode(request.getPassword1()));

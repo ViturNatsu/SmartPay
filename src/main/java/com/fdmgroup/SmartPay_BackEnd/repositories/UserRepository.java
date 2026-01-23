@@ -3,17 +3,12 @@ package com.fdmgroup.SmartPay_BackEnd.repositories;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 
 public interface UserRepository extends JpaRepository<User, Long>{
-	Optional<User> findUserByEmail(String email);
-
-    // TODO
-    @Query("SELECT u FROM User u WHERE u.email = :email")
-    List<User> findByEmail(@Param("email") String email);
+	@Query("SELECT u FROM User u WHERE u.email = :email LIMIT 1")
+    Optional<User> findByEmail(@Param("email") String email);
 }

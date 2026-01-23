@@ -45,7 +45,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
         if (!argonPasswordEncoder.matches(accessCode, resetRequest.getTokenHash())) {
             throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
         }
-        User user = userService.findUserByEmail(payload.getEmail());
+        User user = userService.findByEmail(payload.getEmail());
 
         // Check if OTP is expired
         if (resetRequest.isExpired()) {
