@@ -19,6 +19,7 @@ import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import CheckIcon from '@mui/icons-material/Check';
 import logo from "../assets/logo.png";
 import Alert from '@mui/material/Alert';
 import { register } from "../api/authApi";
@@ -32,18 +33,12 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const [successMessage, setSuccessMessage] = useState("")
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const handleSubmit = async(e) => {
     
-    e.preventDefault();
-
-
-
-
-
     e.preventDefault();
     let isEmailInvalid = !emailRegex.test(email);
     let isPasswordInvalid = !passwordRegex.test(password);
@@ -52,6 +47,7 @@ export const Register = () => {
     setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid)
+    setSuccessMessage("")
 
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
@@ -70,35 +66,44 @@ export const Register = () => {
       password: "admin",
     };
     try {
-  const result = await register(userInfo);
-  console.log(`success: ${result}`);
-  setErrorMessage("");
-} catch (error) {
-  const data = error.data;
-  const status = error.status;
+      const result = await register(userInfo);
+      console.log(`success: ${result}`);
+      setErrorMessage("");
+      setSuccessMessage(
+        <> 
+          Successfully created an account! Please verify your account before{" "}
+          <Link href="/login" underline="hover">Signing in.</Link>
+        </>  
+      );
+      setEmail("")
+      setPassword("")
+      setConfirmPassword("")
+    } catch (error) {
+      const data = error.data;
+      const status = error.status;
 
-  if (status === 429) {
-    setErrorMessage("We can't process your request right now. Please try again later.");
-  } else if (status === 409) {
-    setErrorMessage(
-      <>
-        We can't create an account with that email.{" "}
-        <Link href="/login" underline="hover">Sign in</Link> or{" "}
-        <Link href="/reset-password" underline="hover">reset your password</Link>{" "}
-        if you already have an account.
-      </>
-    );
-  } else {
-    const message =
-      data?.errors?.[0]?.defaultMessage ||
-      data?.message ||
-      "Registration failed. Please try again.";
-    setErrorMessage(message);
-  }
+      if (status === 429) {
+        setErrorMessage("We can't process your request right now. Please try again later.");
+      } else if (status === 409) {
+        setErrorMessage(
+          <>
+            We can't create an account with that email.{" "}
+            <Link href="/login" underline="hover">Sign in</Link> or{" "}
+            <Link href="/reset-password" underline="hover">reset your password</Link>{" "}
+            if you already have an account.
+          </>
+        );
+      } else {
+        const message =
+          data?.errors?.[0]?.defaultMessage ||
+          data?.message ||
+          "Registration failed. Please try again.";
+        setErrorMessage(message);
+      }
 
 
-  console.error(`error: ${error.data.message}`);
-}
+      console.error(`error: ${error.data.message}`);
+    }
   };
 
   return (
@@ -202,6 +207,12 @@ export const Register = () => {
           </Box>
         </form>
         <p>Already have an account? Sign in</p>
+        {
+          successMessage && (
+          <Alert icon={<CheckIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
 
       </Grid>
     </Grid>
