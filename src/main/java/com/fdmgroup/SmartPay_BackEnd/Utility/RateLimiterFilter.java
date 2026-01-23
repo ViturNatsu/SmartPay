@@ -4,20 +4,22 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Component
 @AllArgsConstructor
+@Component
 public class RateLimiterFilter implements Filter {
 
     private static final Logger LOGGER = Logger.getLogger(RateLimiterFilter.class.getName());
     private final RequestCounter requestCounter;
 
     @Override
+    @Order(1)
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
@@ -26,7 +28,7 @@ public class RateLimiterFilter implements Filter {
 
         String clientIp = httpRequest.getRemoteAddr();
 
-        if (!requestCounter.requestAllowed(clientIp)) {
+        if (httpRequest.getRequestURI().startsWith("/api/v1/registration") && !requestCounter.requestAllowed(clientIp)) {
             httpResponse.setStatus(429);
             httpResponse.getWriter().write("Too many requests.");
             LOGGER.log(Level.WARNING, "Request Blocked: Too many requests.");

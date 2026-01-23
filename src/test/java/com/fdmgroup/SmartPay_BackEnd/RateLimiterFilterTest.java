@@ -36,6 +36,7 @@ public class RateLimiterFilterTest {
     void setUp() throws IOException {
         filter = new RateLimiterFilter(new RequestCounter());
         when(servletRequest.getRemoteAddr()).thenReturn("192.0.2.100");
+        when(servletRequest.getRequestURI()).thenReturn("/api/v1/registration");
     }
 
     @Test
@@ -56,6 +57,26 @@ public class RateLimiterFilterTest {
 
         verify(servletResponse).setStatus(429);
         verify(filterChain, times(3))
+                .doFilter(servletRequest, servletResponse);
+    }
+
+    @Test
+    void test_WhenRateLimitExceeded_ForClient1ButNotClient2() throws ServletException, IOException {
+        when(servletResponse.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+        // Client 1
+        filter.doFilter(servletRequest, servletResponse, filterChain);
+        filter.doFilter(servletRequest, servletResponse, filterChain);
+        filter.doFilter(servletRequest, servletResponse, filterChain);
+        filter.doFilter(servletRequest, servletResponse, filterChain);
+        verify(servletResponse).setStatus(429);
+
+        // Client 2
+        when(servletRequest.getRemoteAddr()).thenReturn("192.0.2.124");
+        filter.doFilter(servletRequest, servletResponse, filterChain);
+
+
+        verify(filterChain, times(4))
                 .doFilter(servletRequest, servletResponse);
     }
 }

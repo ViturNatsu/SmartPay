@@ -2,7 +2,6 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -37,7 +36,7 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @Column(name = "last_password_changed)_at")
+    @Column(name = "last_password_changed_at")
     private LocalDateTime lastPasswordChangeAt;
 
     @Column(name = "created_at")
