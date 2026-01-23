@@ -1,7 +1,25 @@
 
 import axios from "axios";
 import { useState } from "react";
-import { Box, Button, Grid, TextField, InputLabel, Link } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Link,
+  MenuItem,
+} from "@mui/material";
+import { InputAdornment, IconButton } from "@mui/material";
+import MailIcon from "@mui/icons-material/Mail";
+import PasswordIcon from "@mui/icons-material/Key";
+import BankIcon from "@mui/icons-material/AccountBalance";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import logo from "../assets/logo.png";
 import Alert from '@mui/material/Alert';
 import { register } from "../api/authApi";
 export const Register = () => {
@@ -85,10 +103,60 @@ export const Register = () => {
 
   return (
     <Grid container height="100vh">
-      <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-        <h1>SmartPay</h1>
-        <p>Join thousands of business managing their finances with ease.</p>
-      </Grid>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 3, md: 8 },
+          py: { xs: 6, md: 0 },
+          position: "relative",
+          overflow: "hidden",
+          backgroundImage: `
+            radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
+            radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
+            `,
+        }}
+      >
+        {/* Sets up the logo */}
+        <Box sx={{ textAlign: "center", position: "relative" }}>
+          <Box
+            component="img"
+            src={logo}
+            alt="SmartPay Logo"
+            sx={{
+              width: 100,
+              height: "auto",
+              mx: "auto",
+              display: "block",
+            }}
+          />
+          {/* Sets up SmartPay title */}
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#1E40AF",
+              mb: 1,
+            }}
+          >
+            SmartPay
+          </Typography>
+          {/* Sets up brief description. */}
+          <Typography
+            sx={{
+              color: "text.secondary",
+              maxWidth: 360,
+              mx: "auto",
+              lineHeight: 1.6,
+            }}
+          >
+            Join thousands of businessess managing their finances with ease
+          </Typography>
+        </Box>
+      </Box>
       <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
         <h1>Create Your Account</h1>
         <p>Sign up to start managing your finances with SmartPay</p>
