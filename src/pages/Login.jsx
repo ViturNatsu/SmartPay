@@ -55,7 +55,7 @@ export const Login = () => {
           return;
         }
   
-        setErrorMsg("Login failed. Please try again.");
+        // setErrorMsg("Login failed. Please try again.");
       } catch {
         setErrorMsg("Network error. Please try again.");
       } finally {

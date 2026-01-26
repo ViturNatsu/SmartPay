@@ -11,7 +11,7 @@ export async function login(payload) {
 
   try {
     const response = await axiosInstance.post(`${LOGIN_URL}`, payload);
-    return res.data;
+    return response.data;
   } catch (err) {
     throw handleAxiosError(err);
   }
