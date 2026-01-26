@@ -22,7 +22,13 @@ public class RegistrationService {
 
         Optional<User> users =  userRepository.findByEmail(email);
         if(!users.isPresent()){
-            User user = new User(email, userDto.getPassword());
+            User user = User.builder()
+                    .firstName(userDto.getFirstName())
+                    .lastName(userDto.getLastName())
+                    .institution(userDto.getInstitution())
+                    .email(email)
+                    .password(userDto.getPassword())
+                    .build();
             return userService.signUpUser(user);
         }
         else {

@@ -29,6 +29,15 @@ public class User {
     @Column(name = "user_id")
     private long id;
 
+	@Column(nullable = false)
+	private String firstName;
+
+	@Column(nullable = false)
+	private String lastName;
+
+	@Column(nullable = false)
+	private String institution;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -156,5 +165,27 @@ public class User {
 		this.updatedAt = updatedAt;
 	}
     
+	public String getFirstname() {
+		return firstName;
+	}
 
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastname() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public String getInstitution() {
+		return institution;
+	}
+
+	public void setInstitution(String institution) {
+		this.institution = institution;
+	}
 }
