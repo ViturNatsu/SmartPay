@@ -21,7 +21,7 @@ public class RegistrationService {
         String email = consistentEmail(userDto.getEmail());
 
         Optional<User> users =  userRepository.findByEmail(email);
-        if(users.isPresent()){
+        if(!users.isPresent()){
             User user = new User(email, userDto.getPassword());
             return userService.signUpUser(user);
         }
