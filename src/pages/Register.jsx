@@ -43,6 +43,7 @@ export const Register = () => {
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -106,6 +107,7 @@ export const Register = () => {
       return;
     }
 
+    setIsLoading(true);
     const userInfo = {
       firstName: firstName,
       lastName: lastName,
@@ -165,6 +167,8 @@ export const Register = () => {
       }
 
       console.error(`error: ${error.data.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -537,6 +541,7 @@ export const Register = () => {
             <Button
               variant="contained"
               type="submit"
+              disabled={isLoading}
               sx={{
                 py: 1.2,
                 borderRadius: 2,
@@ -546,7 +551,7 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
-              Create Account
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
         </Box>
