@@ -78,13 +78,15 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             passwordReset = passwordResetOpt.get();
             LocalDateTime resetTime = passwordReset.getCreatedAt().plusHours(24);
             if(now.isAfter(resetTime)) {
-                passwordReset.setAttemptsRemaining(4);
                 passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setAttemptsRemaining(4);
+                passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
                 passwordReset.setCreatedAt(now);
                 passwordReset.setExpiresAt(now.plusMinutes(45));
             } else if(passwordReset.getAttemptsRemaining() > 0) {
-                passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
                 passwordReset.setTokenHash(resetCodeHashed);
+                passwordReset.setAttemptsRemaining(passwordReset.getAttemptsRemaining() - 1);
+                passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
                 passwordReset.setExpiresAt(now.plusMinutes(45));
             } else {
             	LockedAccount newLockedAccount = new LockedAccount(email, new Date());
@@ -96,8 +98,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             passwordReset = new PasswordReset(email);
             passwordReset.setTokenHash(resetCodeHashed);
             passwordReset.setType(PasswordReset.PasswordResetType.PASSWORD_RESET);
-            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setAttemptsRemaining(4);
+            passwordReset.setStatus(PasswordReset.PasswordResetStatus.ACTIVE);
             passwordReset.setCreatedAt(now);
             passwordReset.setExpiresAt(now.plusMinutes(45));
         }
