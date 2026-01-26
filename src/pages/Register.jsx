@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { useState } from "react";
 import {
@@ -15,17 +14,17 @@ import {
   Avatar,
 } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person"
+import PersonIcon from "@mui/icons-material/Person";
 import MailIcon from "@mui/icons-material/Mail";
 import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import CheckIcon from '@mui/icons-material/Check';
-import SecurityIcon from '@mui/icons-material/Security';
-import FlashOnIcon from '@mui/icons-material/FlashOn';
+import CheckIcon from "@mui/icons-material/Check";
+import SecurityIcon from "@mui/icons-material/Security";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
-import Alert from '@mui/material/Alert';
+import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
 import { use } from "react";
 
@@ -43,10 +42,10 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState("");
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const bulletContainerSx = {
     display: "flex",
@@ -56,16 +55,16 @@ export const Register = () => {
     gap: "16px",
     width: "427.86px",
     maxWidth: "448px",
-    height: "68px"
-  }
-  
+    height: "68px",
+  };
+
   const bulletBoxSx = {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
     padding: "0px",
-    gap: "4px"
-  }
+    gap: "4px",
+  };
 
   const bulletBoxHeadingSx = {
     width: "150.39px",
@@ -78,11 +77,9 @@ export const Register = () => {
     display: "flex",
     alignItems: "center",
     color: "#111827",
-
-  }
+  };
 
   const bulletBoxInfoSx = {
-
     width: "341.13px",
     height: "40px",
     fontStyle: "normal",
@@ -91,11 +88,10 @@ export const Register = () => {
     lineHeight: "20px",
     display: "flex",
     color: "#4B5563",
-    textAlign: 'left'
-  }
+    textAlign: "left",
+  };
 
-  const handleSubmit = async(e) => {
-    
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let isEmailInvalid = !emailRegex.test(email);
     let isPasswordInvalid = !passwordRegex.test(password);
@@ -103,20 +99,18 @@ export const Register = () => {
 
     setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
-    setConfirmPasswordError(isConfirmInvalid)
-    setSuccessMessage("")
+    setConfirmPasswordError(isConfirmInvalid);
+    setSuccessMessage("");
 
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
     }
 
-
     const userInfo = {
       email: email,
       password: password,
-      confirmPassword: confirmPassword
+      confirmPassword: confirmPassword,
     };
-
 
     const auth = {
       username: "admin",
@@ -127,28 +121,37 @@ export const Register = () => {
       console.log(`success: ${result}`);
       setErrorMessage("");
       setSuccessMessage(
-        <> 
+        <>
           Successfully created an account! Please verify your account before{" "}
-          <Link href="/login" underline="hover">Signing in.</Link>
-        </>  
+          <Link href="/login" underline="hover">
+            Signing in.
+          </Link>
+        </>,
       );
-      setEmail("")
-      setPassword("")
-      setConfirmPassword("")
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (error) {
       const data = error.data;
       const status = error.status;
 
       if (status === 429) {
-        setErrorMessage("We can't process your request right now. Please try again later.");
+        setErrorMessage(
+          "We can't process your request right now. Please try again later.",
+        );
       } else if (status === 409) {
         setErrorMessage(
           <>
             We can't create an account with that email.{" "}
-            <Link href="/login" underline="hover">Sign in</Link> or{" "}
-            <Link href="/forgot-password" underline="hover">reset your password</Link>{" "}
+            <Link href="/login" underline="hover">
+              Sign in
+            </Link>{" "}
+            or{" "}
+            <Link href="/forgot-password" underline="hover">
+              reset your password
+            </Link>{" "}
             if you already have an account.
-          </>
+          </>,
         );
       } else {
         const message =
@@ -157,7 +160,6 @@ export const Register = () => {
           "Registration failed. Please try again.";
         setErrorMessage(message);
       }
-
 
       console.error(`error: ${error.data.message}`);
     }
@@ -218,7 +220,8 @@ export const Register = () => {
             Join thousands of businessess managing their finances with ease
           </Typography>
           {/* small bullet points section w icons */}
-          <Box sx={{
+          <Box
+            sx={{
               display: "flex",
               flexDirection: "column",
               alignItems: "flex-start",
@@ -227,45 +230,63 @@ export const Register = () => {
               gap: "24px",
               width: "427.86px",
               height: "176px",
-          }}
+            }}
           >
-
             <Box sx={bulletContainerSx}>
-                <Avatar  variant="rounded" sx={{backgroundColor: '#DBEAFE', borderRadius: 2 }}>
-                  <SecurityIcon sx={{color: '#2563EB'}}></SecurityIcon>
-                </Avatar>
-                <Box sx={bulletBoxSx}>
-                    <Typography sx={bulletBoxHeadingSx}>Bank-level Security</Typography>
-                    <Typography sx={bulletBoxInfoSx}>Your data is encrypted and protected with industry-leading security standards.</Typography>
-                </Box>
+              <Avatar
+                variant="rounded"
+                sx={{ backgroundColor: "#DBEAFE", borderRadius: 2 }}
+              >
+                <SecurityIcon sx={{ color: "#2563EB" }}></SecurityIcon>
+              </Avatar>
+              <Box sx={bulletBoxSx}>
+                <Typography sx={bulletBoxHeadingSx}>
+                  Bank-level Security
+                </Typography>
+                <Typography sx={bulletBoxInfoSx}>
+                  Your data is encrypted and protected with industry-leading
+                  security standards.
+                </Typography>
+              </Box>
             </Box>
             <Box sx={bulletContainerSx}>
-                <Avatar variant="rounded" sx={{backgroundColor: '#d4fafe', borderRadius: 2 }}>
-                  <FlashOnIcon sx={{color: '#0891B2'}}></FlashOnIcon>
-                </Avatar>
-                <Box sx={bulletBoxSx}>
-                  <Typography sx={bulletBoxHeadingSx}> Instant Setup</Typography>
-                  <Typography sx={bulletBoxInfoSx}>Get started in minutes and connect your financial institutions seamlessly.</Typography>
-                </Box>
+              <Avatar
+                variant="rounded"
+                sx={{ backgroundColor: "#d4fafe", borderRadius: 2 }}
+              >
+                <FlashOnIcon sx={{ color: "#0891B2" }}></FlashOnIcon>
+              </Avatar>
+              <Box sx={bulletBoxSx}>
+                <Typography sx={bulletBoxHeadingSx}> Instant Setup</Typography>
+                <Typography sx={bulletBoxInfoSx}>
+                  Get started in minutes and connect your financial institutions
+                  seamlessly.
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>
       </Box>
-      <Grid size={6} display="flex" flexDirection="column" alignItems="center" justifyContent="center" >
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Create Your Account
-        </Typography>
-        <Typography sx={{ color: "text.secondary", mb: 3 }}>
-        Sign up to start managing your finances with SmartPay
-        </Typography>
+      <Grid
+        size={6}
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Box component="form" onSubmit={handleSubmit}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Create Your Account
+          </Typography>
+          <Typography sx={{ color: "text.secondary", mb: 3 }}>
+            Sign up to start managing your finances with SmartPay
+          </Typography>
 
-              {errorMessage && (
-  <Alert severity="error" sx={{ mb: 2 }}>
-    {errorMessage}
-  </Alert>
-)}
-
-        <form onSubmit={handleSubmit}>
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorMessage}
+            </Alert>
+          )}
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
               <Box flex={1}>
@@ -287,7 +308,9 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PersonIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <PersonIcon
+                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                          />
                         </InputAdornment>
                       ),
                     },
@@ -314,7 +337,9 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PersonIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <PersonIcon
+                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                          />
                         </InputAdornment>
                       ),
                     },
@@ -325,46 +350,46 @@ export const Register = () => {
 
             <Typography
               sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: -1,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
               }}
-              >
+            >
               Financial Institution
             </Typography>
             <TextField
               select
               fullWidth
               slotProps={{
-                  input: {
+                input: {
                   startAdornment: (
-                      <InputAdornment position="start">
+                    <InputAdornment position="start">
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                      </InputAdornment>
+                    </InputAdornment>
                   ),
-                  },
+                },
               }}
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
               placeholder="Select institution"
               sx={{ mb: 0 }}
-              >
+            >
               <MenuItem value="">Select institution</MenuItem>
               <MenuItem value="chase">Chase</MenuItem>
               <MenuItem value="boa">Bank of America</MenuItem>
               <MenuItem value="wells">Wells Fargo</MenuItem>
               <MenuItem value="other">Other</MenuItem>
-            </TextField>  
-              
+            </TextField>
+
             <Typography
               sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: -1,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
               }}
-              >
+            >
               Email Address
             </Typography>
             <TextField
@@ -374,24 +399,24 @@ export const Register = () => {
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
-                  input: {
+                input: {
                   startAdornment: (
-                      <InputAdornment position="start">
+                    <InputAdornment position="start">
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                      </InputAdornment>
+                    </InputAdornment>
                   ),
-                  },
+                },
               }}
             />
 
             <Typography
               sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: -1,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
               }}
-              >
+            >
               Password
             </Typography>
             <TextField
@@ -399,45 +424,47 @@ export const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={passwordError}
-              helperText={"Must be at least 8 characters with uppercase, lowercase, numbers, and symbols"}
+              helperText={
+                "Must be at least 8 characters with uppercase, lowercase, numbers, and symbols"
+              }
               slotProps={{
                 input: {
-                startAdornment: (
+                  startAdornment: (
                     <InputAdornment position="start">
-                    <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                      <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
-                ),
-                endAdornment: (
+                  ),
+                  endAdornment: (
                     <InputAdornment position="end">
-                    <IconButton
+                      <IconButton
                         edge="end"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => setShowPassword((prev) => !prev)}
                         aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                          showPassword ? "Hide password" : "Show password"
                         }
                         sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                    >
+                      >
                         {showPassword ? (
-                        <VisibilityOffIcon />
+                          <VisibilityOffIcon />
                         ) : (
-                        <VisibilityIcon />
+                          <VisibilityIcon />
                         )}
-                    </IconButton>
+                      </IconButton>
                     </InputAdornment>
-                ),
+                  ),
                 },
-            }}
+              }}
             />
 
             <Typography
               sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: -1,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
               }}
-              >
+            >
               Confirm Password
             </Typography>
             <TextField
@@ -448,36 +475,38 @@ export const Register = () => {
               helperText={confirmPasswordError ? "Passwords must match" : ""}
               slotProps={{
                 input: {
-                startAdornment: (
+                  startAdornment: (
                     <InputAdornment position="start">
-                    <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                      <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
-                ),
-                endAdornment: (
+                  ),
+                  endAdornment: (
                     <InputAdornment position="end">
-                    <IconButton
+                      <IconButton
                         edge="end"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
                         aria-label={
-                        showConfirmPassword ? "Hide password" : "Show password"
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
                         }
                         sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                    >
+                      >
                         {showConfirmPassword ? (
-                        <VisibilityOffIcon />
+                          <VisibilityOffIcon />
                         ) : (
-                        <VisibilityIcon />
+                          <VisibilityIcon />
                         )}
-                    </IconButton>
+                      </IconButton>
                     </InputAdornment>
-                ),
+                  ),
                 },
-            }}
+              }}
             />
 
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               type="submit"
               sx={{
                 py: 1.2,
@@ -487,31 +516,33 @@ export const Register = () => {
                 mb: 2,
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
-              >
+            >
               Create Account
             </Button>
           </Box>
-        </form>
+        </Box>
         <Typography
           sx={{
-              fontSize: 13,
-              color: "text.secondary",
-              textAlign: "center",
+            fontSize: 13,
+            color: "text.secondary",
+            textAlign: "center",
           }}
-          >
+        >
           Already have an account?{" "}
           <Link href="/login" underline="hover" sx={{ fontWeight: 700 }}>
-              Sign in
+            Sign in
           </Link>
         </Typography>
 
-        {
-          successMessage && (
-          <Alert icon={<CheckIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
+        {successMessage && (
+          <Alert
+            icon={<CheckIcon fontSize="inherit" />}
+            severity="success"
+            sx={{ mb: 2 }}
+          >
             {successMessage}
           </Alert>
         )}
-
       </Grid>
     </Grid>
   );
