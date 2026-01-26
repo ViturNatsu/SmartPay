@@ -107,6 +107,9 @@ export const Register = () => {
     }
 
     const userInfo = {
+      firstName: firstName,
+      lastName: lastName,
+      institution: institution,
       email: email,
       password: password,
       confirmPassword: confirmPassword,
@@ -516,6 +519,20 @@ export const Register = () => {
                 },
               }}
             />
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "text.secondary",
+                textAlign: "left",
+                mt: -1,
+                mb: -1,
+              }}
+            >
+              <p>
+              <input type="checkbox" id="terms" required></input>
+              <label> I agree to the Terms of Service and Privacy Policy</label>
+              </p>
+            </Typography>
 
             <Button
               variant="contained"
