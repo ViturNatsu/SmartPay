@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -47,6 +48,9 @@ export const Register = () => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  const navigate = useNavigate();
+  const [duplicateEmailError, setDuplicateEmailError] = useState(false);
 
   const bulletContainerSx = {
     display: "flex",
@@ -125,6 +129,7 @@ export const Register = () => {
       const result = await register(userInfo);
       console.log(`success: ${result}`);
       setErrorMessage("");
+      setDuplicateEmailError(false)
       setSuccessMessage(
         <>
           Successfully created an account! Please verify your account before{" "}
@@ -145,19 +150,8 @@ export const Register = () => {
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        setErrorMessage(
-          <>
-            We can't create an account with that email.{" "}
-            <Link href="/login" underline="hover">
-              Sign in
-            </Link>{" "}
-            or{" "}
-            <Link href="/forgot-password" underline="hover">
-              reset your password
-            </Link>{" "}
-            if you already have an account.
-          </>,
-        );
+        
+        setDuplicateEmailError(true)
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
@@ -306,6 +300,21 @@ export const Register = () => {
               {errorMessage}
             </Alert>
           )}
+          {duplicateEmailError && (
+                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
+                  We can’t create an account with that email. Please{" "}
+                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
+                    Sign in
+                  </Link>
+                  {" or "}
+                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
+                    reset your password
+                  </Link>
+                  .
+                </Box>
+              )}
+
+
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
               <Box flex={1}>
@@ -414,7 +423,11 @@ export const Register = () => {
             <TextField
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setDuplicateEmailError(false);
+              }}
+
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
@@ -551,6 +564,8 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
+
+
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
