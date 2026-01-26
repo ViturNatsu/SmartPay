@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Box, Button, Grid, TextField } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { Box, Button, Grid, TextField, Link } from "@mui/material";
 import { register } from "../api/authApi";
 
 export const Register = () => {
@@ -14,6 +15,9 @@ export const Register = () => {
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  const navigate = useNavigate();
+  const [duplicateEmailError, setDuplicateEmailError] = useState(false);
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -39,7 +43,10 @@ export const Register = () => {
       const result = await register(userInfo);
       console.log(`success: ${result}`);
     } catch (err) {
-      console.error(`error: ${err}`);
+      console.error(err);
+      if (err.status === 409) {
+        setDuplicateEmailError(true);
+      }
     }
   };
 
@@ -58,7 +65,11 @@ export const Register = () => {
               label="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setDuplicateEmailError(false);
+              }}
+
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
             />
@@ -80,6 +91,20 @@ export const Register = () => {
               error={confirmPasswordError}
               helperText={confirmPasswordError ? "Passwords must match" : ""}
             />
+
+            {duplicateEmailError && (
+                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
+                  We can’t create an account with that email. Please{" "}
+                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
+                    Sign in
+                  </Link>
+                  {" or "}
+                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
+                    reset your password
+                  </Link>
+                  .
+                </Box>
+              )}
 
             <Button variant="contained" type="submit">
               Create Account
