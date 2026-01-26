@@ -166,7 +166,13 @@ export const Register = () => {
   };
 
   return (
-    <Grid container height="100vh">
+    <Grid
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
       <Box
         sx={{
           flex: 1,
@@ -226,6 +232,8 @@ export const Register = () => {
               flexDirection: "column",
               alignItems: "flex-start",
               justifyContent: "center",
+              px: { xs: 3, md: 8 },
+              py: { xs: 6, md: 0 },
               padding: "16px 0px 0px",
               gap: "24px",
               width: "427.86px",
@@ -268,11 +276,15 @@ export const Register = () => {
         </Box>
       </Box>
       <Grid
-        size={6}
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 3, md: 8 },
+          py: { xs: 6, md: 0 },
+        }}
       >
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
