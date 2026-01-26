@@ -17,6 +17,7 @@ import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import logo from "../assets/logo.png";
+import { login } from "../api/authApi"
 
 export const Login = () => {
   const [institution, setInstitution] = React.useState("");
@@ -37,22 +38,16 @@ export const Login = () => {
     }
     setIsLoading(true);
 
+    const userInfo = {
+          email: email,
+          password: password,
+          institution: institution
+    };
+
     try {
-        const res = await fetch("/api/v1/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, institution }),
-        });
-  
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.token) {
-            localStorage.setItem("jwt", data.token);
-          }
-          console.log("Login success", data);
-          return;
-        }
+        const res = await login(userInfo);
+        console.log(`success: ${res}`);
+
         {/* add redirect to authenticated landing page if successful*/}
   
         if (res.status === 401) {

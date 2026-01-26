@@ -2,17 +2,18 @@ import axiosInstance,{handleAxiosError} from "./axios";
 
 const AUTH_URL = "/auth";
 const PASSWORD_RESET_URL = "/api/v1/password-reset"
-const REGISTER_URL = "/api/v1/registration"
+const LOGIN_URL = "/api/v1/auth/login"
+const REGISTER_URL = "/api/v1/auth/register"
 
 //use authApi to make axios calls to the server and use AuthProvider to process the response
 export async function login(payload) {
 
 
   try {
-    const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
-
+    const response = await axiosInstance.post(`${LOGIN_URL}`, payload);
+    return res.data;
   } catch (err) {
-
+    throw handleAxiosError(err);
   }
 }
 
