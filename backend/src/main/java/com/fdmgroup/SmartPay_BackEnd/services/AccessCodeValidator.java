@@ -1,9 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.services;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.PasswordReset;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface AccessCodeValidator {
-    PasswordReset validate(ConfirmCodeDTO payload, HttpServletRequest httpRequest);
+    Otp validate(OtpDTO payload, HttpServletRequest httpRequest);
 }

@@ -5,6 +5,17 @@ const axiosInstance = axios.create({
   withCredentials: true, // allows sending cookies
 });
 
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const sessionToken = sessionStorage.getItem("session_token");
+    if (sessionToken) {
+      config.headers["X-Session-Token"] = sessionToken;
+    }
+    return config;
+  }
+);
+
 export function handleAxiosError(error) {
   if (error.response) {
     // Server responded with a status outside 2xx

@@ -1,17 +1,16 @@
 import axiosInstance,{handleAxiosError} from "./axios";
 
 const AUTH_URL = "/auth";
+const OTP_URL = "/api/v1/otp"
 const PASSWORD_RESET_URL = "/api/v1/password-reset"
 const LOGIN_URL = "/api/v1/auth/login"
 const REGISTER_URL = "/api/v1/auth/register"
 
 //use authApi to make axios calls to the server and use AuthProvider to process the response
 export async function login(payload) {
-
-
   try {
     const response = await axiosInstance.post(`${LOGIN_URL}`, payload);
-    return response.data;
+    
   } catch (err) {
     throw handleAxiosError(err);
   }
@@ -20,8 +19,10 @@ export async function login(payload) {
 export async function logout() {
   try {
     await axiosInstance.post(`${AUTH_URL}/logout`);
+    sessionStorage.removeItem("session_token");
+    document.cookie = "access_token=; path=/; max-age=0;"; 
   } catch {
-    // Swallow errors; client state will be reset anyway
+    throw handleAxiosError(err);
   }
 }
 
@@ -34,10 +35,20 @@ export async function requestResetCode(payload) {
   }
 }
 
-export async function sendResetCode(payload) {
+export async function sendVerifyCode(payload) {
   try {
-    let res = await axiosInstance.post(`${PASSWORD_RESET_URL}`, payload);
-    return res.data;
+    const {email, code, type} = payload;
+    let res = await axiosInstance.post(`${OTP_URL}/verify`, payload);
+    switch(type){
+      case "login":
+            let { sessionToken } = response.data;
+            sessionStorage.setItem("session_token", sessionToken);
+            break;
+        case "register":
+            break;
+        case "forgot-password":
+            break;
+    }
   } catch (err) {
     throw handleAxiosError(err);
   }

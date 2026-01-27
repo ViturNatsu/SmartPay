@@ -1,6 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -8,8 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ConfirmCodeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
@@ -35,32 +33,6 @@ public class PasswordResetController {
         this.passwordResetService = passwordResetService;
         this.accessCodeValidatorService = accessCodeValidatorService;
     }
-	
-	@Operation(
-		summary = "Request password reset",
-		description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists."
-	)
-	@ApiResponses(value = {
-			@ApiResponse(
-					responseCode = "202",
-					description = "Reset request accepted (Email sent if account exists)"
-			),
-			@ApiResponse(
-					responseCode = "400", 
-					description = "Invalid input (Empty email or wrong format)"
-			),
-	        @ApiResponse(
-	        		responseCode = "429", 
-	        		description = "Too many requests. Limit: 5 per 24 hours. Account locked for 24 hours."
-	        )
-	})
-	@PostMapping
-	public ResponseEntity<Void> startResetRequest(@Valid @RequestBody PasswordResetDTO dto) {
-		String 		email 	= dto.getEmail();
-		HttpStatus 	status 	= passwordResetService.startResetRequest(email);
-		return ResponseEntity.status(status).build();
-	}
-
 
     @Operation(summary = "Confirm 7-digit access code", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")
     @ApiResponses(value = {
@@ -73,7 +45,7 @@ public class PasswordResetController {
     })
     @PostMapping("/confirm-code")
     public ResponseEntity<String> validate7DigitCode(
-            @Valid @RequestBody ConfirmCodeDTO payload,
+            @Valid @RequestBody OtpDTO payload,
             HttpServletRequest httpRequest) {
         accessCodeValidatorService.validate(payload, httpRequest);
         return ResponseEntity.ok("Code validated successfully");
