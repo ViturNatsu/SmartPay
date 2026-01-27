@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,10 +27,10 @@ public class Otp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "otp_id", unique = true, updatable = false, nullable = false)
+    @Column(name = "otp_id", updatable = false, nullable = false)
     private UUID otpId;
 
-    @Column(unique = true, name = "user_email")
+    @Column(name = "user_email")
     private String email;
 
     @Column(name = "otp_hash", nullable = false)
@@ -43,8 +44,8 @@ public class Otp {
     @Enumerated(EnumType.STRING)
     private OtpType otpType;
 
-    @Column(name = "attempts_remaining")
-    int attemptsRemaining;
+    @Column(name = "attempts_made")
+    int attemptsMade;
 
     @Column(name = "first_request_at")
     private LocalDateTime firstRequestAt;
@@ -75,11 +76,20 @@ public class Otp {
         this.status = OtpStatus.USED;
     }
 
+    @PrePersist
+    public void onCreate() {
+        this.firstRequestAt = LocalDateTime.now();
+        this.status = OtpStatus.ACTIVE;
+    }
+
+    public Otp(String email) {
+        this.email = email;
+    }
+
     public enum OtpType {
-        ACCOUNT_RECOVERY,
-        EMAIL_VERIFICATION,
-        MULTI_FACTOR_AUTHENTICATION,
-        PASSWORD_RESET
+        FORGOT_PASSWORD,
+        LOGIN,
+        REGISTER
     }
 
     public enum OtpStatus {
