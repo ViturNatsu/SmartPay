@@ -12,6 +12,15 @@ import lombok.Setter;
 public class RegisterUserDTO {
 
     @NotNull
+    private String firstName;
+
+    @NotNull
+    private String lastName;
+
+    @NotNull
+    private String institution;
+
+    @NotNull
     @Email(message = "Please enter a valid email address.")
     private String email;
     @NotNull
