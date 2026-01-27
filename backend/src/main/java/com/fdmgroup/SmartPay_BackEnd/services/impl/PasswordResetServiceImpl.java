@@ -28,6 +28,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.LockedAccountService;
+import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
@@ -44,7 +45,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private EmailService emailService;
     private LockedAccountService lockedAccountService;
     private UserService userService;
-    private OtpRepository otpRepository;
+    private OtpService otpService;
     private PasswordEncoder passwordEncoder;
 
     public HttpStatus startResetRequest(String email) {
@@ -74,7 +75,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
 
         Otp otp;
-        Optional<Otp> otpOpt = otpRepository.findByEmail(email);
+        Optional<Otp> otpOpt = otpService.findByEmail(email);
         LocalDateTime now = LocalDateTime.now();
         String resetCodeRaw = generatePasswordResetCode();
         String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
@@ -98,6 +99,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 lockedAccountService.AddLockedAccount(newLockedAccount);
                 return HttpStatus.TOO_MANY_REQUESTS;
             }
+            
+            otpService.updateOtp(otp);
         } else {
             // Not present in DB need to create entry
             otp = new Otp(email);
@@ -107,8 +110,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             otp.setStatus(OtpStatus.ACTIVE);
             otp.setFirstRequestAt(now);
             otp.setExpiresAt(now.plusMinutes(45));
+            
+            otpService.createOtp(otp);
         }
-        otpRepository.save(otp);
 
         EmailDetails emailDetails = new EmailDetails();
 
@@ -116,16 +120,16 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         emailDetails.setSubject("Reset your Password");
 
         String resetCode = resetCodeRaw;
-        String resetUrl = "http://localhost:5173/verify-email"; // TODO CHANGE FOR DEPLOYMENT
+        String resetUrl = String.format("http://localhost:5173/verify?email=%s&type=%s&code=%s", 
+        		email, "forgot-password", resetCode); // TODO CHANGE FOR DEPLOYMENT
         emailDetails.setMsgBody("--- PASSWORD RESET --- \n\n" +
                 "A password change was requested for your SmartPay account.\n\n" +
-                "Here is your password reset code: " + resetCode + "\n\n" +
-                "If this was you, follow the link below to reset your password:\n\n" +
+                "If this was you, click the link below to reset your password:\n\n" +
 
                 resetUrl +
 
                 "\n\n" +
-                "This link and code will expire in 45 minutes.\n\n" +
+                "This link will expire in 45 minutes.\n\n" +
                 "If you did not request this change, you can safely ignore this email.\n\n" +
                 "Thank you,\n" +
                 "The SmartPay Support Team");
@@ -154,7 +158,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         // Mark OTP as used
         otpEntity.markAsUsed();
-        otpRepository.save(otpEntity);
+        otpService.updateOtp(otpEntity);
 
         // Log successful password reset
         // audit the record of change password
