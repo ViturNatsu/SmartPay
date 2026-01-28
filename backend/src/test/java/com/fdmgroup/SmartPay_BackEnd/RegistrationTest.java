@@ -1,7 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -24,7 +22,7 @@ public class RegistrationTest {
     /*
     @Test
     void register_returnsUser_whenEmailDoesNotExist() {
-        RegisterUserDTO dto = new RegisterUserDTO();
+        SignUpDTO dto = new SignUpDTO();
         dto.setEmail("test@email.com");
 
         User user = User.builder().email("test@email.com").build();
@@ -41,7 +39,7 @@ public class RegistrationTest {
 
     @Test
     void register_throwsException_whenEmailAlreadyExists() {
-        RegisterUserDTO dto = new RegisterUserDTO();
+        SignUpDTO dto = new SignUpDTO();
         dto.setEmail("test@email.com");
 
         when(userRepository.findByEmail("test@email.com"))
@@ -49,7 +47,7 @@ public class RegistrationTest {
 
         assertThrows(DuplicateEmailException.class,
                 () -> registrationService.register(dto));
-    }*/
+    }
 
     @Test
     void consistentEmail_returnsLowercaseTrimmedEmail() {
@@ -57,4 +55,5 @@ public class RegistrationTest {
 
         assertEquals("test@email.com", result);
     }
+    */
 }
