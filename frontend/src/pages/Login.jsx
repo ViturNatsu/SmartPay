@@ -18,15 +18,17 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import logo from "../assets/logo.png";
 import { login } from "../api/authApi"
+import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
   const [institution, setInstitution] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
-  const passwordInputRef = React.useRef(null);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,19 +47,12 @@ export const Login = () => {
     };
 
     try {
-        const res = await login(userInfo);
-        console.log(`success: ${res}`);
-
-        {/* add redirect to authenticated landing page if successful*/}
-  
-        if (res.status === 401) {
-          setErrorMsg("Incorrect email or password.");
-          return;
-        }
-  
-        // setErrorMsg("Login failed. Please try again.");
-      } catch {
-        setErrorMsg("Network error. Please try again.");
+        await login({ email, password });
+        navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
+      } catch (err) {
+        if (err.status === 401) setErrorMsg("Incorrect email or password.");
+        else if (err.status === 403) setErrorMsg("Please verify your email before signing in.");
+        else setErrorMsg(err.message || "Network error. Please try again.");
       } finally {
         setIsLoading(false);
       }

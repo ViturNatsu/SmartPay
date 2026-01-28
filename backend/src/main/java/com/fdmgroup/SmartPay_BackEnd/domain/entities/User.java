@@ -2,9 +2,17 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,11 +31,11 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
-    private long id;
+    private Long id;
 
 	@Column(nullable = false)
 	private String firstName;
@@ -44,6 +52,7 @@ public class User {
     @Column(name = "password_hash")
     private String password;
 
+    @Column(name = "status")
     private String status;
 
     @Column(name="email_verified")
@@ -59,133 +68,48 @@ public class User {
     private LocalDateTime lastPasswordChangeAt;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", status='" + status + '\'' +
-                ", emailVerified=" + emailVerified +
-                ", emailVerifiedAt=" + emailVerifiedAt +
-                ", lastLoginAt=" + lastLoginAt +
-                ", lastPasswordChangeAt=" + lastPasswordChangeAt +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     public User(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
-	public long getId() {
-		return id;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
 
-	public void setId(long id) {
-		this.id = id;
-	}
+    @Override
+    public String getUsername() {
+        // not a bug. springsecurity userdetails requires a username so i'm just setting it as email 
+        return email;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public boolean isEmailVerified() {
-		return emailVerified;
-	}
-
-	public void setEmailVerified(boolean emailVerified) {
-		this.emailVerified = emailVerified;
-	}
-
-	public LocalDateTime getEmailVerifiedAt() {
-		return emailVerifiedAt;
-	}
-
-	public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
-		this.emailVerifiedAt = emailVerifiedAt;
-	}
-
-	public LocalDateTime getLastLoginAt() {
-		return lastLoginAt;
-	}
-
-	public void setLastLoginAt(LocalDateTime lastLoginAt) {
-		this.lastLoginAt = lastLoginAt;
-	}
-
-	public LocalDateTime getLastPasswordChangeAt() {
-		return lastPasswordChangeAt;
-	}
-
-	public void setLastPasswordChangeAt(LocalDateTime lastPasswordChangeAt) {
-		this.lastPasswordChangeAt = lastPasswordChangeAt;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
-    
-	public String getFirstname() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastname() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	public String getInstitution() {
-		return institution;
-	}
-
-	public void setInstitution(String institution) {
-		this.institution = institution;
-	}
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
 }

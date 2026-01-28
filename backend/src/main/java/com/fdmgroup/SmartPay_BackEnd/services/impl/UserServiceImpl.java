@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
@@ -79,4 +81,17 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User not found with id: " + userId));
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User not found with email: " + email));
+    }
 }

@@ -2,8 +2,9 @@ package com.fdmgroup.SmartPay_BackEnd.services;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
-public interface UserService {
+public interface UserService extends UserDetailsService {
     User signUpUser(User user);
     User findByEmail(String email) throws UserNotFoundException;
     void save(User user);
@@ -17,4 +18,5 @@ public interface UserService {
      * @return User if credentials are valid
      */
     User validateCredentials(String email, String password);
+    User getUserById(Long userId);
 }

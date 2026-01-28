@@ -36,8 +36,8 @@ export const ForgotPassword = () => {
 
     // Simulate success
     try {
-      await requestResetCode();
-      navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+      await requestResetCode({ email });
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=forgot-password`);
     } catch (e) {
       if (e.status === 400) setError("Email not sent or in incorrect format");
       if (e.status === 429) setError("Account Locked")

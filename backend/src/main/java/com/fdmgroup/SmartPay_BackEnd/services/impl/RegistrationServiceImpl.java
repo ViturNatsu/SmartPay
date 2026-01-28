@@ -2,9 +2,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
 import org.springframework.stereotype.Service;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
@@ -20,7 +21,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
 
     @Override
-    public User register(RegisterUserDTO userDto) {
+    public User register(SignUpDTO userDto) {
         String email = consistentEmail(userDto.getEmail());
 
         Optional<User> users =  userRepository.findByEmail(email);
@@ -31,6 +32,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .institution(userDto.getInstitution())
                     .email(email)
                     .password(userDto.getPassword())
+                    .role(Role.USER) // To be changed in future implementations
                     .build();
             return userService.signUpUser(user);
         }
