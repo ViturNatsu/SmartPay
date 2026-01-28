@@ -1,6 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
@@ -31,7 +31,7 @@ public class RegistrationTest {
 
     @Test
     void register_returnsUser_whenEmailDoesNotExist() {
-        RegisterUserDTO dto = new RegisterUserDTO();
+        SignUpDTO dto = new SignUpDTO();
         dto.setEmail("test@email.com");
 
         User user = User.builder().email("test@email.com").build();
@@ -48,7 +48,7 @@ public class RegistrationTest {
 
     @Test
     void register_throwsException_whenEmailAlreadyExists() {
-        RegisterUserDTO dto = new RegisterUserDTO();
+        SignUpDTO dto = new SignUpDTO();
         dto.setEmail("test@email.com");
 
         when(userRepository.findByEmail("test@email.com"))

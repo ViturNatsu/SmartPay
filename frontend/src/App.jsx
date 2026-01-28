@@ -5,7 +5,7 @@ import { Register } from './pages/Register';
 import { ResetPassword } from './pages/ResetPassword';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { VerifyOtp } from './pages/VerifyOtp';
-import { BrowserRouter as Routes, Route  } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { GlobalStyles } from './GlobalStyles';
 export default function App() {
