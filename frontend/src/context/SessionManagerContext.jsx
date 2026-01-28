@@ -21,9 +21,9 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   const refreshTimerRef = useRef(null);
   const isRefreshingRef = useRef(false);
   const isActiveRef = useRef(false); // Track if listeners are active
-    const accessExpRef = useRef(null); // Access token expiry in ms
+  const accessExpRef = useRef(null); // Access token expiry in ms
 
-const base64UrlDecode = (str) => {
+  const base64UrlDecode = (str) => {
     try {
       const pad = (s) => s + "===".slice((s.length + 3) % 4);
       const b64 = pad(str.replace(/-/g, "+").replace(/_/g, "/"));
@@ -64,6 +64,7 @@ const base64UrlDecode = (str) => {
 
   // Function to refresh tokens from backend
   const refreshTokens = useCallback(async () => {
+    console.log("session refresh called")
     if (isRefreshingRef.current) return; // Avoid overlapping refreshes
 
     const refreshToken = sessionStorage.getItem("refresh_token");
@@ -91,24 +92,24 @@ const base64UrlDecode = (str) => {
 
   const checkTokenExpiry = useCallback(() => {
     if (!accessExpRef.current) return false;
-    
+
     const now = Date.now();
     const timeLeft = accessExpRef.current - now;
-    
+
     // If token expired, trigger session expired
     if (timeLeft <= 0) {
       console.log("Token expired");
       onSessionExpired?.();
       return true;
     }
-    
+
     // If token about to expire within leeway, trigger refresh
     if (timeLeft <= REFRESH_LEEWAY_MS) {
       console.log("Token about to expire, refreshing...");
-      refreshTokens().catch(() => {});
+      refreshTokens().catch(() => { });
       return true;
     }
-    
+
     return false;
   }, [onSessionExpired, refreshTokens]);
 
@@ -136,7 +137,7 @@ const base64UrlDecode = (str) => {
         const sinceLast = Date.now() - lastActivityRef.current;
         if (sinceLast >= ACTIVE_REFRESH_THRESHOLD) {
           // User has been active for threshold refresh tokens
-          refreshTokens().catch(() => {});
+          refreshTokens().catch(() => { });
           // Schedule next refresh while user remains active
           refreshTimerRef.current = setTimeout(
             tryRefresh,

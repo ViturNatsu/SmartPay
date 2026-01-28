@@ -15,8 +15,8 @@ export const VerifyOtp = () => {
   const typeParam = searchParams.get("type");
   const codeParam = searchParams.get("code");
 
-  const { getMyUser } = useAuth();
-  
+  const { setAuthFromTokens } = useAuth();
+
   const submit = async (submittedCode) => {
     setError("");
     if (!/^[0-9]{7}$/.test(submittedCode)) {
@@ -27,11 +27,13 @@ export const VerifyOtp = () => {
     try {
       setLoading(true);
       const res = await sendVerifyCode({ email: emailParam, code: submittedCode, type: typeParam });
-
       switch (typeParam) {
         case "login":
-            getMyUser();
-            navigate(`/`);
+          setAuthFromTokens({
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+          }); 
+          navigate(`/home`);
           break;
         case "register":
           navigate(`/login`);
