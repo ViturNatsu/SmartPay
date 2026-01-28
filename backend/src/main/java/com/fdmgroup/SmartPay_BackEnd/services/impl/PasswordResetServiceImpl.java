@@ -17,13 +17,11 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.LockedAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AccessCodeValidator;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
@@ -53,7 +51,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         try {
             userService.findByEmail(email);
         } catch (UserNotFoundException e) {
-            System.out.println(e.getMessage());
+            log.info("Password reset requested for non-invalid email");
             return HttpStatus.ACCEPTED;
         }
 
@@ -67,18 +65,19 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             calendar.add(Calendar.HOUR_OF_DAY, -24);
 
             // Check if the account's locked at date is AFTER the date above (This means
-            // it's still within
-            // the 24 hour locking period). If so, return a 429 code. Otherwise, continue to
-            // the code below.
-            if (account.getLockedAt().after(calendar.getTime()))
+            // it's still within the 24 hour locking period). If so, return a 429 code.
+            if (account.getLockedAt().after(calendar.getTime())) {
+                log.warn("Password reset blocked for locked account: {}", email);
                 return HttpStatus.TOO_MANY_REQUESTS;
+            }
         }
 
         Otp otp;
-        Optional<Otp> otpOpt = otpService.findByEmail(email);
+        Optional<Otp> otpOpt = otpService.findByEmailAndType(email, OtpType.FORGOT_PASSWORD);
         LocalDateTime now = LocalDateTime.now();
         String resetCodeRaw = generatePasswordResetCode();
         String resetCodeHashed = passwordEncoder.encode(resetCodeRaw);
+        int expiryMinutes = 15;
 
         if (otpOpt.isPresent()) {
             otp = otpOpt.get();
@@ -88,12 +87,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 otp.setAttemptsMade(0);
                 otp.setStatus(OtpStatus.ACTIVE);
                 otp.setFirstRequestAt(now);
-                otp.setExpiresAt(now.plusMinutes(45));
+                otp.setExpiresAt(now.plusMinutes(expiryMinutes));
             } else if (otp.getAttemptsMade() < 5) {
                 otp.setOtpHash(resetCodeHashed);
                 otp.setAttemptsMade(otp.getAttemptsMade() + 1);
                 otp.setStatus(OtpStatus.ACTIVE);
-                otp.setExpiresAt(now.plusMinutes(45));
+                otp.setExpiresAt(now.plusMinutes(expiryMinutes));
             } else {
                 LockedAccount newLockedAccount = new LockedAccount(email, new Date());
                 lockedAccountService.AddLockedAccount(newLockedAccount);
@@ -102,34 +101,28 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             
             otpService.updateOtp(otp);
         } else {
-            // Not present in DB need to create entry
             otp = new Otp(email);
             otp.setOtpHash(resetCodeHashed);
-            otp.setAttemptsMade(0);
+            otp.setAttemptsMade(1);
             otp.setOtpType(OtpType.FORGOT_PASSWORD);
             otp.setStatus(OtpStatus.ACTIVE);
             otp.setFirstRequestAt(now);
-            otp.setExpiresAt(now.plusMinutes(45));
+            otp.setExpiresAt(now.plusMinutes(expiryMinutes));
             
             otpService.createOtp(otp);
         }
 
         EmailDetails emailDetails = new EmailDetails();
-
         emailDetails.setRecipient(email);
         emailDetails.setSubject("Reset your Password");
 
-        String resetCode = resetCodeRaw;
         String resetUrl = String.format("http://localhost:5173/verify?email=%s&type=%s&code=%s", 
-        		email, "forgot-password", resetCode); // TODO CHANGE FOR DEPLOYMENT
-        emailDetails.setMsgBody("--- PASSWORD RESET --- \n\n" +
-                "A password change was requested for your SmartPay account.\n\n" +
+        email, "forgot-password", resetCodeRaw);
+        emailDetails.setMsgBody("A password change was requested for your SmartPay account.\n\n" +
                 "If this was you, click the link below to reset your password:\n\n" +
-
                 resetUrl +
-
                 "\n\n" +
-                "This link will expire in 45 minutes.\n\n" +
+                "This code expires in " + expiryMinutes + " minutes.\n\n" +
                 "If you did not request this change, you can safely ignore this email.\n\n" +
                 "Thank you,\n" +
                 "The SmartPay Support Team");

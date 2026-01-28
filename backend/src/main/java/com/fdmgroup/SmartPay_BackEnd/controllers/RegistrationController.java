@@ -1,8 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
+import com.fdmgroup.SmartPay_BackEnd.services.OtpFlowService;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,10 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/auth/register")
+@RequestMapping("/api/v1/auth/register")
 @AllArgsConstructor
 public class RegistrationController {
     private final RegistrationService registrationService;
+    private final OtpFlowService otpFlowService;
 
     @PostMapping
     @Operation(summary = "Register and create new user")
@@ -33,11 +36,19 @@ public class RegistrationController {
             @ApiResponse(responseCode = "409", description = "User email already exists, cannot create an account with a duplicate email")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User creation payload", required = true)
-    public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDTO userDto) {
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody SignUpDTO userDto) {
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             throw new IllegalArgumentException("Password and confirm password do not match");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(registrationService.register(userDto));
+        User user = registrationService.register(userDto);
+        otpFlowService.requestOtp(user.getEmail(), OtpType.REGISTER);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "id", user.getId(),
+                        "email", user.getEmail(),
+                        "otpSent", true
+                ));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)

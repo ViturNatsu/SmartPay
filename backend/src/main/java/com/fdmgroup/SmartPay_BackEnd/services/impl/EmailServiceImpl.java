@@ -14,7 +14,8 @@ public class EmailServiceImpl implements EmailService{
 
     private final JavaMailSender javaMailSender;
 
-    @Value("${spring.mail.username}") private String sender;
+    @Value("${spring.mail.username:noreply@smartpay.local}") 
+    private String sender;
 
     public EmailServiceImpl(JavaMailSender javaMailSender) {
         this.javaMailSender = javaMailSender;
@@ -24,21 +25,21 @@ public class EmailServiceImpl implements EmailService{
     @Override
     public String sendSimpleMail(EmailDetails details) {
         try {
-            SimpleMailMessage mailMessage
-                = new SimpleMailMessage();
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
 
             mailMessage.setFrom(sender);
             mailMessage.setTo(details.getRecipient());
             mailMessage.setText(details.getMsgBody());
             mailMessage.setSubject(details.getSubject());
 
-            System.out.println("MAIL ABOUT TO SEND");
+            System.out.println("Sending email to: " + details.getRecipient());
             javaMailSender.send(mailMessage);
+            System.out.println("Email sent successfully to MailHog");
             return "Mail Sent Successfully...";
         }
         catch (Exception e) {
             e.printStackTrace();
-            return "Error while Sending Mail";
+            return "Error while Sending Mail: " + e.getMessage();
         }
     }
 

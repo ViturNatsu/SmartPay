@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TextField, Button, Box, Typography } from "@mui/material";
-import { sendResetCode } from "../api/authApi";
+import { sendVerifyCode } from "../api/authApi";
 
 export const VerifyEmail = () => {
   const [code, setCode] = useState("");
@@ -24,7 +24,7 @@ export const VerifyEmail = () => {
     try {
       setLoading(true);
       
-      await sendResetCode({ "email": emailParam, "status": code });
+      await sendVerifyCode({ email: emailParam, code, type: "forgot-password" });
       
       navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${code}`);
     } catch (err) {

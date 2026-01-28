@@ -37,18 +37,19 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
     @Override
     public Otp validate(OtpDTO payload, HttpServletRequest httpRequest) {
         String accessCode = payload.getCode();
-        Otp resetRequest = otpRepository.findByEmail(payload.getEmail())
-                .orElseThrow(
-                        () -> new EmailNotFoundException(
-                                "No request is found for the provided email address."));
+        String email = payload.getEmail() == null ? null : payload.getEmail().trim().toLowerCase();
 
-        if (!argonPasswordEncoder.matches(accessCode, resetRequest.getOtpHash())) {
-            throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
-        }
-        User user = userService.findByEmail(payload.getEmail());
+        Otp otp = otpRepository.findByEmailAndOtpType(email, payload.getType())
+                .orElseThrow(() -> new EmailNotFoundException(
+                        "No request is found for the provided email address."));
+
+        User user = userService.findByEmail(email);
 
         // Check if OTP is expired
-        if (resetRequest.isExpired()) {
+        if (otp.isExpired()) {
+            otp.setStatus(Otp.OtpStatus.EXPIRED);
+            otpRepository.save(otp);
+
             Map<String, Object> eventData = new HashMap<>();
             eventData.put("reason", "expired");
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_EXPIRED, user, eventData, httpRequest);
@@ -58,7 +59,7 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
         }
 
         // Check if OTP is already used
-        if (resetRequest.isUsed()) {
+        if (otp.isUsed()) {
             Map<String, Object> eventData = new HashMap<>();
             eventData.put("reason", "already_used");
             auditService.logEvent(AuditLog.PASSWORD_RESET_FAILED_USED, user, eventData, httpRequest);
@@ -66,8 +67,33 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
             throw new AccessCodeUsedException(
                     "This code has expired or has already been used. Please request a new code");
         }
+
+        if (otp.isLocked()) {
+            throw new AccountLockedException(
+                    "We can’t process this request right now. Please try again later");
+        }
+
+        if (!argonPasswordEncoder.matches(accessCode, otp.getOtpHash())) {
+            otp.setAttemptsMade(otp.getAttemptsMade() + 1);
+            if (otp.getAttemptsMade() >= 5) {
+                otp.setStatus(Otp.OtpStatus.LOCKED);
+            }
+            otpRepository.save(otp);
+
+            if (otp.isLocked()) {
+                Map<String, Object> eventData = new HashMap<>();
+                eventData.put("reason", "no_attempts_remaining");
+                auditService.logEvent(AuditLog.INVALID_RESET_CODE, user, eventData, httpRequest);
+
+                throw new AccountLockedException(
+                        "We can’t process this request right now. Please try again later");
+            }
+
+            throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
+        }
+
         // Check if OTP has attempts remaining
-        if (resetRequest.getAttemptsMade() >= 5) {
+        if (otp.getAttemptsMade() >= 5) {
             Map<String, Object> eventData = new HashMap<>();
             eventData.put("reason", "no_attempts_remaining");
             auditService.logEvent(AuditLog.INVALID_RESET_CODE, user, eventData, httpRequest);
@@ -76,6 +102,6 @@ public class AccessCodeValidatorServiceImpl implements AccessCodeValidator {
                     "We can’t process this request right now. Please try again later");
         }
 
-        return resetRequest;
+        return otp;
     }
 }

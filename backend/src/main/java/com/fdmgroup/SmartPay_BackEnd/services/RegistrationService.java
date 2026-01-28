@@ -1,14 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.services;
 
-import java.util.Optional;
-
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.RegisterUserDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 
 
 
 public interface RegistrationService {
-    User register(RegisterUserDTO userDto);
+    User register(SignUpDTO userDto);
 
     String consistentEmail(String email);
 

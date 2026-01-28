@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -27,7 +26,6 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
 import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
-import { use } from "react";
 
 export const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -121,26 +119,11 @@ export const Register = () => {
       confirmPassword: confirmPassword,
     };
 
-    const auth = {
-      username: "admin",
-      password: "admin",
-    };
     try {
-      const result = await register(userInfo);
-      console.log(`success: ${result}`);
+      await register(userInfo);
       setErrorMessage("");
-      setDuplicateEmailError(false)
-      setSuccessMessage(
-        <>
-          Successfully created an account! Please verify your account before{" "}
-          <Link href="/login" underline="hover">
-            Signing in.
-          </Link>
-        </>,
-      );
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+      setDuplicateEmailError(false);
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=register`);
     } catch (error) {
       const data = error.data;
       const status = error.status;

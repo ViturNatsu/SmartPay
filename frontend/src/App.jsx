@@ -5,12 +5,12 @@ import { Register } from './pages/Register';
 import { ResetPassword } from './pages/ResetPassword';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { VerifyOtp } from './pages/VerifyOtp';
-import { BrowserRouter as Router, Routes, Route  } from 'react-router-dom';
+import { BrowserRouter as Routes, Route  } from 'react-router-dom';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { GlobalStyles } from './GlobalStyles';
 export default function App() {
   return (
-    <Router>
+    <>
       <GlobalStyles />
       <Routes>
           <Route path="/login" element={<Login />} />
@@ -21,8 +21,9 @@ export default function App() {
           <Route path="/verify" element={<VerifyOtp/>}/>
           <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
           </Route>
         </Routes>
-    </Router>
+    </>
   );
 }

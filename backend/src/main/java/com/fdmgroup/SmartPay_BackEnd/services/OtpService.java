@@ -6,7 +6,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 
 public interface OtpService {
 	
-	Optional<Otp> findByEmail(String email);
+	Optional<Otp> findByEmailAndType(String email, Otp.OtpType otpType);
 	
 	Otp createOtp(Otp otp);
 	

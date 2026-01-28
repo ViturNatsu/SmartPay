@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TextField, Button, Box, Typography } from "@mui/material";
-import { sendResetCode } from "../api/authApi";
+import { sendVerifyCode } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
 
-export const VerifyEmail = () => {
+export const VerifyOtp = () => {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,43 +14,56 @@ export const VerifyEmail = () => {
   const emailParam = searchParams.get("email");
   const typeParam = searchParams.get("type");
   const codeParam = searchParams.get("code");
-  
-  useEffect(async ()=>{
-    if(emailParam && typeParam && codeParam){
-        setCode(codeParam);
-        await handleSubmit();
-    }
-  },[]);  
 
-  const handleSubmit = async (e) => {
-    
-    e.preventDefault();
+  const { getMyUser } = useAuth();
+  
+  const submit = async (submittedCode) => {
     setError("");
-    if (!/^\d{7}$/.test(code)) {
+    if (!/^[0-9]{7}$/.test(submittedCode)) {
       setError("Enter a valid 7-digit code.");
       return;
     }
+
     try {
       setLoading(true);
-      
-      await sendVerifyCode({ "email": emailParam, "code": code, "type":typeParam });
-      switch(type){
+      const res = await sendVerifyCode({ email: emailParam, code: submittedCode, type: typeParam });
+
+      switch (typeParam) {
         case "login":
-            navigate(`/home`);
-            break;
+            getMyUser();
+            navigate(`/`);
+          break;
         case "register":
-            navigate(`/login`);
-            break;
+          navigate(`/login`);
+          break;
         case "forgot-password":
-            navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${code}`);
-            break;
+          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`);
+          break;
+        default:
+          setError("Unknown verification type.");
       }
     } catch (err) {
-      if (err.status === 400) setError("Code is Invalid");
-      if (err.status === 401) setError("Reset code has expired")
-    }finally{
+      if (err.status === 400) setError("Code is invalid.");
+      else if (err.status === 401) setError("Code has expired or was already used.");
+      else if (err.status === 404) setError("Email not found.");
+      else if (err.status === 429) setError("Too many attempts. Please try again later.");
+      else setError(err.message || "Verification failed.");
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (emailParam && typeParam && codeParam) {
+      setCode(codeParam);
+      submit(codeParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emailParam, typeParam, codeParam]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await submit(code);
   };
 
   return (

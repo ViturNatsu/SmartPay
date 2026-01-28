@@ -18,8 +18,8 @@ public class OtpServiceImpl implements OtpService {
 	private OtpRepository repository;
 
 	@Override
-	public Optional<Otp> findByEmail(String email) {
-		return repository.findByEmail(email);
+	public Optional<Otp> findByEmailAndType(String email, Otp.OtpType otpType) {
+		return repository.findByEmailAndOtpType(email, otpType);
 	}
 
 	@Override
