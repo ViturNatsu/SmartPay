@@ -1,7 +1,7 @@
 import axiosInstance, { handleAxiosError, setAccessToken, clearAccessToken } from "./axios";
 
 const OTP_URL = "/api/v1/otp";
-const AUTH_URL = "/auth";
+const AUTH_URL = "/api/v1/auth";
 const PASSWORD_RESET_URL = "/api/v1/password-reset";
 const KEEP_ALIVE = "/api/v1/auth/keep-alive"
 
@@ -83,7 +83,7 @@ export async function resetPassword(payload) {
 
 export async function register(payload) {
   try {
-    const res = await axiosInstance.post(`/api/v1/auth/register`, payload);
+    const res = await axiosInstance.post(`${AUTH_URL}/register`, payload);
     const { accessToken, refreshToken } = res.data;
     
     if (accessToken) setAccessToken(accessToken);
@@ -98,9 +98,17 @@ export async function register(payload) {
 export async function refreshTokens() {
   try {
     const refreshToken = sessionStorage.getItem("refresh_token");
-    if (!refreshToken) return null;
+    if (!refreshToken ) return null;
     
-    const res = await axiosInstance.post(`${AUTH_URL}/refresh`);
+    const res = await axiosInstance.post(
+      `${AUTH_URL}/refresh`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      }
+    );
     const { accessToken, refreshToken: newRefreshToken } = res.data;
     
     if (accessToken) setAccessToken(accessToken);
@@ -113,12 +121,15 @@ export async function refreshTokens() {
 }
 
 export async function getMyUser() {
-  try {
+  return Promise.resolve({id: 1,
+          email: "placeholder@smartpay.local",
+          role: "fake role"});
+  /*try {
     const res = await axiosInstance.get(`${AUTH_URL}/me`);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
-  }
+  }*/
 }
 
 // Use refresh token to get new access and refresh token)

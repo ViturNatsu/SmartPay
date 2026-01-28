@@ -40,12 +40,6 @@ export const Login = () => {
     }
     setIsLoading(true);
 
-    const userInfo = {
-          email: email,
-          password: password,
-          institution: institution
-    };
-
     try {
         await login({ email, password });
         navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);

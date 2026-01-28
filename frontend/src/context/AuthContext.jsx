@@ -22,6 +22,7 @@ const AuthProviderInner = ({ children }) => {
   const getMyUser = useCallback(async () => {
     try {
       const userData = await authApi.getMyUser();
+      console.log(userData)
       if (userData) {
         setUser({
           id: userData.id,
@@ -48,15 +49,16 @@ const AuthProviderInner = ({ children }) => {
 
       await getMyUser();
 
-      // Start session monitoring after successful authentication
-      startSessionMonitoring();
+      // Disabled for now Start session monitoring after successful authentication
+      // startSessionMonitoring();
     },
     [getMyUser, startSessionMonitoring]
   );
 
-  const clearAuth = useCallback(() => {
+  const clearAuth = useCallback(async() => {
     setUser(null);
-    stopSessionMonitoring();
+    await authApi.logout();
+    //stopSessionMonitoring();
   }, [stopSessionMonitoring]);
 
   const logout = useCallback(async () => {
@@ -64,6 +66,7 @@ const AuthProviderInner = ({ children }) => {
     try {
       await authApi.logout();
     } finally {
+      clearAuth();
       setLoading(false);
       navigate("/login", { replace: true });
     }
@@ -84,7 +87,7 @@ const AuthProviderInner = ({ children }) => {
         }
 
         const res = await authApi.refreshTokens();
-
+        console.log("refreshed tokens")
         if (!cancelled && res?.accessToken) {
           setAccessToken(res.accessToken);
 
@@ -94,13 +97,13 @@ const AuthProviderInner = ({ children }) => {
 
           await getMyUser();
 
-          // Start session monitoring after successful bootstrap
-          startSessionMonitoring();
+          // Disabled for now. Start session monitoring after successful bootstrap
+          // startSessionMonitoring();
         } else if (!cancelled) {
           clearAuth();
         }
-      } catch {
-        if (!cancelled) clearAuth();
+      } catch (err){
+        if(err.status!=401)clearAuth();
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -118,9 +121,10 @@ const AuthProviderInner = ({ children }) => {
       user,
       loading,
       setAuthFromTokens,
+      getMyUser,
       logout,
     }),
-    [user, loading, setAuthFromTokens, logout]
+    [user, loading,getMyUser, setAuthFromTokens, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
