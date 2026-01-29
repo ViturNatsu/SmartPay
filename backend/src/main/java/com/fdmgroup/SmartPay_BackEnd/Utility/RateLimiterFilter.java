@@ -28,7 +28,7 @@ public class RateLimiterFilter implements Filter {
 
         String clientIp = httpRequest.getRemoteAddr();
 
-        if (httpRequest.getRequestURI().startsWith("/api/v1/registration") && !requestCounter.requestAllowed(clientIp)) {
+        if (httpRequest.getRequestURI().startsWith("/api/v1/auth/register") && !requestCounter.requestAllowed(clientIp)) {
             httpResponse.setStatus(429);
             httpResponse.getWriter().write("Too many requests.");
             LOGGER.log(Level.WARNING, "Request Blocked: Too many requests.");

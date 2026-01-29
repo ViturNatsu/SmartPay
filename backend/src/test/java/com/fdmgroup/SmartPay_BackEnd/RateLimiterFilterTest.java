@@ -36,7 +36,7 @@ public class RateLimiterFilterTest {
     void setUp() throws IOException {
         filter = new RateLimiterFilter(new RequestCounter());
         when(servletRequest.getRemoteAddr()).thenReturn("192.0.2.100");
-        when(servletRequest.getRequestURI()).thenReturn("/api/v1/registration");
+        when(servletRequest.getRequestURI()).thenReturn("/api/v1/auth/register");
     }
 
     @Test
