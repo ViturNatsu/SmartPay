@@ -50,7 +50,7 @@ const AuthProviderInner = ({ children }) => {
       await getMyUser();
 
       // Disabled for now Start session monitoring after successful authentication
-      // startSessionMonitoring();
+      startSessionMonitoring();
     },
     [getMyUser, startSessionMonitoring]
   );
@@ -58,7 +58,7 @@ const AuthProviderInner = ({ children }) => {
   const clearAuth = useCallback(async() => {
     setUser(null);
     await authApi.logout();
-    //stopSessionMonitoring();
+    stopSessionMonitoring();
   }, [stopSessionMonitoring]);
 
   const logout = useCallback(async () => {
@@ -98,7 +98,7 @@ const AuthProviderInner = ({ children }) => {
           await getMyUser();
 
           // Disabled for now. Start session monitoring after successful bootstrap
-          // startSessionMonitoring();
+          startSessionMonitoring();
         } else if (!cancelled) {
           clearAuth();
         }

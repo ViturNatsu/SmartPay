@@ -10,8 +10,8 @@ import * as authApi from "../api/authApi";
 const SessionManagerContext = createContext(undefined);
 
 // Time constants
-const INACTIVITY_LIMIT = 2 * 60 * 1000; // 2 minutes logout
-const ACTIVE_REFRESH_THRESHOLD = 1 * 60 * 1000; // 1 minute refresh tokens
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes logout
+const ACTIVE_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes refresh tokens
 const REFRESH_LEEWAY_MS = 2000; // Refresh 2s before token expires
 
 export const SessionManagerProvider = ({ children, onSessionExpired }) => {
