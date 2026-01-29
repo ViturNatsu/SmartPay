@@ -16,7 +16,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.SessionAuthenticationException;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpFlowService;
+import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
@@ -30,7 +30,7 @@ public class AuthSessionController {
     private final UserService userService;
     private final JwtSessionService jwtService;
     private final SessionService sessionService;
-    private final OtpFlowService otpFlowService;
+    private final OtpService otpService;
 
     //Step 1 of login flow: validate credentials and send OTP.
     @PostMapping({"/login"})
@@ -51,7 +51,7 @@ public class AuthSessionController {
                     .body(Map.of("message", "Email address is not verified."));
         }
 
-        otpFlowService.requestOtp(email, OtpType.LOGIN);
+        otpService.requestOtp(email, OtpType.LOGIN);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("otpSent", true));
     }
 
