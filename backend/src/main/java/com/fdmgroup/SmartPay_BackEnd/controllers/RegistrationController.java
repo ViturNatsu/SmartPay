@@ -1,32 +1,34 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpFlowService;
+import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth/register")
 @AllArgsConstructor
 public class RegistrationController {
     private final RegistrationService registrationService;
-    private final OtpFlowService otpFlowService;
+    private final OtpService otpService;
 
     @PostMapping
     @Operation(summary = "Register and create new user")
@@ -41,7 +43,7 @@ public class RegistrationController {
             throw new IllegalArgumentException("Password and confirm password do not match");
         }
         User user = registrationService.register(userDto);
-        otpFlowService.requestOtp(user.getEmail(), OtpType.REGISTER);
+        otpService.requestOtp(user.getEmail(), OtpType.REGISTER);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(

@@ -27,6 +27,21 @@ public class SecurityConfig {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String[] PUBLIC_API_ENDPOINTS = {
+            "/api/v*/password-reset/**",
+            "/api/v*/auth/**",
+            "/api/v*/otp/**",
+            "/actuator/**",
+            "/error/**"
+    };
+
+    private static final String[] DEV_ONLY = {
+            "/h2-console/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**"
+    };
+
     /**
      * IMPORTANT: Configure authentication provider to use our UserService
      */
@@ -56,13 +71,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers(HttpMethod.PUT,"/api/v*/password-reset/**").permitAll()
-            .requestMatchers("/api/v*/password-reset/**","/api/v*/auth/**","/api/v*/otp/**",
-                "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/actuator/**", "/error/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers(HttpMethod.PUT,"/api/v*/password-reset/**").permitAll()
+                            .requestMatchers(PUBLIC_API_ENDPOINTS).permitAll()
+                            .requestMatchers(DEV_ONLY).permitAll()
+                    .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
