@@ -24,6 +24,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Otp {
+	
+	public Otp(String email, OtpType type) {
+		this.email = email;
+		this.otpType = type;
+	}
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -52,7 +57,65 @@ public class Otp {
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
+    
+    public enum OtpType {
+        FORGOT_PASSWORD,
+        REGISTER,
+        LOGIN
+    }
 
+    public enum OtpStatus {
+        ACTIVE,
+        EXPIRED,
+        LOCKED,
+        USED
+    }
+    
+    public int getLimit() {
+    	return switch (this.otpType) {
+	        case FORGOT_PASSWORD -> 5;
+	        case REGISTER -> 3;
+	        case LOGIN -> 10;
+	    };
+    }
+    
+    public int getExpiry() {
+    	return switch (this.otpType) {
+	        case FORGOT_PASSWORD -> 45;
+	        case REGISTER -> 15;
+	        case LOGIN -> 5;
+	    };
+    }
+    
+    public EmailDetails getEmail(String code) {
+    	EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setRecipient(email);
+        emailDetails.setSubject(switch (this.otpType) {
+        	case LOGIN -> "Your SmartPay sign-in code";
+	        case REGISTER -> "Verify your SmartPay account";
+	        case FORGOT_PASSWORD -> "Reset your SmartPay password";
+	    });
+        
+        emailDetails.setMsgBody(switch (this.otpType) {
+	        case LOGIN, REGISTER -> 
+	        	"Your verification code is: " + code + "\n\n" +
+                "This code expires in " +this.getExpiry() + " minutes.\n\n" +
+                "If you did not request this, you can ignore this email.";
+	        case FORGOT_PASSWORD -> 
+	        	"A password change was requested for your SmartPay account.\n\n" +
+                "If this was you, click the link below to reset your password:\n\n" +
+                String.format("http://localhost:5173/verify?email=%s&type=%s&code=%s", 
+                        email, "forgot-password", code) +
+                "\n\n" +
+                "This code expires in " + this.getExpiry() + " minutes.\n\n" +
+                "If you did not request this change, you can safely ignore this email.\n\n" +
+                "Thank you,\n" +
+                "The SmartPay Support Team";
+        });
+        
+        return emailDetails;
+    }
+    
     public boolean isActive() {
         return status == OtpStatus.ACTIVE && !isExpired();
     }
@@ -74,28 +137,5 @@ public class Otp {
             throw new IllegalStateException("Password reset token is not active");
         }
         this.status = OtpStatus.USED;
-    }
-
-    @PrePersist
-    public void onCreate() {
-        this.firstRequestAt = LocalDateTime.now();
-        this.status = OtpStatus.ACTIVE;
-    }
-
-    public Otp(String email) {
-        this.email = email;
-    }
-
-    public enum OtpType {
-        FORGOT_PASSWORD,
-        LOGIN,
-        REGISTER
-    }
-
-    public enum OtpStatus {
-        ACTIVE,
-        EXPIRED,
-        LOCKED,
-        USED
     }
 }

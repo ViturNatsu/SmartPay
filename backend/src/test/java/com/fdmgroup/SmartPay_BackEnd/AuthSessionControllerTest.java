@@ -20,7 +20,7 @@ import com.fdmgroup.SmartPay_BackEnd.controllers.AuthSessionController;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpFlowService;
+import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
@@ -51,7 +51,7 @@ class AuthControllerTest {
     private SessionService sessionService;
 
     @MockitoBean
-    private OtpFlowService otpFlowService;
+    private OtpService otpFlowService;
 
     @Test
     void login_returnsAccepted_whenCredentialsAreValid() throws Exception {
@@ -63,15 +63,14 @@ class AuthControllerTest {
                 .thenReturn(user);
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
+                post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
                                     {
                                       "email": "test@smartpay.com",
                                       "password": "password123"
                                     }
-                                """)
-                )
+                                """))
                 .andExpect(status().isAccepted())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.otpSent").value(true));
@@ -86,15 +85,14 @@ class AuthControllerTest {
                 .thenThrow(new IllegalArgumentException("Invalid credentials"));
 
         mockMvc.perform(
-                        post("/api/v1/auth/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
+                post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
                                     {
                                       "email": "test@smartpay.com",
                                       "password": "wrongPassword"
                                     }
-                                """)
-                )
+                                """))
                 .andExpect(status().isUnauthorized());
 
         verify(userService).validateCredentials("test@smartpay.com", "wrongPassword");
