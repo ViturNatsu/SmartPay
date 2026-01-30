@@ -28,6 +28,8 @@ import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
 
 export const Register = () => {
+
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -123,7 +125,14 @@ export const Register = () => {
       await register(userInfo);
       setErrorMessage("");
       setDuplicateEmailError(false);
-      navigate(`/verify?email=${encodeURIComponent(email)}&type=register`);
+
+
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=register`, {
+      state: { 
+        successMessage: "Successfully created an account! Please verify your account to continue.",
+        showSuccess: true 
+      }
+  });
     } catch (error) {
       const data = error.data;
       const status = error.status;
@@ -296,6 +305,7 @@ export const Register = () => {
                   .
                 </Box>
               )}
+
 
 
           <Box display="flex" flexDirection="column" gap={2}>
@@ -566,15 +576,7 @@ export const Register = () => {
           </Link>
         </Typography>
 
-        {successMessage && (
-          <Alert
-            icon={<CheckIcon fontSize="inherit" />}
-            severity="success"
-            sx={{ mb: 2 }}
-          >
-            {successMessage}
-          </Alert>
-        )}
+        
       </Grid>
     </Grid>
   );
