@@ -28,6 +28,9 @@ import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
 
 export const Register = () => {
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -123,6 +126,15 @@ export const Register = () => {
       await register(userInfo);
       setErrorMessage("");
       setDuplicateEmailError(false);
+      setSuccessMessage(
+        <>
+          Successfully created an account!
+        </>,
+      );
+      
+      await sleep(3000)
+
+
       navigate(`/verify?email=${encodeURIComponent(email)}&type=register`);
     } catch (error) {
       const data = error.data;
@@ -296,6 +308,16 @@ export const Register = () => {
                   .
                 </Box>
               )}
+
+              {successMessage && (
+          <Alert
+            icon={<CheckIcon fontSize="inherit" />}
+            severity="success"
+            sx={{ mb: 2 }}
+          >
+            {successMessage}
+          </Alert>
+        )}
 
 
           <Box display="flex" flexDirection="column" gap={2}>
@@ -566,15 +588,7 @@ export const Register = () => {
           </Link>
         </Typography>
 
-        {successMessage && (
-          <Alert
-            icon={<CheckIcon fontSize="inherit" />}
-            severity="success"
-            sx={{ mb: 2 }}
-          >
-            {successMessage}
-          </Alert>
-        )}
+        
       </Grid>
     </Grid>
   );
