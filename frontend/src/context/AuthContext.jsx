@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem("refresh_token");
 
     // Redirect to login using react-router
-    navigate("/login", { replace: true });
+    navigate("/login", { replace: true, state: { signoutReason: "inactivity" } });
   }, [navigate]);
 
   return (
