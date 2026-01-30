@@ -28,8 +28,8 @@ public class EmailController {
             @ApiResponse(responseCode = "401", description = "Email is unauthenticated"),
     })
     @PostMapping("/send-email")
-    public String sendMail(@RequestBody EmailDetails details) {
-        return emailService.sendSimpleMail(details);
+    public void sendMail(@RequestBody EmailDetails details) {
+         emailService.sendSimpleMail(details);
     }
 
 }
