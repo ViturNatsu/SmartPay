@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { TextField, Button, Box, Typography } from "@mui/material";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { TextField, Button, Box, Typography, Alert } from "@mui/material";
 import { sendVerifyCode } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
-
+import CheckIcon from "@mui/icons-material/Check";
 export const VerifyOtp = () => {
+
+
+  
+  const location = useLocation();
+  const [showSuccess, setShowSuccess] = useState(location.state?.showSuccess || false);
+  const successMessage = location.state?.successMessage;
+
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,6 +75,12 @@ export const VerifyOtp = () => {
     await submit(code);
   };
 
+    useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
   return (
     <Box
       component="form"
@@ -102,6 +115,16 @@ export const VerifyOtp = () => {
       <Button type="submit" variant="contained" disabled={loading}>
         {loading ? "Verifying Code..." : "Verify Code"}
       </Button>
+
+            
+      {showSuccess && successMessage && (
+        <Alert
+          icon={<CheckIcon fontSize="inherit" />}
+          severity="success"
+          sx={{ mb: 2 }}
+        >
+          {successMessage}
+        </Alert>)}
     </Box>
   );
 };

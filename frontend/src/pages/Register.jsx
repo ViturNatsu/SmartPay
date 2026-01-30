@@ -29,7 +29,6 @@ import { register } from "../api/authApi";
 
 export const Register = () => {
 
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -126,16 +125,14 @@ export const Register = () => {
       await register(userInfo);
       setErrorMessage("");
       setDuplicateEmailError(false);
-      setSuccessMessage(
-        <>
-          Successfully created an account!
-        </>,
-      );
-      
-      await sleep(3000)
 
 
-      navigate(`/verify?email=${encodeURIComponent(email)}&type=register`);
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=register`, {
+      state: { 
+        successMessage: "Successfully created an account! Please verify your account to continue.",
+        showSuccess: true 
+      }
+  });
     } catch (error) {
       const data = error.data;
       const status = error.status;
@@ -309,15 +306,6 @@ export const Register = () => {
                 </Box>
               )}
 
-              {successMessage && (
-          <Alert
-            icon={<CheckIcon fontSize="inherit" />}
-            severity="success"
-            sx={{ mb: 2 }}
-          >
-            {successMessage}
-          </Alert>
-        )}
 
 
           <Box display="flex" flexDirection="column" gap={2}>
