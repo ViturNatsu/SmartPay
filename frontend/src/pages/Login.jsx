@@ -9,6 +9,7 @@ import {
   FormControlLabel,
   Link,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import MailIcon from "@mui/icons-material/Mail";
@@ -18,15 +19,19 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import logo from "../assets/logo.png";
 import { login } from "../api/authApi"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const Login = () => {
+  const location = useLocation();
   const [institution, setInstitution] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(
+    location?.state?.signoutReason === "inactivity"
+  );
 
   const navigate = useNavigate();
 
@@ -143,6 +148,15 @@ export const Login = () => {
                 backgroundColor: "transparent",
                 }}
             >
+            {timeoutMsgOpen && (
+              <Alert
+                severity="info"
+                onClose={() => setTimeoutMsgOpen(false)}
+                sx={{ mb: 2 }}
+              >
+                You’ve been signed out due to inactivity. Please sign in again.
+              </Alert>
+            )}
             <Box component="form" onSubmit={handleLogin}>
                 {/* Sign in title and brief description. */}
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>

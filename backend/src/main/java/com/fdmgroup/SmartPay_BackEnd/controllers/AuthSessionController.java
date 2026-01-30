@@ -59,35 +59,35 @@ public class AuthSessionController {
      * Keep-alive endpoint (Heartbeat from Frontend)
      * Updates session AND returns a fresh access token if the current one is close to expiring
      */
-    @PostMapping("/keep-alive")
-    public ResponseEntity<KeepAliveDTO> keepAlive(
-            @RequestHeader("Authorization") String authHeader) {
-        try {
-            String refreshToken = authHeader.replace("Bearer ", "");
+    // @PostMapping("/keep-alive")
+    // public ResponseEntity<KeepAliveDTO> keepAlive(
+    //         @RequestHeader("Authorization") String authHeader) {
+    //     try {
+    //         String refreshToken = authHeader.replace("Bearer ", "");
 
-            if (!jwtService.isTokenValid(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+    //         if (!jwtService.isTokenValid(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
+    //             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    //         }
 
-            // Validate and update session
-            sessionService.keepSessionAlive(refreshToken);
+    //         // Validate and update session
+    //         sessionService.keepSessionAlive(refreshToken);
 
-            // Extract user from refresh token
-            Long userId = jwtService.getUserIdFromToken(refreshToken);
-            User user = userService.getUserById(userId);
+    //         // Extract user from refresh token
+    //         Long userId = jwtService.getUserIdFromToken(refreshToken);
+    //         User user = userService.getUserById(userId);
 
-            // Generate a fresh access token
-            String newAccessToken = jwtService.createAccessToken(user);
+    //         // Generate a fresh access token
+    //         String newAccessToken = jwtService.createAccessToken(user);
 
-            KeepAliveDTO response = new KeepAliveDTO();
-            response.setAccessToken(newAccessToken);
-            response.setRefreshToken(refreshToken);
+    //         KeepAliveDTO response = new KeepAliveDTO();
+    //         response.setAccessToken(newAccessToken);
+    //         response.setRefreshToken(refreshToken);
 
-            return ResponseEntity.ok(response);
-        } catch (SessionAuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
+    //         return ResponseEntity.ok(response);
+    //     } catch (SessionAuthenticationException e) {
+    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    //     }
+    // }
 
     // Refresh (rotate) refresh token and issue a new access token.
     @PostMapping("/refresh")
