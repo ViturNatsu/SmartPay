@@ -1,9 +1,33 @@
-import { useAuth } from "../context/AuthContext"
+import { Container, Stack } from "@mui/material";
 
-export const Home = ()=>{
-    const {user, logout} = useAuth();
-    return <>
-        <h1>Welcome, {user?.email}</h1>
-        <button onClick={logout}>Logout</button>
-    </>
-}
+import QuickActions from "../components/QuickActions";
+import ImportantMessages from "../components/ImportantMessages";
+import AccountOverview from "../components/AccountOverview";
+import TransactionHistory from "../components/TransactionHistory";
+
+import { useAuth } from "../context/AuthContext";
+
+export const Home = () => {
+  const { user, logout } = useAuth();
+  return (
+    <div style={{ background: "#F8FAFC", minHeight: "100vh", padding: 20 }}>
+      <button onClick={logout}>Logout</button>
+      <h1>Welcome, {user?.email}!</h1>
+      <p>Here's your financial overview for today</p>
+      <div style={{ display: 'flex', gap: '40px', maxWidth: '1460px', margin: '0 auto', }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', maxWidth: '1014px' }}>
+          <Stack spacing={2}>
+            <AccountOverview />
+            <TransactionHistory />
+          </Stack>
+        </div>
+        <div style={{ width: '338px', flexShrink: 0, flexGrow: 0, overflow: 'visible' }}>
+          <Stack spacing={2}>
+            <ImportantMessages />
+            <QuickActions />
+          </Stack>
+        </div>
+      </div>
+    </div>
+  );
+};
