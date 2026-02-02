@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,11 +25,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Otp {
-	
-	public Otp(String email, OtpType type) {
-		this.email = email;
-		this.otpType = type;
-	}
+
+    public Otp(String email, OtpType type) {
+        this.email = email;
+        this.otpType = type;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -51,16 +53,19 @@ public class Otp {
     @Column(name = "attempts_made")
     int attemptsMade;
 
+    @Column(name = "attempts_per_OTP")
+    int attemptsPerOtp;
+
     @Column(name = "first_request_at")
     private LocalDateTime firstRequestAt;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-    
+
     public String getEmail() {
-		return this.email.toLowerCase();
-	}
-    
+        return this.email.toLowerCase();
+    }
+
     public enum OtpType {
         FORGOT_PASSWORD,
         REGISTER,
@@ -73,25 +78,33 @@ public class Otp {
         LOCKED,
         USED
     }
-    
+
     public int getLimit() {
-    	return switch (this.otpType) {
-	        case FORGOT_PASSWORD -> 5;
-	        case REGISTER -> 3;
-	        case LOGIN -> 10;
-	    };
+        return switch (this.otpType) {
+            case FORGOT_PASSWORD -> 5;
+            case REGISTER -> 3;
+            case LOGIN -> 10;
+        };
+    }
+
+    public int getOTPVerificationAttemptsLimit() {
+        return 5;
+    }
+
+    public int getExpiry() {
+        return switch (this.otpType) {
+            case FORGOT_PASSWORD -> 45;
+            case REGISTER -> 15;
+            case LOGIN -> 5;
+        };
     }
     
-    public int getExpiry() {
-    	return switch (this.otpType) {
-	        case FORGOT_PASSWORD -> 45;
-	        case REGISTER -> 15;
-	        case LOGIN -> 5;
-	    };
-    }
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
     
     public EmailDetails getSendCodeEmailTemplate(String code) {
     	EmailDetails emailDetails = new EmailDetails();
+    	
         emailDetails.setRecipient(email);
         emailDetails.setSubject(switch (this.otpType) {
         	case LOGIN -> "Your SmartPay sign-in code";
@@ -100,36 +113,36 @@ public class Otp {
 	    });
         
         emailDetails.setMsgBody(switch (this.otpType) {
-	        case LOGIN, REGISTER -> 
-	        	"Your verification code is: " + code + "\n\n" +
-                "This code expires in " +this.getExpiry() + " minutes.\n\n" +
-                "If you did not request this, you can ignore this email.";
+	        case LOGIN -> 
+	            "We received a request to log into your SmartPay account.\n\n";
+	        case REGISTER -> 
+	            "Thank you for choosing SmartPay! Please use the code below to complete your registration.\n\n";
 	        case FORGOT_PASSWORD -> 
-	        	"A password change was requested for your SmartPay account.\n\n" +
-                "If this was you, click the link below to reset your password:\n\n" +
-                String.format("http://localhost:5173/verify?email=%s&type=%s&code=%s", 
-                        email, "forgot-password", code) +
-                "\n\n" +
+	            "A password change was requested for your SmartPay account.\n\n";
+	    } + 
+	        "If this was you, click the link below to verify your action:\n\n" +
+                frontendUrl + "/verify\n\n" +
+                "Your verification code is: " + code + "\n\n" +
                 "This code expires in " + this.getExpiry() + " minutes.\n\n" +
-                "If you did not request this change, you can safely ignore this email.\n\n" +
+                "If you did not request this, you can safely ignore this email.\n\n" +
                 "Thank you,\n" +
-                "The SmartPay Support Team";
-        });
-        
+                "The SmartPay Support Team"
+        );
+	        
         return emailDetails;
     }
-    
+
     public EmailDetails getAccountLockedEmailTemplate() {
-    	EmailDetails emailDetails = new EmailDetails();
+        EmailDetails emailDetails = new EmailDetails();
         emailDetails.setRecipient(email);
         emailDetails.setSubject("SmartPay - Security Alert");
-        
+
         emailDetails.setMsgBody("There have been multiple failed login attempts on your account, "
-        		+ "and it has been locked as a result. Please reach out to customer service to resolve this issue.");
-        
+                + "and it has been locked as a result. Please reach out to customer service to resolve this issue.");
+
         return emailDetails;
     }
-    
+
     public boolean isActive() {
         return status == OtpStatus.ACTIVE && !isExpired();
     }
