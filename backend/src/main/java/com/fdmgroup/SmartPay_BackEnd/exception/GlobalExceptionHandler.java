@@ -88,6 +88,20 @@ public class GlobalExceptionHandler {
                                 .body(errorBody);
         }
 
+        @ExceptionHandler(AccessCodeInvalidatedException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeInvalidatedExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "410");
+                errorBody.put(ERROR, "Code has been invalidated!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.GONE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
         @ExceptionHandler(EmailNotFoundException.class)
         public ResponseEntity<Map<String, String>> handleEmailNotFoundExceptions(RuntimeException ex) {
 
