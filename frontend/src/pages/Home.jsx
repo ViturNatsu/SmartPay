@@ -1,5 +1,5 @@
-import { Container, Stack } from "@mui/material";
-
+import Navbar from "../components/Navbar"
+import { Stack } from "@mui/material";
 import QuickActions from "../components/QuickActions";
 import ImportantMessages from "../components/ImportantMessages";
 import AccountOverview from "../components/AccountOverview";
@@ -10,8 +10,9 @@ import { useAuth } from "../context/AuthContext";
 export const Home = () => {
   const { user, logout } = useAuth();
   return (
+    <>
+    <Navbar />
     <div style={{ background: "#F8FAFC", minHeight: "100vh", padding: 20 }}>
-      <button onClick={logout}>Logout</button>
       <h1>Welcome, {user?.email}!</h1>
       <p>Here's your financial overview for today</p>
       <div style={{ display: 'flex', gap: '40px', maxWidth: '1460px', margin: '0 auto', }}>
@@ -29,5 +30,6 @@ export const Home = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
