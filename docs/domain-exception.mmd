@@ -1,0 +1,67 @@
+classDiagram
+    class GlobalExceptionHandler {
+        +handleValidationErrors(MethodArgumentNotValidException) ResponseEntity~Map~
+        +handlePasswordResetDoNotMatchExceptions(RuntimeException) ResponseEntity~Map~
+        +handleAccessCodeUsedExceptions(RuntimeException) ResponseEntity~Map~
+        +handleAccessCodeExpiredExceptions(RuntimeException) ResponseEntity~Map~
+        +handleAccessCodeMismatchExceptions(RuntimeException) ResponseEntity~Map~
+        +handleEmailNotFoundExceptions(RuntimeException) ResponseEntity~Map~
+        +handleUserNotFoundExceptions(RuntimeException) ResponseEntity~Map~
+        +handleAccountLockedExceptions(RuntimeException) ResponseEntity~Map~
+        +handleAllExceptions(Exception) ResponseEntity~Map~
+    }
+
+    class AccessCodeExpiredException {
+        +AccessCodeExpiredException(String)
+    }
+
+    class AccessCodeMismatchException {
+        +AccessCodeMismatchException(String)
+    }
+
+    class AccessCodeUsedException {
+        +AccessCodeUsedException(String)
+    }
+
+    class AccountLockedException {
+        +AccountLockedException(String)
+    }
+
+    class DuplicateEmailException {
+        +DuplicateEmailException(String)
+    }
+
+    class EmailNotFoundException {
+        +EmailNotFoundException(String)
+    }
+
+    class InvalidTokenException {
+        +InvalidTokenException(String)
+    }
+
+    class PasswordResetDoNotMatchException {
+        +PasswordResetDoNotMatchException(String)
+    }
+
+    class SessionAuthenticationException {
+        +SessionAuthenticationException(String)
+    }
+
+    class UserNotFoundException {
+        +UserNotFoundException(String)
+    }
+
+    %% Relationships for handled exceptions
+    GlobalExceptionHandler ..> AccessCodeExpiredException : handles
+    GlobalExceptionHandler ..> AccessCodeMismatchException : handles
+    GlobalExceptionHandler ..> AccessCodeUsedException : handles
+    GlobalExceptionHandler ..> AccountLockedException : handles
+    GlobalExceptionHandler ..> EmailNotFoundException : handles
+    GlobalExceptionHandler ..> PasswordResetDoNotMatchException : handles
+    GlobalExceptionHandler ..> UserNotFoundException : handles
+    
+    %% These exist in the package but are not explicitly handled in the provided GlobalExceptionHandler
+    %% GlobalExceptionHandler ..> DuplicateEmailException
+    %% GlobalExceptionHandler ..> InvalidTokenException
+    %% GlobalExceptionHandler ..> SessionAuthenticationException
+

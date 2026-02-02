@@ -1,0 +1,112 @@
+classDiagram
+    class UserServiceImpl {
+        -UserRepository userRepository
+        -EncoderConfig encoderConfig
+        +signUpUser(User) User
+        +findByEmail(String) User
+        +save(User) void
+        +validateCredentials(String, String) User
+        +getUserById(Long) User
+        +loadUserByUsername(String) UserDetails
+    }
+
+    class OtpServiceImpl {
+        -OtpRepository otpRepository
+        -UserService userService
+        -PasswordEncoder argonPasswordEncoder
+        -EmailService emailService
+        +findByEmailAndOtpType(String, OtpType) Optional~Otp~
+        +save(Otp) Otp
+        +requestOtp(String, OtpType) HttpStatus
+        +verifyOtp(OtpDTO) Otp
+        +generateCode() String
+    }
+
+    class RegistrationServiceImpl {
+        -UserService userService
+        -UserRepository userRepository
+        +register(SignUpDTO) User
+        +consistentEmail(String) String
+    }
+
+    class EmailServiceImpl {
+        -JavaMailSender javaMailSender
+        -String sender
+        +sendSimpleMail(EmailDetails) void
+    }
+
+    class AuditServiceImpl {
+        -AuditLogRepository auditLogRepository
+        +logEvent(String, User, Map~String, Object~, HttpServletRequest) void
+        +logEvent(String, User, HttpServletRequest) void
+    }
+
+    class SessionServiceImpl {
+        -SessionRepository sessionRepo
+        -SystemConfigurationService configurationService
+        +generateNewSession(User, String) void
+        +validateSession(String) void
+        +keepSessionAlive(String) void
+        +cleanupExpiredSessions() void
+        +deleteAllUserSessions(User) void
+        +rotateRefreshToken(String, String) void
+        +revokeSession(String) void
+    }
+
+    class PasswordResetServiceImpl {
+        -AuditService auditService
+        -OtpService otpService
+        -UserService userService
+        -PasswordEncoder passwordEncoder
+        +resetPasswordWithOTP(PasswordResetWithOtpDto, HttpServletRequest) void
+    }
+
+    class AuthServiceImpl {
+        -AuthenticationManager authenticationManager
+        -JwtSessionService jwtService
+        -SessionService sessionService
+        +signIn(LoginRequestDTO) LoginResponseDTO
+    }
+
+    class LockedAccountServiceImpl {
+        -LockedAccountRepository lockedAccountRepo
+        +AddLockedAccount(LockedAccount) LockedAccount
+        +findLatestLockEntry(String) Optional~LockedAccount~
+    }
+
+    class SystemConfigurationServiceImpl {
+        -SystemConfigurationRepository configRepo
+        -int defaultTimeout
+        +initializeDefaults() void
+        +getSessionTimeoutMinutes() int
+        +setSessionTimeoutMinutes(int) void
+    }
+
+    UserServiceImpl ..|> UserService
+    OtpServiceImpl ..|> OtpService
+    RegistrationServiceImpl ..|> RegistrationService
+    EmailServiceImpl ..|> EmailService
+    AuditServiceImpl ..|> AuditService
+    SessionServiceImpl ..|> SessionService
+    PasswordResetServiceImpl ..|> PasswordResetService
+    AuthServiceImpl ..|> AuthService
+    LockedAccountServiceImpl ..|> LockedAccountService
+    SystemConfigurationServiceImpl ..|> SystemConfigurationService
+
+    UserServiceImpl --> UserRepository
+    OtpServiceImpl --> OtpRepository
+    OtpServiceImpl --> UserService
+    OtpServiceImpl --> EmailService
+    RegistrationServiceImpl --> UserService
+    RegistrationServiceImpl --> UserRepository
+    AuditServiceImpl --> AuditLogRepository
+    SessionServiceImpl --> SessionRepository
+    SessionServiceImpl --> SystemConfigurationService
+    PasswordResetServiceImpl --> AuditService
+    PasswordResetServiceImpl --> OtpService
+    PasswordResetServiceImpl --> UserService
+    AuthServiceImpl --> SessionService
+    AuthServiceImpl --> JwtSessionService
+    LockedAccountServiceImpl --> LockedAccountRepository
+    SystemConfigurationServiceImpl --> SystemConfigurationRepository
+

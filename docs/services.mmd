@@ -1,0 +1,71 @@
+classDiagram
+    class UserService {
+        <<interface>>
+        +signUpUser(User) User
+        +findByEmail(String) User
+        +save(User) void
+        +validateCredentials(String, String) User
+        +getUserById(Long) User
+    }
+
+    class OtpService {
+        <<interface>>
+        +findByEmailAndOtpType(String, OtpType) Optional~Otp~
+        +save(Otp) Otp
+        +requestOtp(String, OtpType) HttpStatus
+        +verifyOtp(OtpDTO) Otp
+    }
+
+    class RegistrationService {
+        <<interface>>
+        +register(SignUpDTO) User
+        +consistentEmail(String) String
+    }
+
+    class EmailService {
+        <<interface>>
+        +sendSimpleMail(EmailDetails) void
+    }
+
+    class AuditService {
+        <<interface>>
+        +logEvent(String, User, Map~String, Object~, HttpServletRequest) void
+        +logEvent(String, User, HttpServletRequest) void
+    }
+
+    class SessionService {
+        <<interface>>
+        +generateNewSession(User, String) void
+        +validateSession(String) void
+        +keepSessionAlive(String) void
+        +cleanupExpiredSessions() void
+        +deleteAllUserSessions(User) void
+        +rotateRefreshToken(String, String) void
+        +revokeSession(String) void
+    }
+
+    class PasswordResetService {
+        <<interface>>
+        +resetPasswordWithOTP(PasswordResetWithOtpDto, HttpServletRequest) void
+    }
+
+    class AuthService {
+        <<interface>>
+        +signIn(LoginRequestDTO) LoginResponseDTO
+    }
+
+    class LockedAccountService {
+        <<interface>>
+        +AddLockedAccount(LockedAccount) LockedAccount
+        +findLatestLockEntry(String) Optional~LockedAccount~
+    }
+
+    class SystemConfigurationService {
+        <<interface>>
+        +initializeDefaults() void
+        +getSessionTimeoutMinutes() int
+        +setSessionTimeoutMinutes(int) void
+    }
+
+    UserService ..|> UserDetailsService
+

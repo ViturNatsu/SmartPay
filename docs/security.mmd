@@ -1,0 +1,30 @@
+classDiagram
+    class JwtAuthFilter {
+        -JwtService jwtService
+        +doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain) void
+    }
+
+    class JwtService {
+        -SecretKey key
+        -long expirationSeconds
+        +generateToken(String) String
+        +extractSubject(String) String
+        +isTokenValid(String) boolean
+    }
+
+    class JwtSessionService {
+        -String SECRET_KEY
+        -Long ACCESS_TOKEN_EXPIRATION
+        -Long REFRESH_TOKEN_EXPIRATION
+        +createAccessToken(User) String
+        +createRefreshToken(User) String
+        +getUserIdFromToken(String) Long
+        +getTokenType(String) String
+        +isAccessToken(String) boolean
+        +isRefreshToken(String) boolean
+        +isTokenValid(String) boolean
+    }
+
+    JwtAuthFilter --> JwtService
+    %% JwtSessionService is currently standalone in the provided code
+
