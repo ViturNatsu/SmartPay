@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [react()],
   test: {
     include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+    setupFiles: ['./src/vitest/setupTests.js'],
   },
 });

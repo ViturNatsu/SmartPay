@@ -7,19 +7,20 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  Link,
+  Link as MuiLink,
   MenuItem,
   Alert,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
-import { InputAdornment, IconButton } from "@mui/material";
 import MailIcon from "@mui/icons-material/Mail";
 import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import logo from "../assets/logo.png";
-import { login } from "../api/authApi"
-import { useNavigate, useLocation } from "react-router-dom";
+import { login } from "../api/authApi";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 
 export const Login = () => {
   const location = useLocation();
@@ -30,7 +31,7 @@ export const Login = () => {
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(
-    location?.state?.signoutReason === "inactivity"
+    location?.state?.signoutReason === "inactivity",
   );
 
   const navigate = useNavigate();
@@ -39,25 +40,24 @@ export const Login = () => {
     e.preventDefault();
     setErrorMsg("");
 
-    if(!email || !password) {
+    if (!email || !password) {
       setErrorMsg("Please enter your email and password.");
       return;
     }
     setIsLoading(true);
 
     try {
-        await login({ email, password });
-        navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
-      } catch (err) {
-        if (err.status === 401) setErrorMsg("Incorrect email or password.");
-        else if (err.status === 403) setErrorMsg("Please verify your email before signing in.");
-        else setErrorMsg(err.message || "Network error. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-
+      await login({ email, password });
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
+    } catch (err) {
+      if (err.status === 401) setErrorMsg("Incorrect email or password.");
+      else if (err.status === 403)
+        setErrorMsg("Please verify your email before signing in.");
+      else setErrorMsg(err.message || "Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -139,15 +139,14 @@ export const Login = () => {
       >
         <Box sx={{ width: "100%", maxWidth: "100%" }}>
           <Paper
-            
-                elevation={0}
-                sx={{
-                p: { xs: 3, md: 4 },
-                borderRadius: 3,
-                border: "none",
-                backgroundColor: "transparent",
-                }}
-            >
+            elevation={0}
+            sx={{
+              p: { xs: 3, md: 4 },
+              borderRadius: 3,
+              border: "none",
+              backgroundColor: "transparent",
+            }}
+          >
             {timeoutMsgOpen && (
               <Alert
                 severity="info"
@@ -158,184 +157,193 @@ export const Login = () => {
               </Alert>
             )}
             <Box component="form" onSubmit={handleLogin}>
-                {/* Sign in title and brief description. */}
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {/* Sign in title and brief description. */}
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
                 Sign In
-                </Typography>
-                <Typography sx={{ color: "text.secondary", mb: 3 }}>
+              </Typography>
+              <Typography sx={{ color: "text.secondary", mb: 3 }}>
                 Enter your credentials to access your account
-                </Typography>
+              </Typography>
 
-                {/* Financial Institution */}
-                <Typography
+              {/* Financial Institution */}
+              <Typography
                 sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: 1,
                 }}
-                >
+              >
                 Financial Institution
-                </Typography>
-                <TextField
+              </Typography>
+              <TextField
                 select
                 fullWidth
                 slotProps={{
-                    input: {
+                  input: {
                     startAdornment: (
-                        <InputAdornment position="start">
+                      <InputAdornment position="start">
                         <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                        </InputAdornment>
+                      </InputAdornment>
                     ),
-                    },
+                  },
                 }}
                 value={institution}
                 onChange={(e) => setInstitution(e.target.value)}
                 placeholder="Select institution"
                 sx={{ mb: 2 }}
-                >
+              >
                 <MenuItem value="">Select institution</MenuItem>
                 <MenuItem value="chase">Chase</MenuItem>
                 <MenuItem value="boa">Bank of America</MenuItem>
                 <MenuItem value="wells">Wells Fargo</MenuItem>
                 <MenuItem value="other">Other</MenuItem>
-                </TextField>
+              </TextField>
 
-                {/* Email */}
-                <Typography
+              {/* Email */}
+              <Typography
                 sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: 1,
                 }}
-                >
+              >
                 Email Address
-                </Typography>
-                <TextField
+              </Typography>
+              <TextField
                 fullWidth
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 sx={{ mb: 2 }}
                 slotProps={{
-                    input: {
+                  input: {
                     startAdornment: (
-                        <InputAdornment position="start">
+                      <InputAdornment position="start">
                         <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                        </InputAdornment>
+                      </InputAdornment>
                     ),
-                    },
+                  },
                 }}
-                />
-                {/* Password and forgot password link. */}
-                <Box
+              />
+              {/* Password and forgot password link. */}
+              <Box
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 1,
                 }}
-                >
+              >
                 <Typography
-                    sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary" }}
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                  }}
                 >
-                    Password
+                  Password
                 </Typography>
                 <Typography
-                    component="a"
-                    href="/forgot-password"
-                    sx={{
+                  component={RouterLink}
+                  to="/forgot-password"
+                  sx={{
                     fontSize: 12,
                     fontWeight: 600,
                     color: "primary.main",
                     textDecoration: "none",
-                    cursor: "pointer",
-                    }}
+                  }}
                 >
-                    Forgot password?
+                  Forgot password?
                 </Typography>
-                </Box>
+              </Box>
 
-                <TextField
+              <TextField
                 fullWidth
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 sx={{ mb: 2 }}
                 slotProps={{
-                    input: {
+                  input: {
                     startAdornment: (
-                        <InputAdornment position="start">
-                        <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                        </InputAdornment>
+                      <InputAdornment position="start">
+                        <PasswordIcon
+                          sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                        />
+                      </InputAdornment>
                     ),
                     endAdornment: (
-                        <InputAdornment position="end">
+                      <InputAdornment position="end">
                         <IconButton
-                            edge="end"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            aria-label={
+                          edge="end"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          aria-label={
                             showPassword ? "Hide password" : "Show password"
-                            }
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                          }
+                          sx={{ color: "rgba(15, 23, 42, 0.45)" }}
                         >
-                            {showPassword ? (
+                          {showPassword ? (
                             <VisibilityOffIcon />
-                            ) : (
+                          ) : (
                             <VisibilityIcon />
-                            )}
+                          )}
                         </IconButton>
-                        </InputAdornment>
+                      </InputAdornment>
                     ),
-                    },
+                  },
                 }}
-                />
-                <FormControlLabel
+              />
+              <FormControlLabel
                 sx={{ mb: 2, userSelect: "none" }}
                 control={<Checkbox size="small" />}
                 label={
-                    <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
+                  <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
                     Remember me for 30 days
-                    </Typography>
+                  </Typography>
                 }
-                />
-                {errorMsg && (
-                    <Typography sx={{ color: "error.main", fontSize: 13, mb: 2 }}>
-                        {errorMsg}
-                    </Typography>
-                    )}
+              />
+              {errorMsg && (
+                <Typography sx={{ color: "error.main", fontSize: 13, mb: 2 }}>
+                  {errorMsg}
+                </Typography>
+              )}
 
-                <Button
+              <Button
                 fullWidth
                 type="submit"
                 variant="contained"
                 disabled={isLoading}
                 sx={{
-                    py: 1.2,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    fontWeight: 700,
-                    mb: 2,
-                    boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                  py: 1.2,
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 700,
+                  mb: 2,
+                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
                 }}
-                >
+              >
                 {isLoading ? "Signing In..." : "Sign In"}
-                </Button>
+              </Button>
 
-                <Typography
+              <Typography
                 sx={{
-                    fontSize: 13,
-                    color: "text.secondary",
-                    textAlign: "center",
+                  fontSize: 13,
+                  color: "text.secondary",
+                  textAlign: "center",
                 }}
-                >
+              >
                 Don&apos;t have an account?{" "}
-                <Link href="/register" underline="none" sx={{ fontWeight: 700 }}>
-                    Sign up for free
-                </Link>
-                </Typography>
+                <MuiLink
+                  href="/register"
+                  underline="none"
+                  sx={{ fontWeight: 700 }}
+                >
+                  Sign up for free
+                </MuiLink>
+              </Typography>
             </Box>
           </Paper>
         </Box>
