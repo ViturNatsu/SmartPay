@@ -22,4 +22,8 @@ public class OtpRequestDto {
 	@NotNull(message = "OTP type is required")
     private OtpType type;
 
+	public String getEmail() {
+		return this.email.toLowerCase();
+	}
+
 }

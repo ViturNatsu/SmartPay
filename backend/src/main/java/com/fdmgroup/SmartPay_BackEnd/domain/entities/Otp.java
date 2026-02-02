@@ -10,7 +10,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,6 +57,10 @@ public class Otp {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
     
+    public String getEmail() {
+		return this.email.toLowerCase();
+	}
+    
     public enum OtpType {
         FORGOT_PASSWORD,
         REGISTER,
@@ -87,7 +90,7 @@ public class Otp {
 	    };
     }
     
-    public EmailDetails getEmail(String code) {
+    public EmailDetails getSendCodeEmailTemplate(String code) {
     	EmailDetails emailDetails = new EmailDetails();
         emailDetails.setRecipient(email);
         emailDetails.setSubject(switch (this.otpType) {
@@ -112,6 +115,17 @@ public class Otp {
                 "Thank you,\n" +
                 "The SmartPay Support Team";
         });
+        
+        return emailDetails;
+    }
+    
+    public EmailDetails getAccountLockedEmailTemplate() {
+    	EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setRecipient(email);
+        emailDetails.setSubject("SmartPay - Security Alert");
+        
+        emailDetails.setMsgBody("There have been multiple failed login attempts on your account, "
+        		+ "and it has been locked as a result. Please reach out to customer service to resolve this issue.");
         
         return emailDetails;
     }
