@@ -1,0 +1,34 @@
+classDiagram
+    class AppConfig {
+        +authenticationManager(AuthenticationConfiguration) : AuthenticationManager
+    }
+
+    class EncoderConfig {
+        +passwordEncoder() : PasswordEncoder
+    }
+
+    class JwtAuthenticationFilter {
+        -JwtService jwtService
+        -UserService userService
+        +doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain)
+    }
+
+    class SecurityConfig {
+        -JwtAuthenticationFilter jwtAuthenticationFilter
+        -UserService userService
+        -PasswordEncoder passwordEncoder
+        +authenticationProvider() : AuthenticationProvider
+        +filterChain(HttpSecurity) : SecurityFilterChain
+        +corsConfigurationSource() : CorsConfigurationSource
+    }
+
+    AppConfig --> AuthenticationManager
+    EncoderConfig --> PasswordEncoder
+    SecurityConfig --> AuthenticationProvider
+    SecurityConfig --> SecurityFilterChain
+    SecurityConfig --> CorsConfigurationSource
+    SecurityConfig --> JwtAuthenticationFilter
+    SecurityConfig --> UserService
+    SecurityConfig --> PasswordEncoder
+    JwtAuthenticationFilter --> JwtService
+    JwtAuthenticationFilter --> UserService

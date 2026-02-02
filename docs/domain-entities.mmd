@@ -1,0 +1,102 @@
+classDiagram
+    class User {
+        +Long id
+        +String firstName
+        +String lastName
+        +String institution
+        +String email
+        +String password
+        +String status
+        +boolean emailVerified
+        +LocalDateTime emailVerifiedAt
+        +LocalDateTime lastLoginAt
+        +LocalDateTime lastPasswordChangeAt
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+        +Role role
+        +getAuthorities() : Collection~GrantedAuthority~
+        +getUsername() : String
+        +isAccountNonExpired() : boolean
+        +isAccountNonLocked() : boolean
+        +isCredentialsNonExpired() : boolean
+        +isEnabled() : boolean
+    }
+
+    class Otp {
+        +UUID otpId
+        +String email
+        +String otpHash
+        +OtpStatus status
+        +OtpType otpType
+        +LocalDateTime createdAt
+        +LocalDateTime expiresAt
+    }
+
+    class SessionEntity {
+        +Long id
+        +String refreshToken
+        +LocalDateTime createdAt
+        +LocalDateTime lastUsedAt
+        +Integer sessionTimeoutMinutes
+        +User user
+        +isExpired() : boolean
+        +updateLastUsed()
+    }
+
+    class AuditLog {
+        +UUID logId
+        +User user
+        +String eventType
+        +Map~String, Object~ eventData
+        +String ipAddress
+        +String userAgent
+        +LocalDateTime createdAt
+    }
+
+    class LockedAccount {
+        +long id
+        +String email
+        +Date lockedAt
+    }
+
+    class SystemConfiguration {
+        +Long id
+        +String key
+        +String value
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+
+    class EmailDetails {
+        +String recipient
+        +String msgBody
+        +String subject
+        +String attachment
+    }
+
+    class Role {
+        <<enumeration>>
+        USER
+        ADMIN
+    }
+
+    class OtpType {
+        <<enumeration>>
+        REGISTRATION
+        PASSWORD_RESET
+        EMAIL_VERIFICATION
+    }
+
+    class OtpStatus {
+        <<enumeration>>
+        ACTIVE
+        USED
+        EXPIRED
+    }
+
+    User ..|> UserDetails
+    User --> Role
+    SessionEntity --> User
+    AuditLog --> User
+    Otp --> OtpType
+    Otp --> OtpStatus
