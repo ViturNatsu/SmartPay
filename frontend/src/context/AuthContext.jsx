@@ -103,7 +103,7 @@ const AuthProviderInner = ({ children }) => {
           clearAuth();
         }
       } catch (err){
-        if(err.status!=401)clearAuth();
+        clearAuth();
       } finally {
         if (!cancelled) setLoading(false);
       }
