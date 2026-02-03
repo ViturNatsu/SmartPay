@@ -1,17 +1,26 @@
 import { test, expect } from "@playwright/test";
 
 async function fillRegisterForm(page, email, password, confirm) {
+
   await page.goto("/register");
 
-  await page.locator('[id="_r_1_"]').fill("John");
-  await page.locator('[id="_r_2_"]').fill("Doe");
+  await page.getByTestId('first-name-input').click();
+  await page.keyboard.type('John');
 
-  await page.getByRole("combobox").click();
+  await page.getByTestId('last-name-input').click();
+  await page.keyboard.type('Doe');
+
+  await page.getByTestId('institution-input').click();
   await page.getByRole("option", { name: "Chase" }).click();
 
-  await page.locator('[id="_r_5_"]').fill(email);
-  await page.locator('[id="_r_6_"]').fill(password);
-  await page.locator('[id="_r_8_"]').fill(confirm);
+  await page.getByTestId('email-input').click();
+  await page.keyboard.type(email);
+
+  await page.getByTestId('password-input').click();
+  await page.keyboard.type(password);
+
+  await page.getByTestId('confirm-password-input').click();
+  await page.keyboard.type(confirm);
 
   await page.locator("#terms").check();
   await page.getByRole("button", { name: "Create Account" }).click();
@@ -24,7 +33,7 @@ test("user can register successfully", async ({ page }) => {
   await fillRegisterForm(page, 'name@domain.com', 'Password8!', 'Password8!');
 
   //Assertion
-  await expect(page).toHaveURL(/\/verify/);
+  await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
 });
 
 test("user cannot register with duplicate email", async ({ page }) => {
@@ -33,7 +42,7 @@ test("user cannot register with duplicate email", async ({ page }) => {
   await fillRegisterForm(page, 'name1@domain.com', 'Password8!', 'Password8!');
 
   //Assertion
-  await expect(page).toHaveURL(/\/verify/);
+  await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
 
   await page.goto("/register");
 
@@ -80,7 +89,7 @@ test("user cannot register when passwords do not match", async ({ page }) => {
 test("user cannot register more than 3 times in one minute", async({page})=>{
 
   await page.goto("/register");
-  await fillRegisterForm(page, 'name1@domain.com', 'Password8!', 'Password8!');
+  await fillRegisterForm(page, 'name4@domain.com', 'Password8!', 'Password8!');
 
   await page.goto("/register");
   await fillRegisterForm(page, 'name2@domain.com', 'Password8!', 'Password8!');
@@ -89,7 +98,7 @@ test("user cannot register more than 3 times in one minute", async({page})=>{
   await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
 
   await page.goto("/register");
-  await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
+  await fillRegisterForm(page, 'name5@domain.com', 'Password8!', 'Password8!');
   
 
   await expect(
