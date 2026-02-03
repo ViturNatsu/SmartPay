@@ -1,11 +1,5 @@
 import { useState } from "react";
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Typography, 
-  Paper 
-} from "@mui/material";
+import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { resetPassword } from "../api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "../assets/logo.png";
@@ -15,40 +9,47 @@ export const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
   const [searchParams] = useSearchParams();
   const emailParam = searchParams.get("email");
   const codeParam = searchParams.get("code");
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
     try {
       setLoading(true);
-      await resetPassword({ 
-        "email": emailParam, 
-        "password1": password, 
-        "password2": confirmPassword, 
-        "access-code": codeParam 
+      await resetPassword({
+        email: emailParam,
+        password1: password,
+        password2: confirmPassword,
+        "access-code": codeParam,
       });
-      navigate('/login');
+      navigate("/login");
     } catch (err) {
-      if (err.status === 400) setError("Passwords don't match");
-      else if (err.status === 401) setError("Reset code has expired");
-      else if (err.status === 422) setError("Password is too weak");
-      else setError("An unexpected error occurred.");
+      let errorMessage;
+      switch (err.status) {
+        case 400:
+          errorMessage = "Passwords do not match";
+          break;
+        case 401:
+          errorMessage = "Reset code has expired";
+          break;
+        case 404:
+          errorMessage = "Email address not found";
+          break;
+        case 422:
+          errorMessage = "Password is too weak";
+          break;
+        case 429:
+          errorMessage = "Too many failed attempts";
+          break;
+        case 500:
+          errorMessage = "An error occurred. Please try again later";
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -60,8 +61,8 @@ export const ResetPassword = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        bgcolor: "#F8FAFC", 
-        fontFamily: "'Inter', sans-serif", 
+        bgcolor: "#F8FAFC",
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       <Box
@@ -85,33 +86,33 @@ export const ResetPassword = () => {
             component="img"
             src={logo}
             alt="SmartPay Logo"
-            sx={{ 
-              width: { xs: 71, md: 127 }, 
-              height: "auto", 
-              mx: "auto", 
-              display: "block", 
-              mb: 2 
+            sx={{
+              width: { xs: 71, md: 127 },
+              height: "auto",
+              mx: "auto",
+              display: "block",
+              mb: 2,
             }}
           />
           <Typography
             variant="h3"
-            sx={{ 
-              fontWeight: 800, 
-              letterSpacing: "-0.02em", 
-              color: "#2563EB", 
+            sx={{
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#2563EB",
               mb: 1,
-              fontSize: { xs: "30px", md: "60px" } 
+              fontSize: { xs: "30px", md: "60px" },
             }}
           >
             SmartPay
           </Typography>
           <Typography
-            sx={{ 
-              color: "#6B7280", 
-              maxWidth: 360, 
-              mx: "auto", 
-              lineHeight: 1.6, 
-              fontSize: { xs: "14px", md: "20px" } 
+            sx={{
+              color: "#6B7280",
+              maxWidth: 360,
+              mx: "auto",
+              lineHeight: 1.6,
+              fontSize: { xs: "14px", md: "20px" },
             }}
           >
             Seamless financial integration for the modern enterprise.
@@ -130,35 +131,58 @@ export const ResetPassword = () => {
           bgcolor: "white",
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: { xs: "290px", md: "448px" } }}> {/* [cite: 12, 13, 19, 20] */}
+        <Box sx={{ width: "100%", maxWidth: { xs: "290px", md: "448px" } }}>
+          {" "}
+          {/* [cite: 12, 13, 19, 20] */}
           <Paper
             elevation={0}
             sx={{
               p: { xs: 3, md: 4 },
-              borderRadius: { xs: "24px", md: "12px" }, 
-              backgroundColor: { xs: "#F3F4F6", md: "transparent" }, 
+              borderRadius: { xs: "24px", md: "12px" },
+              backgroundColor: { xs: "#F3F4F6", md: "transparent" },
             }}
           >
             <Typography
               variant="h2"
               sx={{
-                fontSize: "30px", 
+                fontSize: "30px",
                 fontWeight: "bold",
                 color: "#111827",
                 textAlign: "center",
                 mb: 1,
-                display: { xs: "none", md: "block" }, 
+                display: { xs: "none", md: "block" },
               }}
             >
               Reset Password
             </Typography>
-            
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 3, mt: { xs: 0, md: 4 } }}>
+
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
+                mt: { xs: 0, md: 4 },
+              }}
+            >
               <Box>
-                <Typography sx={{ fontSize: "20px", fontWeight: 600, color: "#374151", mb: 1 }}> {/* [cite: 10] */}
+                <Typography
+                  component="label"
+                  htmlFor="reset-password-new"
+                  sx={{
+                    fontSize: "20px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 1,
+                  }}
+                >
+                  {" "}
+                  {/* [cite: 10] */}
                   New Password
                 </Typography>
                 <TextField
+                  id="reset-password-new"
                   fullWidth
                   type="password"
                   value={password}
@@ -166,10 +190,10 @@ export const ResetPassword = () => {
                   required
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      height: { xs: "50px", md: "54px" }, 
-                      borderRadius: "12px", 
-                      "& fieldset": { 
-                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" } 
+                      height: { xs: "50px", md: "54px" },
+                      borderRadius: "12px",
+                      "& fieldset": {
+                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" },
                       },
                     },
                   }}
@@ -177,10 +201,22 @@ export const ResetPassword = () => {
               </Box>
 
               <Box>
-                <Typography sx={{ fontSize: "20px", fontWeight: 600, color: "#374151", mb: 1 }}> {/* [cite: 10] */}
+                <Typography
+                  component="label"
+                  htmlFor="reset-password-confirm"
+                  sx={{
+                    fontSize: "20px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    mb: 1,
+                  }}
+                >
+                  {" "}
+                  {/* [cite: 10] */}
                   Confirm Password
                 </Typography>
                 <TextField
+                  id="reset-password-confirm"
                   fullWidth
                   type="password"
                   value={confirmPassword}
@@ -190,10 +226,10 @@ export const ResetPassword = () => {
                   required
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      height: { xs: "50px", md: "54px" }, 
-                      borderRadius: "12px", 
-                      "& fieldset": { 
-                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" } 
+                      height: { xs: "50px", md: "54px" },
+                      borderRadius: "12px",
+                      "& fieldset": {
+                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" },
                       },
                     },
                   }}
@@ -205,16 +241,16 @@ export const ResetPassword = () => {
                 variant="contained"
                 disabled={loading}
                 sx={{
-                  height: "52px", 
-                  borderRadius: "12px", 
+                  height: "52px",
+                  borderRadius: "12px",
                   textTransform: "none",
-                  fontSize: "16px", 
+                  fontSize: "16px",
                   fontWeight: 600,
-                  color: "#F8FAFC", 
-                  bgcolor: "#2563EB", 
-                  background: { 
-                    xs: "linear-gradient(to right, #06B6D4, #2563EB)", 
-                    md: "#2563EB" 
+                  color: "#F8FAFC",
+                  bgcolor: "#2563EB",
+                  background: {
+                    xs: "linear-gradient(to right, #06B6D4, #2563EB)",
+                    md: "#2563EB",
                   },
                   boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
                   "&:hover": { bgcolor: "#1D4ED8" },
