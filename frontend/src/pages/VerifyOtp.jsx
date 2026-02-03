@@ -9,6 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import { sendVerifyCode } from "../api/authApi";
+
+import { resendCode } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 import CheckIcon from "@mui/icons-material/Check";
 import logo from "../assets/logo.png";
@@ -23,6 +25,7 @@ export const VerifyOtp = () => {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingResend, setLoadingResend] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -77,7 +80,22 @@ export const VerifyOtp = () => {
       setLoading(false);
     }
   };
-
+  const resend = async () => {
+    try {
+      setLoadingResend(true);
+      const res = await resendCode({
+        email: emailParam,
+        type: typeParam,
+      });
+    } catch (err) {
+      if (err.status === 400) setError("Invalid input.");
+      else if (err.status === 429)
+        setError("Too many requests. Please try again later.");
+      else setError(err.message || "Network error");
+    } finally {
+      setLoadingResend(false);
+    }
+  };
   useEffect(() => {
     if (emailParam && typeParam && codeParam) {
       setCode(codeParam);
@@ -264,6 +282,30 @@ export const VerifyOtp = () => {
                 }}
               >
                 {loading ? "Verifying Code..." : "Verify Code"}
+              </Button>
+              <Button
+                variant="contained"
+                disabled={loadingResend}
+                sx={{
+                  height: "52px",
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#F8FAFC",
+                  bgcolor: "#2563EB",
+                  background: {
+                    xs: "linear-gradient(to right, #06B6D4, #2563EB)",
+                    md: "#2563EB",
+                  },
+                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                  "&:hover": {
+                    bgcolor: "#1D4ED8",
+                  },
+                }}
+                onClick={resend}
+              >
+                {loadingResend ? "Resending Code..." : "Resend Code"}
               </Button>
               {showSuccess && successMessage && (
                 <Alert
