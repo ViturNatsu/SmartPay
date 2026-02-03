@@ -76,3 +76,26 @@ test("user cannot register when passwords do not match", async ({ page }) => {
     page.getByText(/Passwords must match/i)
   ).toBeVisible();
 });
+
+test("user cannot register more than 3 times in one minute", async({page})=>{
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name1@domain.com', 'Password8!', 'Password8!');
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name2@domain.com', 'Password8!', 'Password8!');
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
+  
+
+  await expect(
+    page.getByText(/We can't process your request right now/i)
+    
+  )
+  .toBeVisible()
+
+})
