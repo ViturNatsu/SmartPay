@@ -145,3 +145,14 @@ export async function keepAlive(refreshToken) {
     throw handleAxiosError(err);
   }
 }
+export async function resendCode(payload) {
+  try {
+    const res = await axiosInstance.post(`${OTP_URL}/resend`, {
+      email: payload.email,
+      type: payload.type,
+    });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}

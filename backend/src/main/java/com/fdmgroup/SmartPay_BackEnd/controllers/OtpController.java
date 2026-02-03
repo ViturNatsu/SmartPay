@@ -1,7 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginResponseDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,15 +10,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpRequestDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.ResendOTPDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-
-import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,16 +31,13 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
-import java.time.LocalDateTime;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/otp")
 @Slf4j
 @AllArgsConstructor
 public class OtpController {
-	PasswordResetService passwordResetService;
+
+    PasswordResetService passwordResetService;
     OtpService otpService;
     UserService userService;
     JwtSessionService jwtSessionService;
@@ -45,9 +45,9 @@ public class OtpController {
 
     @Operation(summary = "Request password reset", description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "202", description = "Reset request accepted (Email sent if account exists)"),
-            @ApiResponse(responseCode = "400", description = "Invalid input (Empty email or wrong format)"),
-            @ApiResponse(responseCode = "429", description = "Too many requests. Limit: 5 per 24 hours. Account locked for 24 hours.")
+        @ApiResponse(responseCode = "202", description = "Reset request accepted (Email sent if account exists)"),
+        @ApiResponse(responseCode = "400", description = "Invalid input (Empty email or wrong format)"),
+        @ApiResponse(responseCode = "429", description = "Too many requests. Limit: 5 per 24 hours. Account locked for 24 hours.")
     })
     @PostMapping
     public ResponseEntity<Map<String, Object>> requestOtp(@Valid @RequestBody OtpRequestDto dto) {
@@ -55,7 +55,8 @@ public class OtpController {
         HttpStatus status;
 
         switch (dto.getType()) {
-            case LOGIN, REGISTER, FORGOT_PASSWORD -> status = otpService.requestOtp(email, dto.getType());
+            case LOGIN, REGISTER, FORGOT_PASSWORD ->
+                status = otpService.requestOtp(email, dto.getType());
             default -> {
                 log.error("Unknown OTP type encountered");
                 status = HttpStatus.BAD_REQUEST;
@@ -67,12 +68,12 @@ public class OtpController {
 
     @Operation(summary = "Confirm 7-digit OTP", description = "Validates the OTP. Handles format validation (422), and expiration/security checks (401).")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Code validated successfully", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "404", description = "Email address not found", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "422", description = "Code is too weak or validation failed", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later", content = @Content(schema = @Schema(implementation = String.class)))
+        @ApiResponse(responseCode = "200", description = "Code validated successfully", content = @Content(schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "401", description = "Reset code is invalid or has expired", content = @Content(schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "404", description = "Email address not found", content = @Content(schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "422", description = "Code is too weak or validation failed", content = @Content(schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "429", description = "Account temporarily locked due to multiple failed attempts", content = @Content(schema = @Schema(implementation = String.class))),
+        @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @PostMapping("/verify")
     public ResponseEntity<?> validate7DigitOTP(@Valid @RequestBody OtpDTO payload) {
@@ -108,6 +109,23 @@ public class OtpController {
                         .body(Map.of("message", "Unknown OTP type"));
             }
         }
-}
-
     }
+
+    @PostMapping("/resend")
+    public ResponseEntity<?> resendOTP(@Valid @RequestBody ResendOTPDTO payload) {
+        switch (payload.getType()) {
+            case "login" -> {
+                otpService.requestOtp(payload.getEmail(), Otp.OtpType.LOGIN);
+            }
+            case "register" -> {
+                otpService.requestOtp(payload.getEmail(), Otp.OtpType.REGISTER);
+            }
+            case "forgot-password" -> {
+                otpService.requestOtp(payload.getEmail(), Otp.OtpType.FORGOT_PASSWORD);
+            }
+
+        }
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("otpSent", true));
+    }
+
+}
