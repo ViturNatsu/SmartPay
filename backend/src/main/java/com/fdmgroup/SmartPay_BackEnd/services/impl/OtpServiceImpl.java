@@ -2,20 +2,18 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeInvalidatedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
@@ -38,7 +36,7 @@ public class OtpServiceImpl implements OtpService {
 	private OtpRepository otpRepository;
 	private UserService userService;
 	private PasswordEncoder argonPasswordEncoder;
-    private final EmailService emailService;
+	private final EmailService emailService;
 
 	@Override
 	public Optional<Otp> findByEmailAndOtpType(String email, OtpType otpType) {
@@ -54,33 +52,35 @@ public class OtpServiceImpl implements OtpService {
 	@Override
 	@Transactional(dontRollbackOn = AccountLockedException.class)
 	public HttpStatus requestOtp(String email, OtpType type) {
-		 // Make sure user exists before attempting reset request logic.
-        try {
-            userService.findByEmail(email);
-        } catch (UserNotFoundException e) {
-            return HttpStatus.ACCEPTED;
-        }
-        
-        Otp otp = findByEmailAndOtpType(email, type).orElse(new Otp(email, type));
+		// Make sure user exists before attempting reset request logic.
+		try {
+			userService.findByEmail(email);
+		} catch (UserNotFoundException e) {
+			return HttpStatus.ACCEPTED;
+		}
+
+		Otp otp = findByEmailAndOtpType(email, type).orElse(new Otp(email, type));
 		LocalDateTime now = LocalDateTime.now();
 
-        if (otp.getFirstRequestAt() != null && now.isBefore(otp.getFirstRequestAt().plusHours(24))) {
-            if (otp.isLocked()) {
-                log.info("Request denied for locked account: {}", email);
-                throw new AccountLockedException("Account is temporarily locked due to multiple attempts.");
-            }
+		if (otp.getFirstRequestAt() != null && now.isBefore(otp.getFirstRequestAt().plusHours(24))) {
+			if (otp.isLocked()) {
+				log.info("Request denied for locked account: {}", email);
+				throw new AccountLockedException("Account is temporarily locked due to multiple attempts.");
+			}
 
-            if (otp.getAttemptsMade() >= otp.getLimit()) {
-            	otp.setStatus(OtpStatus.LOCKED);
-            	otp.setFirstRequestAt(now);
-                otpRepository.save(otp);
-                log.info("Account locked due to too many attempts: {}", email);
-                throw new AccountLockedException("Account is temporarily locked due to multiple attempts.");
-            }
-        };
+			if (otp.getAttemptsMade() >= otp.getLimit()) {
+				otp.setStatus(OtpStatus.LOCKED);
+				otp.setFirstRequestAt(now);
+				otpRepository.save(otp);
+				emailService.sendSimpleMail(otp.getAccountLockedEmailTemplate());
+				log.info("Account locked due to too many attempts: {}", email);
+				throw new AccountLockedException("Account is temporarily locked due to multiple attempts.");
+			}
+		}
+		;
 
-        String rawCode = generateCode();
-        String hashedCode = argonPasswordEncoder.encode(rawCode);
+		String rawCode = generateCode();
+		String hashedCode = argonPasswordEncoder.encode(rawCode);
 
 		// if otp was just created, or its past the reset time, reset the otp
 		if (otp.getFirstRequestAt() == null
@@ -91,19 +91,28 @@ public class OtpServiceImpl implements OtpService {
 
 		otp.setOtpHash(hashedCode);
 		otp.setAttemptsMade(otp.getAttemptsMade() + 1);
+		otp.setAttemptsPerOtp(0);
 		otp.setStatus(OtpStatus.ACTIVE);
 		otp.setExpiresAt(now.plusMinutes(otp.getExpiry()));
 
 		otpRepository.save(otp);
 
-        emailService.sendSimpleMail(otp.getEmail(rawCode));
-        return HttpStatus.ACCEPTED;
+		emailService.sendSimpleMail(otp.getSendCodeEmailTemplate(rawCode));
+		return HttpStatus.ACCEPTED;
 	}
 
 	@Override
 	public Otp verifyOtp(OtpDTO payload) {
 		Otp otpRequest = otpRepository.findByEmailAndOtpType(payload.getEmail(), payload.getType())
 				.orElseThrow(() -> new EmailNotFoundException("No OTP found for the provided email address."));
+
+		// Check if OTP is expired due to too many verification attempts
+		if (otpRequest.getAttemptsPerOtp() >= otpRequest.getOTPVerificationAttemptsLimit()) {
+			otpRequest.setStatus(OtpStatus.EXPIRED);
+			otpRepository.save(otpRequest);
+			throw new AccessCodeInvalidatedException(
+					"The code has been invalidated due to multiple failed attempts. Please request a new code.");
+		}
 
 		// Check if account if locked
 		if (otpRequest.isLocked()) {
@@ -112,35 +121,45 @@ public class OtpServiceImpl implements OtpService {
 		}
 
 		// Check if OTP has attempts remaining
-		if (otpRequest.getAttemptsMade() >= 5) {
+		if (otpRequest.getAttemptsMade() >= otpRequest.getLimit()) {
 			throw new AccountLockedException(
 					"We can't process this request right now. Account has been locked for too many attempts. Please try again later");
 		}
 
-		// Check if OTP is expired
-		if (otpRequest.isExpired()) {
-			throw new AccessCodeExpiredException(
-					"This code has expired or has already been used. Please request a new code");
-		}
+		try {
 
-		// Check if OTP is already used
-		if (otpRequest.isUsed()) {
-			throw new AccessCodeUsedException(
-					"This code has expired or has already been used. Please request a new code");
-		}
+			// Check if OTP is expired
+			if (otpRequest.isExpired()) {
+				throw new AccessCodeExpiredException(
+						"This code has expired or has already been used. Please request a new code");
+			}
 
-		// Validate OTP code
-		if (!argonPasswordEncoder.matches(payload.getCode(), otpRequest.getOtpHash())) {
-			throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
+			// Check if OTP is already used
+			if (otpRequest.isUsed()) {
+				throw new AccessCodeUsedException(
+						"This code has expired or has already been used. Please request a new code");
+			}
+
+			// Validate OTP code
+			if (!argonPasswordEncoder.matches(payload.getCode(), otpRequest.getOtpHash())) {
+				throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
+			}
+		} catch (Exception e) {
+			otpRequest.setAttemptsPerOtp(otpRequest.getAttemptsPerOtp() + 1);
+			otpRepository.save(otpRequest);
+			throw e;
 		}
+		otpRequest.setAttemptsMade(0);
+		otpRequest.setAttemptsPerOtp(0);
+		otpRepository.save(otpRequest);
 
 		return otpRequest;
 	}
-	
+
 	public String generateCode() {
-        SecureRandom random = new SecureRandom();
-        int code = random.nextInt(10_000_000);
-        return String.format("%07d", code);
-    }
+		SecureRandom random = new SecureRandom();
+		int code = random.nextInt(10_000_000);
+		return String.format("%07d", code);
+	}
 
 }

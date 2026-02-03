@@ -1,0 +1,35 @@
+classDiagram
+    class UserRepository {
+        +findByEmail(String) Optional~User~
+    }
+
+    class OtpRepository {
+        +findByEmailAndOtpType(String, OtpType) Optional~Otp~
+    }
+
+    class SessionRepository {
+        +findByUser(User) List~SessionEntity~
+        +findByRefreshToken(String) Optional~SessionEntity~
+        +findExpiredSessions(LocalDateTime) List~SessionEntity~
+        +deleteByUser(User) void
+    }
+
+    class AuditLogRepository {
+        %% Empty in code
+    }
+
+    class LockedAccountRepository {
+        +findFirstByEmailOrderByLockedAtDesc(String) Optional~LockedAccount~
+    }
+
+    class SystemConfigurationRepository {
+        +findByConfigKey(String) Optional~SystemConfiguration~
+    }
+
+    UserRepository ..|> JpaRepository : User, Long
+    OtpRepository ..|> JpaRepository : Otp, UUID
+    SessionRepository ..|> JpaRepository : SessionEntity, Long
+    AuditLogRepository ..|> JpaRepository : AuditLog, UUID
+    LockedAccountRepository ..|> JpaRepository : LockedAccount, Long
+    SystemConfigurationRepository ..|> JpaRepository : SystemConfiguration, Long
+

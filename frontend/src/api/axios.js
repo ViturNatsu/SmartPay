@@ -47,6 +47,12 @@ axiosInstance.interceptors.response.use(
       throw error;
     }
 
+    const refreshToken = sessionStorage.getItem("refresh_token");
+    if (!refreshToken) {
+      clearAccessToken();
+      throw error; 
+    }
+
     try {
       if (!refreshPromise) {
         refreshPromise = axiosInstance.post("/api/v1/auth/refresh");
@@ -65,6 +71,7 @@ axiosInstance.interceptors.response.use(
     } catch (refreshErr) {
       refreshPromise = null;
       clearAccessToken();
+      sessionStorage.removeItem("refresh_token");
       throw refreshErr;
     }
   }

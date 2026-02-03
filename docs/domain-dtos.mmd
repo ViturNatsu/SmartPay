@@ -1,0 +1,59 @@
+classDiagram
+    class SignUpDTO {
+        +String firstName
+        +String lastName
+        +String institution
+        +String email
+        +String password
+        +String confirmPassword
+    }
+
+    class LoginRequestDTO {
+        +String email
+        +String password
+    }
+
+    class LoginResponseDTO {
+        +String token
+        +Long id
+        +String accessToken
+        +String refreshToken
+    }
+
+    class KeepAliveDTO {
+        +String refreshToken
+        +String accessToken
+    }
+
+    class OtpDTO {
+        +String email
+        +String code
+        +OtpType type
+    }
+
+    class OtpRequestDto {
+        +String email
+        +OtpType type
+    }
+
+    class ChangePasswordDTO {
+        +String email
+        +String password1
+        +String password2
+        +String accessCode
+    }
+
+    class UserRequestDTO {
+        %% TODO: Currently empty in code
+    }
+
+    class PasswordResetWithOtpDto {
+        +String email
+        +String password1
+        +String password2
+        +String accessCode
+    }
+
+    OtpDTO --> OtpType
+    OtpRequestDto --> OtpType
+

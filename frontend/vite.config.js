@@ -2,6 +2,12 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+   test: {
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+    globals: true,
+    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+  },
   plugins: [react()],
   server: {
     port: 5173,

@@ -334,6 +334,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
+                      "data-testid": "first-name-input"
                     },
                   }}
                 />
@@ -363,6 +364,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
+                      "data-testid": "last-name-input"
                     },
                   }}
                 />
@@ -389,7 +391,9 @@ export const Register = () => {
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
+                  "data-testid": "institution-input"
                 },
+
               }}
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
@@ -430,6 +434,7 @@ export const Register = () => {
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
+                  "data-testid": "email-input"
                 },
               }}
             />
@@ -478,6 +483,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
+                  "data-testid": "password-input"
                 },
               }}
             />
@@ -526,6 +532,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
+                  "data-testid": "confirm-password-input"
                 },
               }}
             />
@@ -540,7 +547,7 @@ export const Register = () => {
             >
               <p>
               <input type="checkbox" id="terms" required></input>
-              <label> I agree to the Terms of Service and Privacy Policy</label>
+              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
               </p>
             </Typography>
 
