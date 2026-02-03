@@ -51,6 +51,7 @@ export const Register = () => {
 
     const navigate = useNavigate();
     const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+    const [formError, setFormError] = useState([]);
 
     const bulletContainerSx = {
         display: 'flex',
@@ -99,15 +100,26 @@ export const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const errors = [];
+
         if (!email) {
             setEmailError(true);
             setEmailErrorMessage('Email required.');
+            setErrorMessage(
+                "We can't process your request right now because you have errors that need to be fixed",
+            );
+            errors.push('Email required.');
         } else if (!emailRegex.test(email)) {
             setEmailError(true);
             setEmailErrorMessage('Email must match required format.');
+            setErrorMessage(
+                "We can't process your request right now because you have errors that need to be fixed",
+            );
+            errors.push('Email must match required format.');
         } else {
             setEmailError(false);
             setEmailErrorMessage('');
+            setErrorMessage('');
         }
 
         let isEmailInvalid = !emailRegex.test(email) || !email;
@@ -117,14 +129,29 @@ export const Register = () => {
         if (isConfirmInvalid) {
             setPasswordError(true);
             setPasswordErrorMessage('Passwords must match.');
+            setErrorMessage(
+                "We can't process your request right now because you have errors that need to be fixed",
+            );
+            errors.push('Passwords must match.');
         } else if (isPasswordInvalid) {
             setPasswordError(true);
             setPasswordErrorMessage(
-                'Must be at least 8 characters with uppercase, lowercase, numbers, and symbols.',
+                'Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.',
+            );
+            setErrorMessage(
+                "We can't process your request right now because you have errors that need to be fixed",
+            );
+            errors.push(
+                'Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.',
             );
         } else {
             setPasswordError(false);
+            setErrorMessage('');
             setPasswordErrorMessage('');
+        }
+
+        if (errors.length > 0) {
+            setFormError(errors);
         }
 
         setPasswordError(isPasswordInvalid);
@@ -320,6 +347,13 @@ export const Register = () => {
                     {errorMessage && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {errorMessage}
+                            {formError.length > 0 && (
+                                <ul>
+                                    {formError.map((error, index) => (
+                                        <li key={index}>{error}</li>
+                                    ))}
+                                </ul>
+                            )}
                         </Alert>
                     )}
                     {duplicateEmailError && (
