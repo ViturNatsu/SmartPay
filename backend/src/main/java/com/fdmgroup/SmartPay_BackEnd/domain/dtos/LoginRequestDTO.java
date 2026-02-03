@@ -1,5 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 /**
  * US-F02-02-01 (Sign In)
  * DTO for incoming login requests from the client.
@@ -7,7 +10,11 @@ package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
  */
 public class LoginRequestDTO {
 
+    @NotBlank(message = "Email is Required. Can't be left blank.")
+    @Email(message = "Enter a valid email address (example: name@domain.com).")
     private String email;
+
+    @NotBlank(message = "Password is Required. Can't be left blank.")
     private String password;
 
 
