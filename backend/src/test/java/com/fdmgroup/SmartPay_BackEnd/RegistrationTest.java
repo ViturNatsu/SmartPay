@@ -35,8 +35,7 @@ class RegistrationTest {
     private UserRepository userRepository;
     @Autowired
     private RegistrationService registrationService;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void register() throws Exception {
@@ -49,7 +48,7 @@ class RegistrationTest {
         requestBody.setConfirmPassword(password);
         var request = buildRegisterRequest(requestBody);
 
-        mvc.perform(request).andExpect(status().isOk());
+        mvc.perform(request).andExpect(status().isCreated());
     }
 
     private MockHttpServletRequestBuilder buildRegisterRequest(SignUpDTO requestBody) throws JsonProcessingException {
@@ -57,42 +56,4 @@ class RegistrationTest {
         return MockMvcRequestBuilders.post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
                 .content(requestString);
     }
-
-    /*
-    @Test
-    void register_returnsUser_whenEmailDoesNotExist() {
-        SignUpDTO dto = new SignUpDTO();
-        dto.setEmail("test@email.com");
-
-        User user = User.builder().email("test@email.com").build();
-
-        when(userRepository.findByEmail("test@email.com"))
-                .thenReturn(Optional.empty());
-        when(userService.signUpUser(any(User.class)))
-                .thenReturn(user);
-
-        User result = registrationService.register(dto);
-
-        assertNotNull(result);
-    }
-
-    @Test
-    void register_throwsException_whenEmailAlreadyExists() {
-        SignUpDTO dto = new SignUpDTO();
-        dto.setEmail("test@email.com");
-
-        when(userRepository.findByEmail("test@email.com"))
-                .thenReturn(Optional.of(User.builder().build()));
-
-        assertThrows(DuplicateEmailException.class,
-                () -> registrationService.register(dto));
-    }
-
-    @Test
-    void consistentEmail_returnsLowercaseTrimmedEmail() {
-        String result = registrationService.consistentEmail("  TEST@EMAIL.COM  ");
-
-        assertEquals("test@email.com", result);
-    }
-    */
 }
