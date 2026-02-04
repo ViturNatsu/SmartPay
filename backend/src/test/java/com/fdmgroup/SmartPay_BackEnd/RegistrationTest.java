@@ -51,6 +51,48 @@ class RegistrationTest {
         mvc.perform(request).andExpect(status().isCreated());
     }
 
+    @Test
+    void registerWithoutFirstName() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName("");
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithoutLastName() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName("");
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithoutInstitution() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution("");
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
     private MockHttpServletRequestBuilder buildRegisterRequest(SignUpDTO requestBody) throws JsonProcessingException {
         var requestString = objectMapper.writeValueAsString(requestBody);
         return MockMvcRequestBuilders.post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
