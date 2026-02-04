@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.entities;
+package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
