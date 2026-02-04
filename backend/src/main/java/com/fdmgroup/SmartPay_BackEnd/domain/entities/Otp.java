@@ -67,14 +67,29 @@ public class Otp {
     public enum OtpType {
         FORGOT_PASSWORD,
         REGISTER,
-        LOGIN
+        LOGIN;
+
+        public static OtpType from(String value) {
+            return switch (value.toLowerCase()) {
+                case "login" ->
+                    OtpType.LOGIN;
+                case "register" ->
+                    OtpType.REGISTER;
+                case "forgot-password" ->
+                    OtpType.FORGOT_PASSWORD;
+                default ->
+                    throw new IllegalArgumentException("Invalid OTP type");
+            };
+        }
     }
 
     public enum OtpStatus {
         ACTIVE,
         EXPIRED,
         LOCKED,
-        USED
+        USED;
+
+        
     }
 
     public int getLimit() {
@@ -127,11 +142,11 @@ public class Otp {
             """;
         emailDetails.setMsgBody(switch (this.otpType) {
             case LOGIN ->
-                template.formatted(frontendUrl,this.email,"login",code);
+                template.formatted(frontendUrl, this.email, "login", code);
             case REGISTER ->
-                template.formatted(frontendUrl,this.email,"register",code);
+                template.formatted(frontendUrl, this.email, "register", code);
             case FORGOT_PASSWORD ->
-                template.formatted(frontendUrl,this.email,"forgot-password",code);
+                template.formatted(frontendUrl, this.email, "forgot-password", code);
         }
                 + "\nYour verification code is: " + code + "\n\n"
                 + "This code expires in " + this.getExpiry() + " minutes.\n\n"
