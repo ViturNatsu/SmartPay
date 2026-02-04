@@ -28,6 +28,7 @@ class RegistrationTest {
     private final String email = "qa@smartpay.test";
     private final String password = "@wTJGT&a1qn@e38X";
     private final String wrongPassword = "69&YpnXa*h^3";
+    private final String passwordWithoutSpecialCharacter = "GX5bphJCBjAp";
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -107,6 +108,20 @@ class RegistrationTest {
 
         var request2 = createValidRequest();
         mvc.perform(request2).andExpect(status().isConflict());
+    }
+
+    @Test
+    void registerWithNoSpecialCharacterInPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(passwordWithoutSpecialCharacter);
+        requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
     }
 
     private MockHttpServletRequestBuilder createValidRequest() throws JsonProcessingException {
