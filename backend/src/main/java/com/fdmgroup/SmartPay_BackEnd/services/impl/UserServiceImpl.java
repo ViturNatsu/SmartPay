@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.exception.*;
 
 @Service
 //@AllArgsConstructor
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = encoderConfig
                 .passwordEncoder()
                 .encode(user.getPassword());
-
+        
         user.setPassword(encodedPassword);
 
         return userRepository.save(user);
@@ -50,31 +52,67 @@ public class UserServiceImpl implements UserService {
     public void save(User user){
         userRepository.save(user);
     }
-    
     // US-F02-02-01 (Sign In)
     @Override
     public User validateCredentials(String email, String password) {
 
         // Basic null/blank validation
-        if (email == null || password == null ||
-            email.isBlank() || password.isBlank()) {
-            throw new IllegalArgumentException("Email and password are required.");
+        if (email == null || password == null || email.isBlank() || password.isBlank()) {
+            throw new LoginInvalidCredentialsException();
         }
 
         // Normalize email for consistent lookup
         String normalizedEmail = email.trim().toLowerCase();
+        
+        final int MAX_FAILED_ATTEMPTS = 5;
+        final int LOCK_DURATION_MINUTES = 30;
 
-        // Attempt to find user by email
+        // Find user by email (unregistered email -> generic invalid credentials)
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials."));
+                .orElseThrow(LoginInvalidCredentialsException::new);
+        
+        // 1) Block if locked
+        LocalDateTime lockedUntil = user.getLockedUntil();
+        if (lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now())) {
+            throw new AccountLockedException(
+                    "Your account is locked due to multiple failed attempts. Please reset password or try later."
+            );
+        }
 
-        // Compare raw password to encoded password from DB
+        // 2) Check password
         boolean passwordMatches = encoderConfig
                 .passwordEncoder()
                 .matches(password, user.getPassword());
 
         if (!passwordMatches) {
-            throw new IllegalArgumentException("Invalid credentials.");
+            int newCount = user.getFailedLoginAttempts() + 1;
+            user.setFailedLoginAttempts(newCount);
+
+            if (newCount >= MAX_FAILED_ATTEMPTS) {
+                user.setLockedUntil(LocalDateTime.now().plusMinutes(LOCK_DURATION_MINUTES));
+            }
+
+            userRepository.save(user);
+
+            if (newCount >= MAX_FAILED_ATTEMPTS) {
+                throw new AccountLockedException(
+                        "Your account is locked due to multiple failed attempts. Please reset password or try later."
+                );
+            }
+
+            throw new LoginInvalidCredentialsException();
+        }
+
+        // 3) Valid credentials but email not verified -> block login
+        if (!user.isEmailVerified()) {
+            throw new LoginUnverifiedEmailException();
+        }
+        
+        // 4) Success: reset counters
+        if (user.getFailedLoginAttempts() != 0 || user.getLockedUntil() != null) {
+            user.setFailedLoginAttempts(0);
+            user.setLockedUntil(null);
+            userRepository.save(user);
         }
 
         // Login successful
