@@ -28,8 +28,6 @@ import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
 
 export const Register = () => {
-
-
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,6 +49,9 @@ export const Register = () => {
 
   const navigate = useNavigate();
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [institutionError, setInstitutionError] = useState(false);
 
   const bulletContainerSx = {
     display: "flex",
@@ -98,16 +99,41 @@ export const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+    setDuplicateEmailError(false);
+    setSuccessMessage("");
+
+    setFirstNameError(false);
+    setLastNameError(false);
+    setInstitutionError(false);
+    setEmailError(false);
+    setPasswordError(false);
+    setConfirmPasswordError(false);
     let isEmailInvalid = !emailRegex.test(email);
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
+
+    let isFirstNameEmpty = firstName.trim() === "";
+    let isLastNameEmpty = lastName.trim() === "";
+    let isInstitutionEmpty = institution === "";
+
+    setFirstNameError(isFirstNameEmpty);
+    setLastNameError(isLastNameEmpty);
+    setInstitutionError(isInstitutionEmpty);
 
     setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
     setSuccessMessage("");
 
-    if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
+    if (
+      isFirstNameEmpty ||
+      isLastNameEmpty ||
+      isInstitutionEmpty ||
+      isEmailInvalid ||
+      isPasswordInvalid ||
+      isConfirmInvalid
+    ) {
       return;
     }
 
@@ -126,13 +152,13 @@ export const Register = () => {
       setErrorMessage("");
       setDuplicateEmailError(false);
 
-
       navigate(`/verify?email=${encodeURIComponent(email)}&type=register`, {
-      state: { 
-        successMessage: "Successfully created an account! Please verify your account to continue.",
-        showSuccess: true 
-      }
-  });
+        state: {
+          successMessage:
+            "Successfully created an account! Please verify your account to continue.",
+          showSuccess: true,
+        },
+      });
     } catch (error) {
       const data = error.data;
       const status = error.status;
@@ -142,8 +168,8 @@ export const Register = () => {
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        
-        setDuplicateEmailError(true)
+        setDuplicateEmailError(true);
+        setErrorMessage(data?.message || "Email already in use");
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
@@ -290,23 +316,30 @@ export const Register = () => {
           {errorMessage && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorMessage}
-            </Alert>
-          )}
-          {duplicateEmailError && (
-                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
-                  We can’t create an account with that email. Please{" "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
+
+              {duplicateEmailError && (
+                <Box sx={{ fontSize: "0.9rem", mt: 1 }}>
+                  {" "}
+                  <Link
+                    component="button"
+                    underline="hover"
+                    onClick={() => navigate("/login")}
+                  >
                     Sign in
                   </Link>
                   {" or "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
+                  <Link
+                    component="button"
+                    underline="hover"
+                    onClick={() => navigate("/reset-password")}
+                  >
                     reset your password
                   </Link>
                   .
                 </Box>
               )}
-
-
+            </Alert>
+          )}
 
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
@@ -324,7 +357,14 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (firstNameError) setFirstNameError(false);
+                  }}
+                  error={firstNameError}
+                  helperText={
+                    firstNameError ? "First name cannot be empty" : ""
+                  }
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -334,7 +374,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "first-name-input"
+                      "data-testid": "first-name-input",
                     },
                   }}
                 />
@@ -354,7 +394,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (lastNameError) setLastNameError(false);
+                  }}
+                  error={lastNameError}
+                  helperText={lastNameError ? "Last name cannot be empty" : ""}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -364,7 +409,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "last-name-input"
+                      "data-testid": "last-name-input",
                     },
                   }}
                 />
@@ -391,12 +436,16 @@ export const Register = () => {
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "institution-input"
+                  "data-testid": "institution-input",
                 },
-
               }}
               value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
+              onChange={(e) => {
+                setInstitution(e.target.value);
+                if (institutionError) setInstitutionError(false);
+              }}
+              error={institutionError}
+              helperText={institutionError ? "Institution cannot be empty" : ""}
               placeholder="Select institution"
               sx={{ mb: 0 }}
             >
@@ -424,7 +473,6 @@ export const Register = () => {
                 setEmail(e.target.value);
                 setDuplicateEmailError(false);
               }}
-
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
@@ -434,7 +482,7 @@ export const Register = () => {
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "email-input"
+                  "data-testid": "email-input",
                 },
               }}
             />
@@ -483,7 +531,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "password-input"
+                  "data-testid": "password-input",
                 },
               }}
             />
@@ -532,7 +580,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "confirm-password-input"
+                  "data-testid": "confirm-password-input",
                 },
               }}
             />
@@ -546,8 +594,11 @@ export const Register = () => {
               }}
             >
               <p>
-              <input type="checkbox" id="terms" required></input>
-              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
+                <input type="checkbox" id="terms" required></input>
+                <label for="terms">
+                  {" "}
+                  I agree to the Terms of Service and Privacy Policy
+                </label>
               </p>
             </Typography>
 
@@ -564,8 +615,6 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
-
-
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
@@ -582,8 +631,6 @@ export const Register = () => {
             Sign in
           </Link>
         </Typography>
-
-        
       </Grid>
     </Grid>
   );
