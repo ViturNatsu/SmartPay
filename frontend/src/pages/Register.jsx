@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -53,6 +53,10 @@ export const Register = () => {
     const [duplicateEmailError, setDuplicateEmailError] = useState(false);
     const [formError, setFormError] = useState([]);
 
+    const emailRef = useRef(null);
+    const passwordRef = useRef(null);
+    const confirmPasswordRef = useRef(null);
+
     const bulletContainerSx = {
         display: 'flex',
         flexDirection: 'row',
@@ -101,6 +105,7 @@ export const Register = () => {
         e.preventDefault();
 
         const errors = [];
+        let firstInvalidRef = null;
 
         if (!email) {
             setEmailError(true);
@@ -109,6 +114,7 @@ export const Register = () => {
                 "We can't process your request right now because you have errors that need to be fixed",
             );
             errors.push('Email required.');
+            if (!firstInvalidRef) firstInvalidRef = emailRef;
         } else if (!emailRegex.test(email)) {
             setEmailError(true);
             setEmailErrorMessage('Email must match required format.');
@@ -116,10 +122,10 @@ export const Register = () => {
                 "We can't process your request right now because you have errors that need to be fixed",
             );
             errors.push('Email must match required format.');
+            if (!firstInvalidRef) firstInvalidRef = emailRef;
         } else {
             setEmailError(false);
             setEmailErrorMessage('');
-            setErrorMessage('');
         }
 
         let isEmailInvalid = !emailRegex.test(email) || !email;
@@ -133,6 +139,7 @@ export const Register = () => {
                 "We can't process your request right now because you have errors that need to be fixed",
             );
             errors.push('Passwords must match.');
+            if (!firstInvalidRef) firstInvalidRef = passwordRef;
         } else if (isPasswordInvalid) {
             setPasswordError(true);
             setPasswordErrorMessage(
@@ -144,23 +151,28 @@ export const Register = () => {
             errors.push(
                 'Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.',
             );
+            if (!firstInvalidRef) firstInvalidRef = passwordRef;
         } else {
             setPasswordError(false);
-            setErrorMessage('');
             setPasswordErrorMessage('');
-        }
-
-        if (errors.length > 0) {
-            setFormError(errors);
         }
 
         setPasswordError(isPasswordInvalid);
         setConfirmPasswordError(isConfirmInvalid);
         setSuccessMessage('');
 
+        if (errors.length > 0) {
+            setFormError(errors);
+            if (firstInvalidRef?.current) {
+                firstInvalidRef.current.focus();
+            }
+            return;
+        }
+
         if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
             return;
         }
+        setErrorMessage('');
 
         setIsLoading(true);
         const userInfo = {
@@ -491,6 +503,7 @@ export const Register = () => {
                             Email Address
                         </Typography>
                         <TextField
+                            inputRef={emailRef}
                             type="text"
                             value={email}
                             onChange={(e) => {
@@ -524,12 +537,15 @@ export const Register = () => {
                             Password
                         </Typography>
                         <TextField
+                            inputRef={passwordRef}
                             type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             error={passwordError || confirmPasswordError}
                             helperText={
-                                passwordError ? passwordErrorMessage : ''
+                                passwordError || confirmPasswordError
+                                    ? passwordErrorMessage
+                                    : ''
                             }
                             slotProps={{
                                 input: {
@@ -584,6 +600,7 @@ export const Register = () => {
                             Confirm Password
                         </Typography>
                         <TextField
+                            inputRef={confirmPasswordRef}
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
