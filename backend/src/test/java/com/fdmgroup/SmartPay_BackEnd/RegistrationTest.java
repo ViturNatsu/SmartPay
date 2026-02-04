@@ -40,15 +40,7 @@ class RegistrationTest {
 
     @Test
     void register() throws Exception {
-        var requestBody = new SignUpDTO();
-        requestBody.setFirstName(firstName);
-        requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
-        requestBody.setEmail(email);
-        requestBody.setPassword(password);
-        requestBody.setConfirmPassword(password);
-        var request = buildRegisterRequest(requestBody);
-
+        var request = createValidRequest();
         mvc.perform(request).andExpect(status().isCreated());
     }
 
@@ -106,6 +98,26 @@ class RegistrationTest {
         var request = buildRegisterRequest(requestBody);
 
         mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithExistingEmail() throws Exception {
+        var request1 = createValidRequest();
+        mvc.perform(request1);
+
+        var request2 = createValidRequest();
+        mvc.perform(request2).andExpect(status().isConflict());
+    }
+
+    private MockHttpServletRequestBuilder createValidRequest() throws JsonProcessingException {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        return buildRegisterRequest(requestBody);
     }
 
     private MockHttpServletRequestBuilder buildRegisterRequest(SignUpDTO requestBody) throws JsonProcessingException {
