@@ -29,6 +29,7 @@ class RegistrationTest {
     private final String password = "@wTJGT&a1qn@e38X";
     private final String wrongPassword = "69&YpnXa*h^3";
     private final String passwordWithoutSpecialCharacter = "GX5bphJCBjAp";
+    private final String shortPassword = "Abc@123";
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -119,6 +120,20 @@ class RegistrationTest {
         requestBody.setEmail(email);
         requestBody.setPassword(passwordWithoutSpecialCharacter);
         requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithShortPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(shortPassword);
+        requestBody.setConfirmPassword(shortPassword);
         var request = buildRegisterRequest(requestBody);
 
         mvc.perform(request).andExpect(status().is4xxClientError());
