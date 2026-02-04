@@ -10,7 +10,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,11 +23,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Otp {
-	
-	public Otp(String email, OtpType type) {
-		this.email = email;
-		this.otpType = type;
-	}
+
+    public Otp(String email, OtpType type) {
+        this.email = email;
+        this.otpType = type;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -52,70 +51,124 @@ public class Otp {
     @Column(name = "attempts_made")
     int attemptsMade;
 
+    @Column(name = "attempts_per_OTP")
+    int attemptsPerOtp;
+
     @Column(name = "first_request_at")
     private LocalDateTime firstRequestAt;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-    
+
+    public String getEmail() {
+        return this.email.toLowerCase();
+    }
+
     public enum OtpType {
         FORGOT_PASSWORD,
         REGISTER,
-        LOGIN
+        LOGIN;
+
+        public static OtpType from(String value) {
+            return switch (value.toLowerCase()) {
+                case "login" ->
+                    OtpType.LOGIN;
+                case "register" ->
+                    OtpType.REGISTER;
+                case "forgot-password" ->
+                    OtpType.FORGOT_PASSWORD;
+                default ->
+                    throw new IllegalArgumentException("Invalid OTP type");
+            };
+        }
     }
 
     public enum OtpStatus {
         ACTIVE,
         EXPIRED,
         LOCKED,
-        USED
+        USED;
+
+        
     }
-    
+
     public int getLimit() {
-    	return switch (this.otpType) {
-	        case FORGOT_PASSWORD -> 5;
-	        case REGISTER -> 3;
-	        case LOGIN -> 10;
-	    };
+        return switch (this.otpType) {
+            case FORGOT_PASSWORD ->
+                5;
+            case REGISTER ->
+                3;
+            case LOGIN ->
+                10;
+        };
     }
-    
+
+    public int getOTPVerificationAttemptsLimit() {
+        return 5;
+    }
+
     public int getExpiry() {
-    	return switch (this.otpType) {
-	        case FORGOT_PASSWORD -> 45;
-	        case REGISTER -> 15;
-	        case LOGIN -> 5;
-	    };
+        return switch (this.otpType) {
+            case FORGOT_PASSWORD ->
+                45;
+            case REGISTER ->
+                15;
+            case LOGIN ->
+                5;
+        };
     }
-    
-    public EmailDetails getEmail(String code) {
-    	EmailDetails emailDetails = new EmailDetails();
+
+    //@Value("${app.frontend.url:http://localhost:5173}")
+    private static String frontendUrl = "http://localhost:5173";
+
+    public EmailDetails getSendCodeEmailTemplate(String code) {
+        EmailDetails emailDetails = new EmailDetails();
+
         emailDetails.setRecipient(email);
         emailDetails.setSubject(switch (this.otpType) {
-        	case LOGIN -> "Your SmartPay sign-in code";
-	        case REGISTER -> "Verify your SmartPay account";
-	        case FORGOT_PASSWORD -> "Reset your SmartPay password";
-	    });
-        
-        emailDetails.setMsgBody(switch (this.otpType) {
-	        case LOGIN, REGISTER -> 
-	        	"Your verification code is: " + code + "\n\n" +
-                "This code expires in " +this.getExpiry() + " minutes.\n\n" +
-                "If you did not request this, you can ignore this email.";
-	        case FORGOT_PASSWORD -> 
-	        	"A password change was requested for your SmartPay account.\n\n" +
-                "If this was you, click the link below to reset your password:\n\n" +
-                String.format("http://localhost:5173/verify?email=%s&type=%s&code=%s", 
-                        email, "forgot-password", code) +
-                "\n\n" +
-                "This code expires in " + this.getExpiry() + " minutes.\n\n" +
-                "If you did not request this change, you can safely ignore this email.\n\n" +
-                "Thank you,\n" +
-                "The SmartPay Support Team";
+            case LOGIN ->
+                "Your SmartPay sign-in code";
+            case REGISTER ->
+                "Verify your SmartPay account";
+            case FORGOT_PASSWORD ->
+                "Reset your SmartPay password";
         });
-        
+        String template = """
+            We received a request to log into your SmartPay account.
+
+            If this was you, click the link below to verify your action:
+
+            %s/verify?email=%s&type=%s&code=%s
+            """;
+        emailDetails.setMsgBody(switch (this.otpType) {
+            case LOGIN ->
+                template.formatted(frontendUrl, this.email, "login", code);
+            case REGISTER ->
+                template.formatted(frontendUrl, this.email, "register", code);
+            case FORGOT_PASSWORD ->
+                template.formatted(frontendUrl, this.email, "forgot-password", code);
+        }
+                + "\nYour verification code is: " + code + "\n\n"
+                + "This code expires in " + this.getExpiry() + " minutes.\n\n"
+                + "If you did not request this, you can safely ignore this email.\n\n"
+                + "Thank you,\n"
+                + "The SmartPay Support Team"
+        );
+
         return emailDetails;
     }
-    
+
+    public EmailDetails getAccountLockedEmailTemplate() {
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setRecipient(email);
+        emailDetails.setSubject("SmartPay - Security Alert");
+
+        emailDetails.setMsgBody("There have been multiple failed login attempts on your account, "
+                + "and it has been locked as a result. Please reach out to customer service to resolve this issue.");
+
+        return emailDetails;
+    }
+
     public boolean isActive() {
         return status == OtpStatus.ACTIVE && !isExpired();
     }

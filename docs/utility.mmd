@@ -1,0 +1,19 @@
+classDiagram
+    class RateLimiterFilter {
+        -RequestCounter requestCounter
+        +doFilter(ServletRequest, ServletResponse, FilterChain) void
+    }
+
+    class RequestCounter {
+        -Map~String, AtomicInteger~ requestCounts
+        +requestAllowed(String) boolean
+        +resetCounts() void
+    }
+
+    class Filter {
+        <<interface>>
+    }
+
+    RateLimiterFilter --> RequestCounter
+    RateLimiterFilter ..|> Filter
+

@@ -1,0 +1,55 @@
+classDiagram
+    class AuthSessionController {
+        -UserService userService
+        -JwtSessionService jwtService
+        -SessionService sessionService
+        -OtpService otpService
+        +login(LoginRequestDTO) ResponseEntity~Map~
+        +refresh(String) ResponseEntity~KeepAliveDTO~
+        +logout(String) ResponseEntity~Void~
+    }
+
+    class EmailController {
+        -EmailService emailService
+        +sendMail(EmailDetails) void
+    }
+
+    class OtpController {
+        -PasswordResetService passwordResetService
+        -OtpService otpService
+        -UserService userService
+        -JwtSessionService jwtSessionService
+        -SessionService sessionService
+        +requestOtp(OtpRequestDto) ResponseEntity~Map~
+        +validate7DigitOTP(OtpDTO) ResponseEntity~Object~
+    }
+
+    class PasswordResetController {
+        -PasswordResetService passwordResetService
+        +resetPasswordWithOTP(PasswordResetWithOtpDto, HttpServletRequest) ResponseEntity~String~
+    }
+
+    class RegistrationController {
+        -RegistrationService registrationService
+        -OtpService otpService
+        +register(SignUpDTO) ResponseEntity~Map~
+        +handleDuplicateEmail() ResponseEntity~Object~
+    }
+
+    class UserController {
+        %% TODO: Not implemented yet
+    }
+
+    AuthSessionController --> UserService
+    AuthSessionController --> JwtSessionService
+    AuthSessionController --> SessionService
+    AuthSessionController --> OtpService
+    EmailController --> EmailService
+    OtpController --> OtpService
+    OtpController --> UserService
+    OtpController --> JwtSessionService
+    OtpController --> SessionService
+    PasswordResetController --> PasswordResetService
+    RegistrationController --> RegistrationService
+    RegistrationController --> OtpService
+

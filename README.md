@@ -20,6 +20,22 @@ git branch -M main
 git push -uf origin main
 ```
 
+## How to create UML diagrams for back-end
+
+Prerequite for this to have globally installed ```mermaid```.
+
+Install by running this command: ```npm install -g @mermaid-js/mermaid-cli```
+
+There are other ways to install mermaid but since you already need nodejs for the front end, you might as well just do this.
+
+To render an image on linux/WSL environments: ```mmdc -i [file name].mmd -o [file name]-uml.png -s 2 -w 2000 --puppeteerConfigFile puppeteer.json```
+
+To render an image on windows/MacOS environment: ```let me know since I can't test for that environment currently```.
+
+### *Tips to note*
+
+Naming convention is ```[folder]-[subfolder].mmd```. A singular large UML is cluttered and hard to follow.
+
 ## Integrate with your tools
 
 - [ ] [Set up project integrations](https://git.fdmgroup.com/smartpay-pod/smartpay-backend/-/settings/integrations)

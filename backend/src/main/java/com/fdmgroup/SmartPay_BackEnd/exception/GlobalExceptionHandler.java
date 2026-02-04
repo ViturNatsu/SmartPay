@@ -88,6 +88,20 @@ public class GlobalExceptionHandler {
                                 .body(errorBody);
         }
 
+        @ExceptionHandler(AccessCodeInvalidatedException.class)
+        public ResponseEntity<Map<String, String>> handleAccessCodeInvalidatedExceptions(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "410");
+                errorBody.put(ERROR, "Code has been invalidated!");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.GONE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
         @ExceptionHandler(EmailNotFoundException.class)
         public ResponseEntity<Map<String, String>> handleEmailNotFoundExceptions(RuntimeException ex) {
 
@@ -129,6 +143,52 @@ public class GlobalExceptionHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(errorBody);
         }
+        
+        //US-F02-02-01 (Sign In)
+        @ExceptionHandler(LoginInvalidCredentialsException.class)
+        public ResponseEntity<Map<String, String>> handleLoginInvalidCredentials(RuntimeException ex) {
+
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put("status", "401");
+            errorBody.put("error", "Unauthorized");
+            errorBody.put("message", "Incorrect email or password. Please try again.");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorBody);
+        }
+        
+        // US-F02-02-01 (Sign In)
+        @ExceptionHandler(LoginUnverifiedEmailException.class)
+        public ResponseEntity<Map<String, String>> handleLoginUnverified(RuntimeException ex) {
+
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put("status", "403");
+            errorBody.put("error", "Forbidden");
+            errorBody.put("message",
+                    "Your email address is not verified. Please check your inbox and verify your email to continue.");
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorBody);
+        }
+        
+        // US-F02-02-01 (Sign In)
+        @ExceptionHandler(LoginAccountDisabledException.class)
+        public ResponseEntity<Map<String, String>> handleLoginDisabled(RuntimeException ex) {
+
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put("status", "403");
+            errorBody.put("error", "Forbidden");
+            errorBody.put("message", "We can’t sign you in right now. Please contact support.");
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorBody);
+        }
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
@@ -143,5 +203,5 @@ public class GlobalExceptionHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(errorBody);
         }
-
+        
 }
