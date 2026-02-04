@@ -128,7 +128,7 @@ class RegistrationTest {
     }
 
     @Test
-    void registerWithNoUpperCaseLetterInPassword() throws Exception {
+    void registerWithNoUppercaseLetterInPassword() throws Exception {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
