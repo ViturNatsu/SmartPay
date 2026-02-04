@@ -8,7 +8,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import { sendVerifyCode } from "../api/authApi";
+import { requestResetCode, sendVerifyCode } from "../api/authApi";
 
 import { resendCode } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
@@ -83,7 +83,7 @@ export const VerifyOtp = () => {
   const resend = async () => {
     try {
       setLoadingResend(true);
-      const res = await resendCode({
+      const res = await requestResetCode({
         email: emailParam,
         type: typeParam,
       });

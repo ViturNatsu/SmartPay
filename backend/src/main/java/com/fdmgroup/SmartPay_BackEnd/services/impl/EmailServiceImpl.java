@@ -6,17 +6,17 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.EmailDetails;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 
 import java.util.logging.Logger;
 
 @Service
-public class EmailServiceImpl implements EmailService{
+public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender javaMailSender;
 
-    @Value("${spring.mail.username:noreply@smartpay.local}") 
+    @Value("${spring.mail.username:noreply@smartpay.local}")
     private String sender;
 
     private static final Logger LOGGER = Logger.getLogger(EmailServiceImpl.class.getName());
@@ -39,8 +39,7 @@ public class EmailServiceImpl implements EmailService{
             LOGGER.info("Sending email to: " + details.getRecipient());
             javaMailSender.send(mailMessage);
             LOGGER.info("Email sent successfully to MailHog");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             LOGGER.warning("Error while Sending Mail: " + e.getMessage());
         }
