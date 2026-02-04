@@ -27,6 +27,7 @@ class RegistrationTest {
     private final String institution = "Chase";
     private final String email = "qa@smartpay.test";
     private final String password = "@wTJGT&a1qn@e38X";
+    private final String wrongPassword = "69&YpnXa*h^3";
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -88,6 +89,20 @@ class RegistrationTest {
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithMismatchedPasswords() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(wrongPassword);
         var request = buildRegisterRequest(requestBody);
 
         mvc.perform(request).andExpect(status().is4xxClientError());
