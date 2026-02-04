@@ -28,8 +28,10 @@ class RegistrationTest {
     private final String email = "qa@smartpay.test";
     private final String password = "@wTJGT&a1qn@e38X";
     private final String wrongPassword = "69&YpnXa*h^3";
-    private final String passwordWithoutSpecialCharacter = "GX5bphJCBjAp";
     private final String shortPassword = "Abc@123";
+    private final String passwordWithoutUppercase = "umvdjh54ngw5";
+    private final String passwordWithoutSpecialCharacter = "GX5bphJCBjAp";
+
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -112,20 +114,6 @@ class RegistrationTest {
     }
 
     @Test
-    void registerWithNoSpecialCharacterInPassword() throws Exception {
-        var requestBody = new SignUpDTO();
-        requestBody.setFirstName(firstName);
-        requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
-        requestBody.setEmail(email);
-        requestBody.setPassword(passwordWithoutSpecialCharacter);
-        requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
-        var request = buildRegisterRequest(requestBody);
-
-        mvc.perform(request).andExpect(status().is4xxClientError());
-    }
-
-    @Test
     void registerWithShortPassword() throws Exception {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
@@ -134,6 +122,34 @@ class RegistrationTest {
         requestBody.setEmail(email);
         requestBody.setPassword(shortPassword);
         requestBody.setConfirmPassword(shortPassword);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithNoUpperCaseLetterInPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(passwordWithoutUppercase);
+        requestBody.setConfirmPassword(passwordWithoutUppercase);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithNoSpecialCharacterInPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(passwordWithoutSpecialCharacter);
+        requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
         var request = buildRegisterRequest(requestBody);
 
         mvc.perform(request).andExpect(status().is4xxClientError());
