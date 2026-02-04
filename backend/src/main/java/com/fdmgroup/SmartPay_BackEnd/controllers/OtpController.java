@@ -113,18 +113,8 @@ public class OtpController {
 
     @PostMapping("/resend")
     public ResponseEntity<?> resendOTP(@Valid @RequestBody ResendOTPDTO payload) {
-        switch (payload.getType()) {
-            case "login" -> {
-                otpService.requestOtp(payload.getEmail(), Otp.OtpType.LOGIN);
-            }
-            case "register" -> {
-                otpService.requestOtp(payload.getEmail(), Otp.OtpType.REGISTER);
-            }
-            case "forgot-password" -> {
-                otpService.requestOtp(payload.getEmail(), Otp.OtpType.FORGOT_PASSWORD);
-            }
-
-        }
+        Otp.OtpType type = Otp.OtpType.from(payload.getType());
+        otpService.requestOtp(payload.getEmail(), type);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("otpSent", true));
     }
 
