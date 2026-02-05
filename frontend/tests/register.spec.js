@@ -26,6 +26,39 @@ async function fillRegisterForm(page, email, password, confirm) {
   await page.getByRole("button", { name: "Create Account" }).click();
 }
 
+async function getVerificationCode(request, targetEmail) {
+  let emailBody = "";
+
+  await expect.poll(async () => {
+    const res = await request.get(
+      "http://localhost:8025/api/v2/messages"
+    );
+    const json = await res.json();
+
+    if (json.items.length === 0) return null;
+
+    const email = json.items.find(m =>
+      m.Content.Headers.To?.some((to) =>
+        to.includes(targetEmail)
+      )
+    );
+    if (!email) return null;
+
+    emailBody = email.Content.Body;
+    return emailBody;
+  }, {
+    timeout: 10_000,
+    intervals: [500],
+  }).not.toBeNull();
+
+  const match = emailBody.match(/(\d{7})/);
+  expect(match).not.toBeNull();
+
+  const verificationCode = match[0];
+  return verificationCode;
+}
+
+
 
 test("user can register successfully", async ({ page }) => {
   await page.goto("/register");
@@ -36,13 +69,18 @@ test("user can register successfully", async ({ page }) => {
   await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
 });
 
-test("user cannot register with duplicate email", async ({ page }) => {
+test("user cannot register with duplicate email", async ({ page, request }) => {
   await page.goto("/register");
 
   await fillRegisterForm(page, 'name1@domain.com', 'Password8!', 'Password8!');
 
   //Assertion
   await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
+  const verificationCode = await getVerificationCode(request, 'name1@domain.com');
+
+
+  await page.getByRole("textbox").fill(verificationCode);
+  await page.getByRole("button", { name: "Verify Code" }).click();
 
   await page.goto("/register");
 
@@ -100,7 +138,7 @@ test("user cannot register more than 3 times in one minute", async({page})=>{
   await page.goto("/register");
   await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
   await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
-  
+
   await page.goto("/register");
   await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
   
