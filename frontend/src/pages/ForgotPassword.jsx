@@ -36,7 +36,7 @@ export const ForgotPassword = () => {
     }
 
     try {
-      await requestResetCode({ email });
+      await requestResetCode({ email, type: "forgot-password" });
       setResetEmailSent(true);
     } catch (e) {
       if (e.status === 400) setError("Email not sent or in incorrect format");
