@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.EmailDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,14 +69,28 @@ public class Otp {
     public enum OtpType {
         FORGOT_PASSWORD,
         REGISTER,
-        LOGIN
+        LOGIN;
+
+        public static OtpType from(String value) {
+            return switch (value.toLowerCase()) {
+                case "login" ->
+                    OtpType.LOGIN;
+                case "register" ->
+                    OtpType.REGISTER;
+                case "forgot-password" ->
+                    OtpType.FORGOT_PASSWORD;
+                default ->
+                    throw new IllegalArgumentException("Invalid OTP type");
+            };
+        }
     }
 
     public enum OtpStatus {
         ACTIVE,
         EXPIRED,
         LOCKED,
-        USED
+        USED;
+
     }
 
     public int getLimit() {
@@ -103,7 +119,7 @@ public class Otp {
         };
     }
 
-    //@Value("${app.frontend.url:http://localhost:5173}")
+    // @Value("${app.frontend.url:http://localhost:5173}")
     private static String frontendUrl = "http://localhost:5173";
 
     public EmailDetails getSendCodeEmailTemplate(String code) {
@@ -119,26 +135,25 @@ public class Otp {
                 "Reset your SmartPay password";
         });
         String template = """
-            We received a request to log into your SmartPay account.
+                We received a request to log into your SmartPay account.
 
-            If this was you, click the link below to verify your action:
+                If this was you, click the link below to verify your action:
 
-            %s/verify?email=%s&type=%s&code=%s
-            """;
+                %s/verify?email=%s&type=%s&code=%s
+                """;
         emailDetails.setMsgBody(switch (this.otpType) {
             case LOGIN ->
-                template.formatted(frontendUrl,this.email,"login",code);
+                template.formatted(frontendUrl, this.email, "login", code);
             case REGISTER ->
-                template.formatted(frontendUrl,this.email,"register",code);
+                template.formatted(frontendUrl, this.email, "register", code);
             case FORGOT_PASSWORD ->
-                template.formatted(frontendUrl,this.email,"forgot-password",code);
+                template.formatted(frontendUrl, this.email, "forgot-password", code);
         }
                 + "\nYour verification code is: " + code + "\n\n"
                 + "This code expires in " + this.getExpiry() + " minutes.\n\n"
                 + "If you did not request this, you can safely ignore this email.\n\n"
                 + "Thank you,\n"
-                + "The SmartPay Support Team"
-        );
+                + "The SmartPay Support Team");
 
         return emailDetails;
     }

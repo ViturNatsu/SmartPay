@@ -48,7 +48,7 @@ public class AuthSessionController {
 
         if (!user.isEmailVerified()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Email address is not verified."));
+                    .body(Map.of("message", "Your email address is not verified. Please check your inbox and verify your email to continue."));
         }
 
         otpService.requestOtp(email, OtpType.LOGIN);
@@ -91,10 +91,20 @@ public class AuthSessionController {
 
     // Refresh (rotate) refresh token and issue a new access token.
     @PostMapping("/refresh")
-    public ResponseEntity<KeepAliveDTO> refresh(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<KeepAliveDTO> refresh(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        // Guard: no header → no refresh
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         try {
-            String oldRefreshToken = authHeader.replace("Bearer ", "");
-            if (!jwtService.isTokenValid(oldRefreshToken) || !jwtService.isRefreshToken(oldRefreshToken)) {
+            String oldRefreshToken = authHeader.substring(7).trim();
+
+            if (oldRefreshToken.isBlank()
+                    || !jwtService.isTokenValid(oldRefreshToken)
+                    || !jwtService.isRefreshToken(oldRefreshToken)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -111,6 +121,7 @@ public class AuthSessionController {
             dto.setAccessToken(newAccessToken);
             dto.setRefreshToken(newRefreshToken);
             return ResponseEntity.ok(dto);
+
         } catch (SessionAuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

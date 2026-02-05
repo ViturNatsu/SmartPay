@@ -52,7 +52,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         otpEntity.markAsUsed();
         otpService.save(otpEntity);
 
-        // Log successful password reset
+        // Log the successful password reset
         // audit the record of change password
         auditService.logEvent(AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
         log.info("Password successfully reset with OTP for user: {}", user.getEmail());
