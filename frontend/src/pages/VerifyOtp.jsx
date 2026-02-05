@@ -84,13 +84,13 @@ export const VerifyOtp = () => {
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
           }); 
-          navigate(`/home`);
+          navigate("/home", { replace: true });
           break;
         case "register":
-          navigate(`/login`);
+          navigate(`/login`, { replace: true });
           break;
         case "forgot-password":
-          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`);
+          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`, { replace: true });
           break;
         default:
           setError("Unknown verification type.");

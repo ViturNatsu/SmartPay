@@ -24,7 +24,7 @@ export const VerifyEmail = () => {
     try {
       setLoading(true);
       
-      await sendVerifyCode({ email: emailParam, code, type: "forgot-password" });
+      await sendVerifyCode({ email: emailParam, code, type: "forgot-password" }, { replace: true });
       
       navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${code}`);
     } catch (err) {

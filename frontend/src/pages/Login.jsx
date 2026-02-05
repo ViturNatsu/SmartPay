@@ -84,7 +84,7 @@ export const Login = () => {
   
     try {
       await login({ email, password });
-      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`, { replace: true });
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
       const url = err?.config?.url ?? err?.response?.config?.url ?? "";
