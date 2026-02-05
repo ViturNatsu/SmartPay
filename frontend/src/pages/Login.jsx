@@ -259,6 +259,7 @@ export const Login = () => {
               </Typography>
               <TextField
                 fullWidth
+                label="Email Address"
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -313,6 +314,7 @@ export const Login = () => {
 
               <TextField
                 fullWidth
+                label="Password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => {

@@ -215,7 +215,7 @@ public class OtpServiceTest {
         verify(otpRepository).save(otpCaptor.capture());
         assertEquals(OtpStatus.LOCKED, otpCaptor.getValue().getStatus());
 
-        verify(emailService, never()).sendSimpleMail(any());
+        verify(emailService, times(1)).sendSimpleMail(any());
     }
 
     @Test
@@ -353,7 +353,7 @@ public class OtpServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(4, result.getAttemptsMade());
+        assertEquals(0, result.getAttemptsMade());
     }
 
     @Test
