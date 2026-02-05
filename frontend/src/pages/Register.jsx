@@ -422,6 +422,7 @@ export const Register = () => {
                                                         />
                                                     </InputAdornment>
                                                 ),
+                                                "data-testid": "first-name-input"
                                             },
                                         }}
                                     />
@@ -453,6 +454,7 @@ export const Register = () => {
                                                         />
                                                     </InputAdornment>
                                                 ),
+                                                "data-testid": "last-name-input"
                                             },
                                         }}
                                     />
@@ -481,6 +483,7 @@ export const Register = () => {
                                                 />
                                             </InputAdornment>
                                         ),
+                                         "data-testid": "institution-input"
                                     },
                                 }}
                                 value={institution}
@@ -586,6 +589,7 @@ export const Register = () => {
                                                 </IconButton>
                                             </InputAdornment>
                                         ),
+                                        "data-testid": "password-input"
                                     },
                                 }}
                             />
@@ -650,6 +654,7 @@ export const Register = () => {
                                                 </IconButton>
                                             </InputAdornment>
                                         ),
+                                        "data-testid": "confirm-password-input"
                                     },
                                 }}
                             />

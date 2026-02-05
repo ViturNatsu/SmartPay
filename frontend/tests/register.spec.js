@@ -60,8 +60,9 @@ test("user cannot register with invalid email", async ({ page }) => {
   await fillRegisterForm(page, 'invalid email', 'Password8!', 'Password8!');
 
   //Assertion
-  const emailInput = page.locator('input[type="email"]');
-  await expect(emailInput).toHaveJSProperty("validity.valid", false);
+  await expect(
+    page.getByRole('list').getByText('Email must match required')
+  ).toBeVisible();
 });
 
 test("user cannot register with invalid password", async ({ page }) => {
@@ -71,7 +72,7 @@ test("user cannot register with invalid password", async ({ page }) => {
 
   //Assertion
   await expect(
-    page.getByText(/Must be at least 8 characters/i)
+    page.getByRole('list').getByText('Password must be at least 8')
   ).toBeVisible();
 });
 
@@ -82,7 +83,7 @@ test("user cannot register when passwords do not match", async ({ page }) => {
 
   //Assertion
   await expect(
-    page.getByText(/Passwords must match/i)
+    page.getByRole('list').getByText('Passwords must match.')
   ).toBeVisible();
 });
 
