@@ -259,7 +259,6 @@ export const Login = () => {
               </Typography>
               <TextField
                 fullWidth
-                label="Email Address"
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -271,6 +270,9 @@ export const Login = () => {
                 helperText={emailError}
                 sx={{ mb: 2 }}
                 slotProps={{
+                  htmlInput: {
+                    "aria-label": "email address",
+                  },
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
@@ -314,7 +316,7 @@ export const Login = () => {
 
               <TextField
                 fullWidth
-                label="Password"
+               
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => {
@@ -325,7 +327,11 @@ export const Login = () => {
                 helperText={passwordError}
                 sx={{ mb: 2 }}
                 slotProps={{
+                  htmlInput: {
+                    "aria-label": "password",
+                  },
                   input: {
+
                     startAdornment: (
                       <InputAdornment position="start">
                         <PasswordIcon
