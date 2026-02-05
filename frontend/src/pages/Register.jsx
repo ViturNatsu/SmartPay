@@ -317,17 +317,9 @@ export const Register = () => {
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
               <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  First Name
-                </Typography>
                 <TextField
+                  id="firstName"
+                  label="First Name"
                   fullWidth
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -347,17 +339,9 @@ export const Register = () => {
               </Box>
 
               <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  Last Name
-                </Typography>
                 <TextField
+                  id="lastName"
+                  label="Last Name"
                   fullWidth
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -377,17 +361,9 @@ export const Register = () => {
               </Box>
             </Box>
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Financial Institution
-            </Typography>
             <TextField
+              id="financialInstitution"
+              label="Financial Institution"
               select
               fullWidth
               slotProps={{
@@ -412,17 +388,9 @@ export const Register = () => {
               <MenuItem value="other">Other</MenuItem>
             </TextField>
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Email Address
-            </Typography>
             <TextField
+              id="emailAddress"
+              label="Email Address"
               type="email"
               value={email}
               onChange={(e) => {
@@ -443,17 +411,9 @@ export const Register = () => {
               }}
             />
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Password
-            </Typography>
             <TextField
+              id="password"
+              label="Password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -492,17 +452,9 @@ export const Register = () => {
               }}
             />
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Confirm Password
-            </Typography>
             <TextField
+              id="confirmPassword"
+              label="Confirm Password"
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
