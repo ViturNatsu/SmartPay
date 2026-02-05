@@ -57,6 +57,8 @@ const AuthProviderInner = ({ children }) => {
 
   const clearAuth = useCallback(async() => {
     setUser(null);
+    clearAccessToken();
+    sessionStorage.removeItem("refresh_token");
     await authApi.logout();
     stopSessionMonitoring();
   }, [stopSessionMonitoring]);
@@ -67,6 +69,8 @@ const AuthProviderInner = ({ children }) => {
       await authApi.logout();
     } finally {
       clearAuth();
+      // Clear browser history to prevent back button access
+      window.history.replaceState(null, "", window.location.href);
       setLoading(false);
       navigate("/login", { replace: true });
     }
@@ -138,6 +142,7 @@ export const AuthProvider = ({ children }) => {
     // Clear tokens
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
+    window.history.replaceState(null, "", window.location.href);  //disable back button
 
     // Redirect to login using react-router
     navigate("/login", { replace: true, state: { signoutReason: "inactivity" } });
