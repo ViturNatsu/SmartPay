@@ -24,21 +24,29 @@ public class RegistrationServiceImpl implements RegistrationService {
     public User register(SignUpDTO userDto) {
         String email = consistentEmail(userDto.getEmail());
 
-        Optional<User> users =  userRepository.findByEmail(email);
-        if(!users.isPresent()){
-            User user = User.builder()
-                    .firstName(userDto.getFirstName())
-                    .lastName(userDto.getLastName())
-                    .institution(userDto.getInstitution())
-                    .email(email)
-                    .password(userDto.getPassword())
-                    .role(Role.USER) // To be changed in future implementations
-                    .build();
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if (user.isEmailVerified()) {
+                throw new DuplicateEmailException("Email already in use");
+            }
+            user.setFirstName(userDto.getFirstName());
+            user.setLastName(userDto.getLastName());
+            user.setInstitution(userDto.getInstitution());
+            user.setPassword(userDto.getPassword());
+
             return userService.signUpUser(user);
         }
-        else {
-            throw new DuplicateEmailException("Email already in use");
-        }
+
+        User newUser = User.builder()
+                .firstName(userDto.getFirstName())
+                .lastName(userDto.getLastName())
+                .institution(userDto.getInstitution())
+                .email(email)
+                .password(userDto.getPassword())
+                .role(Role.USER) // To be changed in future implementations
+                .build();
+        return userService.signUpUser(newUser);
     }
 
     @Override

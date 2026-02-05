@@ -27,33 +27,80 @@ export const Login = () => {
   const [institution, setInstitution] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [emailError, setEmailError] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(
     location?.state?.signoutReason === "inactivity",
   );
+  
 
   const navigate = useNavigate();
+
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+  const EMAIL_REQUIRED_MSG = "Email is required. Can't be left blank.";
+  const EMAIL_INVALID_MSG = "Enter a valid email address (example: name@domain.com)";
+
+  const validateEmail = (isSubmit = false) => {
+    const trimmed = email.trim();
+
+    if(!trimmed){ // clicking sign in with empty email
+      setEmailError( isSubmit ? EMAIL_REQUIRED_MSG : EMAIL_INVALID_MSG);
+      return false;
+    }
+    if(!isValidEmail(trimmed)){ 
+      setEmailError( EMAIL_INVALID_MSG);
+      return false;
+    } 
+
+    setEmailError("");
+    return true;
+  };
+  
+  const validatePassword = () => {
+    if (!password) {
+      setPasswordError("Password is required. Can't be left blank.");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    if (!validateEmail(true)) return;
+    if (!validatePassword()) return;
 
     if (!email || !password) {
       setErrorMsg("Please enter your email and password.");
       return;
     }
+  
     setIsLoading(true);
-
+  
     try {
       await login({ email, password });
       navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
     } catch (err) {
-      if (err.status === 401) setErrorMsg("Incorrect email or password.");
-      else if (err.status === 403)
-        setErrorMsg("Please verify your email before signing in.");
-      else setErrorMsg(err.message || "Network error. Please try again.");
+      const status = err?.status ?? err?.response?.status;
+      const url = err?.config?.url ?? err?.response?.config?.url ?? "";
+  
+      {/* displays login err message over refresh error msg */}
+      if (url.includes("/api/v1/auth/refresh")) {
+        if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
+        return;
+      }
+  
+      if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
+      else if (status === 403)
+        setErrorMsg("Your email address is not verified. Please check your inbox and verify your email to continue.");
+      else if (status === 429)
+        setErrorMsg("Your account is locked due to multiple failed attempts. Please reset password or try later.");
+      else setErrorMsg(err?.message || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +172,6 @@ export const Login = () => {
       </Box>
 
       {/* Right side */}
-      {/* TODO: Add icons to each of the form entries: Financial Institution, Email, Password, and View password. */}
       <Box
         sx={{
           flex: 1,
@@ -156,7 +202,7 @@ export const Login = () => {
                 You’ve been signed out due to inactivity. Please sign in again.
               </Alert>
             )}
-            <Box component="form" onSubmit={handleLogin}>
+            <Box component="form" onSubmit={handleLogin} noValidate>
               {/* Sign in title and brief description. */}
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
                 Sign In
@@ -213,9 +259,16 @@ export const Login = () => {
               </Typography>
               <TextField
                 fullWidth
+                label="Email Address"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError(""); 
+                }}
+                onBlur={validateEmail}
+                error={Boolean(emailError)}
+                helperText={emailError}
                 sx={{ mb: 2 }}
                 slotProps={{
                   input: {
@@ -261,9 +314,15 @@ export const Login = () => {
 
               <TextField
                 fullWidth
+                label="Password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError("");
+                }}
+                error={Boolean(passwordError)}
+                helperText={passwordError}
                 sx={{ mb: 2 }}
                 slotProps={{
                   input: {
@@ -300,7 +359,7 @@ export const Login = () => {
                 sx={{ mb: 2, userSelect: "none" }}
                 control={<Checkbox size="small" />}
                 label={
-                  <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
+                  <Typography component="span" sx={{ fontSize: 13, color: "text.secondary" }}>
                     Remember me for 30 days
                   </Typography>
                 }

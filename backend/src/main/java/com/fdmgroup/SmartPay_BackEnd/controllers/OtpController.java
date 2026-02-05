@@ -1,7 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginResponseDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,15 +10,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpRequestDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpRequestDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-
-import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,16 +31,13 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
-import java.time.LocalDateTime;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/otp")
 @Slf4j
 @AllArgsConstructor
 public class OtpController {
-	PasswordResetService passwordResetService;
+
+    PasswordResetService passwordResetService;
     OtpService otpService;
     UserService userService;
     JwtSessionService jwtSessionService;
@@ -51,11 +51,11 @@ public class OtpController {
     })
     @PostMapping
     public ResponseEntity<Map<String, Object>> requestOtp(@Valid @RequestBody OtpRequestDto dto) {
-        String email = dto.getEmail();
         HttpStatus status;
 
         switch (dto.getType()) {
-            case LOGIN, REGISTER, FORGOT_PASSWORD -> status = otpService.requestOtp(email, dto.getType());
+            case LOGIN, REGISTER, FORGOT_PASSWORD ->
+                status = otpService.requestOtp(dto.getEmail(), dto.getType());
             default -> {
                 log.error("Unknown OTP type encountered");
                 status = HttpStatus.BAD_REQUEST;
@@ -108,6 +108,5 @@ public class OtpController {
                         .body(Map.of("message", "Unknown OTP type"));
             }
         }
-}
-
     }
+}

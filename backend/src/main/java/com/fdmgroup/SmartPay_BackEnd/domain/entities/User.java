@@ -28,7 +28,7 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User implements UserDetails {
@@ -73,6 +73,12 @@ public class User implements UserDetails {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -82,6 +88,9 @@ public class User implements UserDetails {
         this.password = password;
     }
 
+    protected User() {
+    }
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
