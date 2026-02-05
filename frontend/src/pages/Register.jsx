@@ -137,8 +137,7 @@ export const Register = () => {
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        
-        setDuplicateEmailError(true)
+        setDuplicateEmailError(true);
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
@@ -294,20 +293,26 @@ export const Register = () => {
             </Alert>
           )}
           {duplicateEmailError && (
-                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
-                  We can’t create an account with that email. Please{" "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
-                    Sign in
-                  </Link>
-                  {" or "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
-                    reset your password
-                  </Link>
-                  .
-                </Box>
-              )}
-
-
+            <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
+              We can’t create an account with that email. Please{" "}
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() => navigate("/login")}
+              >
+                Sign in
+              </Link>
+              {" or "}
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() => navigate("/reset-password")}
+              >
+                reset your password
+              </Link>
+              .
+            </Box>
+          )}
 
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
@@ -335,7 +340,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "first-name-input"
+                      "data-testid": "first-name-input",
                     },
                   }}
                 />
@@ -365,7 +370,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "last-name-input"
+                      "data-testid": "last-name-input",
                     },
                   }}
                 />
@@ -392,9 +397,8 @@ export const Register = () => {
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "institution-input"
+                  "data-testid": "institution-input",
                 },
-
               }}
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
@@ -425,7 +429,6 @@ export const Register = () => {
                 setEmail(e.target.value);
                 setDuplicateEmailError(false);
               }}
-
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
@@ -435,7 +438,7 @@ export const Register = () => {
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "email-input"
+                  "data-testid": "email-input",
                 },
               }}
             />
@@ -484,7 +487,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "password-input"
+                  "data-testid": "password-input",
                 },
               }}
             />
@@ -520,8 +523,8 @@ export const Register = () => {
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
                         aria-label={
                           showConfirmPassword
-                            ? "Hide password"
-                            : "Show password"
+                            ? "Hide confirm password"
+                            : "Show confirm password"
                         }
                         sx={{ color: "rgba(15, 23, 42, 0.45)" }}
                       >
@@ -533,7 +536,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "confirm-password-input"
+                  "data-testid": "confirm-password-input",
                 },
               }}
             />
@@ -547,8 +550,11 @@ export const Register = () => {
               }}
             >
               <p>
-              <input type="checkbox" id="terms" required></input>
-              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
+                <input type="checkbox" id="terms" required></input>
+                <label for="terms">
+                  {" "}
+                  I agree to the Terms of Service and Privacy Policy
+                </label>
               </p>
             </Typography>
 
@@ -565,8 +571,6 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
-
-
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
@@ -583,8 +587,6 @@ export const Register = () => {
             Sign in
           </Link>
         </Typography>
-
-        
       </Grid>
     </Grid>
   );
