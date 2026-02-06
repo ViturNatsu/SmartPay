@@ -147,28 +147,3 @@ export async function keepAlive(refreshToken) {
     throw handleAxiosError(err);
   }
 }
-
-export async function resendVerifyCode(payload) {
-  try {
-     const apiType = (() => {
-      switch (payload.type) {
-        case "login":
-          return "LOGIN";
-        case "register":
-          return "REGISTER";
-        case "forgot-password":
-          return "FORGOT_PASSWORD";
-        default:
-          return payload.type;
-      }
-    })();
-    
-    const res = await axiosInstance.post(`${OTP_URL}`, {
-      email: payload.email,
-      type: apiType,
-    });
-    return res.data;
-  } catch (err) {
-    throw handleAxiosError(err);
-  }
-};

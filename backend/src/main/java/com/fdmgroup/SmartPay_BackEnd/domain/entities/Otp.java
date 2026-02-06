@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,7 +37,8 @@ public class Otp {
     @Column(name = "otp_id", updatable = false, nullable = false)
     private UUID otpId;
 
-    @Column(name = "user_email")
+    @Email(message = "Please enter a valid email address.")
+    @Column(name = "user_email", nullable = false)
     private String email;
 
     @Column(name = "otp_hash", nullable = false)
