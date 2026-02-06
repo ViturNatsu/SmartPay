@@ -86,16 +86,16 @@ export const VerifyOtp = () => {
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
           });
-          navigate(`/home`);
+          navigate("/home", { replace: true });
           break;
         case "register":
           setShowSuccess(true)
           setSuccessMessage("Email verified successfully! Redirecting to login...");
           await delay(2000)
-          navigate(`/login`);
+          navigate(`/login`, { replace: true });
           break;
         case "forgot-password":
-          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`);
+          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`, { replace: true });
           break;
         default:
           setError("Unknown verification type.");

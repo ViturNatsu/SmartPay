@@ -22,20 +22,30 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-
-const renderLogin = () => 
+const renderLogin = () =>
   render(
     <MemoryRouter initialEntries={["/login"]}>
       <Login />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+
 const renderLoginWithForgotPassword = () =>
   render(
     <MemoryRouter initialEntries={["/profile"]}>
       <Login />
       <ForgotPassword />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+
+
+const emailInput = () =>
+  screen.getByLabelText(/email address/i, { selector: "input" });
+
+const passwordInput = () =>
+  screen.getByLabelText(/password/i, { selector: "input" });
+
+const signInButton = () =>
+  screen.getByRole("button", { name: /sign in/i });
 
 describe("Login", () => {
   it("Forgot Password link navigates to ForgotPassword page", async () => {
@@ -48,148 +58,108 @@ describe("Login", () => {
 
   it("shows error when password is incorrect", async () => {
     const user = userEvent.setup();
-  
-    login.mockRejectedValueOnce({
-      response: { status: 401 },
-    });
+
+    login.mockRejectedValueOnce({ response: { status: 401 } });
     renderLogin();
-  
-    await user.type(
-      screen.getByLabelText(/email address/i),
-      "test@example.com"
-    );
-  
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "wrongpassword");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
+
+    await user.type(emailInput(), "test@example.com");
+    await user.type(passwordInput(), "wrongpassword");
+    await user.click(signInButton());
+
+    expect(login).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText("Incorrect email or password. Please try again.")
+    ).toBeInTheDocument();
+  });
+
+  it("throws inline email validation error", async () => {
+    const user = userEvent.setup();
+    renderLogin();
+
+    await user.type(emailInput(), "invalid-email-format");
+    await user.type(passwordInput(), "password");
+    await user.click(signInButton());
+
+    // validation should block submit
+    expect(login).not.toHaveBeenCalled();
     expect(
       await screen.findByText(
-        "Incorrect email or password. Please try again."
+        "Enter a valid email address (example: name@domain.com)"
       )
     ).toBeInTheDocument();
   });
 
-
-  it("Throw inline email validation error ", async () => {
-      
+  it("shows error for blank email field", async () => {
     const user = userEvent.setup();
     renderLogin();
-  
-    await user.type(
-      screen.getByLabelText(/email address/i),
-      "invalid-email-format"
-    );
-  
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "somepassword");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
-    expect(
-      await screen.findByText("Enter a valid email address (example: name@domain.com)")
-    ).toBeInTheDocument();
-  });
 
-  it("Test for non blank email field" , async () => {
+    await user.type(passwordInput(), "password");
+    await user.click(signInButton());
 
-    const user = userEvent.setup();
-    renderLogin();
-  
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "somepassword");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
+    expect(login).not.toHaveBeenCalled();
     expect(
       await screen.findByText("Email is required. Can't be left blank.")
     ).toBeInTheDocument();
   });
 
-  it("Test for non blank password field" , async () => {
-
+  it("shows error for blank password field", async () => {
     const user = userEvent.setup();
     renderLogin();
-  
-    await user.type(
-      screen.getByLabelText(/email address/i),
-      "test@example.com"
-    );
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
+
+    await user.type(emailInput(), "test@example.com");
+    await user.click(signInButton());
+
+    expect(login).not.toHaveBeenCalled();
     expect(
       await screen.findByText("Password is required. Can't be left blank.")
     ).toBeInTheDocument();
   });
 
-  it("Shows error when email is not verified", async () => {
+  it("shows error when email is not verified", async () => {
     const user = userEvent.setup();
-  
-    login.mockRejectedValueOnce({
-      response: { status: 403 },
-    });
+
+    login.mockRejectedValueOnce({ response: { status: 403 } });
     renderLogin();
-  
-    await user.type(
-      screen.getByLabelText(/email address/i),
-      "test@example.com"
-    );
-  
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "password");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
+
+    await user.type(emailInput(), "test@example.com");
+    await user.type(passwordInput(), "password");
+    await user.click(signInButton());
+
+    expect(login).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByText(
         "Your email address is not verified. Please check your inbox and verify your email to continue."
       )
     ).toBeInTheDocument();
-  });  
+  });
 
-  it("Shows error when account locked", async () => {
+  it("shows error when account locked", async () => {
     const user = userEvent.setup();
-  
-    login.mockRejectedValueOnce({
-      response: { status: 429 },
-    });
+
+    login.mockRejectedValueOnce({ response: { status: 429 } });
     renderLogin();
-  
-    await user.type(
-      screen.getByLabelText(/email address/i),
-      "test@example.com"
-    );
-  
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "password");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
-    expect(
-      await screen.findByText(
-        "Your account is locked due to multiple failed attempts. Please reset password or try later."
-      )
-    ).toBeInTheDocument();
+
+    await user.type(emailInput(), "test@example.com");
+    await user.type(passwordInput(), "password");
+    await user.click(signInButton());
+
+    expect(login).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/account is locked/i)).toBeInTheDocument();
   });
 
   it("submits login payload when form is valid", async () => {
     const user = userEvent.setup();
     login.mockResolvedValueOnce({});
-  
+
     renderLogin();
-  
-    await user.type(screen.getByLabelText(/email address/i), "test@example.com");
-    const passwordInput = document.querySelector('input[type="password"]');
-    await user.type(passwordInput, "password");
-  
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-  
+
+    await user.type(emailInput(), "test@example.com");
+    await user.type(passwordInput(), "password");
+    await user.click(signInButton());
+
     expect(login).toHaveBeenCalledWith({
       email: "test@example.com",
       password: "password",
     });
   });
-
 });
