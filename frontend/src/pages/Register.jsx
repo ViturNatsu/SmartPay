@@ -501,13 +501,11 @@ export const Register = () => {
                 mb: -1,
               }}
             >
-              <p>
-                <input type="checkbox" id="terms" required></input>
-                <label for="terms">
-                  {" "}
-                  I agree to the Terms of Service and Privacy Policy
-                </label>
-              </p>
+              <input type="checkbox" id="terms" required />
+              <label htmlFor="terms">
+                {" "}
+                I agree to the Terms of Service and Privacy Policy
+              </label>
             </Typography>
 
             <Button
