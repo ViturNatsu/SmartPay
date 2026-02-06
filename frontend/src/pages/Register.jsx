@@ -395,6 +395,7 @@ export const Register = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
+                setErrorMessage("");
                 setDuplicateEmailError(false);
               }}
               error={emailError}
