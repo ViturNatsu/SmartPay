@@ -1,14 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
-  Paper,
   Typography,
   TextField,
   Button,
-  Checkbox,
-  FormControlLabel,
   Link,
   MenuItem,
   Avatar,
@@ -20,7 +17,6 @@ import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import CheckIcon from "@mui/icons-material/Check";
 import SecurityIcon from "@mui/icons-material/Security";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
@@ -32,16 +28,17 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [institution, setInstitution] = useState("");
 
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -49,14 +46,6 @@ export const Register = () => {
 
   const navigate = useNavigate();
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
-  const [formError, setFormError] = useState([]);
-
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-  const confirmPasswordRef = useRef(null);
-  const [firstNameError, setFirstNameError] = useState(false);
-  const [lastNameError, setLastNameError] = useState(false);
-  const [institutionError, setInstitutionError] = useState(false);
 
   const bulletContainerSx = {
     display: "flex",
@@ -104,100 +93,18 @@ export const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
-    setDuplicateEmailError(false);
-    setSuccessMessage("");
-
-    setFirstNameError(false);
-    setLastNameError(false);
-    setInstitutionError(false);
-    setEmailError(false);
-    setPasswordError(false);
-    setConfirmPasswordError(false);
-
-    const errors = [];
-    let firstInvalidRef = null;
-
-    if (!email) {
-      setEmailError(true);
-      setEmailErrorMessage("Email required.");
-      setErrorMessage(
-        "We can't process your request right now because you have errors that need to be fixed",
-      );
-      errors.push("Email required.");
-      if (!firstInvalidRef) firstInvalidRef = emailRef;
-    } else if (!emailRegex.test(email)) {
-      setEmailError(true);
-      setEmailErrorMessage("Email must match required format.");
-      setErrorMessage(
-        "We can't process your request right now because you have errors that need to be fixed",
-      );
-      errors.push("Email must match required format.");
-      if (!firstInvalidRef) firstInvalidRef = emailRef;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
-    }
-
-    let isEmailInvalid = !emailRegex.test(email) || !email;
+    let isEmailInvalid = !emailRegex.test(email);
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
 
-    let isFirstNameEmpty = firstName.trim() === "";
-    let isLastNameEmpty = lastName.trim() === "";
-    let isInstitutionEmpty = institution === "";
-
-    setFirstNameError(isFirstNameEmpty);
-    setLastNameError(isLastNameEmpty);
-    setInstitutionError(isInstitutionEmpty);
-
-    if (isConfirmInvalid) {
-      setPasswordError(true);
-      setPasswordErrorMessage("Passwords must match.");
-      setErrorMessage(
-        "We can't process your request right now because you have errors that need to be fixed",
-      );
-      errors.push("Passwords must match.");
-      if (!firstInvalidRef) firstInvalidRef = passwordRef;
-    } else if (isPasswordInvalid) {
-      setPasswordError(true);
-      setPasswordErrorMessage(
-        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
-      );
-      setErrorMessage(
-        "We can't process your request right now because you have errors that need to be fixed",
-      );
-      errors.push(
-        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
-      );
-      if (!firstInvalidRef) firstInvalidRef = passwordRef;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
-    }
-
+    setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
+    setSuccessMessage("");
 
-    if (errors.length > 0) {
-      setFormError(errors);
-      if (firstInvalidRef?.current) {
-        firstInvalidRef.current.focus();
-      }
+    if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
     }
-
-    if (
-      isFirstNameEmpty ||
-      isLastNameEmpty ||
-      isInstitutionEmpty ||
-      isEmailInvalid ||
-      isPasswordInvalid ||
-      isConfirmInvalid
-    ) {
-      return;
-    }
-    setErrorMessage("");
 
     setIsLoading(true);
     const userInfo = {
@@ -230,8 +137,8 @@ export const Register = () => {
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        setDuplicateEmailError(true);
-        setErrorMessage(data?.message || "Email already in use");
+        
+        setDuplicateEmailError(true)
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
@@ -265,9 +172,9 @@ export const Register = () => {
           position: "relative",
           overflow: "hidden",
           backgroundImage: `
-            radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
-            radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
-            `,
+                radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
+                radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
+                `,
         }}
       >
         {/* Sets up the logo */}
@@ -324,7 +231,10 @@ export const Register = () => {
             <Box sx={bulletContainerSx}>
               <Avatar
                 variant="rounded"
-                sx={{ backgroundColor: "#DBEAFE", borderRadius: 2 }}
+                sx={{
+                  backgroundColor: "#DBEAFE",
+                  borderRadius: 2,
+                }}
               >
                 <SecurityIcon sx={{ color: "#2563EB" }}></SecurityIcon>
               </Avatar>
@@ -341,7 +251,10 @@ export const Register = () => {
             <Box sx={bulletContainerSx}>
               <Avatar
                 variant="rounded"
-                sx={{ backgroundColor: "#d4fafe", borderRadius: 2 }}
+                sx={{
+                  backgroundColor: "#d4fafe",
+                  borderRadius: 2,
+                }}
               >
                 <FlashOnIcon sx={{ color: "#0891B2" }}></FlashOnIcon>
               </Avatar>
@@ -378,30 +291,23 @@ export const Register = () => {
           {errorMessage && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorMessage}
-
-              {duplicateEmailError && (
-                <Box sx={{ fontSize: "0.9rem", mt: 1 }}>
-                  {" "}
-                  <Link
-                    component="button"
-                    underline="hover"
-                    onClick={() => navigate("/login")}
-                  >
+            </Alert>
+          )}
+          {duplicateEmailError && (
+                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
+                  We can’t create an account with that email. Please{" "}
+                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
                     Sign in
                   </Link>
                   {" or "}
-                  <Link
-                    component="button"
-                    underline="hover"
-                    onClick={() => navigate("/reset-password")}
-                  >
+                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
                     reset your password
                   </Link>
                   .
                 </Box>
               )}
-            </Alert>
-          )}
+
+
 
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
@@ -419,14 +325,7 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    if (firstNameError) setFirstNameError(false);
-                  }}
-                  error={firstNameError}
-                  helperText={
-                    firstNameError ? "First name cannot be empty" : ""
-                  }
+                  onChange={(e) => setFirstName(e.target.value)}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -436,7 +335,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "first-name-input",
+                      "data-testid": "first-name-input"
                     },
                   }}
                 />
@@ -456,12 +355,7 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    if (lastNameError) setLastNameError(false);
-                  }}
-                  error={lastNameError}
-                  helperText={lastNameError ? "Last name cannot be empty" : ""}
+                  onChange={(e) => setLastName(e.target.value)}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -471,7 +365,7 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "last-name-input",
+                      "data-testid": "last-name-input"
                     },
                   }}
                 />
@@ -498,16 +392,12 @@ export const Register = () => {
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "institution-input",
+                  "data-testid": "institution-input"
                 },
+
               }}
               value={institution}
-              onChange={(e) => {
-                setInstitution(e.target.value);
-                if (institutionError) setInstitutionError(false);
-              }}
-              error={institutionError}
-              helperText={institutionError ? "Institution cannot be empty" : ""}
+              onChange={(e) => setInstitution(e.target.value)}
               placeholder="Select institution"
               sx={{ mb: 0 }}
             >
@@ -535,6 +425,7 @@ export const Register = () => {
                 setEmail(e.target.value);
                 setDuplicateEmailError(false);
               }}
+
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
@@ -544,7 +435,7 @@ export const Register = () => {
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "email-input",
+                  "data-testid": "email-input"
                 },
               }}
             />
@@ -593,7 +484,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "password-input",
+                  "data-testid": "password-input"
                 },
               }}
             />
@@ -642,7 +533,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "confirm-password-input",
+                  "data-testid": "confirm-password-input"
                 },
               }}
             />
@@ -656,11 +547,8 @@ export const Register = () => {
               }}
             >
               <p>
-                <input type="checkbox" id="terms" required></input>
-                <label for="terms">
-                  {" "}
-                  I agree to the Terms of Service and Privacy Policy
-                </label>
+              <input type="checkbox" id="terms" required></input>
+              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
               </p>
             </Typography>
 
@@ -677,6 +565,8 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
+
+
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
@@ -693,6 +583,8 @@ export const Register = () => {
             Sign in
           </Link>
         </Typography>
+
+        
       </Grid>
     </Grid>
   );

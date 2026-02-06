@@ -84,7 +84,7 @@ export const Login = () => {
   
     try {
       await login({ email, password });
-      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`);
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`, { replace: true });
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
       const url = err?.config?.url ?? err?.response?.config?.url ?? "";
@@ -270,6 +270,9 @@ export const Login = () => {
                 helperText={emailError}
                 sx={{ mb: 2 }}
                 slotProps={{
+                  htmlInput: {
+                    "aria-label": "email address",
+                  },
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
@@ -313,6 +316,7 @@ export const Login = () => {
 
               <TextField
                 fullWidth
+               
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => {
@@ -323,7 +327,11 @@ export const Login = () => {
                 helperText={passwordError}
                 sx={{ mb: 2 }}
                 slotProps={{
+                  htmlInput: {
+                    "aria-label": "password",
+                  },
                   input: {
+
                     startAdornment: (
                       <InputAdornment position="start">
                         <PasswordIcon

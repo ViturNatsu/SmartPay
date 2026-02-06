@@ -9,10 +9,10 @@ export async function login(payload) {
   try {
     const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
     const { accessToken, refreshToken } = response.data;
-    
+
     if (accessToken) setAccessToken(accessToken);
     if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
-    
+
     return response.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -38,7 +38,7 @@ export async function requestResetCode(payload) {
   try {
     const res = await axiosInstance.post(`${OTP_URL}`, {
       email: payload.email,
-      type: "FORGOT_PASSWORD",
+      type: apiType(payload.type),
     });
     return res.data;
   } catch (err) {
@@ -48,29 +48,29 @@ export async function requestResetCode(payload) {
 
 export async function sendVerifyCode(payload) {
   try {
-    const apiType = (() => {
-      switch (payload.type) {
-        case "login":
-          return "LOGIN";
-        case "register":
-          return "REGISTER";
-        case "forgot-password":
-          return "FORGOT_PASSWORD";
-        default:
-          return payload.type;
-      }
-    })();
-    
     const res = await axiosInstance.post(`${OTP_URL}/verify`, {
       email: payload.email,
       code: payload.code,
-      type: apiType,
+      type: apiType(payload.type),
     });
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
   }
 }
+
+const apiType = (type) => {
+  switch (type) {
+    case "login":
+      return "LOGIN";
+    case "register":
+      return "REGISTER";
+    case "forgot-password":
+      return "FORGOT_PASSWORD";
+    default:
+      return type;
+  }
+};
 
 export async function resetPassword(payload) {
   try {
@@ -85,10 +85,10 @@ export async function register(payload) {
   try {
     const res = await axiosInstance.post(`${AUTH_URL}/register`, payload);
     const { accessToken, refreshToken } = res.data;
-    
+
     if (accessToken) setAccessToken(accessToken);
     if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
-    
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -98,8 +98,8 @@ export async function register(payload) {
 export async function refreshTokens() {
   try {
     const refreshToken = sessionStorage.getItem("refresh_token");
-    if (!refreshToken ) return null;
-    
+    if (!refreshToken) return null;
+
     const res = await axiosInstance.post(
       `${AUTH_URL}/refresh`,
       {},
@@ -110,10 +110,10 @@ export async function refreshTokens() {
       }
     );
     const { accessToken, refreshToken: newRefreshToken } = res.data;
-    
+
     if (accessToken) setAccessToken(accessToken);
     if (newRefreshToken) sessionStorage.setItem("refresh_token", newRefreshToken);
-    
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -121,9 +121,11 @@ export async function refreshTokens() {
 }
 
 export async function getMyUser() {
-  return Promise.resolve({id: 1,
-          email: "placeholder@smartpay.local",
-          role: "fake role"});
+  return Promise.resolve({
+    id: 1,
+    email: "placeholder@smartpay.local",
+    role: "fake role"
+  });
   /*try {
     const res = await axiosInstance.get(`${AUTH_URL}/me`);
     return res.data;
@@ -135,21 +137,10 @@ export async function getMyUser() {
 // Use refresh token to get new access and refresh token)
 export async function keepAlive(refreshToken) {
   try {
-     const res = await axiosInstance.post(`${KEEP_ALIVE}`, {}, {
+    const res = await axiosInstance.post(`${KEEP_ALIVE}`, {}, {
       headers: {
         Authorization: `Bearer ${refreshToken}`,
       },
-    });
-    return res.data;
-  } catch (err) {
-    throw handleAxiosError(err);
-  }
-}
-export async function resendCode(payload) {
-  try {
-    const res = await axiosInstance.post(`${OTP_URL}/resend`, {
-      email: payload.email,
-      type: payload.type,
     });
     return res.data;
   } catch (err) {

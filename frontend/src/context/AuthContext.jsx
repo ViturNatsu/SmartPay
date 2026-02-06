@@ -57,6 +57,8 @@ const AuthProviderInner = ({ children }) => {
 
   const clearAuth = useCallback(async() => {
     setUser(null);
+    clearAccessToken();
+    sessionStorage.removeItem("refresh_token");
     await authApi.logout();
     stopSessionMonitoring();
   }, [stopSessionMonitoring]);

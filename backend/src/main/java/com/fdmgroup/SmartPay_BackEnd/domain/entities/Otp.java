@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.EmailDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,7 +37,8 @@ public class Otp {
     @Column(name = "otp_id", updatable = false, nullable = false)
     private UUID otpId;
 
-    @Column(name = "user_email")
+    @Email(message = "Please enter a valid email address.")
+    @Column(name = "user_email", nullable = false)
     private String email;
 
     @Column(name = "otp_hash", nullable = false)
@@ -89,7 +93,6 @@ public class Otp {
         LOCKED,
         USED;
 
-        
     }
 
     public int getLimit() {
@@ -118,7 +121,7 @@ public class Otp {
         };
     }
 
-    //@Value("${app.frontend.url:http://localhost:5173}")
+    // @Value("${app.frontend.url:http://localhost:5173}")
     private static String frontendUrl = "http://localhost:5173";
 
     public EmailDetails getSendCodeEmailTemplate(String code) {
@@ -134,12 +137,12 @@ public class Otp {
                 "Reset your SmartPay password";
         });
         String template = """
-            We received a request to log into your SmartPay account.
+                We received a request to log into your SmartPay account.
 
-            If this was you, click the link below to verify your action:
+                If this was you, click the link below to verify your action:
 
-            %s/verify?email=%s&type=%s&code=%s
-            """;
+                %s/verify?email=%s&type=%s&code=%s
+                """;
         emailDetails.setMsgBody(switch (this.otpType) {
             case LOGIN ->
                 template.formatted(frontendUrl, this.email, "login", code);
@@ -152,8 +155,7 @@ public class Otp {
                 + "This code expires in " + this.getExpiry() + " minutes.\n\n"
                 + "If you did not request this, you can safely ignore this email.\n\n"
                 + "Thank you,\n"
-                + "The SmartPay Support Team"
-        );
+                + "The SmartPay Support Team");
 
         return emailDetails;
     }

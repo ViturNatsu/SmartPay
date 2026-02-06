@@ -1,59 +1,174 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.RegistrationServiceImpl;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@ExtendWith(MockitoExtension.class)
-public class RegistrationTest {
-    @Mock
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(classes = SmartPayBackEndApplication.class)
+@AutoConfigureMockMvc
+@Transactional
+class RegistrationTest {
+    private final String firstName = "Quality";
+    private final String lastName = "Assurance";
+    private final String institution = "Chase";
+    private final String email = "qa@smartpay.test";
+    private final String password = "@wTJGT&a1qn@e38X";
+    private final String wrongPassword = "69&YpnXa*h^3";
+    private final String shortPassword = "Abc@123";
+    private final String passwordWithoutUppercase = "umvdjh54ngw5";
+    private final String passwordWithoutSpecialCharacter = "GX5bphJCBjAp";
+
+    @Autowired
+    MockMvc mvc;
+    @Autowired
     private UserService userService;
-
-    @Mock
+    @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RegistrationService registrationService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
-    private RegistrationServiceImpl registrationService;
-    /*
     @Test
-    void register_returnsUser_whenEmailDoesNotExist() {
-        SignUpDTO dto = new SignUpDTO();
-        dto.setEmail("test@email.com");
-
-        User user = User.builder().email("test@email.com").build();
-
-        when(userRepository.findByEmail("test@email.com"))
-                .thenReturn(Optional.empty());
-        when(userService.signUpUser(any(User.class)))
-                .thenReturn(user);
-
-        User result = registrationService.register(dto);
-
-        assertNotNull(result);
+    void register() throws Exception {
+        var request = createValidRequest();
+        mvc.perform(request).andExpect(status().isCreated());
     }
 
     @Test
-    void register_throwsException_whenEmailAlreadyExists() {
-        SignUpDTO dto = new SignUpDTO();
-        dto.setEmail("test@email.com");
+    void registerWithoutFirstName() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName("");
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
 
-        when(userRepository.findByEmail("test@email.com"))
-                .thenReturn(Optional.of(User.builder().build()));
-
-        assertThrows(DuplicateEmailException.class,
-                () -> registrationService.register(dto));
+        mvc.perform(request).andExpect(status().is4xxClientError());
     }
 
     @Test
-    void consistentEmail_returnsLowercaseTrimmedEmail() {
-        String result = registrationService.consistentEmail("  TEST@EMAIL.COM  ");
+    void registerWithoutLastName() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName("");
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
 
-        assertEquals("test@email.com", result);
+        mvc.perform(request).andExpect(status().is4xxClientError());
     }
-    */
+
+    @Test
+    void registerWithoutInstitution() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution("");
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithMismatchedPasswords() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(wrongPassword);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithExistingEmail() throws Exception {
+        var request1 = createValidRequest();
+        mvc.perform(request1);
+
+        var request2 = createValidRequest();
+        mvc.perform(request2).andExpect(status().isConflict());
+    }
+
+    @Test
+    void registerWithShortPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(shortPassword);
+        requestBody.setConfirmPassword(shortPassword);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithNoUppercaseLetterInPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(passwordWithoutUppercase);
+        requestBody.setConfirmPassword(passwordWithoutUppercase);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void registerWithNoSpecialCharacterInPassword() throws Exception {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(passwordWithoutSpecialCharacter);
+        requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
+        var request = buildRegisterRequest(requestBody);
+
+        mvc.perform(request).andExpect(status().is4xxClientError());
+    }
+
+    private MockHttpServletRequestBuilder createValidRequest() throws JsonProcessingException {
+        var requestBody = new SignUpDTO();
+        requestBody.setFirstName(firstName);
+        requestBody.setLastName(lastName);
+        requestBody.setInstitution(institution);
+        requestBody.setEmail(email);
+        requestBody.setPassword(password);
+        requestBody.setConfirmPassword(password);
+        return buildRegisterRequest(requestBody);
+    }
+
+    private MockHttpServletRequestBuilder buildRegisterRequest(SignUpDTO requestBody) throws JsonProcessingException {
+        var requestString = objectMapper.writeValueAsString(requestBody);
+        return MockMvcRequestBuilders.post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(requestString);
+    }
 }
