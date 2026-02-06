@@ -39,7 +39,6 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -155,7 +154,6 @@ export const Register = () => {
 
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-    setSuccessMessage("");
 
     if (errors.length > 0) {
       setFormError(errors);
