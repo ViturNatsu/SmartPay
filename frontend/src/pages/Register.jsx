@@ -49,6 +49,11 @@ export const Register = () => {
 
   const navigate = useNavigate();
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+  const [formError, setFormError] = useState([]);
+
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
   const [institutionError, setInstitutionError] = useState(false);
@@ -109,7 +114,32 @@ export const Register = () => {
     setEmailError(false);
     setPasswordError(false);
     setConfirmPasswordError(false);
-    let isEmailInvalid = !emailRegex.test(email);
+
+    const errors = [];
+    let firstInvalidRef = null;
+
+    if (!email) {
+      setEmailError(true);
+      setEmailErrorMessage("Email required.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Email required.");
+      if (!firstInvalidRef) firstInvalidRef = emailRef;
+    } else if (!emailRegex.test(email)) {
+      setEmailError(true);
+      setEmailErrorMessage("Email must match required format.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Email must match required format.");
+      if (!firstInvalidRef) firstInvalidRef = emailRef;
+    } else {
+      setEmailError(false);
+      setEmailErrorMessage("");
+    }
+
+    let isEmailInvalid = !emailRegex.test(email) || !email;
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
 
@@ -121,10 +151,41 @@ export const Register = () => {
     setLastNameError(isLastNameEmpty);
     setInstitutionError(isInstitutionEmpty);
 
-    setEmailError(isEmailInvalid);
+    if (isConfirmInvalid) {
+      setPasswordError(true);
+      setPasswordErrorMessage("Passwords must match.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Passwords must match.");
+      if (!firstInvalidRef) firstInvalidRef = passwordRef;
+    } else if (isPasswordInvalid) {
+      setPasswordError(true);
+      setPasswordErrorMessage(
+        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
+      );
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push(
+        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
+      );
+      if (!firstInvalidRef) firstInvalidRef = passwordRef;
+    } else {
+      setPasswordError(false);
+      setPasswordErrorMessage("");
+    }
+
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-    setSuccessMessage("");
+
+    if (errors.length > 0) {
+      setFormError(errors);
+      if (firstInvalidRef?.current) {
+        firstInvalidRef.current.focus();
+      }
+      return;
+    }
 
     if (
       isFirstNameEmpty ||
@@ -136,6 +197,7 @@ export const Register = () => {
     ) {
       return;
     }
+    setErrorMessage("");
 
     setIsLoading(true);
     const userInfo = {
