@@ -3,12 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
-  Paper,
   Typography,
   TextField,
   Button,
-  Checkbox,
-  FormControlLabel,
   Link,
   MenuItem,
   Avatar,
@@ -20,7 +17,6 @@ import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import CheckIcon from "@mui/icons-material/Check";
 import SecurityIcon from "@mui/icons-material/Security";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
