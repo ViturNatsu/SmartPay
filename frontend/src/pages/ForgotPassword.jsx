@@ -2,12 +2,14 @@ import { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
 import { requestResetCode } from "../api/authApi";
 import logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(""); // stores validation message
   const [touched, setTouched] = useState(false); // track if user interacted
-  const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  const navigate = useNavigate();
 
   // Basic email regex
   const validateEmail = (value) => {
@@ -27,7 +29,6 @@ export const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(true);
-    setResetEmailSent(false);
     const validationMessage = validateEmail(email);
     setError(validationMessage);
 
@@ -37,7 +38,8 @@ export const ForgotPassword = () => {
 
     try {
       await requestResetCode({ email, type: "forgot-password" });
-      setResetEmailSent(true);
+      
+      navigate(`/verify?email=${encodeURIComponent(email)}&type=forgot-password`, { replace: true });
     } catch (e) {
       if (e.status === 400) setError("Email not sent or in incorrect format");
       else if (e.status === 429) setError("Account Locked");
@@ -215,10 +217,6 @@ export const ForgotPassword = () => {
               >
                 Send Reset Link
               </Button>
-              <p style={{ display: resetEmailSent ? "block" : "none" }}>
-                If an account exists for that email, we've sent password reset
-                instructions.
-              </p>
             </Box>
           </Paper>
         </Box>
