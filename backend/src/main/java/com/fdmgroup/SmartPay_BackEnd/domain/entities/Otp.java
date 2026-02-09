@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.EmailDetails;
 
 import jakarta.persistence.Column;
@@ -27,7 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Otp {
 
-    public Otp(String email, OtpType type) {
+    public Otp(String email, EventType type) {
         this.email = email;
         this.otpType = type;
     }
@@ -50,7 +51,7 @@ public class Otp {
 
     @Column(name = "otp_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private OtpType otpType;
+    private EventType otpType;
 
     @Column(name = "attempts_made")
     int attemptsMade;
@@ -66,25 +67,6 @@ public class Otp {
 
     public String getEmail() {
         return this.email.toLowerCase();
-    }
-
-    public enum OtpType {
-        FORGOT_PASSWORD,
-        REGISTER,
-        LOGIN;
-
-        public static OtpType from(String value) {
-            return switch (value.toLowerCase()) {
-                case "login" ->
-                    OtpType.LOGIN;
-                case "register" ->
-                    OtpType.REGISTER;
-                case "forgot-password" ->
-                    OtpType.FORGOT_PASSWORD;
-                default ->
-                    throw new IllegalArgumentException("Invalid OTP type");
-            };
-        }
     }
 
     public enum OtpStatus {

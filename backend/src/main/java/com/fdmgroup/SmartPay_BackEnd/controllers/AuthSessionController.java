@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.KeepAliveDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.SessionAuthenticationException;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
@@ -20,6 +20,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,9 +33,10 @@ public class AuthSessionController {
     private final SessionService sessionService;
     private final OtpService otpService;
 
-    //Step 1 of login flow: validate credentials and send OTP.
-    @PostMapping({"/login"})
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO request) {
+    // Step 1 of login flow: validate credentials and send OTP.
+    @PostMapping({ "/login" })
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO request,
+            HttpServletRequest httpRequest) {
         String email = request.getEmail() == null ? null : request.getEmail().trim().toLowerCase();
 
         final User user;
@@ -48,45 +50,48 @@ public class AuthSessionController {
 
         if (!user.isEmailVerified()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Your email address is not verified. Please check your inbox and verify your email to continue."));
+                    .body(Map.of("message",
+                            "Your email address is not verified. Please check your inbox and verify your email to continue."));
         }
 
-        otpService.requestOtp(email, OtpType.LOGIN);
+        otpService.requestOtp(email, EventType.LOGIN, httpRequest);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("otpSent", true));
     }
 
     /**
      * Keep-alive endpoint (Heartbeat from Frontend)
-     * Updates session AND returns a fresh access token if the current one is close to expiring
+     * Updates session AND returns a fresh access token if the current one is close
+     * to expiring
      */
     // @PostMapping("/keep-alive")
     // public ResponseEntity<KeepAliveDTO> keepAlive(
-    //         @RequestHeader("Authorization") String authHeader) {
-    //     try {
-    //         String refreshToken = authHeader.replace("Bearer ", "");
+    // @RequestHeader("Authorization") String authHeader) {
+    // try {
+    // String refreshToken = authHeader.replace("Bearer ", "");
 
-    //         if (!jwtService.isTokenValid(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
-    //             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    //         }
+    // if (!jwtService.isTokenValid(refreshToken) ||
+    // !jwtService.isRefreshToken(refreshToken)) {
+    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    // }
 
-    //         // Validate and update session
-    //         sessionService.keepSessionAlive(refreshToken);
+    // // Validate and update session
+    // sessionService.keepSessionAlive(refreshToken);
 
-    //         // Extract user from refresh token
-    //         Long userId = jwtService.getUserIdFromToken(refreshToken);
-    //         User user = userService.getUserById(userId);
+    // // Extract user from refresh token
+    // Long userId = jwtService.getUserIdFromToken(refreshToken);
+    // User user = userService.getUserById(userId);
 
-    //         // Generate a fresh access token
-    //         String newAccessToken = jwtService.createAccessToken(user);
+    // // Generate a fresh access token
+    // String newAccessToken = jwtService.createAccessToken(user);
 
-    //         KeepAliveDTO response = new KeepAliveDTO();
-    //         response.setAccessToken(newAccessToken);
-    //         response.setRefreshToken(refreshToken);
+    // KeepAliveDTO response = new KeepAliveDTO();
+    // response.setAccessToken(newAccessToken);
+    // response.setRefreshToken(refreshToken);
 
-    //         return ResponseEntity.ok(response);
-    //     } catch (SessionAuthenticationException e) {
-    //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    //     }
+    // return ResponseEntity.ok(response);
+    // } catch (SessionAuthenticationException e) {
+    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    // }
     // }
 
     // Refresh (rotate) refresh token and issue a new access token.
