@@ -7,8 +7,10 @@ import lombok.*;
 public class AccountDto {
 
     //
+    private Long id;
     private Double balance;
     private String accountType;
+    private String accountName;
     private long userId;
     
     //legal name
