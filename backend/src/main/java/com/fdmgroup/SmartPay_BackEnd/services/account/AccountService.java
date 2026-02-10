@@ -6,6 +6,7 @@ import javax.security.auth.login.AccountNotFoundException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 
 import jakarta.transaction.Transactional;

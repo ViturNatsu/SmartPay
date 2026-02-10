@@ -5,27 +5,49 @@ import java.util.List;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.SavingsAccount;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
-import com.fdmgroup.SmartPay_BackEnd.services.account.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 
-import jakarta.transaction.Transactional;
-
+@Service
 public class AccountServiceImpl implements AccountService{
     private AccountRepository accountRepository;
-    
-     public AccountServiceImpl(AccountRepository accountRepository) {
+    private UserRepository userRepository;
+
+    public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository) {
         this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public Account addAccount(AccountDto accountDTO) throws UserNotFoundException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addAccount'");
+    public Account addAccount(AccountDto accountDTO) throws com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException {
+        User user = userRepository.findById(accountDTO.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + accountDTO.getUserId() + " not found"));
+
+        Account account = null;
+
+        if(accountDTO.getAccountType().equals("savings")){
+            account = new SavingsAccount();
+        }
+        else if(accountDTO.getAccountType().equals("checking")){
+            account = new CheckingAccount();
+        }
+
+        BeanUtils.copyProperties(accountDTO, account);
+
+        // user.addAccount(account);
+
+        account.setUser(user);
+
+        return accountRepository.save(account);
     }
 
     @Override
