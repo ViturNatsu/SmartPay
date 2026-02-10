@@ -29,7 +29,7 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public Account addAccount(AccountDto accountDTO) throws com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException {
+    public Account addAccount(AccountDto accountDTO) throws UserNotFoundException {
         User user = userRepository.findById(accountDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User with id: " + accountDTO.getUserId() + " not found"));
 
