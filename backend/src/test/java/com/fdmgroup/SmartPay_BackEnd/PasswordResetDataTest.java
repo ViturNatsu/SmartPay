@@ -1,8 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
@@ -59,7 +59,7 @@ public class PasswordResetDataTest {
             otpRepository.save(new_otp);
         }
 
-        Optional<Otp> found = otpRepository.findByEmailAndOtpType("test@example.com", OtpType.FORGOT_PASSWORD);
+        Optional<Otp> found = otpRepository.findByEmailAndOtpType("test@example.com", EventType.FORGOT_PASSWORD);
         assertTrue(found.isPresent());
         assertEquals(OtpStatus.ACTIVE, found.get().getStatus());
     }
@@ -75,7 +75,7 @@ public class PasswordResetDataTest {
                 .status("ACTIVE")
                 .build();
         user = userRepository.save(user);
-        
+
         LocalDateTime now = LocalDateTime.now();
         user.setPassword("new_hash");
         user.setLastPasswordChangeAt(now);
@@ -91,13 +91,13 @@ public class PasswordResetDataTest {
         Otp otp = Otp.builder()
                 .email("test@example.com")
                 .otpHash("hash")
-                .otpType(OtpType.FORGOT_PASSWORD)
+                .otpType(EventType.FORGOT_PASSWORD)
                 .status(OtpStatus.ACTIVE)
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .attemptsMade(0)
                 .build();
         otp = otpRepository.save(otp);
-        
+
         otp.markAsUsed();
         otpRepository.save(otp);
 

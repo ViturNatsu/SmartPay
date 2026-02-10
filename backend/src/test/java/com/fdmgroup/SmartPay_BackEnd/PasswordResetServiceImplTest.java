@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
@@ -27,157 +28,155 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PasswordResetServiceImplTest {
 
-    @Mock
-    private AuditService auditService;
+        @Mock
+        private AuditService auditService;
 
-    @Mock
-    private OtpService otpService;
+        @Mock
+        private OtpService otpService;
 
-    @Mock
-    private UserService userService;
+        @Mock
+        private UserService userService;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+        @Mock
+        private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private HttpServletRequest httpServletRequest;
+        @Mock
+        private HttpServletRequest httpServletRequest;
 
-    @InjectMocks
-    private PasswordResetServiceImpl passwordResetService;
+        @InjectMocks
+        private PasswordResetServiceImpl passwordResetService;
 
-    @Test
-    void resetPasswordWithOTP_success() {
+        @Test
+        void resetPasswordWithOTP_success() {
 
-        // Arrange
+                // Arrange
 
-        PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
+                PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
 
-        when(request.passwordsMatch()).thenReturn(true);
-        when(request.getEmail()).thenReturn("test@test.com");
-        when(request.getAccessCode()).thenReturn("123456");
-        when(request.getPassword1()).thenReturn("newPassword");
+                when(request.passwordsMatch()).thenReturn(true);
+                when(request.getEmail()).thenReturn("test@test.com");
+                when(request.getAccessCode()).thenReturn("123456");
+                when(request.getPassword1()).thenReturn("newPassword");
 
-        Otp otp = mock(Otp.class);
-        when(otp.getEmail()).thenReturn("test@test.com");
+                Otp otp = mock(Otp.class);
+                when(otp.getEmail()).thenReturn("test@test.com");
 
-        User user = User.builder()
-                .email("test@test.com")
-                .build();;
+                User user = User.builder()
+                                .email("test@test.com")
+                                .build();
+                ;
 
-        when(otpService.verifyOtp(any(OtpDTO.class))).thenReturn(otp);
-        when(userService.findByEmail("test@test.com")).thenReturn(user);
+                when(otpService.verifyOtp(any(OtpDTO.class), any(HttpServletRequest.class))).thenReturn(otp);
+                when(userService.findByEmail("test@test.com")).thenReturn(user);
 
-        when(passwordEncoder.encode("newPassword"))
-                .thenReturn("encodedPassword");
+                when(passwordEncoder.encode("newPassword"))
+                                .thenReturn("encodedPassword");
 
-        // Act
+                // Act
 
-        passwordResetService.resetPasswordWithOTP(request, httpServletRequest);
+                passwordResetService.resetPasswordWithOTP(request, httpServletRequest);
 
-        // Assert
+                // Assert
 
-        // password updated
-        assertEquals("encodedPassword", user.getPassword());
-        assertNotNull(user.getLastPasswordChangeAt());
+                // password updated
+                assertEquals("encodedPassword", user.getPassword());
+                assertNotNull(user.getLastPasswordChangeAt());
 
-        // verify OTP flow
-        verify(otpService).verifyOtp(any(OtpDTO.class));
-        verify(otp).markAsUsed();
-        verify(otpService).save(otp);
+                // verify OTP flow
+                verify(otpService).verifyOtp(any(OtpDTO.class), any(HttpServletRequest.class));
+                verify(otp).markAsUsed();
+                verify(otpService).save(otp);
 
-        // verify user saved
-        verify(userService).save(user);
+                // verify user saved
+                verify(userService).save(user);
 
-        // verify audit log
-        verify(auditService).logEvent(
-                eq(AuditLog.PASSWORD_RESET_COMPLETED),
-                eq(user),
-                eq(httpServletRequest)
-        );
-    }
+                // verify audit log
+                verify(auditService).logEvent(
+                                eq(EventType.FORGOT_PASSWORD),
+                                eq(AuditLog.PASSWORD_RESET_COMPLETED),
+                                eq(user),
+                                eq(httpServletRequest));
+        }
 
-    @Test
-    void resetPasswordWithOTP_passwordsDoNotMatch_shouldThrowException() {
+        @Test
+        void resetPasswordWithOTP_passwordsDoNotMatch_shouldThrowException() {
 
-        // Arrange
+                // Arrange
 
-        PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
+                PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
 
-        when(request.passwordsMatch()).thenReturn(false);
+                when(request.passwordsMatch()).thenReturn(false);
 
-        // Act + Assert
+                // Act + Assert
 
-        assertThrows(
-                PasswordResetDoNotMatchException.class,
-                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest)
-        );
+                assertThrows(
+                                PasswordResetDoNotMatchException.class,
+                                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest));
 
-        // Ensure nothing else was called
-        verifyNoInteractions(otpService, userService, auditService);
-    }
+                // Ensure nothing else was called
+                verifyNoInteractions(otpService, userService, auditService);
+        }
 
-    @Test
-    void resetPasswordWithOTP_OTPIsInvalid_shouldThrowException() {
+        @Test
+        void resetPasswordWithOTP_OTPIsInvalid_shouldThrowException() {
 
-        //Arrange
+                // Arrange
 
-        PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
-        when(request.passwordsMatch()).thenReturn(true);
-        when(otpService.verifyOtp(any(OtpDTO.class))).thenThrow(AccessCodeExpiredException.class);
+                PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
+                when(request.passwordsMatch()).thenReturn(true);
+                when(otpService.verifyOtp(any(OtpDTO.class), any(HttpServletRequest.class)))
+                                .thenThrow(AccessCodeExpiredException.class);
 
-        // Act + Assert
+                // Act + Assert
 
-        assertThrows(
-                AccessCodeExpiredException.class,
-                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest)
-        );
+                assertThrows(
+                                AccessCodeExpiredException.class,
+                                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest));
 
-        // Ensure nothing else was called
-        verifyNoInteractions(userService, auditService);
-    }
+                // Ensure nothing else was called
+                verifyNoInteractions(userService, auditService);
+        }
 
-    @Test
-    void resetPasswordWithOTP_userNotFound_shouldThrowException() {
+        @Test
+        void resetPasswordWithOTP_userNotFound_shouldThrowException() {
 
-        // Arrange
+                // Arrange
 
-        PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
+                PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
 
-        when(request.passwordsMatch()).thenReturn(true);
-        when(request.getEmail()).thenReturn("test@test.com");
-        when(request.getAccessCode()).thenReturn("123456");
+                when(request.passwordsMatch()).thenReturn(true);
+                when(request.getEmail()).thenReturn("test@test.com");
+                when(request.getAccessCode()).thenReturn("123456");
 
-        Otp otp = mock(Otp.class);
-        when(otp.getEmail()).thenReturn("test@test.com");
+                Otp otp = mock(Otp.class);
+                when(otp.getEmail()).thenReturn("test@test.com");
 
-        when(otpService.verifyOtp(any(OtpDTO.class))).thenReturn(otp);
+                when(otpService.verifyOtp(any(OtpDTO.class), any(HttpServletRequest.class))).thenReturn(otp);
 
-        when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
+                when(userService.findByEmail(anyString())).thenThrow(UserNotFoundException.class);
 
-        // Act + Assert
+                // Act + Assert
 
-        assertThrows(
-                UserNotFoundException.class,
-                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest)
-        );
+                assertThrows(
+                                UserNotFoundException.class,
+                                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest));
 
-        // Ensure nothing else was called
-        verifyNoInteractions(auditService);
-    }
+                // Ensure nothing else was called
+                verifyNoInteractions(auditService);
+        }
 
-    @Test
-    void resetPasswordWithOTP_nullPasswords_shouldThrowException() {
-        // Arrange
-        PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
-        when(request.passwordsMatch()).thenReturn(false); // passwordsMatch returns false if one is null
+        @Test
+        void resetPasswordWithOTP_nullPasswords_shouldThrowException() {
+                // Arrange
+                PasswordResetWithOtpDto request = mock(PasswordResetWithOtpDto.class);
+                when(request.passwordsMatch()).thenReturn(false); // passwordsMatch returns false if one is null
 
-        // Act + Assert
-        assertThrows(
-                PasswordResetDoNotMatchException.class,
-                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest)
-        );
+                // Act + Assert
+                assertThrows(
+                                PasswordResetDoNotMatchException.class,
+                                () -> passwordResetService.resetPasswordWithOTP(request, httpServletRequest));
 
-        // Ensure nothing else was called
-        verifyNoInteractions(otpService, userService, auditService);
-    }
+                // Ensure nothing else was called
+                verifyNoInteractions(otpService, userService, auditService);
+        }
 }

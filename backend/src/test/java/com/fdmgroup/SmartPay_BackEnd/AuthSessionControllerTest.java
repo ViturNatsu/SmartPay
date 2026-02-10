@@ -6,6 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -25,6 +26,9 @@ import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
 
 /**
@@ -34,136 +38,135 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockitoBean
-    private UserService userService;
+        @MockitoBean
+        private UserService userService;
 
-    @MockitoBean
-    private JwtSessionService jwtSessionService;
+        @MockitoBean
+        private JwtSessionService jwtSessionService;
 
-    @MockitoBean
-    private JwtService jwtService;
+        @MockitoBean
+        private HttpServletRequest httpServletRequest;
 
-    @MockitoBean
-    private RequestCounter requestCounter;
+        @MockitoBean
+        private JwtService jwtService;
 
-    @MockitoBean
-    private SessionService sessionService;
+        @MockitoBean
+        private RequestCounter requestCounter;
 
-    @MockitoBean
-    private OtpService otpFlowService;
+        @MockitoBean
+        private SessionService sessionService;
 
-    @Test
-    void login_returnsAccepted_whenCredentialsAreValid() throws Exception {
+        @MockitoBean
+        private OtpService otpFlowService;
 
-        User user = new User("test@smartpay.com", "encodedPassword");
-        user.setEmailVerified(true);
+        @Test
+        void login_returnsAccepted_whenCredentialsAreValid() throws Exception {
 
-        when(userService.validateCredentials("test@smartpay.com", "password123"))
-                .thenReturn(user);
+                User user = new User("test@smartpay.com", "encodedPassword");
+                user.setEmailVerified(true);
 
-        mockMvc.perform(
-                post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                    {
-                                      "email": "test@smartpay.com",
-                                      "password": "password123"
-                                    }
-                                """))
-                .andExpect(status().isAccepted())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.otpSent").value(true));
+                when(userService.validateCredentials("test@smartpay.com", "password123"))
+                                .thenReturn(user);
 
-        verify(userService).validateCredentials("test@smartpay.com", "password123");
-    }
+                mockMvc.perform(
+                                post("/api/v1/auth/login")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content("""
+                                                                    {
+                                                                      "email": "test@smartpay.com",
+                                                                      "password": "password123"
+                                                                    }
+                                                                """))
+                                .andExpect(status().isAccepted())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.otpSent").value(true));
 
-    @Test
-    void login_returnsClientError_whenCredentialsInvalid() throws Exception {
+                verify(userService).validateCredentials("test@smartpay.com", "password123");
+        }
 
-        when(userService.validateCredentials("test@smartpay.com", "wrongPassword"))
-                .thenThrow(new IllegalArgumentException("Invalid credentials"));
+        @Test
+        void login_returnsClientError_whenCredentialsInvalid() throws Exception {
 
-        mockMvc.perform(
-                post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                    {
-                                      "email": "test@smartpay.com",
-                                      "password": "wrongPassword"
-                                    }
-                                """))
-                .andExpect(status().isUnauthorized());
+                when(userService.validateCredentials("test@smartpay.com", "wrongPassword"))
+                                .thenThrow(new IllegalArgumentException("Invalid credentials"));
 
-        verify(userService).validateCredentials("test@smartpay.com", "wrongPassword");
-        verify(otpFlowService, never()).requestOtp(anyString(), org.mockito.ArgumentMatchers.any());
-    }
-    
-    @Test
-    void refresh_returnsOk_andRotatesTokens_whenRefreshTokenIsValid() throws Exception {
-        String oldRefresh = "oldRefreshToken";
-        String newAccess = "newAccessToken";
-        String newRefresh = "newRefreshToken";
+                mockMvc.perform(
+                                post("/api/v1/auth/login")
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content("""
+                                                                    {
+                                                                      "email": "test@smartpay.com",
+                                                                      "password": "wrongPassword"
+                                                                    }
+                                                                """))
+                                .andExpect(status().isUnauthorized());
 
-        User user = new User("test@smartpay.com", "encodedPassword");
-        user.setId(1L);
+                verify(userService).validateCredentials("test@smartpay.com", "wrongPassword");
+                verify(otpFlowService, never()).requestOtp(anyString(), any(), any(HttpServletRequest.class));
+        }
 
-        when(jwtSessionService.isTokenValid(oldRefresh)).thenReturn(true);
-        when(jwtSessionService.isRefreshToken(oldRefresh)).thenReturn(true);
-        when(jwtSessionService.getUserIdFromToken(oldRefresh)).thenReturn(1L);
-        when(userService.getUserById(1L)).thenReturn(user);
-        when(jwtSessionService.createAccessToken(user)).thenReturn(newAccess);
-        when(jwtSessionService.createRefreshToken(user)).thenReturn(newRefresh);
+        @Test
+        void refresh_returnsOk_andRotatesTokens_whenRefreshTokenIsValid() throws Exception {
+                String oldRefresh = "oldRefreshToken";
+                String newAccess = "newAccessToken";
+                String newRefresh = "newRefreshToken";
 
-        mockMvc.perform(
-                post("/api/v1/auth/refresh")
-                        .header("Authorization", "Bearer " + oldRefresh))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.accessToken").value(newAccess))
-                .andExpect(jsonPath("$.refreshToken").value(newRefresh));
+                User user = new User("test@smartpay.com", "encodedPassword");
+                user.setId(1L);
 
-        verify(sessionService).validateSession(oldRefresh);
-        verify(sessionService).rotateRefreshToken(oldRefresh, newRefresh);
-    }
+                when(jwtSessionService.isTokenValid(oldRefresh)).thenReturn(true);
+                when(jwtSessionService.isRefreshToken(oldRefresh)).thenReturn(true);
+                when(jwtSessionService.getUserIdFromToken(oldRefresh)).thenReturn(1L);
+                when(userService.getUserById(1L)).thenReturn(user);
+                when(jwtSessionService.createAccessToken(user)).thenReturn(newAccess);
+                when(jwtSessionService.createRefreshToken(user)).thenReturn(newRefresh);
 
-    @Test
-    void refresh_returnsUnauthorized_whenTokenIsInvalid() throws Exception {
-        String badToken = "invalidToken";
+                mockMvc.perform(
+                                post("/api/v1/auth/refresh")
+                                                .header("Authorization", "Bearer " + oldRefresh))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.accessToken").value(newAccess))
+                                .andExpect(jsonPath("$.refreshToken").value(newRefresh));
 
-        when(jwtSessionService.isTokenValid(badToken)).thenReturn(false);
+                verify(sessionService).validateSession(oldRefresh);
+                verify(sessionService).rotateRefreshToken(oldRefresh, newRefresh);
+        }
 
-        mockMvc.perform(
-                post("/api/v1/auth/refresh")
-                        .header("Authorization", "Bearer " + badToken))
-                .andExpect(status().isUnauthorized());
+        @Test
+        void refresh_returnsUnauthorized_whenTokenIsInvalid() throws Exception {
+                String badToken = "invalidToken";
 
-        // sessionService should not be called when token is invalid
-        verify(sessionService, never()).validateSession(anyString());
-    }
+                when(jwtSessionService.isTokenValid(badToken)).thenReturn(false);
 
-    @Test
-    void session_refresh_throwsSessionAuthenticationException_whenSessionIsInvalid() throws Exception {
-        String invalidRefresh = "invalidRefresh";
+                mockMvc.perform(
+                                post("/api/v1/auth/refresh")
+                                                .header("Authorization", "Bearer " + badToken))
+                                .andExpect(status().isUnauthorized());
 
-        when(jwtSessionService.isTokenValid(invalidRefresh)).thenReturn(true);
-        when(jwtSessionService.isRefreshToken(invalidRefresh)).thenReturn(true);
-        // validation will throw the session auth exception
-        doThrow(new SessionAuthenticationException("invalid session"))
-                .when(sessionService).validateSession(invalidRefresh);
+                // sessionService should not be called when token is invalid
+                verify(sessionService, never()).validateSession(anyString());
+        }
 
-        mockMvc.perform(
-                post("/api/v1/auth/refresh")
-                        .header("Authorization", "Bearer " + invalidRefresh))
-                .andExpect(status().isUnauthorized());
+        @Test
+        void session_refresh_throwsSessionAuthenticationException_whenSessionIsInvalid() throws Exception {
+                String invalidRefresh = "invalidRefresh";
 
-        verify(sessionService).validateSession(invalidRefresh);
-    }
-    
-    
+                when(jwtSessionService.isTokenValid(invalidRefresh)).thenReturn(true);
+                when(jwtSessionService.isRefreshToken(invalidRefresh)).thenReturn(true);
+                // validation will throw the session auth exception
+                doThrow(new SessionAuthenticationException("invalid session"))
+                                .when(sessionService).validateSession(invalidRefresh);
 
+                mockMvc.perform(
+                                post("/api/v1/auth/refresh")
+                                                .header("Authorization", "Bearer " + invalidRefresh))
+                                .andExpect(status().isUnauthorized());
 
+                verify(sessionService).validateSession(invalidRefresh);
+        }
 
 }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.LoginResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpRequestDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpRequestDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
@@ -27,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +50,13 @@ public class OtpController {
             @ApiResponse(responseCode = "429", description = "Too many requests. Limit: 5 per 24 hours. Account locked for 24 hours.")
     })
     @PostMapping
-    public ResponseEntity<Map<String, Object>> requestOtp(@Valid @RequestBody OtpRequestDto dto) {
+    public ResponseEntity<Map<String, Object>> requestOtp(@Valid @RequestBody OtpRequestDto dto,
+            HttpServletRequest httpRequest) {
         HttpStatus status;
 
         switch (dto.getType()) {
             case LOGIN, REGISTER, FORGOT_PASSWORD ->
-                status = otpService.requestOtp(dto.getEmail(), dto.getType());
+                status = otpService.requestOtp(dto.getEmail(), dto.getType(), httpRequest);
             default -> {
                 log.error("Unknown OTP type encountered");
                 status = HttpStatus.BAD_REQUEST;
@@ -75,8 +76,8 @@ public class OtpController {
             @ApiResponse(responseCode = "500", description = "An error occurred. Please try again later", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @PostMapping("/verify")
-    public ResponseEntity<?> validate7DigitOTP(@Valid @RequestBody OtpDTO payload) {
-        Otp otp = otpService.verifyOtp(payload);
+    public ResponseEntity<?> validate7DigitOTP(@Valid @RequestBody OtpDTO payload, HttpServletRequest httpRequest) {
+        Otp otp = otpService.verifyOtp(payload, httpRequest);
 
         switch (payload.getType()) {
             case LOGIN -> {

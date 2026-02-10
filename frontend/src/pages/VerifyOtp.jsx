@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { TextField, Button, Box, Typography, Alert, Grid, Avatar, Link } from "@mui/material";
-import { resendVerifyCode, sendVerifyCode } from "../api/authApi";
+import { requestResetCode, sendVerifyCode } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 import CheckIcon from "@mui/icons-material/Check";
 import SecurityIcon from "@mui/icons-material/Security";
@@ -10,7 +10,7 @@ import logo from "../assets/logo.png";
 export const VerifyOtp = () => {
   const location = useLocation();
   const [showSuccess, setShowSuccess] = useState(location.state?.showSuccess || false);
-  const successMessage = location.state?.successMessage;
+  const [successMessage, setSuccessMessage] = useState(location.state?.successMessage || "");
 
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -24,6 +24,8 @@ export const VerifyOtp = () => {
   const codeParam = searchParams.get("code");
 
   const { setAuthFromTokens } = useAuth();
+
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const bulletContainerSx = {
     display: "flex",
@@ -83,14 +85,17 @@ export const VerifyOtp = () => {
           setAuthFromTokens({
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
-          }); 
-          navigate(`/home`);
+          });
+          navigate("/home", { replace: true });
           break;
         case "register":
-          navigate(`/login`);
+          setShowSuccess(true)
+          setSuccessMessage("Email verified successfully! Redirecting to login...");
+          await delay(2000)
+          navigate(`/login`, { replace: true });
           break;
         case "forgot-password":
-          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`);
+          navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`, { replace: true });
           break;
         default:
           setError("Unknown verification type.");
@@ -123,15 +128,13 @@ export const VerifyOtp = () => {
     setResendLoading(true);
     setError("");
     try {
-      const res = await resendVerifyCode({ email: emailParam, type: typeParam });
-      setAuthFromTokens({
-            accessToken: res.accessToken,
-            refreshToken: res.refreshToken,
-          });
-
-      alert("Verification code has been resent to your email.");
+      await requestResetCode({ email: emailParam, type: typeParam });
+      setShowSuccess(true)
+      setSuccessMessage("Verification code has been resent to your email.");
     } catch (err) {
-      setError("Failed to resend code. Please try again.");
+      if (err.status === 400) setError("Invalid details.");
+      else if (err.status === 429) setError("Too many attempts. Please try again later.");
+      else setError(err.message || "Failed to resend verification code.");
     } finally {
       setResendLoading(false);
     }
@@ -215,7 +218,7 @@ export const VerifyOtp = () => {
               height: "176px",
             }}
           >
-            
+
           </Box>
         </Box>
       </Box>
@@ -245,51 +248,51 @@ export const VerifyOtp = () => {
             Verify Code
           </Typography>
 
-      <TextField
-        label="7-digit code"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        onBlur={() => {
-          if (code && !/^\d{7}$/.test(code)) {
-            setError("Enter a valid 7-digit code.");
-          }
-        }}
-        error={Boolean(error)}
-        helperText={error || ""}
-        inputProps={{ maxLength: 7 }}
-        required
-      />
+          <TextField
+            label="7-digit code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onBlur={() => {
+              if (code && !/^\d{7}$/.test(code)) {
+                setError("Enter a valid 7-digit code.");
+              }
+            }}
+            error={Boolean(error)}
+            helperText={error || ""}
+            inputProps={{ maxLength: 7 }}
+            required
+          />
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-        <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-          Didn't receive the code?{" "}
-          <Link
-            component="button"
-            type="button"
-            underline="hover"
-            onClick={handleResendCode}
-            disabled={resendLoading}
-            sx={{ fontWeight: 700, cursor: "pointer" }}
-          >
-            {resendLoading ? "Resending..." : "Resend Code"}
-          </Link>
-        </Typography>
-      </Box>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
+              Didn't receive the code?{" "}
+              <Link
+                component="button"
+                type="button"
+                underline="hover"
+                onClick={handleResendCode}
+                disabled={resendLoading}
+                sx={{ fontWeight: 700, cursor: "pointer" }}
+              >
+                {resendLoading ? "Resending..." : "Resend Code"}
+              </Link>
+            </Typography>
+          </Box>
 
-      <Button type="submit" variant="contained" disabled={loading}>
-        {loading ? "Verifying Code..." : "Verify Code"}
-      </Button>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? "Verifying Code..." : "Verify Code"}
+          </Button>
 
-            
-      {showSuccess && successMessage && (
-        <Alert
-          icon={<CheckIcon fontSize="inherit" />}
-          severity="success"
-          sx={{ mb: 2 }}
-        >
-          {successMessage}
-        </Alert>
-      )}
+
+          {showSuccess && successMessage && (
+            <Alert
+              icon={<CheckIcon fontSize="inherit" />}
+              severity="success"
+              sx={{ mb: 2 }}
+            >
+              {successMessage}
+            </Alert>
+          )}
         </Box>
       </Grid>
     </Grid>

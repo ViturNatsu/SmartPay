@@ -75,6 +75,7 @@ export default function Navbar() {
             >
               <Box
                 component={RouterLink}
+                aria-label="home"
                 to="/"
                 sx={{
                   display: "flex",
@@ -122,6 +123,7 @@ export default function Navbar() {
                 key={item.path}
                 label={item.label}
                 icon={item.icon}
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
               />
             ))}
           </BottomNavigation>
@@ -159,6 +161,7 @@ export default function Navbar() {
           <Box
             component={RouterLink}
             to="/"
+            aria-label="home"
             sx={{
               display: "flex",
               alignItems: "center",
@@ -214,6 +217,8 @@ export default function Navbar() {
                     component={RouterLink}
                     to={item.path}
                     startIcon={item.icon}
+                    aria-current={active ? "page" : undefined}
+                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                     sx={{
                       flexShrink: 0,
                       textTransform: "none",

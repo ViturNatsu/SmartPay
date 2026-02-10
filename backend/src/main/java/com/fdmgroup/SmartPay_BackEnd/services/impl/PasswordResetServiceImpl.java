@@ -6,11 +6,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
@@ -40,7 +40,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
         // Find the otp record and validate
         Otp otpEntity = otpService
-                .verifyOtp(new OtpDTO(request.getEmail(), request.getAccessCode(), OtpType.FORGOT_PASSWORD));
+                .verifyOtp(new OtpDTO(request.getEmail(), request.getAccessCode(), EventType.FORGOT_PASSWORD),
+                        httpRequest);
         User user = userService.findByEmail(otpEntity.getEmail());
 
         // Update password
@@ -54,7 +55,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         // Log the successful password reset
         // audit the record of change password
-        auditService.logEvent(AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
+        auditService.logEvent(EventType.FORGOT_PASSWORD, AuditLog.PASSWORD_RESET_COMPLETED, user, httpRequest);
         log.info("Password successfully reset with OTP for user: {}", user.getEmail());
 
     }

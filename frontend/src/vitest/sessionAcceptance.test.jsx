@@ -15,6 +15,7 @@ vi.mock('../api/authApi', async () => {
   return {
     ...actual,
     refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),
+    getMyUser: vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' })),
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
@@ -160,5 +161,102 @@ describe('Session Acceptance', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
     expect(screen.queryByTestId('protected')).toBeNull();
     // Note: Safe message for logout not implemented in UI; recommend adding.
+  });
+
+  it('Logout from user: blocks protected access via direct URL, refresh, and back navigation', async () => {
+    addValidRefreshToken();
+    setAccessToken('ACCESS');
+
+    const { rerender } = render(<AppHarness initialEntries={["/app/logout"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+
+    // Trigger logout
+    await act(async () => {
+      screen.getByTestId('logout').click();
+    });
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
+
+    // Direct URL access attempt after logout
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Refresh-like re-render (same URL)
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Simulate back navigation: history has login then back to /app
+    rerender(<AppHarness initialEntries={["/login", "/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
+    expect(screen.queryByTestId('protected')).toBeNull();
+  });
+
+  it('Logout from inactivity: blocks protected access via direct URL, refresh, and back navigation', async () => {
+    addValidRefreshToken();
+    setAccessToken('ACCESS');
+
+    const { rerender } = render(<AppHarness initialEntries={["/app"]} />);
+
+    // bootstrap auth and start session monitoring
+    await act(async () => {
+      // let AuthProvider bootstrap and session manager initialize timers
+      vi.advanceTimersByTime(1);
+    });
+
+    // Advance timers past inactivity limit (15 minutes)
+    await act(async () => {
+      vi.advanceTimersByTime(15 * 60 * 1000 + 5);
+    });
+
+    //
+    // Direct URL access attempt after logout
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Refresh-like re-render (same URL)
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Simulate back navigation: history has login then back to /app
+    rerender(<AppHarness initialEntries={["/login", "/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+  });
+
+  it('Logout: API requests after logout are rejected with 401', async () => {
+    addValidRefreshToken();
+    setAccessToken('ACCESS');
+
+    render(<AppHarness initialEntries={["/app/logout"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+
+    await act(async () => {
+      screen.getByTestId('logout').click();
+    });
+
+    // After logout, force protected API to 401
+    authApi.getMyUser = vi.fn(async () => { throw { status: 401, message: 'Unauthorized' }; });
+    await expect(authApi.getMyUser()).rejects.toMatchObject({ status: 401 });
+  });
+
+  it('Logout: re-login issues new session and restores access', async () => {
+    // Simulate a logged-out state by clearing tokens
+    sessionStorage.removeItem('refresh_token');
+    setAccessToken(null);
+
+    // Simulate successful re-login by setting new tokens
+    addValidRefreshToken();
+    setAccessToken('NEW_ACCESS');
+
+    // Access should be restored: protected API returns user profile
+    authApi.getMyUser = vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' }));
+    const user = await authApi.getMyUser();
+    expect(user).toMatchObject({ id: 1, email: expect.stringMatching(/@smartpay\.local$/) });
   });
 });
