@@ -1,25 +1,27 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl.account;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.BeanUtils;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
+import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
-import com.fdmgroup.SmartPay_BackEnd.services.account.UserNotFoundException;
-
-import jakarta.transaction.Transactional;
 
 public class AccountServiceImpl implements AccountService{
     private AccountRepository accountRepository;
+    private UserRepository userRepository;
     
-     public AccountServiceImpl(AccountRepository accountRepository) {
+     public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository) {
         this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -29,23 +31,36 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public List<Account> getAllAccounts(Long userId) {
-       return accountRepository.findByUserId(userId);
+    public List<Account> getAllAccounts(Long userId) throws UserNotFoundException {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException("User not found with id: " + userId);
+        }
+        return user.get().getAccounts();
     }
 
     @Override
-    public List<Account> getAllSavingsAccounts(Long userId) {
-        throw new UnsupportedOperationException("Unimplemented method 'getAllSavingsAccounts'");
+    public List<Account> getAllSavingsAccounts(Long userId) throws UserNotFoundException {
+        List<Account> allAccounts = getAllAccounts(userId);
+        List<Account> savingsAccounts = allAccounts.stream()
+                .filter(account -> account instanceof com.fdmgroup.SmartPay_BackEnd.domain.entities.account.SavingsAccount)
+                .toList();
+        return savingsAccounts;
     }
 
     @Override
-    public List<Account> getAllCheckingsAccounts(Long userId) {
-        throw new UnsupportedOperationException("Unimplemented method 'getAllCheckingsAccounts'");
+    public List<Account> getAllCheckingsAccounts(Long userId) throws UserNotFoundException {
+        List<Account> allAccounts = getAllAccounts(userId);
+        List<Account> checkingAccounts = allAccounts.stream()
+                .filter(account -> account instanceof com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount)
+                .toList();
+        return checkingAccounts;
     }
 
     @Override
     public Account getAccountById(Long accountId) throws AccountNotFoundException {
-        throw new UnsupportedOperationException("Unimplemented method 'getAccountById'");
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
     }
 
     @Override
