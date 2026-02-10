@@ -79,7 +79,7 @@ const getTooManyRequestsMessage = () =>
   screen.findByText(/We can.*t process your request right now/i);
 
 const getEmailAlreadyExistsMessage = () =>
-  screen.findByText(/email already exists/i);
+  screen.findByText(/we can.*t create an account with that email/i);
 
 const getServerErrorMessage = () => screen.findByText(/server error/i);
 
