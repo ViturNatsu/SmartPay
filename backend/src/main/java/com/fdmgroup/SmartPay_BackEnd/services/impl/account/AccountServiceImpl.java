@@ -6,18 +6,16 @@ import java.util.Optional;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.SavingsAccount;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
-
-import jakarta.transaction.Transactional;
 
 public class AccountServiceImpl implements AccountService{
     private AccountRepository accountRepository;
