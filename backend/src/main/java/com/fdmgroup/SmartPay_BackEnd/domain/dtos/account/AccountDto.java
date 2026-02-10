@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.entities.account;
+package com.fdmgroup.SmartPay_BackEnd.domain.dtos.account;
 
 import lombok.*;
 
