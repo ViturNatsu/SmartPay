@@ -97,7 +97,6 @@ export const Login = () => {
 
       if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
       else if (status === 403) {
-        setErrorMsg("Your email address is not verified. Please check your inbox and verify your email to continue.");
         navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
       }
       else if (status === 429)
