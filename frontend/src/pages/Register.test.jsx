@@ -73,6 +73,9 @@ const getResetPasswordLink = () =>
 const getCannotProcessRequestMessage = () =>
   screen.findByText(/We can.*t process your request right now/i);
 
+const getInvalidPasswordMessage = () =>
+  screen.findByText(/must be at least .* characters with uppercase.* symbol/i);
+
 const getEmailAlreadyExistsMessage = () =>
   screen.findByText(/we can.*t create an account with that email/i);
 
@@ -129,7 +132,7 @@ describe("Register Component", () => {
       await user.click(getAgreeCheckbox());
       await user.click(getSubmitButton());
 
-      expect(await getCannotProcessRequestMessage()).toBeInTheDocument();
+      expect(await getInvalidPasswordMessage()).toBeInTheDocument();
     });
 
     it("does not submit form when validation fails", async () => {
