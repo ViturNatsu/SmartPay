@@ -100,7 +100,7 @@ export const Register = () => {
     setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-    setSuccessMessage("");
+   
 
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
