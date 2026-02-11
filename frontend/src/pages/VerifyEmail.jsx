@@ -27,6 +27,7 @@ export const VerifyEmail = () => {
       navigate(`/verify?email=${encodeURIComponent(emailParam)}&type=register`, { replace: true });
     } catch (err) {
       if (e.status === 400) setError("Email not sent or in incorrect format");
+      else if (e.status === 409) setError("Email is already verified. Please log in.");
       else if (e.status === 429) setError("Account Locked");
       else setError("An error occurred. Please try again.");
     } finally {
