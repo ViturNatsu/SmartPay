@@ -19,6 +19,7 @@ import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 
 import Navbar from "../components/Navbar";
+import OpenAccountForm from "./OpenAccountForm";
 
 const formatCurrency = (value) =>
   value.toLocaleString("en-US", {
@@ -70,6 +71,7 @@ export const Accounts = () => {
   const theme = useTheme();
   const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedTab, setSelectedTab] = useState(0);
+  const [openAccountFormOpen, setOpenAccountFormOpen] = useState(false);
 
   const allAccounts = useMemo(
     () => [...mockAccounts.chequing, ...mockAccounts.savings],
@@ -88,6 +90,20 @@ export const Accounts = () => {
   }, [selectedTab, allAccounts]);
 
   const calculateProgress = (current, goal) => Math.min(100, (current / goal) * 100);
+
+  const handleOpenAccountForm = () => {
+    setOpenAccountFormOpen(true);
+  };
+
+  const handleCloseAccountForm = () => {
+    setOpenAccountFormOpen(false);
+  };
+
+  const handleSubmitAccountForm = (formData) => {
+    console.log("New account submitted:", formData);
+    // Here you would typically send the data to your backend
+    // For now, we'll just log it
+  };
 
   return (
     <>
@@ -122,13 +138,14 @@ export const Accounts = () => {
             <Button
               variant="contained"
               startIcon={<AddRoundedIcon />}
+              onClick={handleOpenAccountForm}
               sx={{
                 display: { xs: "none", md: "inline-flex" },
                 textTransform: "none",
                 borderRadius: 1,
                 px: 3,
                 py: 1.2,
-                my: 1.5,
+                my: 4.5,
               }}
             >
               Open New Account
@@ -139,6 +156,7 @@ export const Accounts = () => {
             <Button
               variant="contained"
               startIcon={<AddRoundedIcon />}
+              onClick={handleOpenAccountForm}
               fullWidth
               sx={{ textTransform: "none", borderRadius: 1, py: 1.4, my: 1 }}
             >
@@ -265,6 +283,12 @@ export const Accounts = () => {
           </Box>
         </Container>
       </Box>
+
+      <OpenAccountForm
+        open={openAccountFormOpen}
+        onClose={handleCloseAccountForm}
+        onSubmit={handleSubmitAccountForm}
+      />
     </>
   );
 };
