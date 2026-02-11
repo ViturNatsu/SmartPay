@@ -87,7 +87,7 @@ export const VerifyEmail = () => {
           <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Your email address isn't verified yet. Please verify your email to continue.</Typography>
 
           <Box sx={{ bgcolor: "#F3F4F6", borderRadius: 2, p: 2, mt: 1 }}>
-            <Typography sx={{ fontSize: 13, color: "text.secondary" }}>Email sent to:</Typography>
+            <Typography sx={{ fontSize: 13, color: "text.secondary" }}>Email:</Typography>
             <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>{emailParam}</Typography>
           </Box>
 
