@@ -28,12 +28,9 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [institution, setInstitution] = useState("");
-
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -100,8 +97,6 @@ export const Register = () => {
     setEmailError(isEmailInvalid);
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-    // setSuccessMessage("");
-
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
     }
@@ -137,8 +132,7 @@ export const Register = () => {
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        
-        setDuplicateEmailError(true)
+        setDuplicateEmailError(true);
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
@@ -294,35 +288,33 @@ export const Register = () => {
             </Alert>
           )}
           {duplicateEmailError && (
-                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
-                  We can’t create an account with that email. Please{" "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
-                    Sign in
-                  </Link>
-                  {" or "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
-                    reset your password
-                  </Link>
-                  .
-                </Box>
-              )}
-
-
+            <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
+              We can’t create an account with that email. Please{" "}
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() => navigate("/login")}
+              >
+                Sign in
+              </Link>
+              {" or "}
+              <Link
+                component="button"
+                underline="hover"
+                onClick={() => navigate("/reset-password")}
+              >
+                reset your password
+              </Link>
+              .
+            </Box>
+          )}
 
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
               <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  First Name
-                </Typography>
                 <TextField
+                  id="firstName"
+                  label="First Name"
                   fullWidth
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -335,24 +327,16 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "first-name-input"
+                      "data-testid": "first-name-input",
                     },
                   }}
                 />
               </Box>
 
               <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  Last Name
-                </Typography>
                 <TextField
+                  id="lastName"
+                  label="Last Name"
                   fullWidth
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -365,24 +349,16 @@ export const Register = () => {
                           />
                         </InputAdornment>
                       ),
-                      "data-testid": "last-name-input"
+                      "data-testid": "last-name-input",
                     },
                   }}
                 />
               </Box>
             </Box>
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Financial Institution
-            </Typography>
             <TextField
+              id="financialInstitution"
+              label="Financial Institution"
               select
               fullWidth
               slotProps={{
@@ -392,9 +368,8 @@ export const Register = () => {
                       <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "institution-input"
+                  "data-testid": "institution-input",
                 },
-
               }}
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
@@ -408,24 +383,16 @@ export const Register = () => {
               <MenuItem value="other">Other</MenuItem>
             </TextField>
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Email Address
-            </Typography>
             <TextField
+              id="emailAddress"
+              label="Email Address"
               type="email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
+                setErrorMessage("");
                 setDuplicateEmailError(false);
               }}
-
               error={emailError}
               helperText={emailError ? "Must use proper email format" : ""}
               slotProps={{
@@ -435,22 +402,14 @@ export const Register = () => {
                       <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
                     </InputAdornment>
                   ),
-                  "data-testid": "email-input"
+                  "data-testid": "email-input",
                 },
               }}
             />
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Password
-            </Typography>
             <TextField
+              id="password"
+              label="Password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -484,22 +443,14 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "password-input"
+                  "data-testid": "password-input",
                 },
               }}
             />
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Confirm Password
-            </Typography>
             <TextField
+              id="confirmPassword"
+              label="Confirm Password"
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -520,8 +471,8 @@ export const Register = () => {
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
                         aria-label={
                           showConfirmPassword
-                            ? "Hide password"
-                            : "Show password"
+                            ? "Hide confirm password"
+                            : "Show confirm password"
                         }
                         sx={{ color: "rgba(15, 23, 42, 0.45)" }}
                       >
@@ -533,7 +484,7 @@ export const Register = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  "data-testid": "confirm-password-input"
+                  "data-testid": "confirm-password-input",
                 },
               }}
             />
@@ -546,10 +497,11 @@ export const Register = () => {
                 mb: -1,
               }}
             >
-              <p>
-              <input type="checkbox" id="terms" required></input>
-              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
-              </p>
+              <input type="checkbox" id="terms" required />
+              <label htmlFor="terms">
+                {" "}
+                I agree to the Terms of Service and Privacy Policy
+              </label>
             </Typography>
 
             <Button
@@ -565,8 +517,6 @@ export const Register = () => {
                 boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
               }}
             >
-
-
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
@@ -583,8 +533,6 @@ export const Register = () => {
             Sign in
           </Link>
         </Typography>
-
-        
       </Grid>
     </Grid>
   );
