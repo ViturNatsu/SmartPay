@@ -21,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeInvalidatedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.EmailAlreadyVerifiedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
@@ -64,6 +65,12 @@ public class OtpServiceImpl implements OtpService {
 		try {
 			// Make sure user exists before attempting reset request logic.
 			User user = userService.findByEmail(email);
+
+			if (type == EventType.REGISTER && user.isEmailVerified()) {
+				eventData.put("reason", "AlreadyVerified");
+				auditService.logEvent(type, AuditLog.OTP_REQUEST_DENIED, user, eventData, httpRequest);
+				throw new EmailAlreadyVerifiedException("Email is already verified. Please log in.");
+			}
 
 			Otp otp = findByEmailAndOtpType(email, type).orElse(new Otp(email, type));
 			LocalDateTime now = LocalDateTime.now();
