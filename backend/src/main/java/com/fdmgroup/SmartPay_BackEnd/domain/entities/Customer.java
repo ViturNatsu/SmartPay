@@ -7,17 +7,17 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_ID_information")
+@Table(name = "Customer_information")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PersonalIdentityInformation {
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "personal_info_id")
+    @Column(name = "customer_info_id")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -29,44 +29,55 @@ public class PersonalIdentityInformation {
     @JsonBackReference
     private User user;
 
-    @Convert(converter = PersonalInformationEncryptor.class)
+    //@Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String firstName;
 
 
+    //@Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String lastName;
 
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String addressLine1;
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     private String addressLine2;
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String city;
 
+    //@Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String province;
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String postalCode;
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String phoneNumber;
 
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String socialInsuranceNumber;
 
+   // @Convert(converter = PersonalInformationEncryptor.class)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GovernmentIdType governmentIdType;
 
+    @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String governmentIdNumber;
 
 
+    //@Convert(converter = PersonalInformationEncryptor.class)
     private String occupation;
 
     @Column(updatable = false)

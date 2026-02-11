@@ -33,6 +33,8 @@ public class SignUpDTO {
     @NotNull
     private String confirmPassword;
 
+    private CustomerDTO customer;
+
     public void setEmail(String email) {
         if (email == null) {
             this.email = null;

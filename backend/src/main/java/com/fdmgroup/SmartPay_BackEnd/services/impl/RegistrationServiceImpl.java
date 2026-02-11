@@ -2,7 +2,12 @@ package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Customer;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
+import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.CustomerService;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
@@ -19,9 +24,11 @@ import lombok.AllArgsConstructor;
 public class RegistrationServiceImpl implements RegistrationService {
     private final UserService userService;
     private final UserRepository userRepository;
+    private  final CustomerService customerService;
+    private  final CustomerRepository customerRepository;
 
     @Override
-    public User register(SignUpDTO userDto) {
+    public User register(SignUpDTO userDto) throws  DuplicateEmailException {
         String email = consistentEmail(userDto.getEmail());
 
         Optional<User> existingUser = userRepository.findByEmail(email);
@@ -35,7 +42,30 @@ public class RegistrationServiceImpl implements RegistrationService {
             user.setInstitution(userDto.getInstitution());
             user.setPassword(userDto.getPassword());
 
-            return userService.signUpUser(user);
+            User userUpdated = userService.signUpUser(user);
+            // Check if customer exists for this user
+            // Find existing customer
+            Customer customer = customerRepository.findByUser(user)
+                    .orElse(Customer.builder() // If not found, create new
+                            .user(user)
+                            .build());
+
+            // Update customer fields
+            customer.setFirstName(userDto.getFirstName());
+            customer.setLastName(userDto.getLastName());
+            customer.setAddressLine1(userDto.getCustomer().getAddressLine1());
+            customer.setAddressLine2(userDto.getCustomer().getAddressLine2());
+            customer.setCity(userDto.getCustomer().getCity());
+            customer.setProvince(userDto.getCustomer().getProvince());
+            customer.setPostalCode(userDto.getCustomer().getPostalCode());
+            customer.setPhoneNumber(userDto.getCustomer().getPhoneNumber());
+            customer.setSocialInsuranceNumber(userDto.getCustomer().getSocialInsuranceNumber());
+            customer.setGovernmentIdType(GovernmentIdType.valueOf(userDto.getCustomer().getGovernmentIdType()));
+            customer.setGovernmentIdNumber(userDto.getCustomer().getGovernmentIdNumber());
+            customer.setOccupation(userDto.getCustomer().getOccupation());
+            customerRepository.save(customer);
+                return userUpdated;
+
         }
 
         User newUser = User.builder()
@@ -46,7 +76,26 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .password(userDto.getPassword())
                 .role(Role.USER) // To be changed in future implementations
                 .build();
-        return userService.signUpUser(newUser);
+        User savedUser=userService.signUpUser(newUser);
+        Customer customer = Customer.builder()
+                .firstName(userDto.getFirstName())
+                .lastName(userDto.getLastName())
+                .addressLine1(userDto.getCustomer().getAddressLine1())
+                .city(userDto.getCustomer().getCity())
+                .province(userDto.getCustomer().getProvince())
+                .postalCode(userDto.getCustomer().getPostalCode())
+                .phoneNumber(userDto.getCustomer().getPhoneNumber())
+                .socialInsuranceNumber(userDto.getCustomer().getSocialInsuranceNumber())
+                .governmentIdType(
+                        GovernmentIdType.valueOf(userDto.getCustomer().getGovernmentIdType())
+                )
+                .governmentIdNumber(userDto.getCustomer().getGovernmentIdNumber())
+                .occupation(userDto.getCustomer().getOccupation())
+                .user(savedUser)
+                .build();
+
+        customerRepository.save(customer);
+        return savedUser;
     }
 
     @Override
