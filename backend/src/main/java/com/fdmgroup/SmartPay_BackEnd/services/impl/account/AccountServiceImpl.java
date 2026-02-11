@@ -33,13 +33,15 @@ public class AccountServiceImpl implements AccountService{
         User user = userRepository.findById(accountDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User with id: " + accountDTO.getUserId() + " not found"));
 
-        Account account = null;
+        Account account;
 
         if(accountDTO.getAccountType().equals("savings")){
             account = new SavingsAccount();
         }
         else if(accountDTO.getAccountType().equals("checking")){
             account = new CheckingAccount();
+        } else {
+            throw new IllegalArgumentException("Invalid account type: " + accountDTO.getAccountType());
         }
 
         BeanUtils.copyProperties(accountDTO, account);
@@ -70,7 +72,7 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public List<Account> getAllCheckingsAccounts(Long userId) throws UserNotFoundException {
+    public List<Account> getAllCheckingAccounts(Long userId) throws UserNotFoundException {
         List<Account> allAccounts = getAllAccounts(userId);
         List<Account> checkingAccounts = allAccounts.stream()
                 .filter(account -> account instanceof com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount)
@@ -85,9 +87,9 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public Account updateUserAccount(Long userId, AccountDto account) throws AccountNotFoundException {
+    public Account updateUserAccount(Long accountId, AccountDto account) throws AccountNotFoundException {
         // To update for both checking and savings account, we need to check the account type and then update accordingly (for a future implementation)
-        Account existingAccount = accountRepository.findById(userId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account existingAccount = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
         BeanUtils.copyProperties(account, existingAccount);
         return accountRepository.save(existingAccount);
     }

@@ -16,7 +16,7 @@ public interface AccountService {
 
     List<Account> getAllSavingsAccounts(Long userId) throws UserNotFoundException;
 
-    List<Account> getAllCheckingsAccounts(Long userId) throws UserNotFoundException;
+    List<Account> getAllCheckingAccounts(Long userId) throws UserNotFoundException;
 
     Account getAccountById(Long accountId) throws AccountNotFoundException;
 
