@@ -24,11 +24,17 @@ export const VerifyEmail = () => {
 
       await requestResetCode({ email: emailParam, type: "register" });
 
-      navigate(`/verify?email=${encodeURIComponent(emailParam)}&type=register`, { replace: true });
+      navigate(`/verify?email=${encodeURIComponent(emailParam)}&type=register`, { replace: true }, {
+        state: {
+          successMessage:
+            "Successfully Resent a Verification Email! Please verify your account to continue.",
+          showSuccess: true,
+        },
+      });
     } catch (err) {
-      if (e.status === 400) setError("Email not sent or in incorrect format");
-      else if (e.status === 409) setError("Email is already verified. Please log in.");
-      else if (e.status === 429) setError("Account Locked");
+      if (err.status === 400) setError("Email not sent or in incorrect format");
+      else if (err.status === 409) setError("Email is already verified. Please log in.");
+      else if (err.status === 429) setError("Account Locked");
       else setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
