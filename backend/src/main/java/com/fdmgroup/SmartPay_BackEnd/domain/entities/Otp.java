@@ -119,7 +119,7 @@ public class Otp {
                 "Reset your SmartPay password";
         });
         String template = """
-                We received a request to log into your SmartPay account.
+                We received a request on your SmartPay account for %s.
 
                 If this was you, click the link below to verify your action:
 
@@ -127,11 +127,11 @@ public class Otp {
                 """;
         emailDetails.setMsgBody(switch (this.otpType) {
             case LOGIN ->
-                template.formatted(frontendUrl, this.email, "login", code);
+                template.formatted("Login", frontendUrl, this.email, "login", code);
             case REGISTER ->
-                template.formatted(frontendUrl, this.email, "register", code);
+                template.formatted("Email Verification", frontendUrl, this.email, "register", code);
             case FORGOT_PASSWORD ->
-                template.formatted(frontendUrl, this.email, "forgot-password", code);
+                template.formatted("Password Reset", frontendUrl, this.email, "forgot-password", code);
         }
                 + "\nYour verification code is: " + code + "\n\n"
                 + "This code expires in " + this.getExpiry() + " minutes.\n\n"
@@ -147,8 +147,20 @@ public class Otp {
         emailDetails.setRecipient(email);
         emailDetails.setSubject("SmartPay - Security Alert");
 
-        emailDetails.setMsgBody("There have been multiple failed login attempts on your account, "
-                + "and it has been locked as a result. Please reach out to customer service to resolve this issue.");
+        emailDetails.setMsgBody("\nThere have been multiple failed "
+                + switch (this.otpType) {
+                    case LOGIN ->
+                        "sign-in";
+                    case REGISTER ->
+                        "email verification";
+                    case FORGOT_PASSWORD ->
+                        "password reset";
+                } +
+                " attempts on your account.\n\n"
+                + "As a result, this service has been temporarily locked for 24 hours.\n\n"
+                + "Please reach out to customer service to resolve this issue.\n\n"
+                + "Thank you,\n"
+                + "The SmartPay Support Team");
 
         return emailDetails;
     }
