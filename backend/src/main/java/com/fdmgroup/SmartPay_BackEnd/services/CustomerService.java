@@ -7,7 +7,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import java.util.Optional;
 
 public interface CustomerService {
-    Long  createCustomer(Customer customer);
+    CustomerDTO  getCustomerInfo(Long userId);
 
 //    Optional<Customer> getByUser(User user);
 //

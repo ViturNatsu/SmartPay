@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class CustomerDTO {
 
     private String firstName;

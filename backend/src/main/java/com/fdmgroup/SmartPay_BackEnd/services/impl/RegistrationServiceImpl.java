@@ -83,6 +83,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .firstName(userDto.getFirstName())
                 .lastName(userDto.getLastName())
                 .addressLine1(userDto.getCustomer().getAddressLine1())
+                .addressLine2(userDto.getCustomer().getAddressLine2())
                 .city(userDto.getCustomer().getCity())
                 .province(userDto.getCustomer().getProvince())
                 .postalCode(userDto.getCustomer().getPostalCode())
