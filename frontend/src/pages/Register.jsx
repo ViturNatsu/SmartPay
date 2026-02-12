@@ -402,10 +402,9 @@ export const Register = () => {
               sx={{ mb: 0 }}
             >
               <MenuItem value="">Select institution</MenuItem>
-              <MenuItem value="chase">Chase</MenuItem>
-              <MenuItem value="boa">Bank of America</MenuItem>
-              <MenuItem value="wells">Wells Fargo</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
+              <MenuItem value="world-bank-of-canada">World Bank of Canada</MenuItem>
+              <MenuItem value="td-bank">TD Bank</MenuItem>
+              <MenuItem value="bank-of-fdm">Bank of FDM</MenuItem>
             </TextField>
 
             <Typography
