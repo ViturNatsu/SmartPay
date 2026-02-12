@@ -20,6 +20,7 @@ public class CustomerDTO {
     private String addressLine2;
     private String city;
     private String province;
+    private String country;
     private String postalCode;
     private String phoneNumber;
 
@@ -29,5 +30,6 @@ public class CustomerDTO {
     private String governmentIdNumber;
 
     private String occupation;
+    private String dob;
 
 }

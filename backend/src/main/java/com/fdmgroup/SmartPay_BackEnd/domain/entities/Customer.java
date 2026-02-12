@@ -38,6 +38,9 @@ public class Customer {
     @Column(nullable = false)
     private String lastName;
 
+    //@Convert(converter = PersonalInformationEncryptor.class)
+    @Column(nullable = false)
+    private String dob;
 
     @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
@@ -53,6 +56,10 @@ public class Customer {
     //@Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String province;
+
+    //@Convert(converter = PersonalInformationEncryptor.class)
+    @Column(nullable = false)
+    private String country;
 
     @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)

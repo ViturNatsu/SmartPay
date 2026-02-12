@@ -22,6 +22,7 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
 import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
+import GovtIDIcon from '@mui/icons-material/AccountBox';
 
 export const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -46,6 +47,22 @@ export const Register = () => {
 
   const navigate = useNavigate();
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+
+  const [step, setStep] = useState(1);
+
+  const [socialInsuranceNumber, setSocialInsuranceNumber] = useState("");
+  const [governmentIdType, setGovernmentIdType] = useState("");
+  const [governmentIdNumber, setGovernmentIdNumber] = useState("");
+
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [province, setProvince] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [dob, setDob] = useState("");
+  const [country, setCountry] = useState("");
 
   const bulletContainerSx = {
     display: "flex",
@@ -91,8 +108,7 @@ export const Register = () => {
     textAlign: "left",
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validateStep1 = ()=>{
     let isEmailInvalid = !emailRegex.test(email);
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
@@ -103,10 +119,43 @@ export const Register = () => {
    
 
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
+      setErrorMessage("Please fill the required fields correctly before continuing.");
+      return false;
+    }
+
+    setErrorMessage("");
+    return true;
+  };
+
+  const handleContinue = (e) => {
+    e.preventDefault();
+
+    if (!validateStep1()) {
       return;
     }
 
+    setStep(2);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateStep1()) {
+      setStep(1);
+      return;
+    }
+
+    if(!socialInsuranceNumber || !governmentIdType || !governmentIdNumber ||
+        !phoneNumber || !addressLine1 || !city || !province || !postalCode ||
+        !country || !occupation)
+    {
+      setErrorMessage("Please complete all required personal information fields.");
+      return;
+    }
+
+    setErrorMessage("");
     setIsLoading(true);
+
     const userInfo = {
       firstName: firstName,
       lastName: lastName,
@@ -114,6 +163,20 @@ export const Register = () => {
       email: email,
       password: password,
       confirmPassword: confirmPassword,
+      customer: {
+        socialInsuranceNumber,
+        occupation,
+        addressLine1,
+        addressLine2,
+        city,
+        province,
+        postalCode,
+        country,
+        phoneNumber,
+        governmentIdType,
+        governmentIdNumber,
+        dob,
+      },
     };
 
     try {
@@ -296,11 +359,11 @@ export const Register = () => {
           {duplicateEmailError && (
                 <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
                   We can’t create an account with that email. Please{" "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/login")}>
+                  <Link component="button" underline="hover" sx={{ fontSize: "inherit", verticalAlign: "baseline" }} onClick={() => navigate("/login")}>
                     Sign in
                   </Link>
                   {" or "}
-                  <Link component="button" underline="hover" onClick={() => navigate("/reset-password")}>
+                  <Link component="button" underline="hover" sx={{ fontSize: "inherit", verticalAlign: "baseline" }} onClick={() => navigate("/reset-password")}>
                     reset your password
                   </Link>
                   .
@@ -308,7 +371,8 @@ export const Register = () => {
               )}
 
 
-
+        {step === 1 && (
+          <>
           <Box display="flex" flexDirection="column" gap={2}>
             <Box display="flex" gap={2}>
               <Box flex={1}>
@@ -402,9 +466,10 @@ export const Register = () => {
               sx={{ mb: 0 }}
             >
               <MenuItem value="">Select institution</MenuItem>
-              <MenuItem value="world-bank-of-canada">World Bank of Canada</MenuItem>
-              <MenuItem value="td-bank">TD Bank</MenuItem>
-              <MenuItem value="bank-of-fdm">Bank of FDM</MenuItem>
+              <MenuItem value="World">World Bank of Canada</MenuItem>
+              <MenuItem value="TD">TD Bank</MenuItem>
+              <MenuItem value="FDM">FDM Bank</MenuItem>
+              <MenuItem value="other">Other</MenuItem>
             </TextField>
 
             <Typography
@@ -536,6 +601,271 @@ export const Register = () => {
                 },
               }}
             />
+
+            {/* STEP 1 BUTTON - Continue (Takes you to Step 2 - Detailed Personal Info)*/}
+            <Button
+              variant="contained"
+              type="button"
+              onClick={handleContinue}
+              sx={{
+                py: 1.2,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+                mb: 2,
+                boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+              }}
+            >
+              Continue →
+            </Button>
+          </Box>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <Box display="flex" gap={2}>
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Social Insurance Number
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={socialInsuranceNumber}
+                  onChange={(e) => setSocialInsuranceNumber(e.target.value)}
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Occupation
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={occupation}
+                  onChange={(e) => setOccupation(e.target.value)}
+                />
+              </Box>
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
+              }}
+            >
+              Government ID Type
+            </Typography>
+            <TextField
+              select
+              fullWidth
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <GovtIDIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                    </InputAdornment>
+                  ),
+                  "data-testid": "governmentIDType-input"
+                },
+
+              }}
+              value={governmentIdType}
+              onChange={(e) => setGovernmentIdType(e.target.value)}
+              placeholder="Select GovernmentID Type"
+              sx={{ mb: 0 }}
+            >
+              <MenuItem value="">Select GovernmentID Type</MenuItem>
+              <MenuItem value="PASSPORT">Passport</MenuItem>
+              <MenuItem value="DRIVER_LICENSE">License</MenuItem>
+              <MenuItem value="PRCARD_NUMBER">Resident Card</MenuItem>
+            </TextField>
+
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
+              }}
+            >
+              Government ID Number
+            </Typography>
+            <TextField
+              type="governmentID Number"
+              value={governmentIdNumber}
+              onChange={(e) => {
+                setGovernmentIdNumber(e.target.value);
+              }}
+            />
+
+            <Box display="flex" gap={2}>
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Date of Birth
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Phone Number
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </Box>
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
+              }}
+            >
+              Address Line 1
+            </Typography>
+            <TextField
+              type="address 1"
+              value={addressLine1}
+              onChange={(e) => {
+                setAddressLine1(e.target.value);
+              }}
+            />
+
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "text.secondary",
+                mb: -1,
+              }}
+            >
+              Address Line 2
+            </Typography>
+            <TextField
+              type="address 2"
+              value={addressLine2}
+              onChange={(e) => {
+                setAddressLine2(e.target.value);
+              }}
+            />
+
+            <Box display="flex" gap={2}>
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  City
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Province
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value)}
+                />
+              </Box>
+            </Box>
+
+            <Box display="flex" gap={2}>
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Postal Code
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                />
+              </Box>
+
+              <Box flex={1}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "text.secondary",
+                    mb: 1,
+                  }}
+                >
+                  Country
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                />
+              </Box>
+            </Box>
+
             <Typography
               sx={{
                 fontSize: 13,
@@ -551,6 +881,7 @@ export const Register = () => {
               </p>
             </Typography>
 
+            {/* STEP 2 BUTTONS - Create Account and Back(Takes you back to Step 1)*/}
             <Button
               variant="contained"
               type="submit"
@@ -568,7 +899,23 @@ export const Register = () => {
 
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
+            <Button
+              variant="contained"
+              onClick={() => setStep(1)}
+              sx={{
+                alignSelf: "flex-start",
+                mb: 2,
+                textTransform: "none",
+                fontWeight: 600,
+              }}
+            >
+              ← Back
+            </Button>
           </Box>
+          </>
+        )}
+
+
         </Box>
         <Typography
           sx={{

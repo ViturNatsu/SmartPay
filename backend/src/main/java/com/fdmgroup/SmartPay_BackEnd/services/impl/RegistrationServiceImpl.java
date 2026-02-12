@@ -57,8 +57,10 @@ public class RegistrationServiceImpl implements RegistrationService {
             customer.setAddressLine2(userDto.getCustomer().getAddressLine2());
             customer.setCity(userDto.getCustomer().getCity());
             customer.setProvince(userDto.getCustomer().getProvince());
+            customer.setCountry(userDto.getCustomer().getCountry());
             customer.setPostalCode(userDto.getCustomer().getPostalCode());
             customer.setPhoneNumber(userDto.getCustomer().getPhoneNumber());
+            customer.setDob(userDto.getCustomer().getDob());
             customer.setSocialInsuranceNumber(userDto.getCustomer().getSocialInsuranceNumber());
             customer.setGovernmentIdType(GovernmentIdType.valueOf(userDto.getCustomer().getGovernmentIdType()));
             customer.setGovernmentIdNumber(userDto.getCustomer().getGovernmentIdNumber());

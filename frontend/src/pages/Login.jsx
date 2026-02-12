@@ -240,9 +240,10 @@ export const Login = () => {
                 sx={{ mb: 2 }}
               >
                 <MenuItem value="">Select institution</MenuItem>
-                <MenuItem value="world-bank-of-canada">World Bank of Canada</MenuItem>
-                <MenuItem value="td-bank">TD Bank</MenuItem>
-                <MenuItem value="bank-of-fdm">Bank of FDM</MenuItem>
+                <MenuItem value="World">World Bank of Canada</MenuItem>
+                <MenuItem value="TD">TD Bank</MenuItem>
+                <MenuItem value="FDM">FDM Bank</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
               </TextField>
 
               {/* Email */}
