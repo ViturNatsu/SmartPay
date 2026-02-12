@@ -28,11 +28,13 @@ public class CustomerServiceImpl implements CustomerService {
         return CustomerDTO.builder()
                 .firstName(customer.getFirstName())
                 .lastName(customer.getLastName())
+                .dob(customer.getDob())
                 .addressLine1(customer.getAddressLine1())
                 .addressLine2(customer.getAddressLine2())
                 .city(customer.getCity())
                 .province(customer.getProvince())
                 .postalCode(customer.getPostalCode())
+                .country(customer.getCountry())
                 .phoneNumber(customer.getPhoneNumber())
                 .socialInsuranceNumber(
                         MaskingUtil.maskSin(customer.getSocialInsuranceNumber()))
