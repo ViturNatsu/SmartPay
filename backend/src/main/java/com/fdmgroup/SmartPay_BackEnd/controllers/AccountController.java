@@ -1,9 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.net.URI;
 import java.util.List;
 

@@ -1,7 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl.account;
 
 import java.util.List;
-import javax.security.auth.login.AccountNotFoundException;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
@@ -39,7 +39,7 @@ public class AccountServiceImpl implements AccountService{
         newAccount.setAccountName(account.getAccountName());
         newAccount.setBalance(account.getBalance());
         newAccount.setUser(user);
-        // user.addAccount(newAccount);
+        user.getAccounts().add(newAccount);
 
         return accountRepository.save(newAccount);
     }
