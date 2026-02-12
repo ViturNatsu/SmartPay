@@ -48,6 +48,18 @@ export const Register = () => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [institutionError, setInstitutionError] = useState(false);
+
+  const [firstNameErrorMessage, setFirstNameErrorMessage] = useState("");
+  const [lastNameErrorMessage, setLastNameErrorMessage] = useState("");
+  const [institutionErrorMessage, setInstitutionErrorMessage] = useState("");
+
+  const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   const bulletContainerSx = {
     display: "flex",
@@ -96,6 +108,23 @@ export const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setErrorMessage("");
+    setDuplicateEmailError(false);
+
+    setFirstNameError(false);
+    setLastNameError(false);
+    setInstitutionError(false);
+    setEmailError(false);
+    setPasswordError(false);
+    setConfirmPasswordError(false);
+
+    setFirstNameErrorMessage("");
+    setLastNameErrorMessage("");
+    setInstitutionErrorMessage("");
+    setEmailErrorMessage("");
+    setPasswordErrorMessage("");
+
+    setApiErrorMessage("");
     const errors = [];
     let firstInvalidRef = null;
 
@@ -120,12 +149,37 @@ export const Register = () => {
       setEmailErrorMessage("");
     }
 
+    if (!firstName.trim()) {
+      setFirstNameError(true);
+      setFirstNameErrorMessage("First name is required.");
+      errors.push("First name is required.");
+    } else {
+      setFirstNameError(false);
+      setFirstNameErrorMessage("");
+    }
+    if (!lastName.trim()) {
+      setLastNameError(true);
+      setLastNameErrorMessage("Last name is required.");
+      errors.push("Last name is required.");
+    } else {
+      setLastNameError(false);
+      setLastNameErrorMessage("");
+    }
+    if (!institution) {
+      setInstitutionError(true);
+      setInstitutionErrorMessage("Please select a financial institution.");
+      errors.push("Financial institution is required.");
+    } else {
+      setInstitutionError(false);
+      setInstitutionErrorMessage("");
+    }
+
     let isEmailInvalid = !emailRegex.test(email) || !email;
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
 
     if (isConfirmInvalid) {
-      setPasswordError(true);
+      setConfirmPasswordError(true);
       setPasswordErrorMessage("Passwords must match.");
       setErrorMessage(
         "We can't process your request right now because you have errors that need to be fixed",
@@ -151,8 +205,6 @@ export const Register = () => {
 
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-<<<<<<< HEAD
-=======
 
     if (errors.length > 0) {
       setFormError(errors);
@@ -162,7 +214,6 @@ export const Register = () => {
       return;
     }
 
->>>>>>> 91f5fac (Restoring register page commit 58b50f83)
     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
       return;
     }
@@ -195,17 +246,18 @@ export const Register = () => {
       const status = error.status;
 
       if (status === 429) {
-        setErrorMessage(
+        setApiErrorMessage(
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
         setDuplicateEmailError(true);
+        setApiErrorMessage("That email is already in use.");
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
           data?.message ||
           "Registration failed. Please try again.";
-        setErrorMessage(message);
+        setApiErrorMessage(message);
       }
 
       console.error(`error: ${error.data.message}`);
@@ -330,270 +382,8 @@ export const Register = () => {
           </Box>
         </Box>
       </Box>
-<<<<<<< HEAD
-      <Grid
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          px: { xs: 3, md: 8 },
-          py: { xs: 6, md: 0 },
-        }}
-      >
-        <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Create Your Account
-          </Typography>
-          <Typography sx={{ color: "text.secondary", mb: 3 }}>
-            Sign up to start managing your finances with SmartPay
-          </Typography>
-
-          {errorMessage && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {errorMessage}
-            </Alert>
-          )}
-          {duplicateEmailError && (
-            <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
-              We can’t create an account with that email. Please{" "}
-              <Link
-                component="button"
-                underline="hover"
-                onClick={() => navigate("/login")}
-              >
-                Sign in
-              </Link>
-              {" or "}
-              <Link
-                component="button"
-                underline="hover"
-                onClick={() => navigate("/reset-password")}
-              >
-                reset your password
-              </Link>
-              .
-            </Box>
-          )}
-
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Box display="flex" gap={2}>
-              <Box flex={1}>
-                <TextField
-                  id="firstName"
-                  label="First Name"
-                  fullWidth
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                          />
-                        </InputAdornment>
-                      ),
-                      "data-testid": "first-name-input",
-                    },
-                  }}
-                />
-              </Box>
-
-              <Box flex={1}>
-                <TextField
-                  id="lastName"
-                  label="Last Name"
-                  fullWidth
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                          />
-                        </InputAdornment>
-                      ),
-                      "data-testid": "last-name-input",
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <TextField
-              id="financialInstitution"
-              label="Financial Institution"
-              select
-              fullWidth
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  "data-testid": "institution-input",
-                },
-              }}
-              value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
-              placeholder="Select institution"
-              sx={{ mb: 0 }}
-            >
-              <MenuItem value="">Select institution</MenuItem>
-              <MenuItem value="chase">Chase</MenuItem>
-              <MenuItem value="boa">Bank of America</MenuItem>
-              <MenuItem value="wells">Wells Fargo</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </TextField>
-
-            <TextField
-              id="emailAddress"
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrorMessage("");
-                setDuplicateEmailError(false);
-              }}
-              error={emailError}
-              helperText={emailError ? "Must use proper email format" : ""}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  "data-testid": "email-input",
-                },
-              }}
-            />
-
-            <TextField
-              id="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={passwordError}
-              helperText={
-                "Must be at least 8 characters with uppercase, lowercase, numbers, and symbols"
-              }
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        edge="end"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                        sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                      >
-                        {showPassword ? (
-                          <VisibilityOffIcon />
-                        ) : (
-                          <VisibilityIcon />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  "data-testid": "password-input",
-                },
-              }}
-            />
-
-            <TextField
-              id="confirmPassword"
-              label="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              error={confirmPasswordError}
-              helperText={confirmPasswordError ? "Passwords must match" : ""}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        edge="end"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        aria-label={
-                          showConfirmPassword
-                            ? "Hide confirm password"
-                            : "Show confirm password"
-                        }
-                        sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                      >
-                        {showConfirmPassword ? (
-                          <VisibilityOffIcon />
-                        ) : (
-                          <VisibilityIcon />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  "data-testid": "confirm-password-input",
-                },
-              }}
-            />
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: "text.secondary",
-                textAlign: "left",
-                mt: -1,
-                mb: -1,
-              }}
-            >
-              <input type="checkbox" id="terms" required />
-              <label htmlFor="terms">
-                {" "}
-                I agree to the Terms of Service and Privacy Policy
-              </label>
-            </Typography>
-
-            <Button
-              variant="contained"
-              type="submit"
-              disabled={isLoading}
-              sx={{
-                py: 1.2,
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 700,
-                mb: 2,
-                boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
-              }}
-            >
-              {isLoading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </Box>
-        </Box>
-        <Typography
-=======
       <Box display="flex" flexDirection="column" gap={2}>
         <Grid
->>>>>>> 91f5fac (Restoring register page commit 58b50f83)
           sx={{
             flex: 1,
             display: "flex",
@@ -604,14 +394,6 @@ export const Register = () => {
             py: { xs: 6, md: 0 },
           }}
         >
-<<<<<<< HEAD
-          Already have an account?{" "}
-          <Link href="/login" underline="hover" sx={{ fontWeight: 700 }}>
-            Sign in
-          </Link>
-        </Typography>
-      </Grid>
-=======
           <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
               Create Your Account
@@ -672,6 +454,8 @@ export const Register = () => {
                     fullWidth
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    error={firstNameError}
+                    helperText={firstNameErrorMessage}
                     slotProps={{
                       input: {
                         startAdornment: (
@@ -702,6 +486,8 @@ export const Register = () => {
                     fullWidth
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    error={lastNameError}
+                    helperText={lastNameErrorMessage}
                     slotProps={{
                       input: {
                         startAdornment: (
@@ -746,6 +532,8 @@ export const Register = () => {
                 }}
                 value={institution}
                 onChange={(e) => setInstitution(e.target.value)}
+                error={institutionError}
+                helperText={institutionErrorMessage}
                 placeholder="Select institution"
                 sx={{ mb: 0 }}
               >
@@ -934,6 +722,14 @@ export const Register = () => {
               >
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
+              {apiErrorMessage && (
+                <Typography
+                  sx={{ color: "error.main", fontSize: 13, mt: 1 }}
+                  role="alert"
+                >
+                  {apiErrorMessage}
+                </Typography>
+              )}
             </Box>
           </Box>
           <Typography
@@ -950,7 +746,6 @@ export const Register = () => {
           </Typography>
         </Grid>
       </Box>
->>>>>>> 91f5fac (Restoring register page commit 58b50f83)
     </Grid>
   );
 };
