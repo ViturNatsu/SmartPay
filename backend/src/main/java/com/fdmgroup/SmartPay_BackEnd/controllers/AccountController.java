@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.controllers;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +11,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.security.auth.login.AccountNotFoundException;
@@ -38,61 +41,40 @@ public class AccountController {
                     responseCode = "404",
                     description = "User not found with the specified userId.")
     })
-    public ResponseEntity<Account> addAccount(@Valid @RequestBody AccountDto creationDTO)throws UserNotFoundException {
-        Account createdAccount = accountService.addAccount(creationDTO);
+    public ResponseEntity<Account> addAccount(@Valid @RequestBody Account account)throws UserNotFoundException {
+        Account createdAccount = accountService.addAccount(account);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdAccount.getId()).toUri();
         return ResponseEntity.created(location).body(createdAccount);
     }
 
     @GetMapping("/user/{userId}")
-     @Operation(summary = "Retrieve all accounts for a user",
-            description = "Fetch all accounts (checking and savings) associated with the specified user.")
+     @Operation(summary = "Retrieve user accounts",
+            description = "Fetch accounts associated with a user. Can be filtered by type (SAVINGS or CHECKING).")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "List of accounts retrieved successfully.",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "User not found with the specified userId.")
-    })
-    public ResponseEntity<List<Account>> getAllAccounts(@PathVariable Long userId)throws UserNotFoundException{
-        List<Account> allAccounts = accountService.getAllAccounts(userId);
-        return ResponseEntity.ok(allAccounts);
-    }
-
-    @GetMapping("/user/{userId}/savings")
-     @Operation(summary = "Retrieve all savings accounts for a user",
-            description = "Fetch all savings accounts associated with the specified user.")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "List of savings accounts retrieved successfully.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
+                    responseCode = "400",
+                    description = "Invalid account type provided."),
             @ApiResponse(
                     responseCode = "404",
                     description = "User not found with the specified userId.")
     })
-    public ResponseEntity<List<Account>> getAllSavingsAccounts(@PathVariable Long userId)throws UserNotFoundException{
-        List<Account> allSavingsAccounts = accountService.getAllSavingsAccounts(userId);
-        return ResponseEntity.ok(allSavingsAccounts);
-    }
-
-    @GetMapping("/user/{userId}/checking")
-     @Operation(summary = "Retrieve all checking accounts for a user",
-            description = "Fetch all checking accounts associated with the specified user.")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "List of checking accounts retrieved successfully.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "User not found with the specified userId.")
-    })
-    public ResponseEntity<List<Account>> getAllCheckingAccounts(@PathVariable Long userId)throws UserNotFoundException{
-        List<Account> allCheckingAccounts = accountService.getAllCheckingAccounts(userId);
-        return ResponseEntity.ok(allCheckingAccounts);
+    public ResponseEntity<List<Account>> getAllAccounts(@PathVariable Long userId, @RequestParam(required = false) String type)throws UserNotFoundException{
+        List<Account> accounts;
+        if(type != null){
+            try{
+            AccountType accountTypeEnum = AccountType.valueOf(type.toUpperCase());
+            accounts = accountService.getAccountsByUserAndType(userId, accountTypeEnum);}
+            catch (IllegalArgumentException e){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid account type: " + type);
+            }
+        }else{
+            accounts = accountService.getAllAccounts(userId);
+        }
+        return ResponseEntity.ok(accounts);
     }
 
     @GetMapping("/{accountId}")
@@ -140,8 +122,8 @@ public class AccountController {
                     responseCode = "404",
                     description = "Account not found with the specified accountId.")
     })
-    public  ResponseEntity<Account> updateAccount(@PathVariable Long accountId, @Valid @RequestBody AccountDto updateDTO) throws AccountNotFoundException {
-        Account updatedAccount = accountService.updateUserAccount(accountId,updateDTO);
+    public  ResponseEntity<Account> updateAccount(@PathVariable Long accountId, @Valid @RequestBody Account account) throws AccountNotFoundException {
+        Account updatedAccount = accountService.updateUserAccount(accountId,account);
         return ResponseEntity.ok(updatedAccount);
     }
 

@@ -11,9 +11,9 @@ import lombok.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
-public class Account {
+public abstract class Account {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id")
     private Long id;
 
@@ -27,4 +27,6 @@ public class Account {
 	@JoinColumn(name = "fk_user_id")
 	@JsonBackReference
 	private User user;
+
+    public abstract AccountType getType();
 }

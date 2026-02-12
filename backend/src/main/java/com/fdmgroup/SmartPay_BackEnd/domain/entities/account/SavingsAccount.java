@@ -8,5 +8,10 @@ import lombok.*;
 @Getter
 @Setter
 public class SavingsAccount extends Account {
+    @Override
+    public AccountType getType() {
+        return AccountType.SAVINGS;
+    }
+
     // Additional fields specific to savings accounts can be added here
 }

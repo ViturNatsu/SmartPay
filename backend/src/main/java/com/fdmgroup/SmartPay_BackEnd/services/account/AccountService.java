@@ -4,23 +4,21 @@ import java.util.List;
 
 import javax.security.auth.login.AccountNotFoundException;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 
 public interface AccountService {
 
-    Account addAccount(AccountDto accountDTO)throws UserNotFoundException;
+    Account addAccount(Account account)throws UserNotFoundException;
 
     List<Account> getAllAccounts(Long userId) throws UserNotFoundException;
 
-    List<Account> getAllSavingsAccounts(Long userId) throws UserNotFoundException;
-
-    List<Account> getAllCheckingAccounts(Long userId) throws UserNotFoundException;
+    List<Account> getAccountsByUserAndType(Long userId, AccountType type) throws  UserNotFoundException;
 
     Account getAccountById(Long accountId) throws AccountNotFoundException;
 
-    Account updateUserAccount(Long id, AccountDto account) throws AccountNotFoundException;
+    Account updateUserAccount(Long id, Account account) throws AccountNotFoundException;
 
     void deleteAccount(Long id);
 }
