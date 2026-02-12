@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
@@ -163,7 +164,25 @@ class RegistrationTest {
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
+        requestBody.setCustomer(createValidCustomer());
         return buildRegisterRequest(requestBody);
+    }
+
+    private CustomerDTO createValidCustomer() {
+        return CustomerDTO.builder()
+                .addressLine1("123 King Street West")
+                .addressLine2("Unit 10")
+                .city("Toronto")
+                .province("ON")
+                .country("Canada")
+                .postalCode("M5V 3L9")
+                .phoneNumber("+1 416-555-0123")
+                .socialInsuranceNumber("123-456-789")
+                .governmentIdType("PASSPORT")
+                .governmentIdNumber("AB1234567")
+                .occupation("Analyst")
+                .dob("1990-05-01")
+                .build();
     }
 
     private MockHttpServletRequestBuilder buildRegisterRequest(SignUpDTO requestBody) throws JsonProcessingException {
