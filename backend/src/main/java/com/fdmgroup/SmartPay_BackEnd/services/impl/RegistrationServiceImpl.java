@@ -86,7 +86,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .city(userDto.getCustomer().getCity())
                 .province(userDto.getCustomer().getProvince())
                 .postalCode(userDto.getCustomer().getPostalCode())
+                .country(userDto.getCustomer().getCountry())
                 .phoneNumber(userDto.getCustomer().getPhoneNumber())
+                .dob(userDto.getCustomer().getDob())
                 .socialInsuranceNumber(userDto.getCustomer().getSocialInsuranceNumber())
                 .governmentIdType(
                         GovernmentIdType.valueOf(userDto.getCustomer().getGovernmentIdType())
