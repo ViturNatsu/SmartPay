@@ -38,7 +38,7 @@ export const ForgotPassword = () => {
 
     try {
       await requestResetCode({ email, type: "forgot-password" });
-      
+
       navigate(`/verify?email=${encodeURIComponent(email)}&type=forgot-password`, { replace: true });
     } catch (e) {
       if (e.status === 400) setError("Email not sent or in incorrect format");

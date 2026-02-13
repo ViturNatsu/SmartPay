@@ -50,13 +50,15 @@ public class RateLimiterFilterTest {
     @Test
     void test_WhenRateLimitExceeded() throws ServletException, IOException {
         when(servletResponse.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
+
+        int requestAmount = 6;
+        for (int i = 0; i < requestAmount; i++) {
+            filter.doFilter(servletRequest, servletResponse, filterChain);
+        }
 
         verify(servletResponse).setStatus(429);
-        verify(filterChain, times(3))
+
+        verify(filterChain, times(5))
                 .doFilter(servletRequest, servletResponse);
     }
 
@@ -65,10 +67,11 @@ public class RateLimiterFilterTest {
         when(servletResponse.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
 
         // Client 1
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
-        filter.doFilter(servletRequest, servletResponse, filterChain);
+        int requestAmount = 6;
+        for (int i = 0; i < requestAmount; i++) {
+            filter.doFilter(servletRequest, servletResponse, filterChain);
+        }
+
         verify(servletResponse).setStatus(429);
 
         // Client 2
@@ -76,7 +79,7 @@ public class RateLimiterFilterTest {
         filter.doFilter(servletRequest, servletResponse, filterChain);
 
 
-        verify(filterChain, times(4))
+        verify(filterChain, times(6))
                 .doFilter(servletRequest, servletResponse);
     }
 }

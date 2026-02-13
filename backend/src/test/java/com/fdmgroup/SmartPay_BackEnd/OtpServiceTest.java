@@ -21,10 +21,12 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.EmailAlreadyVerifiedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
@@ -180,6 +182,27 @@ public class OtpServiceTest {
 
         // Assert
         assertEquals(HttpStatus.ACCEPTED, status);
+        verify(otpRepository, never()).save(any());
+        verify(emailService, never()).sendSimpleMail(any());
+    }
+
+    @Test
+    @DisplayName("Should return CONFLICT for REGISTER event and not generate OTP when user email is already verified")
+    void testRequestOtp_whenUserAlreadyVerified_returnsConflict() {
+        // Arrange
+        String email = "verified@example.com";
+        User verifiedUser = User.builder()
+                .email(email)
+                .emailVerified(true)
+                .build();
+        when(userService.findByEmail(email)).thenReturn(verifiedUser);
+
+        // Act
+        assertThrows(EmailAlreadyVerifiedException.class, () -> {
+            otpService.requestOtp(email, EventType.REGISTER, httpServletRequest);
+        });
+
+        // Assert
         verify(otpRepository, never()).save(any());
         verify(emailService, never()).sendSimpleMail(any());
     }
@@ -355,7 +378,7 @@ public class OtpServiceTest {
     @DisplayName("Should verify OTP with exactly 4 attempts (boundary test)")
     void testVerifyOtp_BoundaryAttempts_Four() {
         // Arrange
-        otp.setAttemptsMade(4); // Just below max
+        otp.setAttemptsMade(4);
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act

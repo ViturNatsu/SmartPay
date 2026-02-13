@@ -35,7 +35,7 @@ export const Login = () => {
   const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(
     location?.state?.signoutReason === "inactivity",
   );
-  
+
 
   const navigate = useNavigate();
 
@@ -47,19 +47,19 @@ export const Login = () => {
   const validateEmail = (isSubmit = false) => {
     const trimmed = email.trim();
 
-    if(!trimmed){ // clicking sign in with empty email
-      setEmailError( isSubmit ? EMAIL_REQUIRED_MSG : EMAIL_INVALID_MSG);
+    if (!trimmed) { // clicking sign in with empty email
+      setEmailError(isSubmit ? EMAIL_REQUIRED_MSG : EMAIL_INVALID_MSG);
       return false;
     }
-    if(!isValidEmail(trimmed)){ 
-      setEmailError( EMAIL_INVALID_MSG);
+    if (!isValidEmail(trimmed)) {
+      setEmailError(EMAIL_INVALID_MSG);
       return false;
-    } 
+    }
 
     setEmailError("");
     return true;
   };
-  
+
   const validatePassword = () => {
     if (!password) {
       setPasswordError("Password is required. Can't be left blank.");
@@ -79,25 +79,26 @@ export const Login = () => {
       setErrorMsg("Please enter your email and password.");
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       await login({ email, password });
       navigate(`/verify?email=${encodeURIComponent(email)}&type=login`, { replace: true });
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
       const url = err?.config?.url ?? err?.response?.config?.url ?? "";
-  
-      {/* displays login err message over refresh error msg */}
+
+      {/* displays login err message over refresh error msg */ }
       if (url.includes("/api/v1/auth/refresh")) {
         if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
         return;
       }
-  
+
       if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
-      else if (status === 403)
-        setErrorMsg("Your email address is not verified. Please check your inbox and verify your email to continue.");
+      else if (status === 403) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
+      }
       else if (status === 429)
         setErrorMsg("Your account is locked due to multiple failed attempts. Please reset password or try later.");
       else setErrorMsg(err?.message || "Network error. Please try again.");
@@ -263,7 +264,7 @@ export const Login = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (emailError) setEmailError(""); 
+                  if (emailError) setEmailError("");
                 }}
                 onBlur={validateEmail}
                 error={Boolean(emailError)}
@@ -316,7 +317,7 @@ export const Login = () => {
 
               <TextField
                 fullWidth
-               
+
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => {
