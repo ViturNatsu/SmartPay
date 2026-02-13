@@ -174,7 +174,6 @@ export const Register = () => {
       setInstitutionErrorMessage("");
     }
 
-    let isEmailInvalid = !emailRegex.test(email) || !email;
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
 
