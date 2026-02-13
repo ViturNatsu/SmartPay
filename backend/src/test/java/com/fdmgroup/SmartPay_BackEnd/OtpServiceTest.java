@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -16,21 +17,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.EmailAlreadyVerifiedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
 import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 import com.fdmgroup.SmartPay_BackEnd.services.impl.OtpServiceImpl;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootTest
 public class OtpServiceTest {
@@ -43,6 +49,12 @@ public class OtpServiceTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private AuditService auditService;
+
+    @MockitoBean
+    private HttpServletRequest httpServletRequest;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -54,20 +66,20 @@ public class OtpServiceTest {
 
     @BeforeEach
     void setUp() {
-        otpService = new OtpServiceImpl(otpRepository, userService, passwordEncoder, emailService);
+        otpService = new OtpServiceImpl(otpRepository, userService, passwordEncoder, auditService, emailService);
 
         // Initialize test data
         String testEmail = "test@example.com";
         String testCode = "1234567";
         String hashedCode = passwordEncoder.encode(testCode);
 
-        otpDTO = new OtpDTO(testEmail, testCode, OtpType.FORGOT_PASSWORD);
+        otpDTO = new OtpDTO(testEmail, testCode, EventType.FORGOT_PASSWORD);
 
         otp = Otp.builder()
                 .email(testEmail)
                 .otpHash(hashedCode)
                 .status(OtpStatus.ACTIVE)
-                .otpType(OtpType.FORGOT_PASSWORD)
+                .otpType(EventType.FORGOT_PASSWORD)
                 .attemptsMade(1)
                 .firstRequestAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(45))
@@ -82,7 +94,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.empty());
 
         // Act
-        otpService.requestOtp(otp.getEmail(), OtpType.FORGOT_PASSWORD);
+        otpService.requestOtp(otp.getEmail(), EventType.FORGOT_PASSWORD, httpServletRequest);
 
         // Assert
         ArgumentCaptor<Otp> otpCaptor = ArgumentCaptor.forClass(Otp.class);
@@ -111,7 +123,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        otpService.requestOtp(otp.getEmail(), OtpType.FORGOT_PASSWORD);
+        otpService.requestOtp(otp.getEmail(), EventType.FORGOT_PASSWORD, httpServletRequest);
 
         // Assert
         ArgumentCaptor<Otp> otpCaptor = ArgumentCaptor.forClass(Otp.class);
@@ -139,7 +151,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        otpService.requestOtp(otp.getEmail(), OtpType.FORGOT_PASSWORD);
+        otpService.requestOtp(otp.getEmail(), EventType.FORGOT_PASSWORD, httpServletRequest);
 
         // Assert
         ArgumentCaptor<Otp> otpCaptor = ArgumentCaptor.forClass(Otp.class);
@@ -166,10 +178,31 @@ public class OtpServiceTest {
         when(userService.findByEmail(email)).thenThrow(new UserNotFoundException("User not found"));
 
         // Act
-        HttpStatus status = otpService.requestOtp(email, OtpType.FORGOT_PASSWORD);
+        HttpStatus status = otpService.requestOtp(email, EventType.FORGOT_PASSWORD, httpServletRequest);
 
         // Assert
         assertEquals(HttpStatus.ACCEPTED, status);
+        verify(otpRepository, never()).save(any());
+        verify(emailService, never()).sendSimpleMail(any());
+    }
+
+    @Test
+    @DisplayName("Should return CONFLICT for REGISTER event and not generate OTP when user email is already verified")
+    void testRequestOtp_whenUserAlreadyVerified_returnsConflict() {
+        // Arrange
+        String email = "verified@example.com";
+        User verifiedUser = User.builder()
+                .email(email)
+                .emailVerified(true)
+                .build();
+        when(userService.findByEmail(email)).thenReturn(verifiedUser);
+
+        // Act
+        assertThrows(EmailAlreadyVerifiedException.class, () -> {
+            otpService.requestOtp(email, EventType.REGISTER, httpServletRequest);
+        });
+
+        // Assert
         verify(otpRepository, never()).save(any());
         verify(emailService, never()).sendSimpleMail(any());
     }
@@ -187,7 +220,7 @@ public class OtpServiceTest {
 
         // Act & Assert
         assertThrows(AccountLockedException.class, () -> {
-            otpService.requestOtp(otp.getEmail(), otp.getOtpType());
+            otpService.requestOtp(otp.getEmail(), otp.getOtpType(), httpServletRequest);
         });
 
         verify(emailService, never()).sendSimpleMail(any());
@@ -206,7 +239,7 @@ public class OtpServiceTest {
 
         // Act & Assert
         assertThrows(AccountLockedException.class, () -> {
-            otpService.requestOtp(otp.getEmail(), otp.getOtpType());
+            otpService.requestOtp(otp.getEmail(), otp.getOtpType(), httpServletRequest);
         });
 
         // Capture the save call that happened BEFORE the exception
@@ -225,7 +258,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
@@ -243,7 +276,7 @@ public class OtpServiceTest {
 
         // Act & Assert
         EmailNotFoundException exception = assertThrows(EmailNotFoundException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw EmailNotFoundException when email not found");
 
         assertEquals("No OTP found for the provided email address.", exception.getMessage());
@@ -260,7 +293,7 @@ public class OtpServiceTest {
         // Act & Assert
         assertFalse(passwordEncoder.matches(otpDTO.getCode(), otp.getOtpHash()));
         AccessCodeMismatchException exception = assertThrows(AccessCodeMismatchException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw AccessCodeMismatchException when code is invalid");
 
         assertEquals("This code is invalid. Please verify the code and try again.", exception.getMessage());
@@ -278,7 +311,7 @@ public class OtpServiceTest {
         assertTrue(passwordEncoder.matches(otpDTO.getCode(), otp.getOtpHash()));
         assertTrue(otp.isExpired());
         AccessCodeExpiredException exception = assertThrows(AccessCodeExpiredException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw AccessCodeExpiredException when OTP has expired");
 
         assertEquals("This code has expired or has already been used. Please request a new code",
@@ -297,7 +330,7 @@ public class OtpServiceTest {
         assertTrue(passwordEncoder.matches(otpDTO.getCode(), otp.getOtpHash()));
         assertTrue(otp.isUsed());
         AccessCodeUsedException exception = assertThrows(AccessCodeUsedException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw AccessCodeUsedException when code has been used");
 
         assertEquals("This code has expired or has already been used. Please request a new code",
@@ -314,7 +347,7 @@ public class OtpServiceTest {
 
         // Act & Assert
         AccountLockedException exception = assertThrows(AccountLockedException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw AccountLockedException when attempts >= 5");
 
         assertEquals(
@@ -332,7 +365,7 @@ public class OtpServiceTest {
 
         // Act & Assert
         AccountLockedException exception = assertThrows(AccountLockedException.class,
-                () -> otpService.verifyOtp(otpDTO),
+                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
                 "Should throw AccountLockedException when attempts > 5");
 
         assertEquals(
@@ -345,11 +378,11 @@ public class OtpServiceTest {
     @DisplayName("Should verify OTP with exactly 4 attempts (boundary test)")
     void testVerifyOtp_BoundaryAttempts_Four() {
         // Arrange
-        otp.setAttemptsMade(4); // Just below max
+        otp.setAttemptsMade(4);
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
@@ -364,7 +397,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
@@ -379,7 +412,7 @@ public class OtpServiceTest {
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
@@ -391,11 +424,11 @@ public class OtpServiceTest {
     @DisplayName("Should verify OTP not yet expired (boundary test)")
     void testVerifyOtp_NotExpiredBoundary() {
         // Arrange
-        otp.setExpiresAt(LocalDateTime.now().plusSeconds(1));
+        otp.setExpiresAt(LocalDateTime.now().plusSeconds(2));
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
@@ -408,15 +441,15 @@ public class OtpServiceTest {
     @DisplayName("Should verify OTP with correct email type matching")
     void testVerifyOtp_CorrectOtpType() {
         // Arrange
-        otp.setOtpType(OtpType.FORGOT_PASSWORD);
+        otp.setOtpType(EventType.FORGOT_PASSWORD);
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act
-        Otp result = otpService.verifyOtp(otpDTO);
+        Otp result = otpService.verifyOtp(otpDTO, httpServletRequest);
 
         // Assert
         assertNotNull(result);
-        assertEquals(OtpType.FORGOT_PASSWORD, result.getOtpType());
+        assertEquals(EventType.FORGOT_PASSWORD, result.getOtpType());
     }
 
 }

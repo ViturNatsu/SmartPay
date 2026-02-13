@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
 import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
@@ -20,6 +20,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -38,19 +39,19 @@ public class RegistrationController {
             @ApiResponse(responseCode = "409", description = "User email already exists, cannot create an account with a duplicate email")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User creation payload", required = true)
-    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody SignUpDTO userDto) {
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody SignUpDTO userDto,
+            HttpServletRequest httpRequest) {
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
             throw new IllegalArgumentException("Password and confirm password do not match");
         }
         User user = registrationService.register(userDto);
-        otpService.requestOtp(user.getEmail(), OtpType.REGISTER);
+        otpService.requestOtp(user.getEmail(), EventType.REGISTER, httpRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "id", user.getId(),
                         "email", user.getEmail(),
-                        "otpSent", true
-                ));
+                        "otpSent", true));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
@@ -59,4 +60,3 @@ public class RegistrationController {
                 .body(Map.of("message", "Please sign in, or reset your password if you already have an account."));
     }
 }
-

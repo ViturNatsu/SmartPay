@@ -163,7 +163,7 @@ describe('Session Acceptance', () => {
     // Note: Safe message for logout not implemented in UI; recommend adding.
   });
 
-  it('Logout: blocks protected access via direct URL, refresh, and back navigation', async () => {
+  it('Logout from user: blocks protected access via direct URL, refresh, and back navigation', async () => {
     addValidRefreshToken();
     setAccessToken('ACCESS');
 
@@ -191,6 +191,42 @@ describe('Session Acceptance', () => {
     await act(async () => vi.advanceTimersByTime(1));
     expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
     expect(screen.queryByTestId('protected')).toBeNull();
+  });
+
+  it('Logout from inactivity: blocks protected access via direct URL, refresh, and back navigation', async () => {
+    addValidRefreshToken();
+    setAccessToken('ACCESS');
+
+    const { rerender } = render(<AppHarness initialEntries={["/app"]} />);
+
+    // bootstrap auth and start session monitoring
+    await act(async () => {
+      // let AuthProvider bootstrap and session manager initialize timers
+      vi.advanceTimersByTime(1);
+    });
+
+    // Advance timers past inactivity limit (15 minutes)
+    await act(async () => {
+      vi.advanceTimersByTime(15 * 60 * 1000 + 5);
+    });
+
+    //
+    // Direct URL access attempt after logout
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Refresh-like re-render (same URL)
+    rerender(<AppHarness initialEntries={["/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId('protected')).toBeNull();
+
+    // Simulate back navigation: history has login then back to /app
+    rerender(<AppHarness initialEntries={["/login", "/app"]} />);
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
+    expect(screen.queryByTestId('protected')).toBeNull();
+
   });
 
   it('Logout: API requests after logout are rejected with 401', async () => {

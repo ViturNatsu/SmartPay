@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class RequestCounter {
 
     private static final Logger LOGGER = Logger.getLogger(RequestCounter.class.getName());
-    private static final int MAX_REQUESTS_PER_MINUTE = 3;
+    private static final int MAX_REQUESTS_PER_MINUTE = 5;
     private final Map<String, AtomicInteger> requestCounts = new ConcurrentHashMap<>();
 
     public boolean requestAllowed(String clientIp) {

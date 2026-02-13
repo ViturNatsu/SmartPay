@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen,  waitFor } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import '@testing-library/jest-dom/vitest';
+import "@testing-library/jest-dom/vitest";
 import { BrowserRouter } from "react-router-dom";
 import { Register } from "./Register";
 import * as authApi from "../api/authApi";
@@ -27,86 +27,132 @@ const renderRegister = () => {
   return render(
     <BrowserRouter>
       <Register />
-    </BrowserRouter>
+    </BrowserRouter>,
   );
 };
 
-describe("Register Component", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+// DOM Queries
+const getFirstNameInput = () =>
+  screen.getByRole("textbox", { name: /first name/i });
+
+const getLastNameInput = () =>
+  screen.getByRole("textbox", { name: /last name/i });
+
+const getInstitutionInput = () =>
+  screen.getByRole("combobox", { name: /institution/i });
+
+const getChaseOption = () => screen.getByRole("option", { name: /chase/i });
+
+const getEmailInput = () => screen.getByRole("textbox", { name: /email/i });
+
+const getPasswordInput = () => screen.getByLabelText(/^password$/i);
+
+const getShowPassword = () =>
+  screen.getByRole("button", { name: /^show password$/i });
+
+const getConfirmPasswordInput = () =>
+  screen.getByLabelText(/^confirm password$/i);
+
+const getShowConfirmPassword = () =>
+  screen.getByRole("button", { name: /^show confirm password$/i });
+
+const getAgreeCheckbox = () => screen.getByRole("checkbox", { name: /agree/i });
+
+const getSubmitButton = () =>
+  screen.getByRole("button", {
+    name: /creat.* account/i,
   });
 
+const getSignInLink = () => screen.getByRole("button", { name: /sign in/i });
 
+const getResetPasswordLink = () =>
+  screen.getByRole("button", {
+    name: /reset your password/i,
+  });
 
+const getCannotProcessRequestMessage = () =>
+  screen.findByText(/We can.*t process your request right now/i);
 
+const getInvalidPasswordMessage = () =>
+  screen.findByText(/must be at least .* characters with uppercase.* symbol/i);
+
+const getEmailAlreadyExistsMessage = () =>
+  screen.findByText(/we can.*t create an account with that email/i);
+
+const getServerErrorMessage = () => screen.findByText(/server error/i);
+
+// API mocks
+const registerWillReturnSuccess = () =>
+  authApi.register.mockResolvedValueOnce({ success: true });
+
+const registerWillReturnTooManyRequests = () =>
+  authApi.register.mockRejectedValueOnce({
+    status: 429,
+    data: { message: "Too many requests" },
+  });
+
+const registerWillReturnEmailAlreadyExists = () =>
+  authApi.register.mockRejectedValueOnce({
+    status: 409,
+    data: { message: "Email already exists" },
+  });
+
+const registerWillReturnServerError = () =>
+  authApi.register.mockRejectedValueOnce({
+    status: 500,
+    data: { message: "Server error" },
+  });
+
+// reusable actions
+const fillValidForm = async (user) => {
+  await user.type(getFirstNameInput(), "John");
+  await user.type(getLastNameInput(), "Doe");
+  await user.type(getEmailInput(), "john.doe@example.com");
+  await user.click(getInstitutionInput());
+  await user.click(getChaseOption());
+  await user.type(getPasswordInput(), "ValidPass1!");
+  await user.type(getConfirmPasswordInput(), "ValidPass1!");
+  await user.click(getAgreeCheckbox());
+};
+
+// tests
+describe("Register Component", () => {
   describe("Form Validation", () => {
-    
-
     it("shows error for invalid password format", async () => {
       const user = userEvent.setup();
       renderRegister();
 
-      const emailInput = document.querySelector('input[type="email"]');
-      await user.type(emailInput, "test@test.com");
+      await user.type(getFirstNameInput(), "John");
+      await user.type(getLastNameInput(), "Doe");
+      await user.type(getEmailInput(), "john.doe@example.com");
+      await user.click(getInstitutionInput());
+      await user.click(getChaseOption());
+      await user.type(getPasswordInput(), "invalid");
+      await user.type(getConfirmPasswordInput(), "invalid");
+      await user.click(getAgreeCheckbox());
+      await user.click(getSubmitButton());
 
-      const passwordInput = document.querySelectorAll('input[type="password"]')[0];
-      await user.type(passwordInput, "badpassword");
-
-      const confirmPasswordInput = document.querySelectorAll('input[type="password"]')[1];
-      await user.type(confirmPasswordInput, "badpassword");
-
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
-
-      
-      expect(
-        screen.getByText(/Must be at least 8 characters with uppercase, lowercase, numbers, and symbols/i)
-      ).toBeInTheDocument();
+      expect(await getInvalidPasswordMessage()).toBeInTheDocument();
     });
-
-    
 
     it("does not submit form when validation fails", async () => {
       const user = userEvent.setup();
       renderRegister();
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
+      await user.click(getSubmitButton());
 
       expect(authApi.register).not.toHaveBeenCalled();
     });
   });
 
   describe("Form Submission", () => {
-    const fillValidForm = async (user) => {
-      const textboxes = screen.getAllByRole("textbox");
-      await user.type(textboxes[0], "John");
-      await user.type(textboxes[1], "Doe");
-
-      const emailInput = document.querySelector('input[type="email"]');
-      await user.type(emailInput, "john.doe@example.com");
-
-      const selectButton = screen.getByRole("combobox");
-      await user.click(selectButton);
-      await user.click(screen.getByText("Chase"));
-
-      const passwordInputs = document.querySelectorAll('input[type="password"]');
-      await user.type(passwordInputs[0], "ValidPass1!");
-      await user.type(passwordInputs[1], "ValidPass1!");
-
-      const checkbox = screen.getByRole("checkbox");
-      await user.click(checkbox);
-    };
-
     it("submits form with valid data", async () => {
       const user = userEvent.setup();
-      authApi.register.mockResolvedValueOnce({ success: true });
+      registerWillReturnSuccess();
       renderRegister();
 
       await fillValidForm(user);
-
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
+      await user.click(getSubmitButton());
 
       await waitFor(() => {
         expect(authApi.register).toHaveBeenCalledWith({
@@ -123,167 +169,95 @@ describe("Register Component", () => {
     it("shows loading state during submission", async () => {
       const user = userEvent.setup();
       authApi.register.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100))
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
       renderRegister();
+      const submitButton = getSubmitButton();
 
       await fillValidForm(user);
-
-      const submitButton = screen.getByRole("button", { name: /create account/i });
       await user.click(submitButton);
 
-      expect(screen.getByRole("button", { name: /creating account/i })).toBeDisabled();
+      expect(submitButton).toBeDisabled();
     });
-
-    
-
-    
   });
 
   describe("Error Handling", () => {
-    const fillValidForm = async (user) => {
-      const textboxes = screen.getAllByRole("textbox");
-      await user.type(textboxes[0], "John");
-      await user.type(textboxes[1], "Doe");
-
-      const emailInput = document.querySelector('input[type="email"]');
-      await user.type(emailInput, "john.doe@example.com");
-
-      const passwordInputs = document.querySelectorAll('input[type="password"]');
-      await user.type(passwordInputs[0], "ValidPass1!");
-      await user.type(passwordInputs[1], "ValidPass1!");
-
-      const checkbox = screen.getByRole("checkbox");
-      await user.click(checkbox);
-    };
-
     it("shows rate limit error for 429 status", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 429,
-        data: { message: "Too many requests" },
-      });
+      registerWillReturnTooManyRequests();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/We can't process your request right now/i)
-        ).toBeInTheDocument();
-      });
+      expect(await getCannotProcessRequestMessage()).toBeInTheDocument();
     });
 
     it("shows duplicate email error for 409 status", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 409,
-        data: { message: "Email already exists" },
-      });
+      registerWillReturnEmailAlreadyExists();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
-
-            await waitFor(() => {
-  const alert = screen.getByRole("alert");
-  expect(alert).toHaveTextContent(/We can’t create an account with that email. Please Sign in or reset your password/);
-      });
+      expect(await getEmailAlreadyExistsMessage()).toBeInTheDocument();
     });
 
     it("shows generic error message for other errors", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 500,
-        data: { message: "Server error" },
-      });
+      registerWillReturnServerError();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Server error")).toBeInTheDocument();
-      });
+      expect(await getServerErrorMessage()).toBeInTheDocument();
     });
 
     it("clears duplicate email error when email is changed", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 409,
-        data: { message: "Email already exists" },
-      });
+      registerWillReturnEmailAlreadyExists();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
+      const errorMessage = await getEmailAlreadyExistsMessage();
 
-      await waitFor(() => {
-  const alert = screen.getByRole("alert");
-  expect(alert).toHaveTextContent(/We can’t create an account with that email. Please Sign in or reset your password/);
-      });
+      expect(errorMessage).toBeInTheDocument();
 
-      const emailInput = document.querySelector('input[type="email"]');
-      await user.type(emailInput, "new");
+      await user.type(getEmailInput(), "new");
 
-      expect(
-        screen.queryByText(/We can't create an account with that email/i)
-      ).not.toBeInTheDocument();
+      expect(errorMessage).not.toBeInTheDocument();
     });
 
     it("navigates to login when clicking sign in link in duplicate email error", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 409,
-        data: { message: "Email already exists" },
-      });
+      registerWillReturnEmailAlreadyExists();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
+      expect(await getEmailAlreadyExistsMessage()).toBeInTheDocument();
 
-      await waitFor(() => {
-  const alert = screen.getByRole("alert");
-  expect(alert).toHaveTextContent(/We can’t create an account with that email. Please Sign in or reset your password/);
-      });
-
-      const signInLink = screen.getByRole("button", { name: /sign in/i });
-      await user.click(signInLink);
+      await user.click(getSignInLink());
 
       expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
 
     it("navigates to reset password when clicking reset link in duplicate email error", async () => {
       const user = userEvent.setup();
-      authApi.register.mockRejectedValueOnce({
-        status: 409,
-        data: { message: "Email already exists" },
-      });
+      registerWillReturnEmailAlreadyExists();
       renderRegister();
 
       await fillValidForm(user);
+      await user.click(getSubmitButton());
 
-      const submitButton = screen.getByRole("button", { name: /create account/i });
-      await user.click(submitButton);
+      expect(await getEmailAlreadyExistsMessage()).toBeInTheDocument();
 
-      await waitFor(() => {
-  const alert = screen.getByRole("alert");
-  expect(alert).toHaveTextContent(/We can’t create an account with that email. Please Sign in or reset your password/);
-      });
-
-      const resetLink = screen.getByRole("button", { name: /reset your password/i });
-      await user.click(resetLink);
+      await user.click(await getResetPasswordLink());
 
       expect(mockNavigate).toHaveBeenCalledWith("/reset-password");
     });
@@ -293,36 +267,31 @@ describe("Register Component", () => {
     it("toggles password visibility when clicking the eye icon", async () => {
       const user = userEvent.setup();
       renderRegister();
+      const passwordInput = getPasswordInput();
+      const toggleButton = getShowPassword();
 
-      const passwordWrapper = screen.getByTestId("password-input");
-      const passwordInput = passwordWrapper.querySelector("input");
+      expect(getPasswordInput()).toHaveAttribute("type", "password");
 
-      expect(passwordInput).toHaveAttribute("type", "password");
+      await user.click(toggleButton);
 
-      const toggleButtons = screen.getAllByRole("button", { name: /show password/i });
-      await user.click(toggleButtons[0]);
       expect(passwordInput).toHaveAttribute("type", "text");
 
-      await user.click(toggleButtons[0]);
+      await user.click(toggleButton);
+
       expect(passwordInput).toHaveAttribute("type", "password");
     });
 
     it("toggles confirm password visibility independently", async () => {
       const user = userEvent.setup();
       renderRegister();
-
-      const confirmPasswordWrapper = screen.getByTestId("confirm-password-input");
-      const confirmPasswordInput = confirmPasswordWrapper.querySelector("input");
-      
-      const toggleButtons = screen.getAllByRole("button", { name: /show password/i });
+      const confirmPasswordInput = getConfirmPasswordInput();
+      const toggleButton = getShowConfirmPassword();
 
       expect(confirmPasswordInput).toHaveAttribute("type", "password");
 
-      await user.click(toggleButtons[1]);
+      await user.click(toggleButton);
+
       expect(confirmPasswordInput).toHaveAttribute("type", "text");
     });
   });
-
-
-}
-)
+});
