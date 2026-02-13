@@ -214,9 +214,6 @@ export const Register = () => {
       return;
     }
 
-    if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
-      return;
-    }
     setErrorMessage("");
 
     setIsLoading(true);
