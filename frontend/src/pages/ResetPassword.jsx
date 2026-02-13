@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { resetPassword } from "../api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import logo from "../assets/logo.png";
+import { SmartPayBanner } from "../components/SmartPayBanner";
 
 export const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -65,60 +65,8 @@ export const ResetPassword = () => {
         fontFamily: "'Inter', sans-serif",
       }}
     >
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: { xs: 3, md: 8 },
-          py: { xs: 6, md: 0 },
-          position: "relative",
-          overflow: "hidden",
-          backgroundImage: `
-            radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
-            radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
-          `,
-        }}
-      >
-        <Box sx={{ textAlign: "center", position: "relative" }}>
-          <Box
-            component="img"
-            src={logo}
-            alt="SmartPay Logo"
-            sx={{
-              width: { xs: 71, md: 127 },
-              height: "auto",
-              mx: "auto",
-              display: "block",
-              mb: 2,
-            }}
-          />
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: "#2563EB",
-              mb: 1,
-              fontSize: { xs: "30px", md: "60px" },
-            }}
-          >
-            SmartPay
-          </Typography>
-          <Typography
-            sx={{
-              color: "#6B7280",
-              maxWidth: 360,
-              mx: "auto",
-              lineHeight: 1.6,
-              fontSize: { xs: "14px", md: "20px" },
-            }}
-          >
-            Seamless financial integration for the modern enterprise.
-          </Typography>
-        </Box>
-      </Box>
+
+      <SmartPayBanner />
 
       <Box
         sx={{
