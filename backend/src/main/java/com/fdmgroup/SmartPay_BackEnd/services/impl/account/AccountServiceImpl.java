@@ -6,6 +6,7 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import org.springframework.stereotype.Service;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
@@ -45,20 +46,24 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public List<Account> getAllAccounts(Long userId) throws UserNotFoundException {
+    public List<AccountDto> getAccounts(Long userId, AccountType type) throws  UserNotFoundException{
         if(!userRepository.existsById(userId)){
             throw  new UserNotFoundException("User not found with id: " + userId);
         }
-        return accountRepository.findByUserId(userId);
-    }
+        List<Account> accounts =
+                (type == null)
+                        ? accountRepository.findByUserId(userId)
+                        : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
 
-    @Override
-    public List<Account> getAccountsByUserAndType(Long userId, AccountType type) throws  UserNotFoundException{
-        if(!userRepository.existsById(userId)){
-            throw  new UserNotFoundException("User not found with id: " + userId);
-        }
-
-        return accountRepository.findByUserIdAndType(userId,type);
+        return accounts.stream()
+        .map(a -> new AccountDto(
+                a.getId(),
+                a.getAccountName(),
+                a.getBalance(),
+                a.getType(),
+                a.getUser() != null ? a.getUser().getId() : null
+        ))
+        .toList();
     }
 
 
@@ -78,7 +83,7 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public void deleteAccount(Long userId) {
-        accountRepository.deleteById(userId);
+    public void deleteAccount(Long accountId) {
+        accountRepository.deleteById(accountId);
     }
 }

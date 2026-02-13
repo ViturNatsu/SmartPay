@@ -1,17 +1,20 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.account;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
+
 import lombok.*;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AccountDto {
-    // To be used in the future
 
     private Long id;
-    private Double balance;
-    private String accountType;
     private String accountName;
-    private long userId;
+    private Double balance;
+    private AccountType accountType;
+    private Long userId;
     
 //  private Customer customer - links to customer info
 }

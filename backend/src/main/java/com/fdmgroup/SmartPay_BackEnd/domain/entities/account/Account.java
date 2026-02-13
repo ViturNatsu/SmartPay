@@ -3,6 +3,10 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +15,16 @@ import lombok.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        visible = true
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = SavingsAccount.class, name = "SAVINGS"),
+        @JsonSubTypes.Type(value = CheckingAccount.class, name = "CHECKING")
+})
 public abstract class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,12 +35,13 @@ public abstract class Account {
     private String accountName;
 
     @Column(name = "balance")
-    private double balance;
+    private Double balance;
 
     @ManyToOne
 	@JoinColumn(name = "fk_user_id")
 	@JsonBackReference
 	private User user;
 
+    @JsonProperty("type")
     public abstract AccountType getType();
 }

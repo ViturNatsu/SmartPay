@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
@@ -61,19 +62,9 @@ public class AccountController {
                     responseCode = "404",
                     description = "User not found with the specified userId.")
     })
-    public ResponseEntity<List<Account>> getAllAccounts(@PathVariable Long userId, @RequestParam(required = false) String type)throws UserNotFoundException{
-        List<Account> accounts;
-        if(type != null){
-            try{
-            AccountType accountTypeEnum = AccountType.valueOf(type.toUpperCase());
-            accounts = accountService.getAccountsByUserAndType(userId, accountTypeEnum);}
-            catch (IllegalArgumentException e){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid account type: " + type);
-            }
-        }else{
-            accounts = accountService.getAllAccounts(userId);
-        }
-        return ResponseEntity.ok(accounts);
+    public ResponseEntity<List<AccountDto>> getAccounts(@PathVariable Long userId, @RequestParam(required = false) AccountType type)throws UserNotFoundException{
+        return ResponseEntity.ok(accountService.getAccounts(userId, type));
+
     }
 
     @GetMapping("/{accountId}")
