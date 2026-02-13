@@ -190,6 +190,20 @@ public class GlobalExceptionHandler {
                     .body(errorBody);
         }
 
+        @ExceptionHandler(CustomerInfoNotFound.class)
+        public ResponseEntity<Map<String, String>> handleCustomerNotFoundInDatabase(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put("status", "404");
+                errorBody.put("error", "Not Found");
+                errorBody.put("message", "Unable to retrieve customer information.");
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
 
