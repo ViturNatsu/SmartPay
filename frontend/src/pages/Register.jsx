@@ -24,6 +24,55 @@ import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
 import GovtIDIcon from '@mui/icons-material/AccountBox';
 
+const CANADA_POSTAL_CODE_REGEX =
+  /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
+const OCCUPATION_REGEX = /^[A-Za-z .'-]+$/;
+const CITY_REGEX = /^[A-Za-z .'-]+$/;
+const MAX_OCCUPATION_LENGTH = 80;
+const MAX_PHONE_LENGTH = 25;
+const MAX_ADDRESS_LINE1_LENGTH = 120;
+const MAX_ADDRESS_LINE2_LENGTH = 120;
+const MAX_CITY_LENGTH = 80;
+
+const CANADA_PROVINCES = [
+  { value: "AB", label: "Alberta" },
+  { value: "BC", label: "British Columbia" },
+  { value: "MB", label: "Manitoba" },
+  { value: "NB", label: "New Brunswick" },
+  { value: "NL", label: "Newfoundland and Labrador" },
+  { value: "NS", label: "Nova Scotia" },
+  { value: "NT", label: "Northwest Territories" },
+  { value: "NU", label: "Nunavut" },
+  { value: "ON", label: "Ontario" },
+  { value: "PE", label: "Prince Edward Island" },
+  { value: "QC", label: "Quebec" },
+  { value: "SK", label: "Saskatchewan" },
+  { value: "YT", label: "Yukon" },
+];
+
+const normalizeSin = (value) => value.replace(/[\s-]/g, "");
+const normalizePhoneDigits = (value) => value.replace(/\D/g, "");
+const normalizeIdNumber = (value) => value.replace(/\s+/g, "").toUpperCase();
+const normalizePostalCode = (value) => {
+  const condensed = value.toUpperCase().replace(/\s+/g, "");
+  if (condensed.length === 6) return `${condensed.slice(0, 3)} ${condensed.slice(3)}`;
+  return value.toUpperCase().trim();
+};
+
+const isGovernmentIdValid = (governmentIdType, governmentIdNumber) => {
+  const normalized = normalizeIdNumber(governmentIdNumber);
+  if (governmentIdType === "PASSPORT") return /^[A-Z0-9]{6,9}$/.test(normalized);
+  if (governmentIdType === "DRIVER_LICENSE") return /^[A-Z0-9]{5,15}$/.test(normalized);
+  if (governmentIdType === "PRCARD_NUMBER") return /^[A-Z0-9]{8,12}$/.test(normalized);
+  return false;
+};
+
+const isValidCanadianPhone = (value) => {
+  const digits = normalizePhoneDigits(value);
+  if (digits.length === 10) return true;
+  return digits.length === 11 && digits.startsWith("1");
+};
+
 export const Register = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -51,7 +100,7 @@ export const Register = () => {
   const [step, setStep] = useState(1);
 
   const [socialInsuranceNumber, setSocialInsuranceNumber] = useState("");
-  const [governmentIdType, setGovernmentIdType] = useState("");
+  const [governmentIdType, setGovernmentIdType] = useState("PASSPORT");
   const [governmentIdNumber, setGovernmentIdNumber] = useState("");
 
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -62,7 +111,8 @@ export const Register = () => {
   const [postalCode, setPostalCode] = useState("");
   const [occupation, setOccupation] = useState("");
   const [dob, setDob] = useState("");
-  const [country, setCountry] = useState("");
+  const [country] = useState("Canada");
+  const [step2Errors, setStep2Errors] = useState({});
 
   const bulletContainerSx = {
     display: "flex",
@@ -137,6 +187,103 @@ export const Register = () => {
     setStep(2);
   };
 
+  const validateStep2 = () => {
+    const errors = {};
+    const normalizedSin = normalizeSin(socialInsuranceNumber);
+    const normalizedPostalCode = normalizePostalCode(postalCode);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    if (!normalizedSin) {
+      errors.socialInsuranceNumber = "Social Insurance Number is required.";
+    } else if (!/^\d{9}$/.test(normalizedSin)) {
+      errors.socialInsuranceNumber = "SIN must be exactly 9 digits.";
+    }
+
+    const trimmedOccupation = occupation.trim();
+    if (!trimmedOccupation) {
+      errors.occupation = "Occupation is required.";
+    } else if (trimmedOccupation.length < 2 || trimmedOccupation.length > MAX_OCCUPATION_LENGTH) {
+      errors.occupation = `Occupation must be 2-${MAX_OCCUPATION_LENGTH} characters.`;
+    } else if (!OCCUPATION_REGEX.test(trimmedOccupation)) {
+      errors.occupation = "Occupation contains invalid characters.";
+    }
+
+    if (!governmentIdNumber.trim()) {
+      errors.governmentIdNumber = "Government ID Number is required.";
+    } else if (!isGovernmentIdValid(governmentIdType, governmentIdNumber)) {
+      errors.governmentIdNumber = "Government ID Number format is invalid.";
+    }
+
+    if (!dob) {
+      errors.dob = "Date of Birth is required.";
+    } else {
+      const dobDate = new Date(dob);
+      if (Number.isNaN(dobDate.getTime())) {
+        errors.dob = "Date of Birth is invalid.";
+      } else {
+        dobDate.setHours(0, 0, 0, 0);
+        if (dobDate > now) {
+          errors.dob = "Date of Birth cannot be in the future.";
+        }
+      }
+    }
+
+    const trimmedPhone = phoneNumber.trim();
+    if (!trimmedPhone) {
+      errors.phoneNumber = "Phone Number is required.";
+    } else if (trimmedPhone.length > MAX_PHONE_LENGTH) {
+      errors.phoneNumber = `Phone Number cannot exceed ${MAX_PHONE_LENGTH} characters.`;
+    } else if (!isValidCanadianPhone(trimmedPhone)) {
+      errors.phoneNumber = "Phone Number must be 10 digits (optional +1).";
+    }
+
+    const trimmedAddressLine1 = addressLine1.trim();
+    if (!trimmedAddressLine1) {
+      errors.addressLine1 = "Address Line 1 is required.";
+    } else if (
+      trimmedAddressLine1.length < 5 ||
+      trimmedAddressLine1.length > MAX_ADDRESS_LINE1_LENGTH
+    ) {
+      errors.addressLine1 = `Address Line 1 must be 5-${MAX_ADDRESS_LINE1_LENGTH} characters.`;
+    }
+
+    if (addressLine2.trim().length > MAX_ADDRESS_LINE2_LENGTH) {
+      errors.addressLine2 = `Address Line 2 cannot exceed ${MAX_ADDRESS_LINE2_LENGTH} characters.`;
+    }
+
+    const trimmedCity = city.trim();
+    if (!trimmedCity) {
+      errors.city = "City is required.";
+    } else if (trimmedCity.length < 2 || trimmedCity.length > MAX_CITY_LENGTH) {
+      errors.city = `City must be 2-${MAX_CITY_LENGTH} characters.`;
+    } else if (!CITY_REGEX.test(trimmedCity)) {
+      errors.city = "City contains invalid characters.";
+    }
+
+    if (!province) {
+      errors.province = "Province is required.";
+    }
+
+    if (!postalCode.trim()) {
+      errors.postalCode = "Postal Code is required.";
+    } else if (!CANADA_POSTAL_CODE_REGEX.test(normalizedPostalCode)) {
+      errors.postalCode = "Postal Code must match Canadian format (A1A 1A1).";
+    }
+
+    setStep2Errors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const clearStep2Error = (fieldName) => {
+    setStep2Errors((prev) => {
+      if (!prev[fieldName]) return prev;
+      const next = { ...prev };
+      delete next[fieldName];
+      return next;
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -145,16 +292,14 @@ export const Register = () => {
       return;
     }
 
-    if(!socialInsuranceNumber || !governmentIdType || !governmentIdNumber ||
-        !phoneNumber || !addressLine1 || !city || !province || !postalCode ||
-        !country || !occupation)
-    {
-      setErrorMessage("Please complete all required personal information fields.");
+    if (!validateStep2()) {
+      setErrorMessage("Please correct the highlighted Step 2 fields.");
       return;
     }
 
     setErrorMessage("");
     setIsLoading(true);
+    setStep2Errors({});
 
     const userInfo = {
       firstName: firstName,
@@ -164,17 +309,17 @@ export const Register = () => {
       password: password,
       confirmPassword: confirmPassword,
       customer: {
-        socialInsuranceNumber,
-        occupation,
-        addressLine1,
-        addressLine2,
-        city,
+        socialInsuranceNumber: normalizeSin(socialInsuranceNumber),
+        occupation: occupation.trim(),
+        addressLine1: addressLine1.trim(),
+        addressLine2: addressLine2.trim(),
+        city: city.trim(),
         province,
-        postalCode,
+        postalCode: normalizePostalCode(postalCode),
         country,
-        phoneNumber,
+        phoneNumber: normalizePhoneDigits(phoneNumber),
         governmentIdType,
-        governmentIdNumber,
+        governmentIdNumber: normalizeIdNumber(governmentIdNumber),
         dob,
       },
     };
@@ -640,7 +785,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={socialInsuranceNumber}
-                  onChange={(e) => setSocialInsuranceNumber(e.target.value)}
+                  onChange={(e) => {
+                    setSocialInsuranceNumber(e.target.value);
+                    clearStep2Error("socialInsuranceNumber");
+                  }}
+                  error={Boolean(step2Errors.socialInsuranceNumber)}
+                  helperText={step2Errors.socialInsuranceNumber || ""}
                 />
               </Box>
 
@@ -658,7 +808,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={occupation}
-                  onChange={(e) => setOccupation(e.target.value)}
+                  onChange={(e) => {
+                    setOccupation(e.target.value);
+                    clearStep2Error("occupation");
+                  }}
+                  error={Boolean(step2Errors.occupation)}
+                  helperText={step2Errors.occupation || ""}
                 />
               </Box>
             </Box>
@@ -688,11 +843,13 @@ export const Register = () => {
 
               }}
               value={governmentIdType}
-              onChange={(e) => setGovernmentIdType(e.target.value)}
+              onChange={(e) => {
+                setGovernmentIdType(e.target.value);
+                clearStep2Error("governmentIdNumber");
+              }}
               placeholder="Select GovernmentID Type"
               sx={{ mb: 0 }}
             >
-              <MenuItem value="">Select GovernmentID Type</MenuItem>
               <MenuItem value="PASSPORT">Passport</MenuItem>
               <MenuItem value="DRIVER_LICENSE">License</MenuItem>
               <MenuItem value="PRCARD_NUMBER">Resident Card</MenuItem>
@@ -713,7 +870,10 @@ export const Register = () => {
               value={governmentIdNumber}
               onChange={(e) => {
                 setGovernmentIdNumber(e.target.value);
+                clearStep2Error("governmentIdNumber");
               }}
+              error={Boolean(step2Errors.governmentIdNumber)}
+              helperText={step2Errors.governmentIdNumber || ""}
             />
 
             <Box display="flex" gap={2}>
@@ -730,8 +890,15 @@ export const Register = () => {
                 </Typography>
                 <TextField
                   fullWidth
+                  type="date"
                   value={dob}
-                  onChange={(e) => setDob(e.target.value)}
+                  onChange={(e) => {
+                    setDob(e.target.value);
+                    clearStep2Error("dob");
+                  }}
+                  error={Boolean(step2Errors.dob)}
+                  helperText={step2Errors.dob || ""}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Box>
 
@@ -749,7 +916,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    clearStep2Error("phoneNumber");
+                  }}
+                  error={Boolean(step2Errors.phoneNumber)}
+                  helperText={step2Errors.phoneNumber || ""}
                 />
               </Box>
             </Box>
@@ -769,7 +941,10 @@ export const Register = () => {
               value={addressLine1}
               onChange={(e) => {
                 setAddressLine1(e.target.value);
+                clearStep2Error("addressLine1");
               }}
+              error={Boolean(step2Errors.addressLine1)}
+              helperText={step2Errors.addressLine1 || ""}
             />
 
             <Typography
@@ -787,7 +962,10 @@ export const Register = () => {
               value={addressLine2}
               onChange={(e) => {
                 setAddressLine2(e.target.value);
+                clearStep2Error("addressLine2");
               }}
+              error={Boolean(step2Errors.addressLine2)}
+              helperText={step2Errors.addressLine2 || ""}
             />
 
             <Box display="flex" gap={2}>
@@ -805,7 +983,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    clearStep2Error("city");
+                  }}
+                  error={Boolean(step2Errors.city)}
+                  helperText={step2Errors.city || ""}
                 />
               </Box>
 
@@ -821,10 +1004,23 @@ export const Register = () => {
                   Province
                 </Typography>
                 <TextField
+                  select
                   fullWidth
                   value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                />
+                  onChange={(e) => {
+                    setProvince(e.target.value);
+                    clearStep2Error("province");
+                  }}
+                  error={Boolean(step2Errors.province)}
+                  helperText={step2Errors.province || ""}
+                >
+                  <MenuItem value="">Select Province</MenuItem>
+                  {CANADA_PROVINCES.map((item) => (
+                    <MenuItem key={item.value} value={item.value}>
+                      {item.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Box>
             </Box>
 
@@ -843,7 +1039,12 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value)}
+                  onChange={(e) => {
+                    setPostalCode(e.target.value);
+                    clearStep2Error("postalCode");
+                  }}
+                  error={Boolean(step2Errors.postalCode)}
+                  helperText={step2Errors.postalCode || ""}
                 />
               </Box>
 
@@ -861,7 +1062,7 @@ export const Register = () => {
                 <TextField
                   fullWidth
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
+                  disabled
                 />
               </Box>
             </Box>
