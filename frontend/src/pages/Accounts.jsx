@@ -17,6 +17,7 @@ import {
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import Navbar from "../components/Navbar";
 import OpenAccountForm from "./OpenAccountForm";
@@ -75,6 +76,7 @@ export const Accounts = () => {
     const [selectedTab, setSelectedTab] = useState(0);
     const [openAccountFormOpen, setOpenAccountFormOpen] = useState(false);
     const [accountsState, setAccountsState] = useState(mockAccounts);
+    const [showBalances, setShowBalances] = useState(true);
 
     const allAccounts = useMemo(
         () => [...accountsState.chequing, ...accountsState.savings],
@@ -93,6 +95,8 @@ export const Accounts = () => {
     }, [selectedTab, allAccounts, accountsState.chequing, accountsState.savings]);
 
     const calculateProgress = (current, goal) => Math.min(100, (current / goal) * 100);
+
+    const displayAmount = (value) => (showBalances ? formatCurrency(value) : "••••••");
 
     const handleOpenAccountForm = () => {
         setOpenAccountFormOpen(true);
@@ -146,13 +150,24 @@ export const Accounts = () => {
                                 <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                     Total Balance
                                 </Typography>
-                                <VisibilityOutlinedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setShowBalances((prev) => !prev)}
+                                    aria-label={showBalances ? "Hide balances" : "Show balances"}
+                                >
+                                    {showBalances ? (
+                                        <VisibilityOutlinedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    ) : (
+                                        <VisibilityOffIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                                    )}
+                                </IconButton>
+                                
                             </Box>
                             <Typography
                                 variant="h3"
                                 sx={{ fontWeight: 700, fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" }, lineHeight: 1 }}
                             >
-                                {formatCurrency(totalBalance)}
+                                {displayAmount(totalBalance)}
                             </Typography>
                             <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                 Available across all accounts
@@ -246,8 +261,8 @@ export const Accounts = () => {
                                                 <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.4 }}>
                                                     Current Balance
                                                 </Typography>
-                                                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
-                                                    {formatCurrency(account.balance)}
+                                                        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
+                                                            {displayAmount(account.balance)}
                                                 </Typography>
                                             </Box>
                                         </CardContent>
@@ -287,7 +302,7 @@ export const Accounts = () => {
                                                 Progress
                                             </Typography>
                                             <Typography variant="body2">
-                                                Goal Amount: {formatCurrency(account.goal)}
+                                                Goal Amount: {displayAmount(account.goal)}
                                             </Typography>
                                         </Box>
                                         <LinearProgress

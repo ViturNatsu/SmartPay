@@ -51,7 +51,6 @@ export const ForgotPassword = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        minHeight: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
         bgcolor: "#F8FAFC",
