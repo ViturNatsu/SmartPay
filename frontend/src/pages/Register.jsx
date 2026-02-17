@@ -1226,11 +1226,31 @@ export const Register = () => {
               }}
             >
               <p>
-              <input type="checkbox" id="terms" required></input>
-              <label for="terms">
-                  {" "}
-                  I agree to the Terms of Service and Privacy Policy</label>
-              </p>
+                  <input type="checkbox" id="terms" required></input>
+                  <label for="terms">
+                    {" "}
+                    I agree to the{' '}  
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Terms and Conditions
+                    </Link>
+                    {' '}              
+                    and
+                    {' '}              
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </p>
             </Typography>
 
             {/* STEP 2 BUTTONS - Create Account and Back(Takes you back to Step 1)*/}

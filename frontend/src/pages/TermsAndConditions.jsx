@@ -1,0 +1,147 @@
+import React from "react";
+import {
+  Container,
+  Box,
+  Typography,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
+
+const TermsAndConditions = () => {
+  return (
+    <Container maxWidth="md">
+      <Box sx={{ py: 6 }}>
+        {/* Title */}
+        <Typography variant="h3" gutterBottom fontWeight={600}>
+          Terms & Conditions
+        </Typography>
+
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Last updated: January 1, 2026
+        </Typography>
+
+        <Divider sx={{ my: 4 }} />
+
+        {/* Agreement */}
+        <Typography variant="h5" gutterBottom fontWeight={500}>
+          1. Acceptance of Terms
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+          ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat.
+        </Typography>
+
+        {/* Use of Service */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          2. Use of the Service
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Duis aute irure dolor in reprehenderit in voluptate velit esse
+          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+          cupidatat non proident, sunt in culpa qui officia deserunt mollit
+          anim id est laborum.
+        </Typography>
+
+        <List>
+          <ListItem>
+            <ListItemText
+              primary="Eligibility"
+              secondary="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="User Responsibilities"
+              secondary="Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="Prohibited Activities"
+              secondary="Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+            />
+          </ListItem>
+        </List>
+
+        {/* Accounts */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          3. User Accounts
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut
+          fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem
+          sequi nesciunt.
+        </Typography>
+
+        {/* Payments */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          4. Payments & Refunds
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet,
+          consectetur, adipisci velit, sed quia non numquam eius modi tempora
+          incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+        </Typography>
+
+        {/* Intellectual Property */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          5. Intellectual Property
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis
+          suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.
+        </Typography>
+
+        {/* Limitation of Liability */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          6. Limitation of Liability
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse
+          quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat
+          quo voluptas nulla pariatur.
+        </Typography>
+
+        {/* Termination */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          7. Termination
+        </Typography>
+        <Typography variant="body1" paragraph>
+          At vero eos et accusamus et iusto odio dignissimos ducimus qui
+          blanditiis praesentium voluptatum deleniti atque corrupti quos
+          dolores et quas molestias excepturi sint occaecati cupiditate non
+          provident.
+        </Typography>
+
+        {/* Governing Law */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          8. Governing Law
+        </Typography>
+        <Typography variant="body1" paragraph>
+          Similique sunt in culpa qui officia deserunt mollitia animi, id est
+          laborum et dolorum fuga. Et harum quidem rerum facilis est et
+          expedita distinctio.
+        </Typography>
+
+        {/* Contact */}
+        <Typography variant="h5" gutterBottom fontWeight={500} sx={{ mt: 4 }}>
+          9. Contact Information
+        </Typography>
+        <Typography variant="body1" paragraph>
+          If you have any questions about these Terms & Conditions, please
+          contact us at:
+        </Typography>
+
+        <Typography variant="body1" fontWeight={500}>
+          Email: support@example.com
+        </Typography>
+      </Box>
+    </Container>
+  );
+};
+
+export default TermsAndConditions;
