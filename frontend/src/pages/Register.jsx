@@ -88,6 +88,7 @@ export const Register = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const NAME_REGEX = /^[A-Za-z]+$/;
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -219,7 +220,11 @@ export const Register = () => {
       setFirstNameError(true);
       setFirstNameErrorMessage("First name is required.");
       errors.push("First name is required.");
-    } else {
+    } else if (!NAME_REGEX.test(firstName.trim())) {
+      setFirstNameError(true);
+      setFirstNameErrorMessage("First name must contain only letters.");
+      errors.push("First name must contain only letters.");
+    }else {
       setFirstNameError(false);
       setFirstNameErrorMessage("");
     }
@@ -227,7 +232,11 @@ export const Register = () => {
       setLastNameError(true);
       setLastNameErrorMessage("Last name is required.");
       errors.push("Last name is required.");
-    } else {
+    } else if (!NAME_REGEX.test(lastName.trim())) {
+      setLastNameError(true);
+      setLastNameErrorMessage("Last name must contain only letters.");
+      errors.push("Last name must contain only letters.");
+    }else {
       setLastNameError(false);
       setLastNameErrorMessage("");
     }
