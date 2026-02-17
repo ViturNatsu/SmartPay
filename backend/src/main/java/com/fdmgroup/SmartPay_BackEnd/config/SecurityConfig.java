@@ -1,5 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,6 +20,9 @@ import com.fdmgroup.SmartPay_BackEnd.security.JwtAuthFilter;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
 import lombok.AllArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @AllArgsConstructor
@@ -70,6 +75,18 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            response.setContentType("application/json");
+                            Map<String, String> errorBody = new HashMap<>();
+                            errorBody.put("status", "401");
+                            errorBody.put("error", "UNAUTHORIZED");
+                            errorBody.put("message", "Missing Or Invalid Token.");
+                            ObjectMapper mapper = new ObjectMapper();
+                            response.getWriter().write(mapper.writeValueAsString(errorBody));
+                        })
+                )
             .authorizeHttpRequests(auth -> auth
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers(HttpMethod.PUT,"/api/v*/password-reset/**").permitAll()

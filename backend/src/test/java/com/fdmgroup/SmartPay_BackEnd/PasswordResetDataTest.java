@@ -45,7 +45,7 @@ public class PasswordResetDataTest {
 
     @Test
     void testOtpPersistenceAndLookup() {
-        Optional<Otp> otp = otpRepository.findByEmailAndOtpType("test@example.com",EventType.FORGOT_PASSWORD);
+        Optional<Otp> otp = otpRepository.findByEmailAndOtpType("test@example.com", EventType.FORGOT_PASSWORD);
 
         if (otp.isEmpty()) {
             Otp new_otp = Otp.builder()

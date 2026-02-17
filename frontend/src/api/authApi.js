@@ -4,6 +4,7 @@ const OTP_URL = "/api/v1/otp";
 const AUTH_URL = "/api/v1/auth";
 const PASSWORD_RESET_URL = "/api/v1/password-reset";
 const KEEP_ALIVE = "/api/v1/auth/keep-alive"
+const CUSTOMER_DETAILS_URL = "/api/v1/customer";
 
 export async function login(payload) {
   try {
@@ -121,17 +122,17 @@ export async function refreshTokens() {
 }
 
 export async function getMyUser() {
-  return Promise.resolve({
-    id: 1,
-    email: "placeholder@smartpay.local",
-    role: "fake role"
-  });
-  /*try {
-    const res = await axiosInstance.get(`${AUTH_URL}/me`);
+  // return Promise.resolve({
+  //   id: 1,
+  //   email: "placeholder@smartpay.local",
+  //   role: "fake role"
+  // });
+  try {
+    const res = await axiosInstance.get(`${CUSTOMER_DETAILS_URL}`);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
-  }*/
+  }
 }
 
 // Use refresh token to get new access and refresh token)

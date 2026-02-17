@@ -3,7 +3,6 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -202,6 +201,20 @@ public class GlobalExceptionHandler {
                                 .status(HttpStatus.FORBIDDEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(errorBody);
+        }
+
+        @ExceptionHandler(CustomerInfoNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleCustomerNotFoundInDatabase(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put("status", "404");
+                errorBody.put("error", "Not Found");
+                errorBody.put("message", "Unable to retrieve customer information.");
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
         }
 
         @ExceptionHandler(Exception.class)
