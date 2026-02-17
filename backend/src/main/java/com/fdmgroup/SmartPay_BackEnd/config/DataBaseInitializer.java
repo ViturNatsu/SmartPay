@@ -1,16 +1,16 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
+import java.time.LocalDateTime;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.LocalDateTime;
 
 @Configuration
 @Slf4j
