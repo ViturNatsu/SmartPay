@@ -26,7 +26,10 @@ public class DataBaseInitializer {
                     .lastName("TestLastName")
                     .institution("Chase")   
                     .email("test@example.com")
-                    .password(encoderConfig.passwordEncoder().encode("password"))
+                    .role(Role.USER)
+                    .emailVerified(true)
+                    .emailVerifiedAt(LocalDateTime.now())
+                    .password(encoderConfig.passwordEncoder().encode("Test@1234"))
                     .build();
             userRepository.save(testUser);
 
