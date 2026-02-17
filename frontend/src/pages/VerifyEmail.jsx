@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { TextField, Button, Box, Typography } from "@mui/material";
-import { sendVerifyCode } from "../api/authApi";
+import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
+import { Button, Box, Typography, Paper, Divider } from "@mui/material";
+import { requestResetCode } from "../api/authApi";
+import logo from "../assets/logo.png";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
 export const VerifyEmail = () => {
-  const [code, setCode] = useState("");
   const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -14,61 +16,104 @@ export const VerifyEmail = () => {
 
 
   const handleSubmit = async (e) => {
-    
+
     e.preventDefault();
     setError("");
-    if (!/^\d{7}$/.test(code)) {
-      setError("Enter a valid 7-digit code.");
-      return;
-    }
     try {
       setLoading(true);
-      
-      await sendVerifyCode({ email: emailParam, code, type: "forgot-password" }, { replace: true });
-      
-      navigate(`/reset-password?email=${encodeURIComponent(emailParam)}&code=${code}`);
+
+      await requestResetCode({ email: emailParam, type: "register" });
+
+      navigate(`/verify?email=${encodeURIComponent(emailParam)}&type=register`, { replace: true }, {
+        state: {
+          successMessage:
+            "Successfully Resent a Verification Email! Please verify your account to continue.",
+          showSuccess: true,
+        },
+      });
     } catch (err) {
-      if (err.status === 400) setError("Code is Invalid");
-      if (err.status === 401) setError("Reset code has expired")
-    }finally{
+      if (err.status === 400) setError("Email not sent or in incorrect format");
+      else if (err.status === 409) setError("Email is already verified. Please log in.");
+      else if (err.status === 429) setError("Account Locked");
+      else setError("An error occurred. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <Box
-      component="form"
-      onSubmit={handleSubmit}
       sx={{
+        minHeight: "100vh",
         display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        width: 300,
-        margin: "100px auto",
+        flexDirection: { xs: "column", md: "row" },
+        bgcolor: "#F8FAFC",
+        fontFamily: "'Inter', sans-serif"
       }}
     >
-      <Typography variant="h5" align="center">
-        Verify Email
-      </Typography>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 3, md: 8 },
+          py: { xs: 6, md: 0 },
+          position: "relative",
+          overflow: "hidden",
+          backgroundImage: `radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%), 
+                          radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)`
+        }}>
+        <Box sx={{ textAlign: "center", position: "relative" }}>
+          <Box component="img" src={logo} alt="SmartPay Logo" sx={{ width: { xs: 71, md: 127 }, height: "auto", mx: "auto", display: "block", mb: 2 }} />
+          <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: "-0.02em", color: "#2563EB", mb: 1, fontSize: { xs: "30px", md: "60px" } }}>SmartPay</Typography>
+          <Typography sx={{ color: "#6B7280", maxWidth: 360, mx: "auto", lineHeight: 1.6, fontSize: { xs: "14px", md: "20px" } }}>
+            Seamless financial integration for the modern enterprise.
+          </Typography>
+        </Box>
+      </Box>
 
-      <TextField
-        label="7-digit code"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        onBlur={() => {
-          if (code && !/^\d{7}$/.test(code)) {
-            setError("Enter a valid 7-digit code.");
-          }
-        }}
-        error={Boolean(error)}
-        helperText={error || ""}
-        inputProps={{ maxLength: 7 }}
-        required
-      />
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 3, md: 8 }, py: { xs: 6, md: 0 },
+          bgcolor: "white"
+        }}>
+        <Paper elevation={6} sx={{ width: "100%", maxWidth: { xs: "320px", md: "480px" }, borderRadius: 3, p: { xs: 3, md: 4 }, textAlign: "center", display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Box sx={{ bgcolor: "#EEF2FF", borderRadius: "50%", width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MailOutlineIcon sx={{ color: "#2563EB", fontSize: 36 }} />
+            </Box>
+          </Box>
 
-      <Button type="submit" variant="contained" disabled={loading}>
-        {loading ? "Verifying Code..." : "Verify Code"}
-      </Button>
+          <Typography sx={{ fontSize: 20, fontWeight: 600, color: "#374151" }}>Verify Your Email</Typography>
+          <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Your email address isn't verified yet. Please verify your email to continue.</Typography>
+
+          <Box sx={{ bgcolor: "#F3F4F6", borderRadius: 2, p: 2, mt: 1 }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary" }}>Email:</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>{emailParam}</Typography>
+          </Box>
+
+          {error && <Typography sx={{ color: "error.main", fontSize: 13 }}>{error}</Typography>}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
+            <Button type="submit" variant="contained" disabled={loading} sx={{ height: 52, borderRadius: 2, textTransform: "none", fontSize: 16, fontWeight: 600, bgcolor: "#2563EB", "&:hover": { bgcolor: "#1D4ED8" } }}>
+              {loading ? "Resending Verification Email..." : "Resend Verification Email"}
+            </Button>
+          </Box>
+
+          <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 1 }}>Didn't receive the email? Check your spam folder or wait a few minutes.</Typography>
+
+          <Divider sx={{ my: 1 }} />
+
+          <Button component={RouterLink} to="/login" startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 18 }} />} sx={{ alignSelf: "center", textTransform: "none", color: "#2563EB" }}>
+            Back to Sign In
+          </Button>
+        </Paper>
+      </Box>
     </Box>
   );
 };

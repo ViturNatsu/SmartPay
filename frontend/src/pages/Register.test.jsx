@@ -70,16 +70,14 @@ const getResetPasswordLink = () =>
     name: /reset your password/i,
   });
 
-const getInvalidPasswordMessage = () =>
-  screen.findByText(
-    /must be at least 8 characters with uppercase, lowercase, numbers, and symbols/i,
-  );
-
-const getTooManyRequestsMessage = () =>
+const getCannotProcessRequestMessage = () =>
   screen.findByText(/We can.*t process your request right now/i);
 
+const getInvalidPasswordMessage = () =>
+  screen.findByText(/must be at least .* characters with uppercase.* symbol/i);
+
 const getEmailAlreadyExistsMessage = () =>
-  screen.findByText(/email already exists/i);
+  screen.findByText(/we can.*t create an account with that email/i);
 
 const getServerErrorMessage = () => screen.findByText(/server error/i);
 
@@ -124,9 +122,14 @@ describe("Register Component", () => {
       const user = userEvent.setup();
       renderRegister();
 
-      await user.type(getEmailInput(), "test@test.com");
-      await user.type(getPasswordInput(), "badpassword");
-      await user.type(getConfirmPasswordInput(), "badpassword");
+      await user.type(getFirstNameInput(), "John");
+      await user.type(getLastNameInput(), "Doe");
+      await user.type(getEmailInput(), "john.doe@example.com");
+      await user.click(getInstitutionInput());
+      await user.click(getChaseOption());
+      await user.type(getPasswordInput(), "invalid");
+      await user.type(getConfirmPasswordInput(), "invalid");
+      await user.click(getAgreeCheckbox());
       await user.click(getSubmitButton());
 
       expect(await getInvalidPasswordMessage()).toBeInTheDocument();
@@ -187,7 +190,7 @@ describe("Register Component", () => {
       await fillValidForm(user);
       await user.click(getSubmitButton());
 
-      expect(await getTooManyRequestsMessage()).toBeInTheDocument();
+      expect(await getCannotProcessRequestMessage()).toBeInTheDocument();
     });
 
     it("shows duplicate email error for 409 status", async () => {

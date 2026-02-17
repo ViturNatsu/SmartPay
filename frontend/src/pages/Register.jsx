@@ -78,12 +78,9 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [institution, setInstitution] = useState("");
-
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -96,6 +93,23 @@ export const Register = () => {
 
   const navigate = useNavigate();
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+  const [formError, setFormError] = useState([]);
+
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [institutionError, setInstitutionError] = useState(false);
+
+  const [firstNameErrorMessage, setFirstNameErrorMessage] = useState("");
+  const [lastNameErrorMessage, setLastNameErrorMessage] = useState("");
+  const [institutionErrorMessage, setInstitutionErrorMessage] = useState("");
+
+  const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   const [step, setStep] = useState(1);
 
@@ -158,24 +172,124 @@ export const Register = () => {
     textAlign: "left",
   };
 
-  const validateStep1 = ()=>{
-    let isEmailInvalid = !emailRegex.test(email);
+  const validateStep1 = () => {
+    setErrorMessage("");
+    setFormError([]);
+    setDuplicateEmailError(false);
+
+    setFirstNameError(false);
+    setLastNameError(false);
+    setInstitutionError(false);
+    setEmailError(false);
+    setPasswordError(false);
+    setConfirmPasswordError(false);
+
+    setFirstNameErrorMessage("");
+    setLastNameErrorMessage("");
+    setInstitutionErrorMessage("");
+    setEmailErrorMessage("");
+    setPasswordErrorMessage("");
+
+    setApiErrorMessage("");
+    const errors = [];
+    let firstInvalidRef = null;
+
+    if (!email) {
+      setEmailError(true);
+      setEmailErrorMessage("Email required.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Email required.");
+      if (!firstInvalidRef) firstInvalidRef = emailRef;
+    } else if (!emailRegex.test(email)) {
+      setEmailError(true);
+      setEmailErrorMessage("Email must match required format.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Email must match required format.");
+      if (!firstInvalidRef) firstInvalidRef = emailRef;
+    } else {
+      setEmailError(false);
+      setEmailErrorMessage("");
+    }
+
+    if (!firstName.trim()) {
+      setFirstNameError(true);
+      setFirstNameErrorMessage("First name is required.");
+      errors.push("First name is required.");
+    } else {
+      setFirstNameError(false);
+      setFirstNameErrorMessage("");
+    }
+    if (!lastName.trim()) {
+      setLastNameError(true);
+      setLastNameErrorMessage("Last name is required.");
+      errors.push("Last name is required.");
+    } else {
+      setLastNameError(false);
+      setLastNameErrorMessage("");
+    }
+    if (!institution) {
+      setInstitutionError(true);
+      setInstitutionErrorMessage("Please select a financial institution.");
+      errors.push("Financial institution is required.");
+    } else {
+      setInstitutionError(false);
+      setInstitutionErrorMessage("");
+    }
+
     let isPasswordInvalid = !passwordRegex.test(password);
     let isConfirmInvalid = password !== confirmPassword;
 
-    setEmailError(isEmailInvalid);
-    setPasswordError(isPasswordInvalid);
-    setConfirmPasswordError(isConfirmInvalid);
-   
-
-    if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
-      setErrorMessage("Please fill the required fields correctly before continuing.");
-      return false;
+    if (isConfirmInvalid) {
+      setConfirmPasswordError(true);
+      setPasswordErrorMessage("Passwords must match.");
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push("Passwords must match.");
+      if (!firstInvalidRef) firstInvalidRef = passwordRef;
+    } else if (isPasswordInvalid) {
+      setPasswordError(true);
+      setPasswordErrorMessage(
+        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
+      );
+      setErrorMessage(
+        "We can't process your request right now because you have errors that need to be fixed",
+      );
+      errors.push(
+        "Password must be at least 8 characters with uppercase, lowercase, numbers, and symbols.",
+      );
+      if (!firstInvalidRef) firstInvalidRef = passwordRef;
+    } else {
+      setPasswordError(false);
+      setPasswordErrorMessage("");
     }
 
+    setPasswordError(isPasswordInvalid);
+    setConfirmPasswordError(isConfirmInvalid);
+   // setSuccessMessage("");
+
+//     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
+//       setErrorMessage("Please fill the required fields correctly before continuing.");
+//       return false;
+//     }
+//
+//     setErrorMessage("");
+//     return true;
+//   };
+    if (errors.length > 0) {
+      setFormError(errors);
+      if (firstInvalidRef?.current) {
+        firstInvalidRef.current.focus();
+      }
+      return false;
+    }
     setErrorMessage("");
     return true;
-  };
+    };
 
   const handleContinue = (e) => {
     e.preventDefault();
@@ -297,7 +411,6 @@ export const Register = () => {
       return;
     }
 
-    setErrorMessage("");
     setIsLoading(true);
     setStep2Errors({});
 
@@ -341,18 +454,18 @@ export const Register = () => {
       const status = error.status;
 
       if (status === 429) {
-        setErrorMessage(
+        setApiErrorMessage(
           "We can't process your request right now. Please try again later.",
         );
       } else if (status === 409) {
-        
-        setDuplicateEmailError(true)
+        setDuplicateEmailError(true);
+        setApiErrorMessage("That email is already in use.");
       } else {
         const message =
           data?.errors?.[0]?.defaultMessage ||
           data?.message ||
           "Registration failed. Please try again.";
-        setErrorMessage(message);
+        setApiErrorMessage(message);
       }
 
       console.error(`error: ${error.data.message}`);
@@ -477,8 +590,9 @@ export const Register = () => {
           </Box>
         </Box>
       </Box>
-      <Grid
-        sx={{
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Grid
+         sx={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
@@ -499,6 +613,13 @@ export const Register = () => {
           {errorMessage && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorMessage}
+              {formError.length > 0 && (
+                  <ul>
+                    {formError.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+               )}
             </Alert>
           )}
           {duplicateEmailError && (
@@ -535,6 +656,8 @@ export const Register = () => {
                   fullWidth
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  error={firstNameError}
+                  helperText={firstNameErrorMessage}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -565,6 +688,8 @@ export const Register = () => {
                   fullWidth
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  error={lastNameError}
+                  helperText={lastNameErrorMessage}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -607,6 +732,8 @@ export const Register = () => {
               }}
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
+              error={institutionError}
+              helperText={institutionErrorMessage}
               placeholder="Select institution"
               sx={{ mb: 0 }}
             >
@@ -628,7 +755,8 @@ export const Register = () => {
               Email Address
             </Typography>
             <TextField
-              type="email"
+              inputRef={emailRef}
+              type="text"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -636,7 +764,7 @@ export const Register = () => {
               }}
 
               error={emailError}
-              helperText={emailError ? "Must use proper email format" : ""}
+              helperText={emailError ? emailErrorMessage : ""}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -660,12 +788,15 @@ export const Register = () => {
               Password
             </Typography>
             <TextField
+              inputRef={passwordRef}
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={passwordError}
+              error={passwordError || confirmPasswordError}
               helperText={
-                "Must be at least 8 characters with uppercase, lowercase, numbers, and symbols"
+                  passwordError || confirmPasswordError
+                    ? passwordErrorMessage
+                    : ""
               }
               slotProps={{
                 input: {
@@ -709,11 +840,12 @@ export const Register = () => {
               Confirm Password
             </Typography>
             <TextField
+              inputRef={confirmPasswordRef}
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={confirmPasswordError}
-              helperText={confirmPasswordError ? "Passwords must match" : ""}
+              helperText={confirmPasswordError ? passwordErrorMessage : ""}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -763,6 +895,14 @@ export const Register = () => {
             >
               Continue →
             </Button>
+            {apiErrorMessage && (
+                <Typography
+                  sx={{ color: "error.main", fontSize: 13, mt: 1 }}
+                  role="alert"
+                >
+                  {apiErrorMessage}
+                </Typography>
+              )}
           </Box>
           </>
         )}
@@ -1078,7 +1218,9 @@ export const Register = () => {
             >
               <p>
               <input type="checkbox" id="terms" required></input>
-              <label for="terms"> I agree to the Terms of Service and Privacy Policy</label>
+              <label for="terms">
+                  {" "}
+                  I agree to the Terms of Service and Privacy Policy</label>
               </p>
             </Typography>
 
@@ -1133,6 +1275,7 @@ export const Register = () => {
 
         
       </Grid>
+     </Box>
     </Grid>
   );
 };
