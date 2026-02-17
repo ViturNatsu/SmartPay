@@ -28,6 +28,8 @@ const AuthProviderInner = ({ children }) => {
           id: userData.id,
           email: userData.email,
           role: userData.role,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
         });
       } else {
         setUser(null);
