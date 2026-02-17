@@ -699,7 +699,26 @@ export const Register = () => {
                   <input type="checkbox" id="terms" required></input>
                   <label for="terms">
                     {" "}
-                    I agree to the Terms of Service and Privacy Policy
+                    I agree to the{' '}  
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Terms and Conditions
+                    </Link>
+                    {' '}              
+                    and
+                    {' '}              
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Privacy Policy
+                    </Link>
                   </label>
                 </p>
               </Typography>
