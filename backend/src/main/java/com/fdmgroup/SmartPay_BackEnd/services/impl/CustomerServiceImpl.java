@@ -5,12 +5,11 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Customer;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.GovernmentIdType;
+import com.fdmgroup.SmartPay_BackEnd.exception.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.CustomerService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @AllArgsConstructor
@@ -20,7 +19,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDTO getCustomerInfo(Long userId) {
         Customer customerInfo = customerRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer Info not found"));
+                .orElseThrow(() -> new CustomerInfoNotFoundException("Customer Info not found"));
         return mapToDto(customerInfo);
     }
 
@@ -28,8 +27,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDTO updateCustomerInfo(Long userId, CustomerDTO customerInfo) {
 
         Customer existingCustomer = customerRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Customer Info not found"));
+                .orElseThrow(() -> new CustomerInfoNotFoundException("Customer Info not found"));
 
 
         existingCustomer.setFirstName(customerInfo.getFirstName());

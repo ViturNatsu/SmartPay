@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,9 @@ import com.fdmgroup.SmartPay_BackEnd.security.JwtAuthFilter;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 
 import lombok.AllArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @AllArgsConstructor
@@ -75,7 +79,12 @@ public class SecurityConfig {
                         exception.authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
                             response.setContentType("application/json");
-                            response.getWriter().write("{\"error\":\"Unauthorized: Missing or invalid token\"}");
+                            Map<String, String> errorBody = new HashMap<>();
+                            errorBody.put("status", "401");
+                            errorBody.put("error", "UNAUTHORIZED");
+                            errorBody.put("message", "Missing Or Invalid Token.");
+                            ObjectMapper mapper = new ObjectMapper();
+                            response.getWriter().write(mapper.writeValueAsString(errorBody));
                         })
                 )
             .authorizeHttpRequests(auth -> auth

@@ -45,13 +45,13 @@ public class PasswordResetDataTest {
 
     @Test
     void testOtpPersistenceAndLookup() {
-        Optional<Otp> otp = otpRepository.findByEmailAndOtpType("test@example.com", OtpType.FORGOT_PASSWORD);
+        Optional<Otp> otp = otpRepository.findByEmailAndOtpType("test@example.com", EventType.FORGOT_PASSWORD);
 
         if (otp.isEmpty()) {
             Otp new_otp = Otp.builder()
                     .email("test@example.com")
                     .otpHash("hash")
-                    .otpType(OtpType.FORGOT_PASSWORD)
+                    .otpType(EventType.FORGOT_PASSWORD)
                     .status(OtpStatus.ACTIVE)
                     .expiresAt(LocalDateTime.now().plusMinutes(15))
                     .attemptsMade(0)

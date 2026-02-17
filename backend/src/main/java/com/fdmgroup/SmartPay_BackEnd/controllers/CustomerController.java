@@ -58,6 +58,7 @@ public class CustomerController {
         // Update the User entity in the database
         customerService.updateCustomerInfo(userId, customerDTO);
 
+        //can return CustomerDTO later on
         return ResponseEntity.ok(
                 Map.of("message", "Customer Data Updated Successfully.")
         );
