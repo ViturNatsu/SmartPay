@@ -12,6 +12,7 @@ public class AccountDto {
 
     private Long id;
     private String accountName;
+    private String accountNumber;
     private Double balance;
     private AccountType accountType;
     private Long userId;

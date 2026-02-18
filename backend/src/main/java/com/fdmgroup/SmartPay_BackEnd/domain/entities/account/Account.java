@@ -31,6 +31,9 @@ public abstract class Account {
     @Column(name = "account_id")
     private Long id;
 
+    @Column(name = "account_number", unique = true, nullable = false, updatable = false, length = 8)
+    private String accountNumber;
+
     @Column(name = "account_name")
     private String accountName;
 
