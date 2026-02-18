@@ -1,3 +1,10 @@
+import Navbar from "../components/Navbar"
+
 export function AddPayee() {
-  return <div>AddPayee</div>;
+  return (
+    <>
+      <Navbar />
+      <h1>Add Payee</h1>
+    </>
+  );
 }
