@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 @Getter
 @Setter
@@ -30,7 +31,7 @@ public class CustomerDTO {
 
     @NotBlank(message = "City is required.")
     @Size(max = 80, message = "City cannot exceed 80 characters.")
-    @Pattern(regexp = "^[A-Za-z .'-]+$", message = "City contains invalid characters.")
+    @Pattern(regexp = "^[A-Za-z0-9 .'-]+$", message = "City contains invalid characters.")
     private String city;
 
     @NotBlank(message = "Province is required.")
@@ -74,12 +75,12 @@ public class CustomerDTO {
     private String governmentIdType;
 
     @NotBlank(message = "Government ID Number is required.")
-    @Size(max = 15, message = "Government ID Number cannot exceed 15 characters.")
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Government ID Number must be alphanumeric.")
     private String governmentIdNumber;
 
     @NotBlank(message = "Occupation is required.")
     @Size(max = 80, message = "Occupation cannot exceed 80 characters.")
-    @Pattern(regexp = "^[A-Za-z .'-]+$", message = "Occupation contains invalid characters.")
+    @Pattern(regexp = "^[A-Za-z0-9 .'-]+$", message = "Occupation contains invalid characters.")
     private String occupation;
 
     @NotBlank(message = "Date of Birth is required.")
@@ -96,6 +97,46 @@ public class CustomerDTO {
             return !parsed.isAfter(LocalDate.now());
         } catch (DateTimeParseException ex) {
             return true;
+        }
+    }
+
+    @AssertTrue(message = "Occupation must include at least one letter.")
+    public boolean isOccupationContainsLetter() {
+        if (occupation == null || occupation.isBlank()) {
+            return true;
+        }
+        return occupation.matches(".*[A-Za-z].*");
+    }
+
+    @AssertTrue(message = "Passport number must be 6-11 alphanumeric characters.")
+    public boolean isPassportGovernmentIdValid() {
+        if (!"PASSPORT".equals(governmentIdType) || governmentIdNumber == null || governmentIdNumber.isBlank()) {
+            return true;
+        }
+        return governmentIdNumber.matches("^[A-Z0-9]{6,11}$");
+    }
+
+    @AssertTrue(message = "Driver's licence number must be 5-15 alphanumeric characters.")
+    public boolean isDriverLicenseGovernmentIdValid() {
+        if (!"DRIVER_LICENSE".equals(governmentIdType) || governmentIdNumber == null || governmentIdNumber.isBlank()) {
+            return true;
+        }
+        return governmentIdNumber.matches("^[A-Z0-9]{5,15}$");
+    }
+
+    @AssertTrue(message = "PR card number must be 9-12 alphanumeric characters.")
+    public boolean isPrCardGovernmentIdValid() {
+        if (!"PRCARD_NUMBER".equals(governmentIdType) || governmentIdNumber == null || governmentIdNumber.isBlank()) {
+            return true;
+        }
+        return governmentIdNumber.matches("^[A-Z0-9]{9,12}$");
+    }
+
+    public void setGovernmentIdNumber(String governmentIdNumber) {
+        if (governmentIdNumber == null) {
+            this.governmentIdNumber = null;
+        } else {
+            this.governmentIdNumber = governmentIdNumber.trim().replace("-", "").toUpperCase(Locale.ROOT);
         }
     }
 }
