@@ -22,56 +22,6 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import logo from "../assets/logo.png";
 import Alert from "@mui/material/Alert";
 import { register } from "../api/authApi";
-import GovtIDIcon from '@mui/icons-material/AccountBox';
-
-const CANADA_POSTAL_CODE_REGEX =
-  /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
-const OCCUPATION_REGEX = /^[A-Za-z .'-]+$/;
-const CITY_REGEX = /^[A-Za-z .'-]+$/;
-const MAX_OCCUPATION_LENGTH = 80;
-const MAX_PHONE_LENGTH = 25;
-const MAX_ADDRESS_LINE1_LENGTH = 120;
-const MAX_ADDRESS_LINE2_LENGTH = 120;
-const MAX_CITY_LENGTH = 80;
-
-const CANADA_PROVINCES = [
-  { value: "AB", label: "Alberta" },
-  { value: "BC", label: "British Columbia" },
-  { value: "MB", label: "Manitoba" },
-  { value: "NB", label: "New Brunswick" },
-  { value: "NL", label: "Newfoundland and Labrador" },
-  { value: "NS", label: "Nova Scotia" },
-  { value: "NT", label: "Northwest Territories" },
-  { value: "NU", label: "Nunavut" },
-  { value: "ON", label: "Ontario" },
-  { value: "PE", label: "Prince Edward Island" },
-  { value: "QC", label: "Quebec" },
-  { value: "SK", label: "Saskatchewan" },
-  { value: "YT", label: "Yukon" },
-];
-
-const normalizeSin = (value) => value.replace(/[\s-]/g, "");
-const normalizePhoneDigits = (value) => value.replace(/\D/g, "");
-const normalizeIdNumber = (value) => value.replace(/\s+/g, "").toUpperCase();
-const normalizePostalCode = (value) => {
-  const condensed = value.toUpperCase().replace(/\s+/g, "");
-  if (condensed.length === 6) return `${condensed.slice(0, 3)} ${condensed.slice(3)}`;
-  return value.toUpperCase().trim();
-};
-
-const isGovernmentIdValid = (governmentIdType, governmentIdNumber) => {
-  const normalized = normalizeIdNumber(governmentIdNumber);
-  if (governmentIdType === "PASSPORT") return /^[A-Z0-9]{6,9}$/.test(normalized);
-  if (governmentIdType === "DRIVER_LICENSE") return /^[A-Z0-9]{5,15}$/.test(normalized);
-  if (governmentIdType === "PRCARD_NUMBER") return /^[A-Z0-9]{8,12}$/.test(normalized);
-  return false;
-};
-
-const isValidCanadianPhone = (value) => {
-  const digits = normalizePhoneDigits(value);
-  if (digits.length === 10) return true;
-  return digits.length === 11 && digits.startsWith("1");
-};
 
 export const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -88,7 +38,6 @@ export const Register = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const NAME_REGEX = /^[A-Za-z]+$/;
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -111,23 +60,6 @@ export const Register = () => {
   const [institutionErrorMessage, setInstitutionErrorMessage] = useState("");
 
   const [apiErrorMessage, setApiErrorMessage] = useState("");
-
-  const [step, setStep] = useState(1);
-
-  const [socialInsuranceNumber, setSocialInsuranceNumber] = useState("");
-  const [governmentIdType, setGovernmentIdType] = useState("PASSPORT");
-  const [governmentIdNumber, setGovernmentIdNumber] = useState("");
-
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [addressLine1, setAddressLine1] = useState("");
-  const [addressLine2, setAddressLine2] = useState("");
-  const [city, setCity] = useState("");
-  const [province, setProvince] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [occupation, setOccupation] = useState("");
-  const [dob, setDob] = useState("");
-  const [country] = useState("Canada");
-  const [step2Errors, setStep2Errors] = useState({});
 
   const bulletContainerSx = {
     display: "flex",
@@ -173,9 +105,10 @@ export const Register = () => {
     textAlign: "left",
   };
 
-  const validateStep1 = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     setErrorMessage("");
-    setFormError([]);
     setDuplicateEmailError(false);
 
     setFirstNameError(false);
@@ -220,11 +153,7 @@ export const Register = () => {
       setFirstNameError(true);
       setFirstNameErrorMessage("First name is required.");
       errors.push("First name is required.");
-    } else if (!NAME_REGEX.test(firstName.trim())) {
-      setFirstNameError(true);
-      setFirstNameErrorMessage("First name must contain only letters.");
-      errors.push("First name must contain only letters.");
-    }else {
+    } else {
       setFirstNameError(false);
       setFirstNameErrorMessage("");
     }
@@ -232,11 +161,7 @@ export const Register = () => {
       setLastNameError(true);
       setLastNameErrorMessage("Last name is required.");
       errors.push("Last name is required.");
-    } else if (!NAME_REGEX.test(lastName.trim())) {
-      setLastNameError(true);
-      setLastNameErrorMessage("Last name must contain only letters.");
-      errors.push("Last name must contain only letters.");
-    }else {
+    } else {
       setLastNameError(false);
       setLastNameErrorMessage("");
     }
@@ -279,150 +204,18 @@ export const Register = () => {
 
     setPasswordError(isPasswordInvalid);
     setConfirmPasswordError(isConfirmInvalid);
-   // setSuccessMessage("");
 
-//     if (isEmailInvalid || isPasswordInvalid || isConfirmInvalid) {
-//       setErrorMessage("Please fill the required fields correctly before continuing.");
-//       return false;
-//     }
-//
-//     setErrorMessage("");
-//     return true;
-//   };
     if (errors.length > 0) {
       setFormError(errors);
       if (firstInvalidRef?.current) {
         firstInvalidRef.current.focus();
       }
-      return false;
+      return;
     }
+
     setErrorMessage("");
-    return true;
-    };
-
-  const handleContinue = (e) => {
-    e.preventDefault();
-
-    if (!validateStep1()) {
-      return;
-    }
-
-    setStep(2);
-  };
-
-  const validateStep2 = () => {
-    const errors = {};
-    const normalizedSin = normalizeSin(socialInsuranceNumber);
-    const normalizedPostalCode = normalizePostalCode(postalCode);
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    if (!normalizedSin) {
-      errors.socialInsuranceNumber = "Social Insurance Number is required.";
-    } else if (!/^\d{9}$/.test(normalizedSin)) {
-      errors.socialInsuranceNumber = "SIN must be exactly 9 digits.";
-    }
-
-    const trimmedOccupation = occupation.trim();
-    if (!trimmedOccupation) {
-      errors.occupation = "Occupation is required.";
-    } else if (trimmedOccupation.length < 2 || trimmedOccupation.length > MAX_OCCUPATION_LENGTH) {
-      errors.occupation = `Occupation must be 2-${MAX_OCCUPATION_LENGTH} characters.`;
-    } else if (!OCCUPATION_REGEX.test(trimmedOccupation)) {
-      errors.occupation = "Occupation contains invalid characters.";
-    }
-
-    if (!governmentIdNumber.trim()) {
-      errors.governmentIdNumber = "Government ID Number is required.";
-    } else if (!isGovernmentIdValid(governmentIdType, governmentIdNumber)) {
-      errors.governmentIdNumber = "Government ID Number format is invalid.";
-    }
-
-    if (!dob) {
-      errors.dob = "Date of Birth is required.";
-    } else {
-      const dobDate = new Date(dob);
-      if (Number.isNaN(dobDate.getTime())) {
-        errors.dob = "Date of Birth is invalid.";
-      } else {
-        dobDate.setHours(0, 0, 0, 0);
-        if (dobDate > now) {
-          errors.dob = "Date of Birth cannot be in the future.";
-        }
-      }
-    }
-
-    const trimmedPhone = phoneNumber.trim();
-    if (!trimmedPhone) {
-      errors.phoneNumber = "Phone Number is required.";
-    } else if (trimmedPhone.length > MAX_PHONE_LENGTH) {
-      errors.phoneNumber = `Phone Number cannot exceed ${MAX_PHONE_LENGTH} characters.`;
-    } else if (!isValidCanadianPhone(trimmedPhone)) {
-      errors.phoneNumber = "Phone Number must be 10 digits (optional +1).";
-    }
-
-    const trimmedAddressLine1 = addressLine1.trim();
-    if (!trimmedAddressLine1) {
-      errors.addressLine1 = "Address Line 1 is required.";
-    } else if (
-      trimmedAddressLine1.length < 5 ||
-      trimmedAddressLine1.length > MAX_ADDRESS_LINE1_LENGTH
-    ) {
-      errors.addressLine1 = `Address Line 1 must be 5-${MAX_ADDRESS_LINE1_LENGTH} characters.`;
-    }
-
-    if (addressLine2.trim().length > MAX_ADDRESS_LINE2_LENGTH) {
-      errors.addressLine2 = `Address Line 2 cannot exceed ${MAX_ADDRESS_LINE2_LENGTH} characters.`;
-    }
-
-    const trimmedCity = city.trim();
-    if (!trimmedCity) {
-      errors.city = "City is required.";
-    } else if (trimmedCity.length < 2 || trimmedCity.length > MAX_CITY_LENGTH) {
-      errors.city = `City must be 2-${MAX_CITY_LENGTH} characters.`;
-    } else if (!CITY_REGEX.test(trimmedCity)) {
-      errors.city = "City contains invalid characters.";
-    }
-
-    if (!province) {
-      errors.province = "Province is required.";
-    }
-
-    if (!postalCode.trim()) {
-      errors.postalCode = "Postal Code is required.";
-    } else if (!CANADA_POSTAL_CODE_REGEX.test(normalizedPostalCode)) {
-      errors.postalCode = "Postal Code must match Canadian format (A1A 1A1).";
-    }
-
-    setStep2Errors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const clearStep2Error = (fieldName) => {
-    setStep2Errors((prev) => {
-      if (!prev[fieldName]) return prev;
-      const next = { ...prev };
-      delete next[fieldName];
-      return next;
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateStep1()) {
-      setStep(1);
-      return;
-    }
-
-    if (!validateStep2()) {
-      setErrorMessage("Please correct the highlighted Step 2 fields.");
-      return;
-    }
 
     setIsLoading(true);
-    setStep2Errors({});
-
     const userInfo = {
       firstName: firstName,
       lastName: lastName,
@@ -430,20 +223,6 @@ export const Register = () => {
       email: email,
       password: password,
       confirmPassword: confirmPassword,
-      customer: {
-        socialInsuranceNumber: normalizeSin(socialInsuranceNumber),
-        occupation: occupation.trim(),
-        addressLine1: addressLine1.trim(),
-        addressLine2: addressLine2.trim(),
-        city: city.trim(),
-        province,
-        postalCode: normalizePostalCode(postalCode),
-        country,
-        phoneNumber: normalizePhoneDigits(phoneNumber),
-        governmentIdType,
-        governmentIdNumber: normalizeIdNumber(governmentIdNumber),
-        dob,
-      },
     };
 
     try {
@@ -601,208 +380,217 @@ export const Register = () => {
       </Box>
       <Box display="flex" flexDirection="column" gap={2}>
         <Grid
-         sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          px: { xs: 3, md: 8 },
-          py: { xs: 6, md: 0 },
-        }}
-      >
-        <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Create Your Account
-          </Typography>
-          <Typography sx={{ color: "text.secondary", mb: 3 }}>
-            Sign up to start managing your finances with SmartPay
-          </Typography>
-
-          {errorMessage && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {errorMessage}
-              {formError.length > 0 && (
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            px: { xs: 3, md: 8 },
+            py: { xs: 6, md: 0 },
+          }}
+        >
+          <Box component="form" onSubmit={handleSubmit}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Create Your Account
+            </Typography>
+            <Typography sx={{ color: "text.secondary", mb: 3 }}>
+              Sign up to start managing your finances with SmartPay
+            </Typography>
+            {errorMessage && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {errorMessage}
+                {formError.length > 0 && (
                   <ul>
                     {formError.map((error, index) => (
                       <li key={index}>{error}</li>
                     ))}
                   </ul>
-               )}
-            </Alert>
-          )}
-          {duplicateEmailError && (
-                <Box sx={{ fontSize: "0.9rem", color: "error.main" }} role="alert">
-                  We can’t create an account with that email. Please{" "}
-                  <Link component="button" underline="hover" sx={{ fontSize: "inherit", verticalAlign: "baseline" }} onClick={() => navigate("/login")}>
-                    Sign in
-                  </Link>
-                  {" or "}
-                  <Link component="button" underline="hover" sx={{ fontSize: "inherit", verticalAlign: "baseline" }} onClick={() => navigate("/reset-password")}>
-                    reset your password
-                  </Link>
-                  .
+                )}
+              </Alert>
+            )}
+            {duplicateEmailError && (
+              <Box
+                sx={{ fontSize: "0.9rem", color: "error.main" }}
+                role="alert"
+              >
+                We can’t create an account with that email. Please{" "}
+                <Link
+                  component="button"
+                  underline="hover"
+                  onClick={() => navigate("/login")}
+                >
+                  Sign in
+                </Link>
+                {" or "}
+                <Link
+                  component="button"
+                  underline="hover"
+                  onClick={() => navigate("/reset-password")}
+                >
+                  reset your password
+                </Link>
+                .
+              </Box>
+            )}
+            <Box display="flex" flexDirection="column" gap={2}>
+              <Box display="flex" gap={2}>
+                <Box flex={1}>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      mb: 1,
+                    }}
+                  >
+                    First Name
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    error={firstNameError}
+                    helperText={firstNameErrorMessage}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon
+                              sx={{
+                                color: "rgba(15, 23, 42, 0.45)",
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
                 </Box>
-              )}
-
-
-        {step === 1 && (
-          <>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Box display="flex" gap={2}>
-              <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  First Name
-                </Typography>
-                <TextField
-                  fullWidth
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  error={firstNameError}
-                  helperText={firstNameErrorMessage}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                          />
-                        </InputAdornment>
-                      ),
-                      "data-testid": "first-name-input"
-                    },
-                  }}
-                />
+                <Box flex={1}>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      mb: 1,
+                    }}
+                  >
+                    Last Name
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    error={lastNameError}
+                    helperText={lastNameErrorMessage}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon
+                              sx={{
+                                color: "rgba(15, 23, 42, 0.45)",
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                  />
+                </Box>
               </Box>
-
-              <Box flex={1}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: 1,
-                  }}
-                >
-                  Last Name
-                </Typography>
-                <TextField
-                  fullWidth
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  error={lastNameError}
-                  helperText={lastNameErrorMessage}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
-                          />
-                        </InputAdornment>
-                      ),
-                      "data-testid": "last-name-input"
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Financial Institution
-            </Typography>
-            <TextField
-              select
-              fullWidth
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  "data-testid": "institution-input"
-                },
-
-              }}
-              value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
-              error={institutionError}
-              helperText={institutionErrorMessage}
-              placeholder="Select institution"
-              sx={{ mb: 0 }}
-            >
-              <MenuItem value="">Select institution</MenuItem>
-              <MenuItem value="World">World Bank of Canada</MenuItem>
-              <MenuItem value="TD">TD Bank</MenuItem>
-              <MenuItem value="FDM">FDM Bank</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </TextField>
-
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Email Address
-            </Typography>
-            <TextField
-              inputRef={emailRef}
-              type="text"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setDuplicateEmailError(false);
-              }}
-
-              error={emailError}
-              helperText={emailError ? emailErrorMessage : ""}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                    </InputAdornment>
-                  ),
-                  "data-testid": "email-input"
-                },
-              }}
-            />
-
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "text.secondary",
-                mb: -1,
-              }}
-            >
-              Password
-            </Typography>
-            <TextField
-              inputRef={passwordRef}
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={passwordError || confirmPasswordError}
-              helperText={
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+                }}
+              >
+                Financial Institution
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BankIcon
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                value={institution}
+                onChange={(e) => setInstitution(e.target.value)}
+                error={institutionError}
+                helperText={institutionErrorMessage}
+                placeholder="Select institution"
+                sx={{ mb: 0 }}
+              >
+                <MenuItem value="">Select institution</MenuItem>
+                <MenuItem value="chase">Chase</MenuItem>
+                <MenuItem value="boa">Bank of America</MenuItem>
+                <MenuItem value="wells">Wells Fargo</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
+              </TextField>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+                }}
+              >
+                Email Address
+              </Typography>
+              <TextField
+                inputRef={emailRef}
+                type="text"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setDuplicateEmailError(false);
+                }}
+                error={emailError}
+                helperText={emailError ? emailErrorMessage : ""}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MailIcon
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                    "data-testid": "email-input",
+                  },
+                }}
+              />
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+                }}
+              >
+                Password
+              </Typography>
+              <TextField
+                inputRef={passwordRef}
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={passwordError || confirmPasswordError}
+                helperText={
                   passwordError || confirmPasswordError
                     ? passwordErrorMessage
                     : ""
@@ -1305,6 +1093,173 @@ export const Register = () => {
         
       </Grid>
      </Box>
+                }
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PasswordIcon
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        >
+                          {showPassword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "text.secondary",
+                  mb: -1,
+                }}
+              >
+                Confirm Password
+              </Typography>
+              <TextField
+                inputRef={confirmPasswordRef}
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={confirmPasswordError}
+                helperText={confirmPasswordError ? passwordErrorMessage : ""}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PasswordIcon
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() =>
+                            setShowConfirmPassword((prev) => !prev)
+                          }
+                          aria-label={
+                            showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                          sx={{
+                            color: "rgba(15, 23, 42, 0.45)",
+                          }}
+                        >
+                          {showConfirmPassword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  color: "text.secondary",
+                  textAlign: "left",
+                  mt: -1,
+                  mb: -1,
+                }}
+              >
+                <p>
+                  <input type="checkbox" id="terms" required></input>
+                  <label for="terms">
+                    {" "}
+                    I agree to the{' '}  
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Terms and Conditions
+                    </Link>
+                    {' '}              
+                    and
+                    {' '}              
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </p>
+              </Typography>
+              <Button
+                variant="contained"
+                type="submit"
+                disabled={isLoading}
+                sx={{
+                  py: 1.2,
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 700,
+                  mb: 2,
+                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                }}
+              >
+                {isLoading ? "Creating Account..." : "Create Account"}
+              </Button>
+              {apiErrorMessage && (
+                <Typography
+                  sx={{ color: "error.main", fontSize: 13, mt: 1 }}
+                  role="alert"
+                >
+                  {apiErrorMessage}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+          <Typography
+            sx={{
+              fontSize: 13,
+              color: "text.secondary",
+              textAlign: "center",
+            }}
+          >
+            Already have an account?{" "}
+            <Link href="/login" underline="hover" sx={{ fontWeight: 700 }}>
+              Sign in
+            </Link>
+          </Typography>
+        </Grid>
+      </Box>
     </Grid>
   );
 };
