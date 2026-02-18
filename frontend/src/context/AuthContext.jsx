@@ -9,47 +9,81 @@ import {
 import { useNavigate } from "react-router-dom";
 import * as authApi from "../api/authApi";
 import { setAccessToken, clearAccessToken } from "../api/axios";
-import { SessionManagerProvider, useSessionManager } from "./SessionManagerContext";
+import { SessionManagerProvider, useSessionManager, decodeJwtPayload } from "./SessionManagerContext";
 
 const AuthContext = createContext(undefined);
 
 const AuthProviderInner = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  // Minimal identity derived from access token (non-authoritative)
+  const [tokenClaims, setTokenClaims] = useState(null);
   const { startSessionMonitoring, stopSessionMonitoring } = useSessionManager();
   const navigate = useNavigate();
   const getMyUser = useCallback(async () => {
     try {
       const userData = await authApi.getMyUser();
-      console.log(userData)
+      
       if (userData) {
         setUser({
-          id: userData.id,
-          email: userData.email,
-          role: userData.role,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
+          id: userData.id ?? null,
+          email: userData.email ?? null,
+          role: userData.role ?? null,
+          firstName: userData.firstName ?? null,
+          lastName: userData.lastName ?? null,
+          addressLine1: userData.addressLine1 ?? null,
+          addressLine2: userData.addressLine2 ?? null,
+          city: userData.city ?? null,
+          country: userData.country ?? null,
+          dob: userData.dob ?? null,
+          dobNotInFuture: userData.dobNotInFuture ?? null,
+          governmentIdNumber: userData.governmentIdNumber ?? null,
+          governmentIdType: userData.governmentIdType ?? null,
+          occupation: userData.occupation ?? null,
+          phoneNumber: userData.phoneNumber ?? null,
+          postalCode: userData.postalCode ?? null,
+          province: userData.province ?? null,
+          socialInsuranceNumber: userData.socialInsuranceNumber ?? null,
         });
       } else {
         setUser(null);
       }
-    } catch {
+    } catch (err) {
       setUser(null);
     }
   }, []);
 
   const setAuthFromTokens = useCallback(
     async ({ accessToken, refreshToken }) => {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
 
       if (!accessToken) {
         setUser(null);
+        setTokenClaims(null);
         return;
       }
 
-      await getMyUser();
+      // Store minimal identity from token while we fetch full profile
+      const claims = decodeJwtPayload(accessToken);
+      if (claims) {
+        setTokenClaims({
+          userId: claims.sub ?? null,
+          role: claims.role ?? null,
+          email: claims.email ?? null,
+        });
+      } else {
+        setTokenClaims(null);
+      }
+
+      try {
+        await getMyUser();
+      } catch (error) {
+        console.error("Failed to get user data:", error);
+        // Don't clear auth just because getMyUser failed - user is still authenticated
+      }
 
       // Disabled for now Start session monitoring after successful authentication
       startSessionMonitoring();
@@ -59,6 +93,7 @@ const AuthProviderInner = ({ children }) => {
 
   const clearAuth = useCallback(async() => {
     setUser(null);
+    setTokenClaims(null);
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
     await authApi.logout();
@@ -99,6 +134,18 @@ const AuthProviderInner = ({ children }) => {
             sessionStorage.setItem("refresh_token", res.refreshToken);
           }
 
+          // Update minimal identity from refreshed access token
+          const claims = decodeJwtPayload(res.accessToken);
+          if (claims) {
+            setTokenClaims({
+              userId: claims.sub ?? null,
+              role: claims.role ?? null,
+              email: claims.email ?? null,
+            });
+          } else {
+            setTokenClaims(null);
+          }
+
           await getMyUser();
 
           // Disabled for now. Start session monitoring after successful bootstrap
@@ -123,12 +170,13 @@ const AuthProviderInner = ({ children }) => {
   const value = useMemo(
     () => ({
       user,
+      tokenClaims,
       loading,
       setAuthFromTokens,
       getMyUser,
       logout,
     }),
-    [user, loading,getMyUser, setAuthFromTokens, logout]
+    [user, tokenClaims, loading, getMyUser, setAuthFromTokens, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

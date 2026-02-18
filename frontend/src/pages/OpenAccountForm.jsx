@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -21,6 +21,7 @@ import {
   useTheme,
 } from "@mui/material";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { useAuth } from "../context/AuthContext";
 
 const steps = ["Account Details", "Terms & Conditions", "Review & Submit"];
 
@@ -43,6 +44,7 @@ const provinces = [
 const accountTypes = ["Chequing", "Savings"];
 
 export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
+  const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [activeStep, setActiveStep] = useState(0);
@@ -51,18 +53,38 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     accountType: "",
     accountName: "",
-    firstName: "",
+    firstName: user.firstName,
     middleName: "",
-    lastName: "",
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    province: "",
-    postalCode: "",
-    phoneNumber: "",
-    sin: "",
-    governmentId: "",
+    lastName: user.lastName,
+    addressLine1: user.addressLine1,
+    addressLine2: user.addressLine2 || "",
+    city: user.city,
+    province: user.province,
+    postalCode: user.postalCode,
+    phoneNumber: user.phoneNumber,
+    sin: user.socialInsuranceNumber,
+    governmentId: user.governmentIdNumber,
   });
+
+  // Prefill form any time the dialog opens or when user data becomes available
+  useEffect(() => {
+    if (!open) return;
+    setFormData({
+      accountType: "",
+      accountName: "",
+      firstName: user?.firstName ?? "",
+      middleName: "",
+      lastName: user?.lastName ?? "",
+      addressLine1: user?.addressLine1 ?? "",
+      addressLine2: user?.addressLine2 ?? "",
+      city: user?.city ?? "",
+      province: user?.province ?? "",
+      postalCode: user?.postalCode ?? "",
+      phoneNumber: user?.phoneNumber ?? "",
+      sin: user?.socialInsuranceNumber ?? "",
+      governmentId: user?.governmentIdNumber ?? "",
+    });
+  }, [open, user]);
 
   const handleChange = (field) => (event) => {
     setFormData({ ...formData, [field]: event.target.value });
@@ -146,7 +168,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                 fullWidth
               >
                 {accountTypes.map((type) => (
-                  <MenuItem key={type} value={type}>
+                  <MenuItem key={type} value={type.toUpperCase()}>
                     {type}
                   </MenuItem>
                 ))}
@@ -238,7 +260,6 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                   }}
                 >
                   <TextField
-                    select
                     label="Province / Territory"
                     required
                     value={formData.province}

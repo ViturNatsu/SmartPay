@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Box,
     Button,
@@ -21,6 +21,8 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import Navbar from "../components/Navbar";
 import OpenAccountForm from "./OpenAccountForm";
+import { useAuth } from "../context/AuthContext";
+import { getUserAccounts, createAccount } from "/src/api/accounts/accountApi.js";
 
 const formatCurrency = (value) =>
     value.toLocaleString("en-US", {
@@ -30,52 +32,17 @@ const formatCurrency = (value) =>
         maximumFractionDigits: 2,
     });
 
-let idCounter = 5
-
-const mockAccounts = {
-    chequing: [
-        {
-            id: 1,
-            name: "Primary Chequing",
-            accountNumber: "8379",
-            balance: 2082.25,
-            type: "chequing",
-        },
-    ],
-    savings: [
-        {
-            id: 2,
-            name: "High Yield Savings",
-            accountNumber: "0328",
-            balance: 12150.25,
-            type: "savings",
-            goal: 20000,
-        },
-        {
-            id: 3,
-            name: "Emergency Savings",
-            accountNumber: "7351",
-            balance: 7200,
-            type: "savings",
-            goal: 15000,
-        },
-        {
-            id: 4,
-            name: "Travel Savings",
-            accountNumber: "4226",
-            balance: 3150,
-            type: "savings",
-            goal: 10000,
-        },
-    ],
-};
 
 export const Accounts = () => {
+    const { tokenClaims } = useAuth();
+    // const acc = getUserAccounts(2).then(res => console.log(res)).catch(err => console.error(err));
     const theme = useTheme();
     const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
     const [selectedTab, setSelectedTab] = useState(0);
     const [openAccountFormOpen, setOpenAccountFormOpen] = useState(false);
-    const [accountsState, setAccountsState] = useState(mockAccounts);
+    const [accountsState, setAccountsState] = useState({ chequing: [], savings: [] });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showBalances, setShowBalances] = useState(true);
 
     const allAccounts = useMemo(
@@ -106,32 +73,72 @@ export const Accounts = () => {
         setOpenAccountFormOpen(false);
     };
 
-    const handleSubmitAccountForm = (formData) => {
-        const newAccount = {
-            id: idCounter,
-            name: formData.accountName,
-            accountNumber: Math.floor(1000 + Math.random() * 9000).toString(),
-            balance: 0,
-            type: formData.accountType,
-            goal: formData.accountType === "savings" ? 0 : undefined,
-        };
+    const handleSubmitAccountForm = async (formData) => {
+        try {
+            const type =
+                formData.accountType?.toLowerCase() === "chequing"
+                    ? "CHECKING"
+                    : "SAVINGS";
 
-        setAccountsState((prev) => {
-            if (formData.accountType === "chequing") {
-                return {
-                    ...prev,
-                    chequing: [...prev.chequing, newAccount],
-                };
-            }
-            return {
-                ...prev,
-                savings: [...prev.savings, { ...newAccount, goal: 0 }],
+            const payload = {
+                type,
+                accountName: formData.accountName,
+                balance: 0,
+                user: { id: Number(tokenClaims?.userId) },
             };
-        });
 
-        idCounter += 1;
-        setOpenAccountFormOpen(false);
+            // console.log("Creating account with payload:", JSON.stringify(payload));
+            await createAccount(payload);
+
+            // Refresh from server to reflect authoritative data
+            await fetchAccounts();
+            setOpenAccountFormOpen(false);
+        } catch (err) {
+            console.error("Failed to create account:", err);
+        }
     };
+
+    // Normalize API accounts into chequing/savings buckets
+    const normalizeAccounts = (accounts = []) => {
+        const chequing = [];
+        const savings = [];
+        accounts.forEach((acct) => {
+            const rawType = (acct.type || acct.accountType || "").toLowerCase();
+            const type = rawType === "checking" ? "chequing" : rawType; // map API CHECKING to UI chequing
+            const base = {
+                id: acct.id,
+                name: acct.accountName || acct.name || (type === "savings" ? "Savings Account" : "Chequing Account"),
+                accountNumber: (acct.accountNumber ?? acct.id ?? "----").toString(),
+                balance: Number(acct.balance) || 0,
+            };
+
+            if (type === "chequing") {
+                chequing.push({ ...base, type: "chequing" });
+            } else if (type === "savings") {
+                savings.push({ ...base, type: "savings", goal: Number(acct.goal) || 0 });
+            }
+        });
+        return { chequing, savings };
+    };
+
+    const fetchAccounts = async () => {
+        if (!tokenClaims?.userId) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await getUserAccounts(Number(tokenClaims.userId));
+            setAccountsState(normalizeAccounts(Array.isArray(data) ? data : data?.accounts || []));
+        } catch (err) {
+            setError(err?.message || "Unable to load accounts");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAccounts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenClaims?.userId]);
 
     return (
         <>
@@ -212,63 +219,98 @@ export const Accounts = () => {
                         }}
                     >
                         <Box>
-                            <Tabs
-                                value={selectedTab}
-                                onChange={(_, value) => setSelectedTab(value)}
-                                sx={{
-                                    mb: 3,
-                                    "& .MuiTab-root": { textTransform: "none", fontWeight: 600, minHeight: 0, px: 1.5 },
-                                    "& .MuiTabs-indicator": { display: "none" },
-                                }}
-                            >
-                                <Tab label={`All Accounts (${allAccounts.length})`} />
-                                <Tab label={`Chequing Accounts (${accountsState.chequing.length})`} />
-                                <Tab label={`Savings Accounts (${accountsState.savings.length})`} />
-                            </Tabs>
-
-                            <Box
-                                sx={{
-                                    display: "grid",
-                                    gap: 2,
-                                    gridTemplateColumns: { xs: "1fr", sm: "repeat(auto-fit, minmax(260px, 1fr))" },
-                                }}
-                            >
-                                {filteredAccounts.map((account) => (
-                                    <Card
-                                        key={account.id}
+                            {loading ? (
+                                <LinearProgress sx={{ mb: 2 }} />
+                            ) : error ? (
+                                <Typography color="error" sx={{ mb: 2 }}>
+                                    {error}
+                                </Typography>
+                            ) : allAccounts.length === 0 ? (
+                                <Box
+                                    sx={{
+                                        p: 3,
+                                        borderRadius: 2,
+                                        bgcolor: "#fff",
+                                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                        No accounts yet
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                                        Create a new account to get started.
+                                    </Typography>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<AddRoundedIcon />}
+                                        onClick={handleOpenAccountForm}
+                                        sx={{ textTransform: "none", borderRadius: 1 }}
+                                    >
+                                        Open New Account
+                                    </Button>
+                                </Box>
+                            ) : (
+                                <>
+                                    <Tabs
+                                        value={selectedTab}
+                                        onChange={(_, value) => setSelectedTab(value)}
                                         sx={{
-                                            borderRadius: 2,
-                                            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                                            "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
+                                            mb: 3,
+                                            "& .MuiTab-root": { textTransform: "none", fontWeight: 600, minHeight: 0, px: 1.5 },
+                                            "& .MuiTabs-indicator": { display: "none" },
                                         }}
                                     >
-                                        <CardContent sx={{ p: 3 }}>
-                                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-                                                <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem", mb: 0.4 }}>
-                                                        {account.name}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                                                        {account.type === "chequing" ? "Chequing" : "Savings"} ...{account.accountNumber}
-                                                    </Typography>
-                                                </Box>
-                                                <IconButton size="small">
-                                                    <MoreHorizRoundedIcon />
-                                                </IconButton>
-                                            </Box>
+                                        <Tab label={`All Accounts (${allAccounts.length})`} />
+                                        <Tab label={`Chequing Accounts (${accountsState.chequing.length})`} />
+                                        <Tab label={`Savings Accounts (${accountsState.savings.length})`} />
+                                    </Tabs>
 
-                                            <Box>
-                                                <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.4 }}>
-                                                    Current Balance
-                                                </Typography>
-                                                        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
-                                                            {displayAmount(account.balance)}
-                                                </Typography>
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </Box>
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gap: 2,
+                                            gridTemplateColumns: { xs: "1fr", sm: "repeat(auto-fit, minmax(260px, 1fr))" },
+                                        }}
+                                    >
+                                        {filteredAccounts.map((account) => (
+                                            <Card
+                                                key={account.id}
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                                                    "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.12)" },
+                                                }}
+                                            >
+                                                <CardContent sx={{ p: 3 }}>
+                                                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                                                        <Box>
+                                                            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1rem", mb: 0.4 }}>
+                                                                {account.name}
+                                                            </Typography>
+                                                            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                                                {account.type === "chequing" ? "Chequing" : "Savings"} ...{account.accountNumber}
+                                                            </Typography>
+                                                        </Box>
+                                                        <IconButton size="small">
+                                                            <MoreHorizRoundedIcon />
+                                                        </IconButton>
+                                                    </Box>
+
+                                                    <Box>
+                                                        <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.4 }}>
+                                                            Current Balance
+                                                        </Typography>
+                                                                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
+                                                                    {displayAmount(account.balance)}
+                                                        </Typography>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </Box>
+                                </>
+                            )}
                         </Box>
 
                         {/* Goal tracker */}
