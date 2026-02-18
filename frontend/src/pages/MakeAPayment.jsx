@@ -1,3 +1,10 @@
+import Navbar from "../components/Navbar"
+
 export function MakeAPayment() {
-  return <div>MakeAPayment</div>;
+  return (
+    <>
+      <Navbar />
+      <h1>Make A Payment</h1>
+    </>
+  );
 }

@@ -1,3 +1,10 @@
+import Navbar from "../components/Navbar"
+
 export function ViewHistory() {
-  return <div>View History</div>;
+  return (
+    <>
+      <Navbar />
+      <h1>View History</h1>
+    </>
+  );
 }
