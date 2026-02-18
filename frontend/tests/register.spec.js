@@ -95,11 +95,11 @@ test("user cannot register with duplicate email", async ({ page, request }) => {
 test("user cannot register with invalid email", async ({ page }) => {
   await page.goto("/register");
 
-  await fillRegisterForm(page, 'invalid email', 'Password8!', 'Password8!');
+  await fillRegisterForm(page, 'noaddress@test', 'Password8!', 'Password8!');
 
   //Assertion
   await expect(
-    page.getByRole('list').getByText('Email must match required')
+    page.getByText('Must use proper email format')
   ).toBeVisible();
 });
 
@@ -110,22 +110,26 @@ test("user cannot register with invalid password", async ({ page }) => {
 
   //Assertion
   await expect(
-    page.getByRole('list').getByText('Password must be at least 8')
+    page.getByText('Must be at least 8')
   ).toBeVisible();
 });
 
 test("user cannot register when passwords do not match", async ({ page }) => {
+  
+
   await page.goto("/register");
 
   await fillRegisterForm(page, 'name@domain.com', 'Password8!', 'Password9!');
 
   //Assertion
   await expect(
-    page.getByRole('list').getByText('Passwords must match.')
+    page.getByText('Passwords must match')
   ).toBeVisible();
 });
 
-test("user cannot register more than 3 times in one minute", async({page})=>{
+test("user cannot register more than 5 times in one minute", async({page})=>{
+
+  test.setTimeout(60000)
 
   await page.goto("/register");
   await fillRegisterForm(page, 'name4@domain.com', 'Password8!', 'Password8!');
@@ -137,6 +141,15 @@ test("user cannot register more than 3 times in one minute", async({page})=>{
 
   await page.goto("/register");
   await fillRegisterForm(page, 'name3@domain.com', 'Password8!', 'Password8!');
+  await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
+
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name6@domain.com', 'Password8!', 'Password8!');
+  await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
+
+  await page.goto("/register");
+  await fillRegisterForm(page, 'name5@domain.com', 'Password8!', 'Password8!');
   await expect(page).toHaveURL(/\/verify/,{timeout: 10000});
 
   await page.goto("/register");

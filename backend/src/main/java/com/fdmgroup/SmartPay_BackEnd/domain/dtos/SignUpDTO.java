@@ -4,6 +4,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.dtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,6 +33,10 @@ public class SignUpDTO {
     private String password;
     @NotNull
     private String confirmPassword;
+
+    @NotNull(message = "Customer details are required.")
+    @Valid
+    private CustomerDTO customer;
 
     public void setEmail(String email) {
         if (email == null) {

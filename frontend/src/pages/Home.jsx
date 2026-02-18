@@ -13,7 +13,7 @@ export const Home = () => {
     <>
       <Navbar />
       <div style={{ background: "#F8FAFC", minHeight: "100vh", minWidth: "100%", padding: 20 }}>
-        <h1>Welcome, {user?.email}!</h1>
+        <h1>Welcome, {user?.firstName} {user?.lastName }!</h1>
         <p>Here's your financial overview for today</p>
         <div style={{ display: 'flex', gap: '40px', maxWidth: '1460px', margin: '0 auto', }}>
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', maxWidth: '1014px' }}>

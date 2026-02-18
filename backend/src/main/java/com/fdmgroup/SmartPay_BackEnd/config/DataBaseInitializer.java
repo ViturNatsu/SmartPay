@@ -1,9 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
+import java.time.LocalDateTime;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 
@@ -24,9 +27,12 @@ public class DataBaseInitializer {
             User testUser = User.builder()
                     .firstName("TestFirstName")
                     .lastName("TestLastName")
-                    .institution("Chase")   
+                    .institution("TD")
                     .email("test@example.com")
-                    .password(encoderConfig.passwordEncoder().encode("password"))
+                    .role(Role.USER)
+                    .emailVerified(true)
+                    .emailVerifiedAt(LocalDateTime.now())
+                    .password(encoderConfig.passwordEncoder().encode("Test@1234"))
                     .build();
             userRepository.save(testUser);
 
