@@ -16,6 +16,8 @@ import { CreateAccount } from "./pages/CreateAccount";
 import { AddPayee } from "./pages/AddPayee";
 import { MakeAPayment } from "./pages/MakeAPayment";
 import { ViewHistory } from "./pages/ViewHistory";
+import TermsAndConditions from './pages/TermsAndConditions'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 export default function AppRoutes() {
   return (
@@ -26,6 +28,8 @@ export default function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/verify" element={<VerifyOtp />} />
+      <Route path="/terms" element={<TermsAndConditions />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />

@@ -1,3 +1,10 @@
+import Navbar from "../components/Navbar"
+
 export function CreateAccount() {
-  return <div>CreateAccount</div>;
+  return (
+    <>
+      <Navbar />
+      <h1>Create Account</h1>
+    </>
+  );
 }
