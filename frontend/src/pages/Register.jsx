@@ -26,8 +26,8 @@ import GovtIDIcon from '@mui/icons-material/AccountBox';
 
 const CANADA_POSTAL_CODE_REGEX =
   /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
-const OCCUPATION_REGEX = /^[A-Za-z .'-]+$/;
-const CITY_REGEX = /^[A-Za-z .'-]+$/;
+const OCCUPATION_REGEX = /^[A-Za-z0-9 .'-]+$/;
+const CITY_REGEX = /^[A-Za-z0-9 .'-]+$/;
 const MAX_OCCUPATION_LENGTH = 80;
 const MAX_PHONE_LENGTH = 25;
 const MAX_ADDRESS_LINE1_LENGTH = 120;
@@ -52,7 +52,7 @@ const CANADA_PROVINCES = [
 
 const normalizeSin = (value) => value.replace(/[\s-]/g, "");
 const normalizePhoneDigits = (value) => value.replace(/\D/g, "");
-const normalizeIdNumber = (value) => value.replace(/\s+/g, "").toUpperCase();
+const normalizeIdNumber = (value) => value.trim().replace(/-/g, "").toUpperCase();
 const normalizePostalCode = (value) => {
   const condensed = value.toUpperCase().replace(/\s+/g, "");
   if (condensed.length === 6) return `${condensed.slice(0, 3)} ${condensed.slice(3)}`;
@@ -61,10 +61,23 @@ const normalizePostalCode = (value) => {
 
 const isGovernmentIdValid = (governmentIdType, governmentIdNumber) => {
   const normalized = normalizeIdNumber(governmentIdNumber);
-  if (governmentIdType === "PASSPORT") return /^[A-Z0-9]{6,9}$/.test(normalized);
+  if (governmentIdType === "PASSPORT") return /^[A-Z0-9]{6,11}$/.test(normalized);
   if (governmentIdType === "DRIVER_LICENSE") return /^[A-Z0-9]{5,15}$/.test(normalized);
-  if (governmentIdType === "PRCARD_NUMBER") return /^[A-Z0-9]{8,12}$/.test(normalized);
+  if (governmentIdType === "PRCARD_NUMBER") return /^[A-Z0-9]{9,12}$/.test(normalized);
   return false;
+};
+
+const getGovernmentIdValidationMessage = (governmentIdType) => {
+  if (governmentIdType === "PASSPORT") {
+    return "Passport number must be 6-11 alphanumeric characters (letters and numbers only).";
+  }
+  if (governmentIdType === "DRIVER_LICENSE") {
+    return "Driver's licence number must be 5-15 alphanumeric characters (letters and numbers only).";
+  }
+  if (governmentIdType === "PRCARD_NUMBER") {
+    return "PR card number must be 9-12 alphanumeric characters (letters and numbers only).";
+  }
+  return "Government ID Number is invalid.";
 };
 
 const isValidCanadianPhone = (value) => {
@@ -328,6 +341,8 @@ export const Register = () => {
       errors.occupation = "Occupation is required.";
     } else if (trimmedOccupation.length < 2 || trimmedOccupation.length > MAX_OCCUPATION_LENGTH) {
       errors.occupation = `Occupation must be 2-${MAX_OCCUPATION_LENGTH} characters.`;
+    } else if (!/[A-Za-z]/.test(trimmedOccupation)) {
+      errors.occupation = "Occupation must include at least one letter.";
     } else if (!OCCUPATION_REGEX.test(trimmedOccupation)) {
       errors.occupation = "Occupation contains invalid characters.";
     }
@@ -335,7 +350,7 @@ export const Register = () => {
     if (!governmentIdNumber.trim()) {
       errors.governmentIdNumber = "Government ID Number is required.";
     } else if (!isGovernmentIdValid(governmentIdType, governmentIdNumber)) {
-      errors.governmentIdNumber = "Government ID Number format is invalid.";
+      errors.governmentIdNumber = getGovernmentIdValidationMessage(governmentIdType);
     }
 
     if (!dob) {
@@ -1216,7 +1231,7 @@ export const Register = () => {
               </Box>
             </Box>
 
-            <Typography
+            <Typography component="div"
               sx={{
                 fontSize: 13,
                 color: "text.secondary",
@@ -1227,7 +1242,7 @@ export const Register = () => {
             >
               <p>
                   <input type="checkbox" id="terms" required></input>
-                  <label for="terms">
+                  <label htmlFor="terms">
                     {" "}
                     I agree to the{' '}  
                     <Link

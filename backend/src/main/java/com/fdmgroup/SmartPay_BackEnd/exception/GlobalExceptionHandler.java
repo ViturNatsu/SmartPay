@@ -25,6 +25,11 @@ public class GlobalExceptionHandler {
                 exception.getBindingResult()
                                 .getFieldErrors()
                                 .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+                exception.getBindingResult()
+                                .getGlobalErrors()
+                                .forEach(err -> errors.put(
+                                                err.getCode() != null ? err.getCode() : err.getObjectName(),
+                                                err.getDefaultMessage()));
 
                 return ResponseEntity
                                 .status(HttpStatus.UNPROCESSABLE_CONTENT)
