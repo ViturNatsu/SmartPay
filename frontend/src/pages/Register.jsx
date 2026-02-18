@@ -1231,7 +1231,7 @@ export const Register = () => {
               </Box>
             </Box>
 
-            <Typography
+            <Typography component="div"
               sx={{
                 fontSize: 13,
                 color: "text.secondary",
@@ -1242,7 +1242,7 @@ export const Register = () => {
             >
               <p>
                   <input type="checkbox" id="terms" required></input>
-                  <label for="terms">
+                  <label htmlFor="terms">
                     {" "}
                     I agree to the{' '}  
                     <Link
