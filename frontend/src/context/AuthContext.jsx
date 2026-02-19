@@ -69,15 +69,6 @@ const AuthProviderInner = ({ children }) => {
       // Store minimal identity from token while we fetch full profile
       const claims = decodeJwtPayload(accessToken);
       if (claims) {
-<<<<<<< HEAD
-=======
-        setUser((prev) => ({
-          ...(prev || {}),
-          id: claims.sub ?? null,
-          email: claims.email ?? null,
-          role: claims.role ?? null,
-        }));
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
         setTokenClaims({
           userId: claims.sub ?? null,
           role: claims.role ?? null,
@@ -135,10 +126,7 @@ const AuthProviderInner = ({ children }) => {
         }
 
         const res = await authApi.refreshTokens();
-<<<<<<< HEAD
         console.log("refreshed tokens")
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
         if (!cancelled && res?.accessToken) {
           setAccessToken(res.accessToken);
 
@@ -149,15 +137,6 @@ const AuthProviderInner = ({ children }) => {
           // Update minimal identity from refreshed access token
           const claims = decodeJwtPayload(res.accessToken);
           if (claims) {
-<<<<<<< HEAD
-=======
-            setUser((prev) => ({
-              ...(prev || {}),
-              id: claims.sub ?? null,
-              email: claims.email ?? null,
-              role: claims.role ?? null,
-            }));
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
             setTokenClaims({
               userId: claims.sub ?? null,
               role: claims.role ?? null,
@@ -229,8 +208,4 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return ctx;
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)

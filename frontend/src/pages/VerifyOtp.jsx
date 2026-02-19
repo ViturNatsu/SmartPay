@@ -82,11 +82,7 @@ export const VerifyOtp = () => {
       const res = await sendVerifyCode({ email: emailParam, code: submittedCode, type: typeParam });
       switch (typeParam) {
         case "login":
-<<<<<<< HEAD
           setAuthFromTokens({
-=======
-          await setAuthFromTokens({
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
           });

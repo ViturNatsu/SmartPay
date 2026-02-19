@@ -30,42 +30,6 @@ axiosInstance.interceptors.request.use((config) => {
 
 let refreshPromise = null;
 
-<<<<<<< HEAD
-=======
-export async function refreshAccessToken() {
-  if (refreshPromise) return refreshPromise;
-
-  const storedRefresh = sessionStorage.getItem("refresh_token");
-  if (!storedRefresh) {
-    clearAccessToken();
-    throw new Error("Missing refresh token");
-  }
-
-  refreshPromise = axiosInstance
-    .post(
-      "/api/v1/auth/refresh",
-      {},
-      {
-        headers: { Authorization: `Bearer ${storedRefresh}` },
-      }
-    )
-    .then((refreshResponse) => {
-      const { accessToken, refreshToken } = refreshResponse.data || {};
-      if (!accessToken) throw new Error("No access token returned");
-
-      setAccessToken(accessToken);
-      if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
-
-      return { accessToken, refreshToken };
-    })
-    .finally(() => {
-      refreshPromise = null;
-    });
-
-  return refreshPromise;
-}
-
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -90,7 +54,6 @@ axiosInstance.interceptors.response.use(
     }
 
     try {
-<<<<<<< HEAD
       if (!refreshPromise) {
         const storedRefresh = sessionStorage.getItem("refresh_token");
         if (!storedRefresh) {
@@ -113,18 +76,12 @@ axiosInstance.interceptors.response.use(
       if (accessToken) setAccessToken(accessToken);
       if (newRefreshToken) sessionStorage.setItem("refresh_token", newRefreshToken);
 
-=======
-      const { accessToken } = await refreshAccessToken();
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       return axiosInstance(originalRequest);
     } catch (refreshErr) {
-<<<<<<< HEAD
       refreshPromise = null;
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
       clearAccessToken();
       sessionStorage.removeItem("refresh_token");
       throw refreshErr;

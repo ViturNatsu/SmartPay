@@ -49,10 +49,6 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   const isRefreshingRef = useRef(false);
   const isActiveRef = useRef(false); // Track if listeners are active
   const accessExpRef = useRef(null); // Access token expiry in ms
-<<<<<<< HEAD
-=======
-  const visibilityHandlerRef = useRef(null);
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
   const updateAccessTokenExpiry = useCallback(() => {
     const refreshToken = sessionStorage.getItem("refresh_token");
@@ -70,10 +66,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
 
   // Function to refresh tokens from backend
   const refreshTokens = useCallback(async () => {
-<<<<<<< HEAD
     console.log("session refresh called")
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
     if (isRefreshingRef.current) return; // Avoid overlapping refreshes
 
     const refreshToken = sessionStorage.getItem("refresh_token");
@@ -97,11 +90,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
     } finally {
       isRefreshingRef.current = false;
     }
-<<<<<<< HEAD
   }, [onSessionExpired]);
-=======
-  }, [onSessionExpired, updateAccessTokenExpiry]);
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
   const checkTokenExpiry = useCallback(() => {
     if (!accessExpRef.current) return false;
@@ -111,20 +100,14 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
 
     // If token expired, trigger session expired
     if (timeLeft <= 0) {
-<<<<<<< HEAD
       console.log("Token expired");
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
       onSessionExpired?.();
       return true;
     }
 
     // If token about to expire within leeway, trigger refresh
     if (timeLeft <= REFRESH_LEEWAY_MS) {
-<<<<<<< HEAD
       console.log("Token about to expire, refreshing...");
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
       refreshTokens().catch(() => { });
       return true;
     }
@@ -134,10 +117,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
 
   // Called when user has been inactive for INACTIVITY_LIMIT
   const handleInactivity = useCallback(() => {
-<<<<<<< HEAD
     console.log("Session expired due to inactivity");
-=======
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
     onSessionExpired?.();
   }, [onSessionExpired]);
 
@@ -183,29 +163,17 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       document.addEventListener(ev, handleActivity, { passive: true })
     );
 
-<<<<<<< HEAD
     const visibilityHandler = () => {
-=======
-    visibilityHandlerRef.current = () => {
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
       if (document.visibilityState === "visible") {
         handleActivity(); // Reset timers on tab focus
       }
     };
-<<<<<<< HEAD
     document.addEventListener("visibilitychange", visibilityHandler);
-=======
-    document.addEventListener("visibilitychange", visibilityHandlerRef.current);
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
     // Initialize timers immediately
     handleActivity();
     isActiveRef.current = true;
-<<<<<<< HEAD
   }, [handleActivity]);
-=======
-  }, [handleActivity, updateAccessTokenExpiry]);
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
   // Stop session monitoring: remove listeners and clear timers
   const stopListeners = useCallback(() => {
@@ -213,14 +181,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
 
     const events = ["mousedown", "keydown", "touchstart", "scroll"];
     events.forEach((ev) => document.removeEventListener(ev, handleActivity));
-<<<<<<< HEAD
     document.removeEventListener("visibilitychange", handleActivity);
-=======
-    if (visibilityHandlerRef.current) {
-      document.removeEventListener("visibilitychange", visibilityHandlerRef.current);
-      visibilityHandlerRef.current = null;
-    }
->>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
