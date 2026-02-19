@@ -34,7 +34,7 @@ const formatCurrency = (value) =>
 
 
 export const Accounts = () => {
-    const { tokenClaims } = useAuth();
+    const { tokenClaims, loading: authLoading } = useAuth();
     // const acc = getUserAccounts(2).then(res => console.log(res)).catch(err => console.error(err));
     const theme = useTheme();
     const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -136,9 +136,10 @@ export const Accounts = () => {
     };
 
     useEffect(() => {
+        if (authLoading || !tokenClaims?.userId) return; // Wait for auth to settle
         fetchAccounts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tokenClaims?.userId]);
+    }, [tokenClaims?.userId, authLoading]);
 
     return (
         <>
@@ -168,7 +169,7 @@ export const Accounts = () => {
                                         <VisibilityOffIcon sx={{ fontSize: 18, color: "text.secondary" }} />
                                     )}
                                 </IconButton>
-                                
+
                             </Box>
                             <Typography
                                 variant="h3"
@@ -301,8 +302,8 @@ export const Accounts = () => {
                                                         <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.4 }}>
                                                             Current Balance
                                                         </Typography>
-                                                                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
-                                                                    {displayAmount(account.balance)}
+                                                        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
+                                                            {displayAmount(account.balance)}
                                                         </Typography>
                                                     </Box>
                                                 </CardContent>

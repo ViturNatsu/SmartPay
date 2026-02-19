@@ -9,10 +9,13 @@ const CUSTOMER_DETAILS_URL = "/api/v1/customer";
 export async function login(payload) {
   try {
     const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
-    const { accessToken, refreshToken } = response.data;
 
-    if (accessToken) setAccessToken(accessToken);
-    if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
+    // ✅ CHANGED: Do NOT store tokens here. The login step only triggers OTP.
+    // Tokens must only be persisted after OTP is successfully verified,
+    // which happens via setAuthFromTokens() in VerifyOtp.jsx.
+    // Storing them here caused AuthContext's bootstrap to find a refresh_token
+    // in sessionStorage and attempt a refresh before OTP was complete,
+    // resulting in a double-login / double-verify loop.
 
     return response.data;
   } catch (err) {
@@ -122,11 +125,6 @@ export async function refreshTokens() {
 }
 
 export async function getMyUser() {
-  // return Promise.resolve({
-  //   id: 1,
-  //   email: "placeholder@smartpay.local",
-  //   role: "fake role"
-  // });
   try {
     const res = await axiosInstance.get(`${CUSTOMER_DETAILS_URL}`);
     return res.data;
@@ -135,7 +133,6 @@ export async function getMyUser() {
   }
 }
 
-// Use refresh token to get new access and refresh token)
 export async function keepAlive(refreshToken) {
   try {
     const res = await axiosInstance.post(`${KEEP_ALIVE}`, {}, {

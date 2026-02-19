@@ -72,8 +72,9 @@ axiosInstance.interceptors.response.use(
       const refreshResponse = await refreshPromise;
       refreshPromise = null;
 
-      const { accessToken } = refreshResponse.data || {};
+      const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data || {};
       if (accessToken) setAccessToken(accessToken);
+      if (newRefreshToken) sessionStorage.setItem("refresh_token", newRefreshToken);
 
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
