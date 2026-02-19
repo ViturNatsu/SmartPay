@@ -59,6 +59,7 @@ public class AccountServiceImpl implements AccountService{
         .map(a -> new AccountDto(
                 a.getId(),
                 a.getAccountName(),
+                a.getAccountNumber(),
                 a.getBalance(),
                 a.getType(),
                 a.getUser() != null ? a.getUser().getId() : null
