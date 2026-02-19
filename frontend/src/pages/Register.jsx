@@ -1084,7 +1084,7 @@ export const Register = () => {
                     mb: -1,
                   }}
                 >
-                  <p>
+                  <Box component="span">
                     <input type="checkbox" id="terms" required></input>
                     <label htmlFor="terms">
                       {" "}
@@ -1109,7 +1109,7 @@ export const Register = () => {
                         Privacy Policy
                       </Link>
                     </label>
-                  </p>
+                  </Box>
                 </Typography>
 
                 {/* STEP 2 BUTTONS - Create Account and Back(Takes you back to Step 1)*/}
