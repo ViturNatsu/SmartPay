@@ -18,9 +18,9 @@ import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import logo from "../assets/logo.png";
 import { login } from "../api/authApi";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
+import { SmartPayBanner } from "../components/SmartPayBanner";
 
 export const Login = () => {
   const location = useLocation();
@@ -110,60 +110,7 @@ export const Login = () => {
       }}
     >
       {/* Left side */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: { xs: 3, md: 8 },
-          py: { xs: 6, md: 0 },
-          position: "relative",
-          overflow: "hidden",
-          backgroundImage: `
-            radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
-            radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
-            `,
-        }}
-      >
-        {/* Sets up the logo */}
-        <Box sx={{ textAlign: "center", position: "relative" }}>
-          <Box
-            component="img"
-            src={logo}
-            alt="SmartPay Logo"
-            sx={{
-              width: 100,
-              height: "auto",
-              mx: "auto",
-              display: "block",
-            }}
-          />
-          {/* Sets up SmartPay title */}
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: "#1E40AF",
-              mb: 1,
-            }}
-          >
-            SmartPay
-          </Typography>
-          {/* Sets up brief description. */}
-          <Typography
-            sx={{
-              color: "text.secondary",
-              maxWidth: 360,
-              mx: "auto",
-              lineHeight: 1.6,
-            }}
-          >
-            Seamless financial integration for the modern enterprise.
-          </Typography>
-        </Box>
-      </Box>
+      <SmartPayBanner />
 
       {/* Right side */}
       <Box
