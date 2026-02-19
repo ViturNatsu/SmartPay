@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authApi from "../api/authApi";
@@ -16,14 +17,25 @@ const AuthContext = createContext(undefined);
 const AuthProviderInner = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Minimal identity derived from access token (non-authoritative)
   const [tokenClaims, setTokenClaims] = useState(null);
+
   const { startSessionMonitoring, stopSessionMonitoring } = useSessionManager();
+
+  // Keep stable refs to session monitoring functions so the bootstrap
+  // useEffect doesn't need them in its dependency array (which would
+  // cause it to re-run every time SessionManagerContext re-renders).
+  const startSessionMonitoringRef = useRef(startSessionMonitoring);
+  const stopSessionMonitoringRef = useRef(stopSessionMonitoring);
+  useEffect(() => {
+    startSessionMonitoringRef.current = startSessionMonitoring;
+    stopSessionMonitoringRef.current = stopSessionMonitoring;
+  }, [startSessionMonitoring, stopSessionMonitoring]);
+
   const navigate = useNavigate();
+
   const getMyUser = useCallback(async () => {
     try {
       const userData = await authApi.getMyUser();
-      
       if (userData) {
         setUser({
           id: userData.id ?? null,
@@ -53,11 +65,22 @@ const AuthProviderInner = ({ children }) => {
     }
   }, []);
 
+  // Clears local auth state only — no API call. Safe to call any time,
+  // including from bootstrap failure where there's no valid token.
+  const clearAuth = useCallback(() => {
+    setUser(null);
+    setTokenClaims(null);
+    clearAccessToken();
+    sessionStorage.removeItem("refresh_token");
+    stopSessionMonitoringRef.current();
+  }, []); // stable — no deps that can change
+
+  // Called from VerifyOtp after successful OTP verification.
+  // Stores tokens, decodes claims, fetches full user profile.
   const setAuthFromTokens = useCallback(
     async ({ accessToken, refreshToken }) => {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+
+      if (accessToken) setAccessToken(accessToken);
       if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
 
       if (!accessToken) {
@@ -66,7 +89,6 @@ const AuthProviderInner = ({ children }) => {
         return;
       }
 
-      // Store minimal identity from token while we fetch full profile
       const claims = decodeJwtPayload(accessToken);
       if (claims) {
         setTokenClaims({
@@ -82,28 +104,21 @@ const AuthProviderInner = ({ children }) => {
         await getMyUser();
       } catch (error) {
         console.error("Failed to get user data:", error);
-        // Don't clear auth just because getMyUser failed - user is still authenticated
       }
 
-      // Disabled for now Start session monitoring after successful authentication
-      startSessionMonitoring();
+      startSessionMonitoringRef.current();
     },
-    [getMyUser, startSessionMonitoring]
+    [getMyUser]
   );
 
-  const clearAuth = useCallback(async() => {
-    setUser(null);
-    setTokenClaims(null);
-    clearAccessToken();
-    sessionStorage.removeItem("refresh_token");
-    await authApi.logout();
-    stopSessionMonitoring();
-  }, [stopSessionMonitoring]);
-
+  // User-initiated logout — calls API to invalidate server session,
+  // then clears local state.
   const logout = useCallback(async () => {
     setLoading(true);
     try {
       await authApi.logout();
+    } catch (_) {
+      // Server-side invalidation failed — still clear local state
     } finally {
       clearAuth();
       setLoading(false);
@@ -111,30 +126,36 @@ const AuthProviderInner = ({ children }) => {
     }
   }, [clearAuth, navigate]);
 
-  // check for existing session on component mount
+  // Runs once on mount to restore session from a stored refresh token.
+  // Empty dep array is intentional — bootstrap should only run once.
+  // Functions are accessed via refs to avoid stale closure issues.
   useEffect(() => {
     let cancelled = false;
 
     async function bootstrap() {
+      const refreshToken = sessionStorage.getItem("refresh_token");
+
+      if (!refreshToken) {
+        // No token — not logged in, just stop showing the loading state
+        if (!cancelled) {
+          setLoading(false);
+        }
+        return;
+      }
+
       setLoading(true);
       try {
-        const refreshToken = sessionStorage.getItem("refresh_token");
-
-        if (!refreshToken) {
-          if (!cancelled) clearAuth();
-          return;
-        }
-
         const res = await authApi.refreshTokens();
-        console.log("refreshed tokens")
-        if (!cancelled && res?.accessToken) {
+
+        if (cancelled) return;
+
+        if (res?.accessToken) {
           setAccessToken(res.accessToken);
 
           if (res.refreshToken) {
             sessionStorage.setItem("refresh_token", res.refreshToken);
           }
 
-          // Update minimal identity from refreshed access token
           const claims = decodeJwtPayload(res.accessToken);
           if (claims) {
             setTokenClaims({
@@ -147,14 +168,16 @@ const AuthProviderInner = ({ children }) => {
           }
 
           await getMyUser();
-
-          // Disabled for now. Start session monitoring after successful bootstrap
-          startSessionMonitoring();
-        } else if (!cancelled) {
+          startSessionMonitoringRef.current();
+        } else {
           clearAuth();
         }
-      } catch (err){
-        if(err.status!=401)clearAuth();
+      } catch (err) {
+        if (!cancelled) {
+          // Token is expired or invalid — clear it so we don't loop
+          sessionStorage.removeItem("refresh_token");
+          clearAuth();
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -165,7 +188,7 @@ const AuthProviderInner = ({ children }) => {
     return () => {
       cancelled = true;
     };
-  }, [clearAuth, getMyUser, startSessionMonitoring]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = useMemo(
     () => ({
@@ -182,16 +205,12 @@ const AuthProviderInner = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Wrapper that provides SessionManager context
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const handleSessionExpired = useCallback(() => {
-    // Clear tokens
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
-
-    // Redirect to login using react-router
     navigate("/login", { replace: true, state: { signoutReason: "inactivity" } });
   }, [navigate]);
 

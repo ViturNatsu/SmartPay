@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+    Alert,
     Box,
     Button,
     Card,
@@ -7,6 +8,7 @@ import {
     Container,
     IconButton,
     LinearProgress,
+    Snackbar,
     Tab,
     Tabs,
     Typography,
@@ -34,7 +36,8 @@ const formatCurrency = (value) =>
 
 
 export const Accounts = () => {
-    const { tokenClaims, loading: authLoading } = useAuth();
+    const { user, tokenClaims, loading: authLoading } = useAuth();
+    const [successSnackbar, setSuccessSnackbar] = useState(false);
     // const acc = getUserAccounts(2).then(res => console.log(res)).catch(err => console.error(err));
     const theme = useTheme();
     const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -91,8 +94,9 @@ export const Accounts = () => {
             await createAccount(payload);
 
             // Refresh from server to reflect authoritative data
-            await fetchAccounts();
+            await fetchAccounts(tokenClaims?.userId);
             setOpenAccountFormOpen(false);
+            setSuccessSnackbar(true);  // ← show confirmation
         } catch (err) {
             console.error("Failed to create account:", err);
         }
@@ -121,12 +125,15 @@ export const Accounts = () => {
         return { chequing, savings };
     };
 
-    const fetchAccounts = async () => {
-        if (!tokenClaims?.userId) return;
+    const fetchAccounts = async (userId) => {
+        if (!userId){
+          console.log("no userId, returning early");
+          return;
+        }
         setLoading(true);
         setError(null);
         try {
-            const data = await getUserAccounts(Number(tokenClaims.userId));
+            const data = await getUserAccounts(Number(userId));
             setAccountsState(normalizeAccounts(Array.isArray(data) ? data : data?.accounts || []));
         } catch (err) {
             setError(err?.message || "Unable to load accounts");
@@ -136,10 +143,10 @@ export const Accounts = () => {
     };
 
     useEffect(() => {
-        if (authLoading || !tokenClaims?.userId) return; // Wait for auth to settle
-        fetchAccounts();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tokenClaims?.userId, authLoading]);
+      if (!authLoading && tokenClaims?.userId) {
+          fetchAccounts(tokenClaims.userId);
+      }
+    }, [authLoading, tokenClaims?.userId]);
 
     return (
         <>
@@ -371,6 +378,20 @@ export const Accounts = () => {
                 onClose={handleCloseAccountForm}
                 onSubmit={handleSubmitAccountForm}
             />
+            <Snackbar
+                open={successSnackbar}
+                autoHideDuration={4000}
+                onClose={() => setSuccessSnackbar(false)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSuccessSnackbar(false)}
+                    severity="success"
+                    variant="filled"
+                >
+                    Account opened successfully!
+                </Alert>
+            </Snackbar>
         </>
     );
 };
