@@ -59,7 +59,10 @@ public class AccountServiceImpl implements AccountService{
         .map(a -> new AccountDto(
                 a.getId(),
                 a.getAccountName(),
+<<<<<<< HEAD
                 a.getAccountNumber(),
+=======
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
                 a.getBalance(),
                 a.getType(),
                 a.getUser() != null ? a.getUser().getId() : null

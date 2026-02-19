@@ -31,9 +31,12 @@ public abstract class Account {
     @Column(name = "account_id")
     private Long id;
 
+<<<<<<< HEAD
     @Column(name = "account_number", unique = true, nullable = false, updatable = false, length = 8)
     private String accountNumber;
 
+=======
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
     @Column(name = "account_name")
     private String accountName;
 

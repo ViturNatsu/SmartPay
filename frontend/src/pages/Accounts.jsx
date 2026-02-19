@@ -34,7 +34,11 @@ const formatCurrency = (value) =>
 
 
 export const Accounts = () => {
+<<<<<<< HEAD
     const { tokenClaims, loading: authLoading } = useAuth();
+=======
+    const { tokenClaims } = useAuth();
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
     // const acc = getUserAccounts(2).then(res => console.log(res)).catch(err => console.error(err));
     const theme = useTheme();
     const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -136,10 +140,16 @@ export const Accounts = () => {
     };
 
     useEffect(() => {
+<<<<<<< HEAD
         if (authLoading || !tokenClaims?.userId) return; // Wait for auth to settle
         fetchAccounts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tokenClaims?.userId, authLoading]);
+=======
+        fetchAccounts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenClaims?.userId]);
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
 
     return (
         <>
@@ -169,7 +179,11 @@ export const Accounts = () => {
                                         <VisibilityOffIcon sx={{ fontSize: 18, color: "text.secondary" }} />
                                     )}
                                 </IconButton>
+<<<<<<< HEAD
 
+=======
+                                
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
                             </Box>
                             <Typography
                                 variant="h3"
@@ -302,8 +316,13 @@ export const Accounts = () => {
                                                         <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.4 }}>
                                                             Current Balance
                                                         </Typography>
+<<<<<<< HEAD
                                                         <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
                                                             {displayAmount(account.balance)}
+=======
+                                                                <Typography variant="h5" sx={{ fontWeight: 700, fontSize: "1.5rem" }}>
+                                                                    {displayAmount(account.balance)}
+>>>>>>> 6c6e899 (Implement auth/session fixes for token refresh and OTP flow)
                                                         </Typography>
                                                     </Box>
                                                 </CardContent>
