@@ -38,7 +38,6 @@ const formatCurrency = (value) =>
 export const Accounts = () => {
     const { user, tokenClaims, loading: authLoading } = useAuth();
     const [successSnackbar, setSuccessSnackbar] = useState(false);
-    // const acc = getUserAccounts(2).then(res => console.log(res)).catch(err => console.error(err));
     const theme = useTheme();
     const isMediumDown = useMediaQuery(theme.breakpoints.down("md"));
     const [selectedTab, setSelectedTab] = useState(0);
@@ -90,7 +89,6 @@ export const Accounts = () => {
                 user: { id: Number(tokenClaims?.userId) },
             };
 
-            // console.log("Creating account with payload:", JSON.stringify(payload));
             await createAccount(payload);
 
             // Refresh from server to reflect authoritative data

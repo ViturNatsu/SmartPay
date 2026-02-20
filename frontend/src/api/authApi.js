@@ -9,14 +9,6 @@ const CUSTOMER_DETAILS_URL = "/api/v1/customer";
 export async function login(payload) {
   try {
     const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
-
-    // ✅ CHANGED: Do NOT store tokens here. The login step only triggers OTP.
-    // Tokens must only be persisted after OTP is successfully verified,
-    // which happens via setAuthFromTokens() in VerifyOtp.jsx.
-    // Storing them here caused AuthContext's bootstrap to find a refresh_token
-    // in sessionStorage and attempt a refresh before OTP was complete,
-    // resulting in a double-login / double-verify loop.
-
     return response.data;
   } catch (err) {
     throw handleAxiosError(err);
