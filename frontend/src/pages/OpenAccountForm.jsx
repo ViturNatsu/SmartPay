@@ -201,6 +201,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                   value={formData.firstName}
                   onChange={handleChange("firstName")}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Middle Name"
@@ -214,6 +215,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                   value={formData.lastName}
                   onChange={handleChange("lastName")}
                   fullWidth
+                  disabled
                 />
               </Box>
             </Box>
@@ -237,12 +239,14 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                     value={formData.addressLine1}
                     onChange={handleChange("addressLine1")}
                     fullWidth
+                    disabled
                   />
                   <TextField
                     label="Address Line 2"
                     value={formData.addressLine2}
                     onChange={handleChange("addressLine2")}
                     fullWidth
+                    disabled
                   />
                   <TextField
                     label="City"
@@ -250,6 +254,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                     value={formData.city}
                     onChange={handleChange("city")}
                     fullWidth
+                    disabled
                   />
                 </Box>
                 <Box
@@ -265,6 +270,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                     value={formData.province}
                     onChange={handleChange("province")}
                     fullWidth
+                    disabled
                   >
                     {provinces.map((province) => (
                       <MenuItem key={province} value={province}>
@@ -278,6 +284,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                     value={formData.postalCode}
                     onChange={handleChange("postalCode")}
                     fullWidth
+                    disabled
                   />
                   <TextField
                     label="Phone Number"
@@ -285,6 +292,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                     value={formData.phoneNumber}
                     onChange={handleChange("phoneNumber")}
                     fullWidth
+                    disabled
                   />
                 </Box>
               </Box>
@@ -308,6 +316,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                   value={formData.sin}
                   onChange={handleChange("sin")}
                   fullWidth
+                  disabled
                 />
                 <TextField
                   label="Government Issued ID Number"
@@ -316,6 +325,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
                   value={formData.governmentId}
                   onChange={handleChange("governmentId")}
                   fullWidth
+                  disabled
                 />
               </Box>
             </Box>
