@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;

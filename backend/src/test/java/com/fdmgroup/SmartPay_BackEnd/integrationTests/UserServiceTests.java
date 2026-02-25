@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

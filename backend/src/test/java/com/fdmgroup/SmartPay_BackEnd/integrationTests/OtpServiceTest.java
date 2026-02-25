@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
@@ -39,6 +40,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.impl.OtpServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OtpServiceTest {
 
     private OtpService otpService;

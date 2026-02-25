@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -136,7 +137,7 @@ class PasswordResetControllerTest {
     }
 
     @Test
-    void shouldReturn422_whenOtpIsNotSevenDigits() throws Exception {
+    void houldReturn422_whenOtpIsNotSevenDigits() throws Exception {
 
         PasswordResetWithOtpDto dto = validDto();
         dto.setAccessCode("1234");
