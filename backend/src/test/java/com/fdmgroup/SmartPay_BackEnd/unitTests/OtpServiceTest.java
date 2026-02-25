@@ -1,67 +1,58 @@
-package com.fdmgroup.SmartPay_BackEnd.integrationTests;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeMismatchException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.EmailAlreadyVerifiedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.EmailNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.*;
 import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
 import com.fdmgroup.SmartPay_BackEnd.services.impl.OtpServiceImpl;
-
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class OtpServiceTest {
 
-    private OtpService otpService;
+    @InjectMocks
+    private OtpServiceImpl otpService;
 
-    @MockitoBean
+    @Mock
     private OtpRepository otpRepository;
 
-    @MockitoBean
+    @Mock
     private UserService userService;
 
-    @MockitoBean
+    @Mock
     private AuditService auditService;
 
-    @MockitoBean
+    @Mock
+    private EmailService emailService;
+
+    @Mock
     private HttpServletRequest httpServletRequest;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @MockitoBean
-    private EmailService emailService;
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private OtpDTO otpDTO;
     private Otp otp;

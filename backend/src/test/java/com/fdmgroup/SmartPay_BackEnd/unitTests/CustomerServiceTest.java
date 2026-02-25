@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.integrationTests;
+package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.Customer;
