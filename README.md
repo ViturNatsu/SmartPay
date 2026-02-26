@@ -24,11 +24,20 @@ git checkout develop
 
 First run MailHog:
 
+### For macOS
+
 - For MacOS: run `mailhog` in the command line
-- For Windows: ??
 
-Then you should be able to access the MailHog UI at http://localhost:8025/.
+### For Windows
 
-Afterwards, start the backend by finding the class `SmartPayBackEndApplication.java` under `backend` > `src` > `main` > `java` > `com` > `fdmgroup` > `SmartPay_BackEnd` and running the `main()` method. This will differ depending on which code editor you are using.
+- For Windows: run `mailhog.exe` in the command line
 
-Then change directory into `frontend` and run `npm install` to install frontend dependencies. Run `npm run dev` to start the frontend. You should be able to now access the frontend at http://localhost:5173/.
+Then you should be able to access the MailHog UI at http://localhost:8025/. (This is the default location of MailHog)
+
+### Running the Backend
+
+Start the backend by finding the class `SmartPayBackEndApplication.java` under `backend` > `src` > `main` > `java` > `com` > `fdmgroup` > `SmartPay_BackEnd` and running the `main()` method. This will differ depending on which code editor you are using.
+
+### Running the Frontend
+
+Start the frontend by navigating the current directory into `frontend` and run `npm install` to install frontend dependencies. Then run `npm run dev` to start the frontend. You should be able to now access the frontend at http://localhost:5173/.
