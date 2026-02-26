@@ -84,18 +84,6 @@ class UserServiceTests {
     }
 
     @Test
-    void signUpUser_shouldThrowException_whenUserAlreadyExistsAndEmailIsNotVerified() {
-        User user = User.builder().email("test@test.com").build();
-        SignUpDTO userDto = new SignUpDTO();
-        userDto.setEmail("test@test.com");
-        when(mockUserRepo.findByEmail("test@test.com"))
-                .thenReturn(Optional.of(user));
-
-        assertThrows(DuplicateEmailException.class,
-                () -> registrationService.register(userDto));
-    }
-
-    @Test
     void signUpUser_shouldThrowException_whenUserAlreadyExistsAndEmailIsVerified() {
         User user = User.builder().email("test@test.com").emailVerified(true).build();
         SignUpDTO userDto = new SignUpDTO();

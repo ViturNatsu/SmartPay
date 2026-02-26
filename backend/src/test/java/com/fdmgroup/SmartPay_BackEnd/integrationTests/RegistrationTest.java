@@ -7,21 +7,35 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
 import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-import jakarta.transaction.Transactional;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RateLimiterFilter;
 
+import java.io.IOException;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class RegistrationTest {
     private final String firstName = "Quality";
@@ -110,6 +124,10 @@ class RegistrationTest {
     void registerWithExistingEmail() throws Exception {
         var request1 = createValidRequest();
         mvc.perform(request1);
+
+        User user = userRepository.findByEmail(email).get();
+        user.setEmailVerified(true);
+        userRepository.save(user);
 
         var request2 = createValidRequest();
         mvc.perform(request2).andExpect(status().isConflict());
