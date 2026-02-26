@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RegistrationTest {
     private final String firstName = "Quality";
     private final String lastName = "Assurance";
-    private final String institution = "Chase";
     private final String email = "qa@smartpay.test";
     private final String password = "@wTJGT&a1qn@e38X";
     private final String wrongPassword = "69&YpnXa*h^3";
@@ -54,7 +53,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName("");
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
@@ -68,21 +66,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName("");
-        requestBody.setInstitution(institution);
-        requestBody.setEmail(email);
-        requestBody.setPassword(password);
-        requestBody.setConfirmPassword(password);
-        var request = buildRegisterRequest(requestBody);
-
-        mvc.perform(request).andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    void registerWithoutInstitution() throws Exception {
-        var requestBody = new SignUpDTO();
-        requestBody.setFirstName(firstName);
-        requestBody.setLastName(lastName);
-        requestBody.setInstitution("");
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
@@ -96,7 +79,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(wrongPassword);
@@ -119,7 +101,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(shortPassword);
         requestBody.setConfirmPassword(shortPassword);
@@ -133,7 +114,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(passwordWithoutUppercase);
         requestBody.setConfirmPassword(passwordWithoutUppercase);
@@ -147,7 +127,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(passwordWithoutSpecialCharacter);
         requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
@@ -160,7 +139,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);

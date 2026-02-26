@@ -19,9 +19,6 @@ public class SignUpDTO {
     private String lastName;
 
     @NotNull
-    private String institution;
-
-    @NotNull
     @Email(message = "Please enter a valid email address.")
     private String email;
     @NotNull
