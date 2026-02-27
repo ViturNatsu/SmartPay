@@ -90,6 +90,7 @@ export const VerifyOtp = () => {
     } catch (err) {
       if (err.status === 400) setError("Invalid details.");
       else if (err.status === 429) setError("Too many attempts. Please try again later.");
+      else if (err.status === 503) setError("Email service is currently unavailable. Please try again later.");
       else setError(err.message || "Failed to resend verification code.");
     } finally {
       setResendLoading(false);
