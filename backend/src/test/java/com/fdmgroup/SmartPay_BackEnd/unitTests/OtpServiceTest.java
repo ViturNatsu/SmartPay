@@ -332,28 +332,10 @@ public class OtpServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw AccountLockedException when maximum attempts exceeded")
-    void testVerifyOtp_MaxAttemptsExceeded() {
+    @DisplayName("Should throw AccountLockedException when otp is locked")
+    void testVerifyOtp_OTPLocked() {
         // Arrange
-        otp.setAttemptsMade(5); // Set attempts to max (5)
-        when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
-
-        // Act & Assert
-        AccountLockedException exception = assertThrows(AccountLockedException.class,
-                () -> otpService.verifyOtp(otpDTO, httpServletRequest),
-                "Should throw AccountLockedException when attempts >= 5");
-
-        assertEquals(
-                "We can't process this request right now. Account has been locked for too many attempts. Please try again later",
-                exception.getMessage());
-        verify(otpRepository, times(1)).findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType());
-    }
-
-    @Test
-    @DisplayName("Should throw AccountLockedException when attempts exceed maximum")
-    void testVerifyOtp_AttemptsGreaterThanFive() {
-        // Arrange
-        otp.setAttemptsMade(6); // Set attempts > 5
+        otp.setStatus(OtpStatus.LOCKED);
         when(otpRepository.findByEmailAndOtpType(otpDTO.getEmail(), otpDTO.getType())).thenReturn(Optional.of(otp));
 
         // Act & Assert

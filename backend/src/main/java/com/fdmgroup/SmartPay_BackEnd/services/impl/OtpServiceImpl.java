@@ -147,13 +147,6 @@ public class OtpServiceImpl implements OtpService {
 						"We can't process this request right now. Account has been locked for too many attempts. Please try again later");
 			}
 
-			// Check if OTP has attempts remaining
-			if (otpRequest.getAttemptsMade() >= otpRequest.getLimit()) {
-				eventData.put("reason", "Locked");
-				throw new AccountLockedException(
-						"We can't process this request right now. Account has been locked for too many attempts. Please try again later");
-			}
-
 			// Check if OTP is expired
 			if (otpRequest.isExpired()) {
 				eventData.put("reason", "Expired");
@@ -170,12 +163,12 @@ public class OtpServiceImpl implements OtpService {
 
 			// Validate OTP code
 			if (!argonPasswordEncoder.matches(payload.getCode(), otpRequest.getOtpHash())) {
+				otpRequest.setAttemptsPerOtp(otpRequest.getAttemptsPerOtp() + 1);
+				otpRepository.save(otpRequest);
 				eventData.put("reason", "Mismatch");
 				throw new AccessCodeMismatchException("This code is invalid. Please verify the code and try again.");
 			}
 		} catch (Exception e) {
-			otpRequest.setAttemptsPerOtp(otpRequest.getAttemptsPerOtp() + 1);
-			otpRepository.save(otpRequest);
 			auditService.logEvent(payload.getType(), AuditLog.OTP_VERIFICATION_FAILED, user, eventData, httpRequest);
 			throw e;
 		}
