@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyString;

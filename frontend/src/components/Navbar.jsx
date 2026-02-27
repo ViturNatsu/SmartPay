@@ -100,8 +100,6 @@ export default function Navbar() {
           </Container>
         </AppBar>
 
-        <Box sx={{ pb: 8}} />
-
         <Box
           sx={{
             position: "fixed",

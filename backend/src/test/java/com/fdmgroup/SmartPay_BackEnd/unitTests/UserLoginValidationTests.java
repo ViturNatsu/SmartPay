@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.fdmgroup.SmartPay_BackEnd.exception.LoginInvalidCredentialsException;
 
 import java.util.Optional;
 
@@ -36,7 +37,11 @@ class UserLoginValidationTests {
         String rawPassword = "password123";
         String encodedPassword = encoderConfig.passwordEncoder().encode(rawPassword);
 
-        User dbUser = new User("test@smartpay.com", encodedPassword);
+        User dbUser = User.builder()
+                        .email("test@smartpay.com")
+                        .password(encodedPassword)
+                        .emailVerified(true)
+                .build();
 
         Mockito.when(mockUserRepository.findByEmail("test@smartpay.com"))
                 .thenReturn(Optional.of(dbUser));
@@ -54,7 +59,7 @@ class UserLoginValidationTests {
         Mockito.when(mockUserRepository.findByEmail("test@smartpay.com"))
                 .thenReturn(Optional.of(dbUser));
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(LoginInvalidCredentialsException.class, () ->
                 userService.validateCredentials("test@smartpay.com", "wrongPassword"));
     }
 
@@ -63,16 +68,16 @@ class UserLoginValidationTests {
         Mockito.when(mockUserRepository.findByEmail("missing@smartpay.com"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(LoginInvalidCredentialsException.class, () ->
                 userService.validateCredentials("missing@smartpay.com", "password123"));
     }
 
     @Test
     void validateCredentials_fails_when_email_or_password_blank() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(LoginInvalidCredentialsException.class, () ->
                 userService.validateCredentials("", "password123"));
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(LoginInvalidCredentialsException.class, () ->
                 userService.validateCredentials("test@smartpay.com", ""));
     }
 }
