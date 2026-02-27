@@ -2,12 +2,15 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,12 +19,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -80,6 +82,10 @@ public class User implements UserDetails {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
+    @Column(name = "accounts")
+    @OneToMany(mappedBy = "user")
+    private List<Account> accounts = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -120,5 +126,9 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
+    }
+
+    public List<Account> getAccounts() {
+        return accounts;
     }
 }

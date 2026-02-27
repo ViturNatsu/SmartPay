@@ -15,7 +15,7 @@ export function clearAccessToken() {
   inMemoryAccessToken = null;
 }
 
-function getAccessToken() {
+export function getAccessToken() {
   return inMemoryAccessToken;
 }
 
@@ -55,14 +55,26 @@ axiosInstance.interceptors.response.use(
 
     try {
       if (!refreshPromise) {
-        refreshPromise = axiosInstance.post("/api/v1/auth/refresh");
+        const storedRefresh = sessionStorage.getItem("refresh_token");
+        if (!storedRefresh) {
+          clearAccessToken();
+          throw error;
+        }
+        refreshPromise = axiosInstance.post(
+          "/api/v1/auth/refresh",
+          {},
+          {
+            headers: { Authorization: `Bearer ${storedRefresh}` },
+          }
+        );
       }
 
       const refreshResponse = await refreshPromise;
       refreshPromise = null;
 
-      const { accessToken } = refreshResponse.data || {};
+      const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data || {};
       if (accessToken) setAccessToken(accessToken);
+      if (newRefreshToken) sessionStorage.setItem("refresh_token", newRefreshToken);
 
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;

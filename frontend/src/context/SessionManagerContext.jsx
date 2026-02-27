@@ -14,6 +14,33 @@ const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes logout
 const ACTIVE_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes refresh tokens
 const REFRESH_LEEWAY_MS = 2000; // Refresh 2s before token expires
 
+// Lightweight JWT payload decoder (no signature verification)
+const base64UrlDecode = (str) => {
+  try {
+    const pad = (s) => s + "===".slice((s.length + 3) % 4);
+    const b64 = pad(str.replace(/-/g, "+").replace(/_/g, "/"));
+    const decoded = atob(b64);
+    const bytes = Uint8Array.from(decoded, (c) => c.charCodeAt(0));
+    const text = new TextDecoder().decode(bytes);
+    return text;
+  } catch {
+    return null;
+  }
+};
+
+export const decodeJwtPayload = (token) => {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const json = base64UrlDecode(parts[1]);
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+};
+
 export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   // Refs to hold timers and state without triggering re-renders
   const lastActivityRef = useRef(Date.now());
@@ -23,31 +50,6 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   const isActiveRef = useRef(false); // Track if listeners are active
   const accessExpRef = useRef(null); // Access token expiry in ms
 
-  const base64UrlDecode = (str) => {
-    try {
-      const pad = (s) => s + "===".slice((s.length + 3) % 4);
-      const b64 = pad(str.replace(/-/g, "+").replace(/_/g, "/"));
-      const decoded = atob(b64);
-      const bytes = Uint8Array.from(decoded, (c) => c.charCodeAt(0));
-      const text = new TextDecoder().decode(bytes);
-      return text;
-    } catch {
-      return null;
-    }
-  };
-  const decodeJwt = (token) => {
-    if (!token || typeof token !== "string") return null;
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const json = base64UrlDecode(parts[1]);
-    if (!json) return null;
-    try {
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
-  };
-
   const updateAccessTokenExpiry = useCallback(() => {
     const refreshToken = sessionStorage.getItem("refresh_token");
     if (!refreshToken) {
@@ -55,7 +57,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       return;
     }
 
-    const payload = decodeJwt(refreshToken);
+    const payload = decodeJwtPayload(refreshToken);
     if (payload?.exp) {
       // Store refresh token expiry (in milliseconds)
       accessExpRef.current = payload.exp * 1000;
