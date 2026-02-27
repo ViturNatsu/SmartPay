@@ -35,7 +35,7 @@ export const VerifyOtp = () => {
     try {
       setLoading(true);
       const res = await sendVerifyCode({ email: emailParam, code: submittedCode, type: typeParam });
-      
+
       switch (typeParam) {
         case "login":
           await setAuthFromTokens({
@@ -89,6 +89,11 @@ export const VerifyOtp = () => {
       setSuccessMessage("Verification code has been resent to your email.");
     } catch (err) {
       if (err.status === 400) setError("Invalid details.");
+      else if (err.status === 410) {
+        setError("Too many invalid attempts. Please restart the process. Reidirecting to login...");
+        await delay(2000)
+        navigate(`/login`, { replace: true });
+      }
       else if (err.status === 429) setError("Too many attempts. Please try again later.");
       else setError(err.message || "Failed to resend verification code.");
     } finally {
