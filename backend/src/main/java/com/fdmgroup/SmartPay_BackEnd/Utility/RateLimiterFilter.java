@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.logging.Logger;
 
 @AllArgsConstructor
 @Component
+@Profile("!test")
 public class RateLimiterFilter implements Filter {
 
     private static final Logger LOGGER = Logger.getLogger(RateLimiterFilter.class.getName());

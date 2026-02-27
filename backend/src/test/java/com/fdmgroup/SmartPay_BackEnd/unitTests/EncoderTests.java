@@ -1,13 +1,15 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-@SpringBootTest
+import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
+
+@SpringJUnitConfig(EncoderConfig.class)
 class EncoderConfigTests {
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -18,12 +20,8 @@ class EncoderConfigTests {
 
         String hash = passwordEncoder.encode(rawPassword);
 
-        System.out.println("Raw password: " + rawPassword);
-        System.out.println("Hash: " + hash);
-
-        assertThat(hash).isNotEqualTo(rawPassword);
-
-        assertThat(hash).startsWith("$argon2id$");
+        assertThat(hash).isNotEqualTo(rawPassword)
+                .startsWith("$argon2id$");
 
         assertThat(passwordEncoder.matches(rawPassword, hash)).isTrue();
     }
