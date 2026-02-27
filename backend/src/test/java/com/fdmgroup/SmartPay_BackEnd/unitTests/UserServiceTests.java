@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd;
+package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -84,13 +84,13 @@ class UserServiceTests {
     }
 
     @Test
-    void signUpUser_shouldThrowException_whenUserAlreadyExists() {
-        User user = User.builder().email("test@test.com").build();
+    void signUpUser_shouldThrowException_whenUserAlreadyExistsAndEmailIsVerified() {
+        User user = User.builder().email("test@test.com").emailVerified(true).build();
         SignUpDTO userDto = new SignUpDTO();
         userDto.setEmail("test@test.com");
         when(mockUserRepo.findByEmail("test@test.com"))
                 .thenReturn(Optional.of(user));
-        
+
         assertThrows(DuplicateEmailException.class,
                 () -> registrationService.register(userDto));
     }
