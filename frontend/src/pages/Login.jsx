@@ -94,6 +94,8 @@ export const Login = () => {
       }
       else if (status === 429)
         setErrorMsg("Your account is locked due to multiple failed attempts. Please reset password or try later.");
+      else if (status === 503) 
+        setErrorMsg("Authentication service is currently unavailable. Please try again later.");
       else setErrorMsg(err?.message || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
