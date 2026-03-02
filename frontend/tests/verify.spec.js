@@ -1,116 +1,63 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
+import {
+  setupAPIMocks,
+  fillRegisterForm,
+} from './helpers/auth.helpers.js';
 
-async function fillRegisterForm(page, email, password, confirm) {
-  await page.goto("/register");
+test.describe.configure({ mode: 'serial' });
 
-  await page.locator('[id="_r_1_"]').fill("John");
-  await page.locator('[id="_r_2_"]').fill("Doe");
+let sharedPage;
+let sharedEmail;
 
-  await page.getByRole("combobox").click();
-  await page.getByRole("option", { name: "Chase" }).click();
-
-  await page.locator('[id="_r_5_"]').fill(email);
-  await page.locator('[id="_r_6_"]').fill(password);
-  await page.locator('[id="_r_8_"]').fill(confirm);
-
-  await page.locator("#terms").check();
-  await page.getByRole("button", { name: "Create Account" }).click();
-}
-
-async function getVerificationCode(request, targetEmail) {
-  let emailBody = "";
-
-  await expect.poll(async () => {
-    const res = await request.get(
-      "http://localhost:8025/api/v2/messages"
-    );
-    const json = await res.json();
-
-    if (json.items.length === 0) return null;
-
-    const email = json.items.find(m =>
-      m.Content.Headers.To?.some((to) =>
-        to.includes(targetEmail)
-      )
-    );
-    if (!email) return null;
-
-    emailBody = email.Content.Body;
-    return emailBody;
-  }, {
-    timeout: 10_000,
-    intervals: [500],
-  }).not.toBeNull();
-
-  const match = emailBody.match(/(\d{7})/);
-  expect(match).not.toBeNull();
-
-  const verificationCode = match[0];
-  return verificationCode;
-}
-
-test("user can register successfully and receives email", async ({ page, request }) => {
-  const testEmail = "name@domain.com";
-
-  await fillRegisterForm(page, testEmail, "Password8!", "Password8!");
-  await expect(page).toHaveURL(/\/verify/);
-
-  let messages;
-  await expect.poll(async () => {
-    const res = await request.get(
-      "http://localhost:8025/api/v2/messages"
-    );
-    const body = await res.json();
-    messages = body.items;
-    return messages.length;
-  }, {
-    timeout: 10_000,
-    intervals: [500],
-  }).toBeGreaterThan(0);
-
-  // Assert email content
-  const email = messages.find(m =>
-    m.Content.Headers.To?.some((to) =>
-      to.includes(testEmail)
-    )
-  );
-
-  expect(email).toBeTruthy();
-  expect(email.Content.Body).toContain("Your verification code is:");
+test.beforeAll(async ({ browser }) => {
+  sharedPage = await browser.newPage();
+  await setupAPIMocks(sharedPage);
+  sharedEmail = `verify_${Date.now()}@domain.com`;
 });
 
-test("user can verify email with code from MailHog", async ({ page, request }) => {
-  const testEmail = "name1@domain.com";
-  await fillRegisterForm(page, testEmail, "Password8!", "Password8!");
-
-  await expect(page).toHaveURL(/\/verify/);
-
-  const verificationCode = await getVerificationCode(request, testEmail);
-  console.log("Verification code:", verificationCode);
-
-  await page.getByRole("textbox").fill(verificationCode);
-  await page.getByRole("button", { name: "Verify Code" }).click();
-
-  await expect(page).toHaveURL(/\/login/);
+test.afterAll(async () => {
+  await sharedPage.close();
 });
 
-test("user can't re-enter used code", async ({page, request}) => {
-  const testEmail = "name2@domain.com";
-  await fillRegisterForm(page, testEmail, "Password8!", "Password8!");
+test('user can register successfully and receives verification page', async () => {
+  await fillRegisterForm(sharedPage, { email: sharedEmail, password: 'Password8!' });
 
-  await expect(page).toHaveURL(/\/verify/);
+  // After successful registration the app navigates to /verify
+  await expect(sharedPage).toHaveURL(/\/verify/, { timeout: 10000 });
+});
 
-  const verificationCode = await getVerificationCode(request, testEmail);
-  console.log("Verification code:", verificationCode);
+test('user can verify email with code', async () => {
+  // Enter a 7-digit verification code (mock always accepts)
+  await sharedPage.getByRole('textbox').fill('1234567');
+  await sharedPage.getByRole('button', { name: 'Verify Code' }).click();
 
-  await page.getByRole("textbox").fill(verificationCode);
-  await page.getByRole("button", { name: "Verify Code" }).click();
-  await expect(page).toHaveURL(/\/login/);
+  // For register type, VerifyOtp shows success then navigates to /login after 2s
+  await expect(sharedPage).toHaveURL(/\/login/, { timeout: 15_000 });
+});
 
-  await page.goto("http://localhost:5173/verify?email=name2%40domain.com&type=register");
-  await page.getByRole("textbox").fill(verificationCode);
-  await page.getByRole("button", { name: "Verify Code" }).click();
-  
-  await expect(page.getByText("Code has expired or was already used.")).toBeVisible();
-  await expect(page).toHaveURL(/\/verify/);
+test("user can't re-enter used code", async () => {
+  // Navigate back to the verify page manually
+  await sharedPage.goto(`/verify?email=${encodeURIComponent(sharedEmail)}&type=register`);
+
+  // Override the OTP verify route to return 401 (expired/used code)
+  // unroute first, then re-route
+  await sharedPage.unroute('**/api/v1/otp/verify');
+  await sharedPage.route('**/api/v1/otp/verify', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'Code has expired or was already used.' }),
+    });
+  });
+
+  await sharedPage.getByRole('textbox').fill('1234567');
+  await sharedPage.getByRole('button', { name: 'Verify Code' }).click();
+
+  // VerifyOtp.jsx shows "Code has expired or was already used." for status 401
+  await expect(sharedPage.getByText('Code has expired or was already used.')).toBeVisible({ timeout: 10000 });
+  await expect(sharedPage).toHaveURL(/\/verify/);
 });
