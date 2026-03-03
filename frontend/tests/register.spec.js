@@ -10,9 +10,6 @@ async function fillRegisterForm(page, email, password, confirm) {
   await page.getByTestId('last-name-input').click();
   await page.keyboard.type('Doe');
 
-  await page.getByTestId('institution-input').click();
-  await page.getByRole("option", { name: "Chase" }).click();
-
   await page.getByTestId('email-input').click();
   await page.keyboard.type(email);
 

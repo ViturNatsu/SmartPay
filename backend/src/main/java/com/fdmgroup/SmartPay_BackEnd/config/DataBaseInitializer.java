@@ -30,7 +30,6 @@ public class DataBaseInitializer {
             User testUser = User.builder()
                     .firstName("TestFirstName")
                     .lastName("TestLastName")
-                    .institution("TD")
                     .email("test@example.com")
                     .role(Role.USER)
                     .emailVerified(true)

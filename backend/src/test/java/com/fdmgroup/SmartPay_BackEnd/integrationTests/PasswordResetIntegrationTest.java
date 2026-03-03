@@ -81,7 +81,6 @@ public class PasswordResetIntegrationTest {
                 testUser = User.builder()
                                 .firstName("Test")
                                 .lastName("User")
-                                .institution("Test Inst")
                                 .email("test@example.com")
                                 .password(passwordEncoder.encode("OldPassword123!"))
                                 .status("ACTIVE")

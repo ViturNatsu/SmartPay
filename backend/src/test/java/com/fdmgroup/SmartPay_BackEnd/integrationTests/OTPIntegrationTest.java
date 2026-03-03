@@ -72,7 +72,6 @@ public class OTPIntegrationTest {
         user = User.builder()
                 .firstName("Test")
                 .lastName("User")
-                .institution("Test Inst")
                 .email("test@test.com")
                 .password(passwordEncoder.encode("Password123"))
                 .emailVerified(true)

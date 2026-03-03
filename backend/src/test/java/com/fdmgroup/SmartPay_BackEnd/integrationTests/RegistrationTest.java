@@ -69,7 +69,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName("");
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
@@ -83,7 +82,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName("");
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
@@ -97,7 +95,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution("");
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);
@@ -111,7 +108,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(wrongPassword);
@@ -138,7 +134,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(shortPassword);
         requestBody.setConfirmPassword(shortPassword);
@@ -152,7 +147,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(passwordWithoutUppercase);
         requestBody.setConfirmPassword(passwordWithoutUppercase);
@@ -166,7 +160,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(passwordWithoutSpecialCharacter);
         requestBody.setConfirmPassword(passwordWithoutSpecialCharacter);
@@ -179,7 +172,6 @@ class RegistrationTest {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(password);
         requestBody.setConfirmPassword(password);

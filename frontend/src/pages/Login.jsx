@@ -24,7 +24,6 @@ import { SmartPayBanner } from "../components/SmartPayBanner";
 
 export const Login = () => {
   const location = useLocation();
-  const [institution, setInstitution] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [emailError, setEmailError] = React.useState("");
@@ -153,41 +152,6 @@ export const Login = () => {
               <Typography sx={{ color: "text.secondary", mb: 3 }}>
                 Enter your credentials to access your account
               </Typography>
-
-              {/* Financial Institution */}
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: 1,
-                }}
-              >
-                Financial Institution
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                value={institution}
-                onChange={(e) => setInstitution(e.target.value)}
-                placeholder="Select institution"
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="">Select institution</MenuItem>
-                <MenuItem value="World">World Bank of Canada</MenuItem>
-                <MenuItem value="TD">TD Bank</MenuItem>
-                <MenuItem value="FDM">FDM Bank</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </TextField>
 
               {/* Email */}
               <Typography
