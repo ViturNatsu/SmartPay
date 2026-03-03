@@ -1,38 +1,67 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { Route, Routes, MemoryRouter, useLocation } from "react-router-dom";
 import { ForgotPassword } from "./ForgotPassword";
+import { AuthProvider } from "../context/AuthContext.jsx";
 import {
-  forgotPasswordConfirmationMessage,
   forgotPasswordEmailField,
   forgotPasswordSubmitButton,
-} from "../vitest/domqueries";
+} from "../vitest/domQueries";
+import { VerifyOtp } from "./VerifyOtp";
+import { requestResetCode } from "../api/authApi";
 
-const renderComponent = () =>
+vi.mock("../api/authApi", () => ({
+  forgotPassword: vi.fn(async () => ({ ok: true })),
+  requestResetCode: vi.fn(async () => ({ ok: true })),
+  refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
+  getMyUser: vi.fn(async () => ({ id: 1 })),
+}));
+
+const LocationWatcher = () => {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname + location.search}</div>;
+};
+
+const renderForgotPasswordFlow = () =>
   render(
-    <MemoryRouter>
-      <ForgotPassword />
-    </MemoryRouter>,
+    <MemoryRouter initialEntries={["/forgot-password"]}>
+      <AuthProvider>
+        <Routes>
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify" element={
+            <>
+              <LocationWatcher />
+              <VerifyOtp />
+            </>} />
+        </Routes>
+      </AuthProvider>
+    </MemoryRouter>
+
   );
 
 describe("ForgotPassword", () => {
   it('has email field and "send reset link" button', () => {
-    renderComponent();
+    renderForgotPasswordFlow();
 
     expect(forgotPasswordEmailField()).toBeInTheDocument();
     expect(forgotPasswordSubmitButton()).toBeInTheDocument();
   });
 
-  it("shows confirmation message after submitting request", async () => {
+  it("redirects to verify OTP page after submitting request", async () => {
     const user = userEvent.setup();
-    renderComponent();
+    renderForgotPasswordFlow();
 
-    await user.type(forgotPasswordEmailField(), "jdoe@example.com");
+    await user.type(forgotPasswordEmailField(), "test@example.com");
     await user.click(forgotPasswordSubmitButton());
 
-    expect(await forgotPasswordConfirmationMessage()).toBeInTheDocument();
+    const heading = await screen.findByRole('heading', { name: /Verify Code/i }, { timeout: 3000 });
+    expect(heading).toBeInTheDocument();
+
+    const locationText = screen.getByTestId("location").textContent;
+    expect(locationText).toContain("email=test%40example.com");
+    expect(locationText).toContain("type=forgot-password");
   });
 });

@@ -5,11 +5,13 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Login } from "./Login";
 import { ForgotPassword } from "./ForgotPassword";
+import { VerifyEmail } from "./VerifyEmail";
 import userEvent from "@testing-library/user-event";
 import {
   forgotPasswordSubmitButton,
   loginLinkToForgotPassword,
-} from "../vitest/domqueries";
+  getVerifyEmailHeading,
+} from "../vitest/domQueries";
 
 vi.mock("../api/authApi", () => ({
   login: vi.fn(),
@@ -36,6 +38,14 @@ const renderLoginWithForgotPassword = () =>
       <ForgotPassword />
     </MemoryRouter>
   );
+
+const renderVerifyEmail = ({ initialEntries = ['/?email=test@example.com'] } = {}) => {
+  render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <VerifyEmail />
+    </MemoryRouter>
+  );
+}
 
 
 const emailInput = () =>
@@ -115,22 +125,19 @@ describe("Login", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows error when email is not verified", async () => {
+  it("redirects to verify email page when email is not verified", async () => {
     const user = userEvent.setup();
 
     login.mockRejectedValueOnce({ response: { status: 403 } });
     renderLogin();
+    renderVerifyEmail();
 
     await user.type(emailInput(), "test@example.com");
     await user.type(passwordInput(), "password");
     await user.click(signInButton());
 
     expect(login).toHaveBeenCalledTimes(1);
-    expect(
-      await screen.findByText(
-        "Your email address is not verified. Please check your inbox and verify your email to continue."
-      )
-    ).toBeInTheDocument();
+    expect(getVerifyEmailHeading().length).toBeGreaterThan(0);
   });
 
   it("shows error when account locked", async () => {
