@@ -25,6 +25,7 @@ vi.mock('../api/authApi', async () => {
   return {
     ...actual,
     refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),
+    getMyUser: vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' })),
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
@@ -64,24 +65,24 @@ function AppHarness({ initialEntries = ['/app'] }) {
 }
 
 describe('Home Dashboard Quick Link Acceptance', () => {
-  
+
   it('Scenario 1: Test Create Account Link', async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken('ACCESS');
 
     render(<AppHarness initialEntries={["/app"]} />);
-    
+
     // Wait for the protected page with QuickActions to render
     const protectedContent = await screen.findByTestId('protected');
     expect(protectedContent).toBeInTheDocument();
-    
+
     // Find and click the Create Account link
     const createAccountLink = await screen.findByRole('link', { name: /Open New Account/i });
     await user.click(createAccountLink);
-    
+
     // Verify navigation to create-account page
-    expect(screen.getByText('CreateAccount')).toBeInTheDocument();
+    expect(screen.getByText('Create Account')).toBeInTheDocument();
   });
 
   it('Scenario 2: Test View History Link', async () => {
@@ -90,15 +91,15 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     setAccessToken('ACCESS');
 
     render(<AppHarness initialEntries={["/app"]} />);
-    
+
     // Wait for the protected page with QuickActions to render
     const protectedContent = await screen.findByTestId('protected');
     expect(protectedContent).toBeInTheDocument();
-    
+
     // Find and click the View History link
     const viewHistoryLink = await screen.findByRole('link', { name: /View History/i });
     await user.click(viewHistoryLink);
-    
+
     // Verify navigation to view-history page
     expect(screen.getByText('View History')).toBeInTheDocument();
   });
@@ -109,17 +110,17 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     setAccessToken('ACCESS');
 
     render(<AppHarness initialEntries={["/app"]} />);
-    
+
     // Wait for the protected page with QuickActions to render
     const protectedContent = await screen.findByTestId('protected');
     expect(protectedContent).toBeInTheDocument();
-    
+
     // Find and click the Add Payee link
     const addPayeeLink = await screen.findByRole('link', { name: /Add Payee/i });
     await user.click(addPayeeLink);
-    
+
     // Verify navigation to add-payee page
-    expect(screen.getByText('AddPayee')).toBeInTheDocument();
+    expect(screen.getByText('Add Payee')).toBeInTheDocument();
   });
 
   it('Scenario 4: Test Make Payment Link', async () => {
@@ -128,16 +129,16 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     setAccessToken('ACCESS');
 
     render(<AppHarness initialEntries={["/app"]} />);
-    
+
     // Wait for the protected page with QuickActions to render
     const protectedContent = await screen.findByTestId('protected');
     expect(protectedContent).toBeInTheDocument();
-    
+
     // Find and click the Make a Payment link
     const makePaymentLink = await screen.findByRole('link', { name: /Make a Payment/i });
     await user.click(makePaymentLink);
-    
+
     // Verify navigation to make-payment page
-    expect(screen.getByText('MakeAPayment')).toBeInTheDocument();
+    expect(screen.getByText('Make A Payment')).toBeInTheDocument();
   });
 });

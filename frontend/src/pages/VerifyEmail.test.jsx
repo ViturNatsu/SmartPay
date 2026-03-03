@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { VerifyEmail } from '../pages/VerifyEmail';
+import { getVerifyEmailHeading, getResendButton, getBackToSignInButton, getSVGIcons } from '../vitest/domQueries';
 
 vi.mock('../api/authApi', () => ({
     requestResetCode: vi.fn(),
@@ -18,18 +19,6 @@ function VerifyEmailTestHarness({ initialEntries = ['/?email=test@example.com'] 
         </MemoryRouter>
     );
 }
-
-const getVerifyEmailHeading = () =>
-    screen.getAllByText(/verify your email/i);
-
-const getResendButton = () =>
-    screen.getByRole('button', { name: /resend verification email/i });
-
-const getBackToSignInButton = () =>
-    screen.getByRole('link', { name: /back to sign in/i });
-
-const getSVGIcons = () =>
-    document.querySelectorAll('svg');
 
 // --------- Tests ---------
 describe('VerifyEmail Component', () => {

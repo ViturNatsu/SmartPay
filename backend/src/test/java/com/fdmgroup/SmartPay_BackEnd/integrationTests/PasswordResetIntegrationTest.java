@@ -23,7 +23,7 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-
+import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,6 +47,9 @@ public class PasswordResetIntegrationTest {
 
         @Autowired
         private AuditLogRepository auditLogRepository;
+
+        @Autowired
+        private CustomerRepository customerRepository;
 
         @MockitoBean
         private JwtSessionService jwtSessionService;
@@ -72,6 +75,7 @@ public class PasswordResetIntegrationTest {
         void setUp() {
                 auditLogRepository.deleteAll();
                 otpRepository.deleteAll();
+                customerRepository.deleteAll();
                 userRepository.deleteAll();
 
                 testUser = User.builder()
