@@ -34,3 +34,15 @@ export const resetPasswordEmailNotFound = () =>
 
 export const resetPasswordTooManyFailures = () =>
   screen.findByText(/too many failed attempts/i);
+
+export const getVerifyEmailHeading = () =>
+  screen.getAllByText(/verify your email/i);
+
+export const getResendButton = () =>
+  screen.getByRole('button', { name: /resend verification email/i });
+
+export const getBackToSignInButton = () =>
+  screen.getByRole('link', { name: /back to sign in/i });
+
+export const getSVGIcons = () =>
+  document.querySelectorAll('svg');

@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -51,6 +52,7 @@ public class JwtSessionService {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("typ", "refresh")
+                .setId(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(getSigningKey())

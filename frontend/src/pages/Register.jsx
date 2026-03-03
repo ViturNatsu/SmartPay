@@ -713,14 +713,6 @@ export const Register = () => {
                 >
                   Continue →
                 </Button>
-                {apiErrorMessage && (
-                  <Typography
-                    sx={{ color: "error.main", fontSize: 13, mt: 1 }}
-                    role="alert"
-                  >
-                    {apiErrorMessage}
-                  </Typography>
-                )}
               </Box>
             )}
 
@@ -1074,10 +1066,16 @@ export const Register = () => {
                     boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
                   }}
                 >
-
-
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
+                {apiErrorMessage && (
+                  <Typography
+                    sx={{ color: "error.main", fontSize: 13, mt: 1 }}
+                    role="alert"
+                  >
+                    {apiErrorMessage}
+                  </Typography>
+                )}
                 <Button
                   variant="contained"
                   onClick={() => setStep(1)}
