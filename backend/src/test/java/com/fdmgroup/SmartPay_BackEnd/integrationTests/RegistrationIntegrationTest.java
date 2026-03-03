@@ -28,7 +28,6 @@ class RegistrationIntegrationTest {
 
     private final String firstName = "Quality";
     private final String lastName = "Assurance";
-    private final String institution = "Chase";
     private final String validPassword = "@StrongPass123!";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -86,7 +85,6 @@ class RegistrationIntegrationTest {
         SignUpDTO requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail("invalid@test.com");
         requestBody.setPassword("weak");
         requestBody.setConfirmPassword("weak");
@@ -108,7 +106,6 @@ class RegistrationIntegrationTest {
         SignUpDTO requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
         requestBody.setLastName(lastName);
-        requestBody.setInstitution(institution);
         requestBody.setEmail(email);
         requestBody.setPassword(validPassword);
         requestBody.setConfirmPassword(validPassword);
