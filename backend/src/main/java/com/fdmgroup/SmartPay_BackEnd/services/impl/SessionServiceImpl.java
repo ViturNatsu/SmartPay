@@ -39,8 +39,15 @@ public class SessionServiceImpl implements SessionService {
                 .lastUsedAt(now)
                 .sessionTimeoutMinutes(timeoutMinutes)
                 .build();
+    // If a session with the exact refresh token already exists, skip creation.
+    // This guards against duplicate inserts when the endpoint is called twice
+    // (for example, due to frontend double-submit in dev strict mode).
+    if (sessionRepo.findByRefreshToken(refreshToken).isPresent()) {
+        log.warn("Session with the same refresh token already exists for user: {}", user.getEmail());
+        return;
+    }
 
-        sessionRepo.save(newSession);
+    sessionRepo.save(newSession);
         log.info("Created new session for user: {} with timeout: {} minutes",
                 user.getEmail(), timeoutMinutes);
     }
