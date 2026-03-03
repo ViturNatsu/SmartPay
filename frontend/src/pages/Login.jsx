@@ -86,13 +86,6 @@ export const Login = () => {
       navigate(`/verify?email=${encodeURIComponent(email)}&type=login`, { replace: true });
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
-      const url = err?.config?.url ?? err?.response?.config?.url ?? "";
-
-      {/* displays login err message over refresh error msg */ }
-      if (url.includes("/api/v1/auth/refresh")) {
-        if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
-        return;
-      }
 
       if (status === 401) setErrorMsg("Incorrect email or password. Please try again.");
       else if (status === 403) {
@@ -100,6 +93,8 @@ export const Login = () => {
       }
       else if (status === 429)
         setErrorMsg("Your account is locked due to multiple failed attempts. Please reset password or try later.");
+      else if (status === 503) 
+        setErrorMsg("Authentication service is currently unavailable. Please try again later.");
       else setErrorMsg(err?.message || "Network error. Please try again.");
     } finally {
       setIsLoading(false);

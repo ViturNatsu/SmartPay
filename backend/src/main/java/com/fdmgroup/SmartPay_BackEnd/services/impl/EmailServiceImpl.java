@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -25,7 +26,6 @@ public class EmailServiceImpl implements EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    @Async
     @Override
     public void sendSimpleMail(EmailDetails details) {
         try {
@@ -40,8 +40,8 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(mailMessage);
             LOGGER.info("Email sent successfully to MailHog");
         } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.warning("Error while Sending Mail: " + e.getMessage());
+        	LOGGER.warning("Error while Sending Mail: " + e.getMessage());
+            throw(new MailSendException("Email failed to send"));
         }
     }
 

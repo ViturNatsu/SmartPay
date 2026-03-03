@@ -9,11 +9,6 @@ const CUSTOMER_DETAILS_URL = "/api/v1/customer";
 export async function login(payload) {
   try {
     const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
-    const { accessToken, refreshToken } = response.data;
-
-    if (accessToken) setAccessToken(accessToken);
-    if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
-
     return response.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -122,11 +117,6 @@ export async function refreshTokens() {
 }
 
 export async function getMyUser() {
-  // return Promise.resolve({
-  //   id: 1,
-  //   email: "placeholder@smartpay.local",
-  //   role: "fake role"
-  // });
   try {
     const res = await axiosInstance.get(`${CUSTOMER_DETAILS_URL}`);
     return res.data;
@@ -135,7 +125,6 @@ export async function getMyUser() {
   }
 }
 
-// Use refresh token to get new access and refresh token)
 export async function keepAlive(refreshToken) {
   try {
     const res = await axiosInstance.post(`${KEEP_ALIVE}`, {}, {
