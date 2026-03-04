@@ -21,9 +21,9 @@ import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-import Navbar from "../components/Navbar";
+import Navbar from "@/components/Navbar";
 import OpenAccountForm from "./OpenAccountForm";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { getUserAccounts, createAccount } from "/src/api/accounts/accountApi.js";
 
 const formatCurrency = (value) =>

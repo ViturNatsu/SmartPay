@@ -1,23 +1,23 @@
 import { Routes, Route } from "react-router-dom";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { ForgotPassword } from "./pages/ForgotPassword";
-import { ResetPassword } from "./pages/ResetPassword";
-import { VerifyEmail } from "./pages/VerifyEmail";
-import { VerifyOtp } from "./pages/VerifyOtp";
-import ProtectedRoute from "./routes/ProtectedRoute";
-import { Home } from "./pages/Home";
-import { Accounts } from './pages/Accounts';
-import { Transactions } from './pages/Transactions';
-import { Cards } from './pages/Cards';
-import { Reports } from './pages/Reports';
-import { Settings } from './pages/Settings';
-import { CreateAccount } from "./pages/CreateAccount";
-import { AddPayee } from "./pages/AddPayee";
-import { MakeAPayment } from "./pages/MakeAPayment";
-import { ViewHistory } from "./pages/ViewHistory";
-import TermsAndConditions from './pages/TermsAndConditions'
-import PrivacyPolicy from './pages/PrivacyPolicy'
+import { Login } from "@/pages/Login/Login";
+import { Register } from "@/pages/Registration/Register";
+import { ForgotPassword } from "@/pages/Password/ForgotPassword";
+import { ResetPassword } from "@/pages/Password/ResetPassword";
+import { VerifyEmail } from "@/pages/Verify/VerifyEmail";
+import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
+import ProtectedRoute from "@/routes/ProtectedRoute";
+import { Home } from "@/pages/Navbar/Home";
+import { Accounts } from '@/pages/Accounts/Accounts';
+import { Transactions } from '@/pages/Navbar/Transactions';
+import { Cards } from '@/pages/Navbar/Cards';
+import { Reports } from '@/pages/Navbar/Reports';
+import { Settings } from '@/pages/Navbar/Settings';
+import { CreateAccount } from "@/pages/Accounts/CreateAccount";
+import { AddPayee } from "@/pages/Accounts/AddPayee";
+import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
+import { ViewHistory } from "@/pages/Accounts/ViewHistory";
+import TermsAndConditions from '@/pages/Registration/TermsAndConditions'
+import PrivacyPolicy from '@/pages/Registration/PrivacyPolicy'
 
 export default function AppRoutes() {
   return (

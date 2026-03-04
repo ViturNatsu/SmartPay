@@ -3,25 +3,25 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
-import ProtectedRoute from '../routes/ProtectedRoute.jsx';
-import { Login } from '../pages/Login.jsx';
-import { Home } from '../pages/Home.jsx';
-import { CreateAccount } from '../pages/CreateAccount.jsx';
-import { ViewHistory } from '../pages/ViewHistory.jsx';
-import { AddPayee } from '../pages/AddPayee.jsx';
-import { MakeAPayment } from '../pages/MakeAPayment.jsx';
+import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
+import ProtectedRoute from '@/routes/ProtectedRoute.jsx';
+import { Login } from '@/pages/Login/Login';
+import { Home } from '@/pages/Navbar/Home';
+import { CreateAccount } from '@/pages/Accounts/CreateAccount';
+import { ViewHistory } from '@/pages/Accounts/ViewHistory';
+import { AddPayee } from '@/pages/Accounts/AddPayee';
+import { MakeAPayment } from '@/pages/Accounts/MakeAPayment';
 
 // --------- Test Setup ---------
 // npm install -D @testing-library/jest-dom
 // npm test homeQuickActions.test.jsx
 
 // Mock API calls to avoid network
-import * as authApi from '../api/authApi.js';
-import { setAccessToken } from '../api/axios.js';
+import * as authApi from '@/api/authApi.js';
+import { setAccessToken } from '@/api/axios.js';
 
-vi.mock('../api/authApi', async () => {
-  const actual = await vi.importActual('../api/authApi');
+vi.mock('@/api/authApi', async () => {
+  const actual = await vi.importActual('@/api/authApi');
   return {
     ...actual,
     refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),

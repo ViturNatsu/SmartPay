@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
-import { requestResetCode } from "../api/authApi";
+import { requestResetCode } from "@/api/authApi";
 import { useNavigate } from "react-router-dom";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("");

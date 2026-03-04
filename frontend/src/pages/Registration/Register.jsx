@@ -17,8 +17,8 @@ import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Alert from "@mui/material/Alert";
-import { register } from "../api/authApi";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { register } from "@/api/authApi";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
 import GovtIDIcon from '@mui/icons-material/AccountBox';
 
 const CANADA_POSTAL_CODE_REGEX =

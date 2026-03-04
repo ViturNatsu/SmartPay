@@ -4,16 +4,16 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes, MemoryRouter, useLocation } from "react-router-dom";
-import { ForgotPassword } from "./ForgotPassword";
-import { AuthProvider } from "../context/AuthContext.jsx";
+import { ForgotPassword } from "@/pages/Password/ForgotPassword";
+import { AuthProvider } from "@/context/AuthContext.jsx";
 import {
   forgotPasswordEmailField,
   forgotPasswordSubmitButton,
-} from "../vitest/domQueries";
-import { VerifyOtp } from "./VerifyOtp";
-import { requestResetCode } from "../api/authApi";
+} from "@/vitest/domQueries";
+import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
+import { requestResetCode } from "@/api/authApi";
 
-vi.mock("../api/authApi", () => ({
+vi.mock("@/api/authApi", () => ({
   forgotPassword: vi.fn(async () => ({ ok: true })),
   requestResetCode: vi.fn(async () => ({ ok: true })),
   refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),

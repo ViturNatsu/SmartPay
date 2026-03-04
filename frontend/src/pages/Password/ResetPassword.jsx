@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
-import { resetPassword } from "../api/authApi";
+import { resetPassword } from "@/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
 
 export const ResetPassword = () => {
   const [password, setPassword] = useState("");
