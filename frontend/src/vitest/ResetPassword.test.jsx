@@ -3,10 +3,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
-import { ResetPassword } from "./ResetPassword";
-import { Login } from "./Login";
+import { ResetPassword } from "@/pages/Password/ResetPassword";
+import { Login } from "@/pages/Login/Login";
 import userEvent from "@testing-library/user-event";
-import { resetPassword } from "../api/authApi";
+import { resetPassword } from "@/api/authApi";
 import {
   resetPasswordConfirmPasswordField,
   resetPasswordEmailNotFound,
@@ -15,7 +15,7 @@ import {
   resetPasswordPasswordsDoNotMatch,
   resetPasswordSubmitButton,
   resetPasswordTooManyFailures,
-} from "../vitest/domqueries";
+} from "@/vitest/domqueries";
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_ALLOWED_PASSWORD_RESETS = 5;

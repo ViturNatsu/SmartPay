@@ -10,10 +10,11 @@ import {
   Avatar,
   Link,
 } from "@mui/material";
-import { requestResetCode, sendVerifyCode } from "../api/authApi";
-import { useAuth } from "../context/AuthContext";
+import { requestResetCode, sendVerifyCode } from "@/api/authApi";
+import { useAuth } from "@/context/AuthContext";
 import CheckIcon from "@mui/icons-material/Check";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
+
 export const VerifyOtp = () => {
   const location = useLocation();
   const [showSuccess, setShowSuccess] = useState(

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -24,7 +24,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
-import logo from "../assets/logo.png";
+import logo from "@/style/logo.png";
 
 // Update these to match your real routes
 const navItems = [

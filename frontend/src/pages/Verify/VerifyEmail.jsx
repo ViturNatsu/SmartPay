@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
 import { Button, Box, Typography, Paper, Divider } from "@mui/material";
-import { requestResetCode } from "../api/authApi";
+import { requestResetCode } from "@/api/authApi";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
 
 export const VerifyEmail = () => {
   const [error, setError] = useState("");

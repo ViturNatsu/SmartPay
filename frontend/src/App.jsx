@@ -1,9 +1,9 @@
-import { GlobalStyles } from "./GlobalStyles";
+import { GlobalStyles } from "./style/GlobalStyles";
 import { AuthProvider } from "./context/AuthContext";
 
 import { BrowserRouter } from "react-router-dom";
 
-import AppRoutes from "./AppRoutes";
+import AppRoutes from "./routes/AppRoutes";
 
 export default function App() {
   return (

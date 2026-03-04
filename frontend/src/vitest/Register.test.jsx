@@ -4,11 +4,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { BrowserRouter } from "react-router-dom";
-import { Register } from "./Register";
-import * as authApi from "../api/authApi";
+import { Register } from "@/pages/Registration/Register";
+import * as authApi from "@/api/authApi";
 
 // mocking backend
-vi.mock("../api/authApi", () => ({
+vi.mock("@/api/authApi", () => ({
   register: vi.fn(),
 }));
 

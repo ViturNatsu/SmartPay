@@ -1,5 +1,5 @@
 import { Box, Typography, Avatar } from "@mui/material";
-import logo from "../assets/logo.png";
+import logo from "@/style/logo.png";
 import SecurityIcon from "@mui/icons-material/Security";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 

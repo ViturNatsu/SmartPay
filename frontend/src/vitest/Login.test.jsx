@@ -3,21 +3,21 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { Login } from "./Login";
-import { ForgotPassword } from "./ForgotPassword";
-import { VerifyEmail } from "./VerifyEmail";
+import { Login } from "@/pages/Login/Login";
+import { ForgotPassword } from "@/pages/Password/ForgotPassword";
+import { VerifyEmail } from "@/pages/Verify/VerifyEmail";
 import userEvent from "@testing-library/user-event";
 import {
   forgotPasswordSubmitButton,
   loginLinkToForgotPassword,
   getVerifyEmailHeading,
-} from "../vitest/domQueries";
+} from "@/vitest/domQueries";
 
-vi.mock("../api/authApi", () => ({
+vi.mock("@/api/authApi", () => ({
   login: vi.fn(),
 }));
 
-import { login } from "../api/authApi";
+import { login } from "@/api/authApi";
 
 afterEach(() => {
   cleanup();

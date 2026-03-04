@@ -18,9 +18,9 @@ import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { login } from "../api/authApi";
+import { login } from "@/api/authApi";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
-import { SmartPayBanner } from "../components/SmartPayBanner";
+import { SmartPayBanner } from "@/components/SmartPayBanner";
 
 export const Login = () => {
   const location = useLocation();

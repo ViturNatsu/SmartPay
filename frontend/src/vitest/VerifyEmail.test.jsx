@@ -3,14 +3,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { VerifyEmail } from '../pages/VerifyEmail';
-import { getVerifyEmailHeading, getResendButton, getBackToSignInButton, getSVGIcons } from '../vitest/domQueries';
+import { VerifyEmail } from '@/pages/Verify/VerifyEmail';
+import { getVerifyEmailHeading, getResendButton, getBackToSignInButton, getSVGIcons } from '@/vitest/domQueries';
 
-vi.mock('../api/authApi', () => ({
+vi.mock('@/api/authApi', () => ({
     requestResetCode: vi.fn(),
 }));
 
-import * as authApi from '../api/authApi';
+import * as authApi from '@/api/authApi';
 
 function VerifyEmailTestHarness({ initialEntries = ['/?email=test@example.com'] } = {}) {
     return (

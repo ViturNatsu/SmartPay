@@ -1,11 +1,11 @@
-import Navbar from "../components/Navbar"
+import Navbar from "@/components/Navbar"
 import { Stack } from "@mui/material";
-import QuickActions from "../components/QuickActions";
-import ImportantMessages from "../components/ImportantMessages";
-import AccountOverview from "../components/AccountOverview";
-import TransactionHistory from "../components/TransactionHistory";
+import QuickActions from "@/components/QuickActions";
+import ImportantMessages from "@/components/ImportantMessages";
+import AccountOverview from "@/components/AccountOverview";
+import TransactionHistory from "@/components/TransactionHistory";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export const Home = () => {
   const { user, logout } = useAuth();

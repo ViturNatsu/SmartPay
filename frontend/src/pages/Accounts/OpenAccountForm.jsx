@@ -21,7 +21,7 @@ import {
   useTheme,
 } from "@mui/material";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 const steps = ["Account Details", "Terms & Conditions", "Review & Submit"];
 
