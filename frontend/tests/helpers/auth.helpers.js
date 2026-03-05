@@ -240,10 +240,6 @@ export async function fillRegisterForm(page, { email, password, confirmPassword 
     await page.getByTestId('first-name-input').locator('input').fill('John');
     await page.getByTestId('last-name-input').locator('input').fill('Doe');
 
-    // Institution picker
-    await page.getByTestId('institution-input').click();
-    await page.getByRole('option', { name: 'FDM Bank' }).click();
-
     await page.getByTestId('email-input').locator('input').fill(email);
     await page.getByTestId('password-input').locator('input').fill(password);
     await page.getByTestId('confirm-password-input').locator('input').fill(confirm);
@@ -305,10 +301,6 @@ export async function fillRegisterForm(page, { email, password, confirmPassword 
  */
 export async function fillLoginForm(page, { email, password }) {
     await page.goto('/login');
-
-    // Select institution
-    await page.getByText('Financial Institution').locator('xpath=..').locator('.MuiSelect-select, [role="combobox"]').first().click();
-    await page.getByRole('option', { name: 'FDM Bank' }).click();
 
     await page.locator('input[type="email"]').fill(email);
     await page.locator('input[type="password"]').fill(password);

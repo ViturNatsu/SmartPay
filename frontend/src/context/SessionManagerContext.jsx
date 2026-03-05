@@ -77,11 +77,11 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       refreshThresholdRef.current = tokenLifetimeMs * 0.75;
       refreshLeewayRef.current = tokenLifetimeMs * 0.25;
       accessExpRef.current = payload.exp * 1000;
-      console.log(
-        `[SESSION] Token decoded — lifetime=${tokenLifetimeMs / 1000}s, ` +
-        `refreshAt=${(tokenLifetimeMs * 0.75) / 1000}s, ` +
-        `expiresAt=${new Date(payload.exp * 1000).toLocaleTimeString()}`
-      );
+      // console.log(
+      //   `[SESSION] Token decoded — lifetime=${tokenLifetimeMs / 1000}s, ` +
+      //   `refreshAt=${(tokenLifetimeMs * 0.75) / 1000}s, ` +
+      //   `expiresAt=${new Date(payload.exp * 1000).toLocaleTimeString()}`
+      // );
     } else if (payload?.exp) {
       const remainingMs = Math.max(payload.exp * 1000 - Date.now(), 0);
       const lifetimeMs = remainingMs || DEFAULT_TOKEN_LIFETIME_MS;

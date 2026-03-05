@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -15,13 +16,14 @@ import java.util.Locale;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CustomerDTO {
 
     private String firstName;
     private String lastName;
-    //contact information
+    // contact information
     @NotBlank(message = "Address Line 1 is required.")
     @Size(max = 120, message = "Address Line 1 cannot exceed 120 characters.")
     private String addressLine1;
@@ -35,10 +37,7 @@ public class CustomerDTO {
     private String city;
 
     @NotBlank(message = "Province is required.")
-    @Pattern(
-            regexp = "^(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT)$",
-            message = "Province is invalid."
-    )
+    @Pattern(regexp = "^(AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT)$", message = "Province is invalid.")
     private String province;
 
     @NotBlank(message = "Country is required.")
@@ -46,32 +45,20 @@ public class CustomerDTO {
     private String country;
 
     @NotBlank(message = "Postal Code is required.")
-    @Pattern(
-            regexp = "^[ABCEGHJ-NPRSTVXY]\\d[ABCEGHJ-NPRSTV-Z][ -]?\\d[ABCEGHJ-NPRSTV-Z]\\d$",
-            message = "Postal Code must match Canadian format (A1A 1A1)."
-    )
+    @Pattern(regexp = "^[ABCEGHJ-NPRSTVXY]\\d[ABCEGHJ-NPRSTV-Z][ -]?\\d[ABCEGHJ-NPRSTV-Z]\\d$", message = "Postal Code must match Canadian format (A1A 1A1).")
     private String postalCode;
 
     @NotBlank(message = "Phone Number is required.")
-    @Pattern(
-            regexp = "^(?:\\+?1[\\s.-]?)?(?:\\(?\\d{3}\\)?[\\s.-]?)\\d{3}[\\s.-]?\\d{4}$",
-            message = "Phone Number must be 10 digits (optional +1)."
-    )
+    @Pattern(regexp = "^(?:\\+?1[\\s.-]?)?(?:\\(?\\d{3}\\)?[\\s.-]?)\\d{3}[\\s.-]?\\d{4}$", message = "Phone Number must be 10 digits (optional +1).")
     private String phoneNumber;
 
-    //identification informatoin
+    // identification informatoin
     @NotBlank(message = "Social Insurance Number is required.")
-    @Pattern(
-            regexp = "^(?:\\d[\\s-]?){8}\\d$",
-            message = "SIN must be exactly 9 digits."
-    )
+    @Pattern(regexp = "^(?:\\d[\\s-]?){8}\\d$", message = "SIN must be exactly 9 digits.")
     private String socialInsuranceNumber;
 
     @NotBlank(message = "Government ID Type is required.")
-    @Pattern(
-            regexp = "^(PASSPORT|DRIVER_LICENSE|PRCARD_NUMBER)$",
-            message = "Government ID Type is invalid."
-    )
+    @Pattern(regexp = "^(PASSPORT|DRIVER_LICENSE|PRCARD_NUMBER)$", message = "Government ID Type is invalid.")
     private String governmentIdType;
 
     @NotBlank(message = "Government ID Number is required.")
