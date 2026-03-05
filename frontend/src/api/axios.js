@@ -2,7 +2,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 let inMemoryAccessToken = null;
@@ -20,6 +20,11 @@ export function getAccessToken() {
 }
 
 axiosInstance.interceptors.request.use((config) => {
+  // Skip if the caller already set an explicit Authorization header
+  // (e.g., /refresh and /logout send the refresh token directly)
+  if (config.headers?.Authorization) {
+    return config;
+  }
   const token = getAccessToken();
   if (token) {
     config.headers = config.headers || {};
@@ -50,7 +55,7 @@ axiosInstance.interceptors.response.use(
     const refreshToken = sessionStorage.getItem("refresh_token");
     if (!refreshToken) {
       clearAccessToken();
-      throw error; 
+      throw error;
     }
 
     try {

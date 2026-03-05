@@ -31,11 +31,12 @@ public class AuditServiceImpl implements AuditService {
                     .user(user)
                     .eventData(eventData != null ? eventData : new HashMap<>())
                     .ipAddress(getClientIp(request))
-                    .userAgent(request.getHeader("User-Agent"))
+                    .userAgent(request != null ? request.getHeader("User-Agent") : null)
                     .build();
 
             auditLogRepository.save(auditLog);
-            log.info("Audit event logged: {} for user: {}", eventType, user != null ? user.getEmail() : "unknown");
+            log.info("Audit event logged: {} [{}] for user: {}", eventType, eventStatus,
+                    user != null ? user.getEmail() : "unknown");
         } catch (Exception e) {
             log.error("Failed to log audit event: {}", eventType, e);
         }
@@ -47,6 +48,8 @@ public class AuditServiceImpl implements AuditService {
     }
 
     private String getClientIp(HttpServletRequest request) {
+        if (request == null)
+            return "system";
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Real-IP");

@@ -37,7 +37,6 @@ public class UserSignUpTest {
         User newUser = User.builder()
                 .firstName("John")
                 .lastName("Doe")
-                .institution("Chase")
                 .email("john@gmail.com")
                 .password("AweS1234!")
                 .build();

@@ -88,7 +88,6 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
-  const [institution, setInstitution] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -114,11 +113,9 @@ export const Register = () => {
 
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
-  const [institutionError, setInstitutionError] = useState(false);
 
   const [firstNameErrorMessage, setFirstNameErrorMessage] = useState("");
   const [lastNameErrorMessage, setLastNameErrorMessage] = useState("");
-  const [institutionErrorMessage, setInstitutionErrorMessage] = useState("");
 
   const [apiErrorMessage, setApiErrorMessage] = useState("");
 
@@ -146,14 +143,12 @@ export const Register = () => {
 
     setFirstNameError(false);
     setLastNameError(false);
-    setInstitutionError(false);
     setEmailError(false);
     setPasswordError(false);
     setConfirmPasswordError(false);
 
     setFirstNameErrorMessage("");
     setLastNameErrorMessage("");
-    setInstitutionErrorMessage("");
     setEmailErrorMessage("");
     setPasswordErrorMessage("");
 
@@ -205,14 +200,6 @@ export const Register = () => {
     } else {
       setLastNameError(false);
       setLastNameErrorMessage("");
-    }
-    if (!institution) {
-      setInstitutionError(true);
-      setInstitutionErrorMessage("Please select a financial institution.");
-      errors.push("Financial institution is required.");
-    } else {
-      setInstitutionError(false);
-      setInstitutionErrorMessage("");
     }
 
     let isPasswordInvalid = !passwordRegex.test(password);
@@ -394,7 +381,6 @@ export const Register = () => {
     const userInfo = {
       firstName: firstName,
       lastName: lastName,
-      institution: institution,
       email: email,
       password: password,
       confirmPassword: confirmPassword,
@@ -584,44 +570,6 @@ export const Register = () => {
                     mb: -1,
                   }}
                 >
-                  Financial Institution
-                </Typography>
-                <TextField
-                  select
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                        </InputAdornment>
-                      ),
-                      "data-testid": "institution-input"
-                    },
-
-                  }}
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  error={institutionError}
-                  helperText={institutionErrorMessage}
-                  placeholder="Select institution"
-                  sx={{ mb: 0 }}
-                >
-                  <MenuItem value="">Select institution</MenuItem>
-                  <MenuItem value="World">World Bank of Canada</MenuItem>
-                  <MenuItem value="TD">TD Bank</MenuItem>
-                  <MenuItem value="FDM">FDM Bank</MenuItem>
-                  <MenuItem value="other">Other</MenuItem>
-                </TextField>
-
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "text.secondary",
-                    mb: -1,
-                  }}
-                >
                   Email Address
                 </Typography>
                 <TextField
@@ -765,14 +713,6 @@ export const Register = () => {
                 >
                   Continue →
                 </Button>
-                {apiErrorMessage && (
-                  <Typography
-                    sx={{ color: "error.main", fontSize: 13, mt: 1 }}
-                    role="alert"
-                  >
-                    {apiErrorMessage}
-                  </Typography>
-                )}
               </Box>
             )}
 
@@ -1126,10 +1066,16 @@ export const Register = () => {
                     boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
                   }}
                 >
-
-
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
+                {apiErrorMessage && (
+                  <Typography
+                    sx={{ color: "error.main", fontSize: 13, mt: 1 }}
+                    role="alert"
+                  >
+                    {apiErrorMessage}
+                  </Typography>
+                )}
                 <Button
                   variant="contained"
                   onClick={() => setStep(1)}

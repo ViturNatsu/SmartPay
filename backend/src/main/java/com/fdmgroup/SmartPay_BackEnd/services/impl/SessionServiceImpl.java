@@ -1,9 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.services.impl;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.SessionEntity;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.SessionAuthenticationException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.SessionRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.SystemConfigurationService;
 import jakarta.transaction.Transactional;
@@ -22,6 +25,7 @@ public class SessionServiceImpl implements SessionService {
 
     private final SessionRepository sessionRepo;
     private final SystemConfigurationService configurationService;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -39,6 +43,13 @@ public class SessionServiceImpl implements SessionService {
                 .lastUsedAt(now)
                 .sessionTimeoutMinutes(timeoutMinutes)
                 .build();
+        // If a session with the exact refresh token already exists, skip creation.
+        // This guards against duplicate inserts when the endpoint is called twice
+        // (for example, due to frontend double-submit in dev strict mode).
+        if (sessionRepo.findByRefreshToken(refreshToken).isPresent()) {
+            log.warn("Session with the same refresh token already exists for user: {}", user.getEmail());
+            return;
+        }
 
         sessionRepo.save(newSession);
         log.info("Created new session for user: {} with timeout: {} minutes",
@@ -54,8 +65,18 @@ public class SessionServiceImpl implements SessionService {
 
         // Check if session has expired due to inactivity
         if (session.isExpired()) {
+            User user = session.getUser();
             sessionRepo.delete(session);
-            log.warn("Session expired for user: {}", session.getUser().getEmail());
+            log.warn("Session expired for user: {}", user.getEmail());
+
+            // Audit log for session expiry due to inactivity
+            try {
+                auditService.logEvent(EventType.SESSION_EXPIRED,
+                        AuditLog.SESSION_EXPIRED_INACTIVITY, user, null);
+            } catch (Exception e) {
+                log.error("Failed to log session expiry audit event for user: {}", user.getEmail(), e);
+            }
+
             throw new SessionAuthenticationException(
                     "You've been signed out due to inactivity. Please sign in again.");
         }
@@ -65,7 +86,6 @@ public class SessionServiceImpl implements SessionService {
         sessionRepo.save(session);
         log.debug("Session validated and updated for user: {}", session.getUser().getEmail());
     }
-
 
     @Override
     @Transactional
@@ -88,8 +108,17 @@ public class SessionServiceImpl implements SessionService {
         int deletedCount = 0;
         for (SessionEntity session : potentiallyExpiredSessions) {
             if (session.isExpired()) {
+                User user = session.getUser();
                 sessionRepo.delete(session);
                 deletedCount++;
+
+                // Audit log for scheduled session cleanup
+                try {
+                    auditService.logEvent(EventType.SESSION_EXPIRED,
+                            AuditLog.SESSION_EXPIRED_CLEANUP, user, null);
+                } catch (Exception e) {
+                    log.error("Failed to log cleanup audit event for user: {}", user.getEmail(), e);
+                }
             }
         }
 
@@ -105,7 +134,8 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public void rotateRefreshToken(String oldRefreshToken, String newRefreshToken) throws SessionAuthenticationException {
+    public void rotateRefreshToken(String oldRefreshToken, String newRefreshToken)
+            throws SessionAuthenticationException {
         SessionEntity session = sessionRepo.findByRefreshToken(oldRefreshToken)
                 .orElseThrow(() -> new SessionAuthenticationException(
                         "Session not found. Please sign in again."));
@@ -124,10 +154,20 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public void revokeSession(String refreshToken) {
-        sessionRepo.findByRefreshToken(refreshToken).ifPresent(session -> {
+    public boolean revokeSession(String refreshToken) {
+        var sessionOpt = sessionRepo.findByRefreshToken(refreshToken);
+        if (sessionOpt.isPresent()) {
+            SessionEntity session = sessionOpt.get();
             sessionRepo.delete(session);
             log.info("Revoked session for user: {}", session.getUser().getEmail());
-        });
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasActiveSession(User user) {
+        List<SessionEntity> sessions = sessionRepo.findByUser(user);
+        return sessions.stream().anyMatch(s -> !s.isExpired());
     }
 }

@@ -38,11 +38,6 @@ const getFirstNameInput = () =>
 const getLastNameInput = () =>
   screen.getByRole("textbox", { name: /last name/i });
 
-const getInstitutionInput = () =>
-  screen.getByRole("combobox", { name: /institution/i });
-
-const getChaseOption = () => screen.getByRole("option", { name: /chase/i });
-
 const getEmailInput = () => screen.getByRole("textbox", { name: /email/i });
 
 const getPasswordInput = () => screen.getByLabelText(/^password$/i);
@@ -108,8 +103,6 @@ const fillValidForm = async (user) => {
   await user.type(getFirstNameInput(), "John");
   await user.type(getLastNameInput(), "Doe");
   await user.type(getEmailInput(), "john.doe@example.com");
-  await user.click(getInstitutionInput());
-  await user.click(getChaseOption());
   await user.type(getPasswordInput(), "ValidPass1!");
   await user.type(getConfirmPasswordInput(), "ValidPass1!");
   await user.click(getAgreeCheckbox());
@@ -125,8 +118,6 @@ describe("Register Component", () => {
       await user.type(getFirstNameInput(), "John");
       await user.type(getLastNameInput(), "Doe");
       await user.type(getEmailInput(), "john.doe@example.com");
-      await user.click(getInstitutionInput());
-      await user.click(getChaseOption());
       await user.type(getPasswordInput(), "invalid");
       await user.type(getConfirmPasswordInput(), "invalid");
       await user.click(getAgreeCheckbox());
@@ -158,7 +149,6 @@ describe("Register Component", () => {
         expect(authApi.register).toHaveBeenCalledWith({
           firstName: "John",
           lastName: "Doe",
-          institution: "chase",
           email: "john.doe@example.com",
           password: "ValidPass1!",
           confirmPassword: "ValidPass1!",

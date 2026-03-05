@@ -40,7 +40,6 @@ public class RegistrationServiceImpl implements RegistrationService {
             }
             user.setFirstName(userDto.getFirstName());
             user.setLastName(userDto.getLastName());
-            user.setInstitution(userDto.getInstitution());
             user.setPassword(userDto.getPassword());
 
             User userUpdated = userService.signUpUser(user);
@@ -74,7 +73,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         User newUser = User.builder()
                 .firstName(userDto.getFirstName())
                 .lastName(userDto.getLastName())
-                .institution(userDto.getInstitution())
                 .email(email)
                 .password(userDto.getPassword())
                 .role(Role.USER) // To be changed in future implementations

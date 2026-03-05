@@ -79,12 +79,10 @@ public class Otp {
 
     public int getLimit() {
         return switch (this.otpType) {
-            case FORGOT_PASSWORD ->
-                5;
-            case REGISTER ->
-                3;
-            case LOGIN ->
-                10;
+            case FORGOT_PASSWORD -> 5;
+            case REGISTER -> 3;
+            case LOGIN -> 10;
+            default -> throw new IllegalStateException("No OTP limit for type: " + this.otpType);
         };
     }
 
@@ -94,12 +92,10 @@ public class Otp {
 
     public int getExpiry() {
         return switch (this.otpType) {
-            case FORGOT_PASSWORD ->
-                45;
-            case REGISTER ->
-                15;
-            case LOGIN ->
-                5;
+            case FORGOT_PASSWORD -> 45;
+            case REGISTER -> 15;
+            case LOGIN -> 5;
+            default -> throw new IllegalStateException("No OTP expiry for type: " + this.otpType);
         };
     }
 
@@ -111,12 +107,10 @@ public class Otp {
 
         emailDetails.setRecipient(email);
         emailDetails.setSubject(switch (this.otpType) {
-            case LOGIN ->
-                "Your SmartPay sign-in code";
-            case REGISTER ->
-                "Verify your SmartPay account";
-            case FORGOT_PASSWORD ->
-                "Reset your SmartPay password";
+            case LOGIN -> "Your SmartPay sign-in code";
+            case REGISTER -> "Verify your SmartPay account";
+            case FORGOT_PASSWORD -> "Reset your SmartPay password";
+            default -> throw new IllegalStateException("No email subject for type: " + this.otpType);
         });
         String template = """
                 We received a request on your SmartPay account for %s.
@@ -126,12 +120,11 @@ public class Otp {
                 %s/verify?email=%s&type=%s&code=%s
                 """;
         emailDetails.setMsgBody(switch (this.otpType) {
-            case LOGIN ->
-                template.formatted("Login", frontendUrl, this.email, "login", code);
-            case REGISTER ->
-                template.formatted("Email Verification", frontendUrl, this.email, "register", code);
+            case LOGIN -> template.formatted("Login", frontendUrl, this.email, "login", code);
+            case REGISTER -> template.formatted("Email Verification", frontendUrl, this.email, "register", code);
             case FORGOT_PASSWORD ->
                 template.formatted("Password Reset", frontendUrl, this.email, "forgot-password", code);
+            default -> throw new IllegalStateException("No email body for type: " + this.otpType);
         }
                 + "\nYour verification code is: " + code + "\n\n"
                 + "This code expires in " + this.getExpiry() + " minutes.\n\n"
@@ -149,12 +142,10 @@ public class Otp {
 
         emailDetails.setMsgBody("\nThere have been multiple failed "
                 + switch (this.otpType) {
-                    case LOGIN ->
-                        "sign-in";
-                    case REGISTER ->
-                        "email verification";
-                    case FORGOT_PASSWORD ->
-                        "password reset";
+                    case LOGIN -> "sign-in";
+                    case REGISTER -> "email verification";
+                    case FORGOT_PASSWORD -> "password reset";
+                    default -> "unknown";
                 } +
                 " attempts on your account.\n\n"
                 + "As a result, this service has been temporarily locked for 24 hours.\n\n"

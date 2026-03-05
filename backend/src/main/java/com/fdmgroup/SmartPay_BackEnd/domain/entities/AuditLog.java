@@ -68,4 +68,8 @@ public class AuditLog {
     public static final String OTP_VERIFICATION_FAILED = "OTP_VERIFICATION_FAILED";
     public static final String ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
     public static final String INVALID_RESET_CODE = "INVALID_RESET_CODE";
+    public static final String LOGOUT_SUCCESS = "LOGOUT_SUCCESS";
+    public static final String LOGOUT_NO_SESSION = "LOGOUT_NO_SESSION";
+    public static final String SESSION_EXPIRED_INACTIVITY = "SESSION_EXPIRED_INACTIVITY";
+    public static final String SESSION_EXPIRED_CLEANUP = "SESSION_EXPIRED_CLEANUP";
 }

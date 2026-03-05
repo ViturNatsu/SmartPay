@@ -24,7 +24,6 @@ import { SmartPayBanner } from "../components/SmartPayBanner";
 
 export const Login = () => {
   const location = useLocation();
-  const [institution, setInstitution] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [emailError, setEmailError] = React.useState("");
@@ -32,9 +31,17 @@ export const Login = () => {
   const [passwordError, setPasswordError] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(
-    location?.state?.signoutReason === "inactivity",
-  );
+
+  // Check sessionStorage for inactivity signout reason (set by handleSessionExpired).
+  // Router state won't work because ProtectedRoute's <Navigate> overwrites it.
+  const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(() => {
+    const reason = sessionStorage.getItem("signoutReason");
+    if (reason === "inactivity") {
+      sessionStorage.removeItem("signoutReason"); // Show only once
+      return true;
+    }
+    return false;
+  });
 
 
   const navigate = useNavigate();
@@ -94,7 +101,7 @@ export const Login = () => {
       }
       else if (status === 429)
         setErrorMsg("Your account is locked due to multiple failed attempts. Please reset password or try later.");
-      else if (status === 503) 
+      else if (status === 503)
         setErrorMsg("Authentication service is currently unavailable. Please try again later.");
       else setErrorMsg(err?.message || "Network error. Please try again.");
     } finally {
@@ -154,41 +161,6 @@ export const Login = () => {
                 Enter your credentials to access your account
               </Typography>
 
-              {/* Financial Institution */}
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "text.secondary",
-                  mb: 1,
-                }}
-              >
-                Financial Institution
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BankIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                value={institution}
-                onChange={(e) => setInstitution(e.target.value)}
-                placeholder="Select institution"
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="">Select institution</MenuItem>
-                <MenuItem value="World">World Bank of Canada</MenuItem>
-                <MenuItem value="TD">TD Bank</MenuItem>
-                <MenuItem value="FDM">FDM Bank</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </TextField>
-
               {/* Email */}
               <Typography
                 sx={{
@@ -207,6 +179,7 @@ export const Login = () => {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (emailError) setEmailError("");
+                  if (timeoutMsgOpen) setTimeoutMsgOpen(false);
                 }}
                 onBlur={validateEmail}
                 error={Boolean(emailError)}
@@ -265,6 +238,7 @@ export const Login = () => {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError("");
+                  if (timeoutMsgOpen) setTimeoutMsgOpen(false);
                 }}
                 error={Boolean(passwordError)}
                 helperText={passwordError}
