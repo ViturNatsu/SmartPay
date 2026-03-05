@@ -15,7 +15,7 @@ cache:
 build_backend:
   stage: 'build'
   tags:
-    - test
+    - smartpay
   script:
     - cd backend
     - mvn clean package -DskipTests
@@ -26,7 +26,7 @@ build_backend:
 install-frontend:
   stage: 'build'
   tags:
-    - test
+    - smartpay
   script:
     - cd frontend
     - npm ci
@@ -38,7 +38,7 @@ install-frontend:
 backend-test:
   stage: 'test'
   tags:
-    - test
+    - smartpay
   script:
     - cd backend
     - mvn test
@@ -50,7 +50,7 @@ backend-test:
 frontend-test:
   stage: 'test'
   tags:
-    - test
+    - smartpay
   image: node:20
   script:
     - cd frontend
