@@ -21,11 +21,12 @@ export async function login(payload) {
   }
 }
 
-export async function logout() {
+export async function logout(reason) {
   try {
     const refreshToken = sessionStorage.getItem("refresh_token");
     if (refreshToken) {
-      await axiosInstance.post(`${AUTH_URL}/logout`, {}, {
+      const body = reason ? { reason } : {};
+      await axiosInstance.post(`${AUTH_URL}/logout`, body, {
         headers: { Authorization: `Bearer ${refreshToken}` },
       });
     }

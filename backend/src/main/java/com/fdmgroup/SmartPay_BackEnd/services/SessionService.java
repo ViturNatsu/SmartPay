@@ -17,4 +17,6 @@ public interface SessionService {
     void rotateRefreshToken(String oldRefreshToken, String newRefreshToken) throws SessionAuthenticationException;
 
     boolean revokeSession(String refreshToken);
+
+    boolean hasActiveSession(User user);
 }

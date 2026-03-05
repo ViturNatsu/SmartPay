@@ -164,4 +164,10 @@ public class SessionServiceImpl implements SessionService {
         }
         return false;
     }
+
+    @Override
+    public boolean hasActiveSession(User user) {
+        List<SessionEntity> sessions = sessionRepo.findByUser(user);
+        return sessions.stream().anyMatch(s -> !s.isExpired());
+    }
 }

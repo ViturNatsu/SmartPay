@@ -62,7 +62,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   const updateAccessTokenExpiry = useCallback(() => {
     const accessToken = getAccessToken();
     if (!accessToken) {
-      console.log("[SESSION] No access token — using defaults");
+      // console.log("[SESSION] No access token — using defaults");
       inactivityLimitRef.current = DEFAULT_TOKEN_LIFETIME_MS;
       refreshThresholdRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.75;
       refreshLeewayRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.25;
@@ -89,9 +89,9 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       refreshThresholdRef.current = lifetimeMs * 0.75;
       refreshLeewayRef.current = lifetimeMs * 0.25;
       accessExpRef.current = payload.exp * 1000;
-      console.log(`[SESSION] Token decoded (no iat) — remaining=${lifetimeMs / 1000}s`);
+      // console.log(`[SESSION] Token decoded (no iat) — remaining=${lifetimeMs / 1000}s`);
     } else {
-      console.log("[SESSION] Could not decode token — using defaults");
+      // console.log("[SESSION] Could not decode token — using defaults");
       inactivityLimitRef.current = DEFAULT_TOKEN_LIFETIME_MS;
       refreshThresholdRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.75;
       refreshLeewayRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.25;
@@ -107,43 +107,43 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       ? Math.max(accessExpRef.current - Date.now(), 0)
       : inactivityLimitRef.current;
 
-    console.log(`[SESSION] Expiry timer → ${(timeUntilExpiry / 1000).toFixed(1)}s`);
+    // console.log(`[SESSION] Expiry timer → ${(timeUntilExpiry / 1000).toFixed(1)}s`);
 
     expiryTimerRef.current = setTimeout(() => {
       // Guard: only fire if monitoring is still active
       if (!isActiveRef.current) return;
-      console.log("[SESSION] ⚠️ ACCESS TOKEN EXPIRED — logging user out!");
+      // console.log("[SESSION] ⚠️ ACCESS TOKEN EXPIRED — logging user out!");
       onSessionExpiredRef.current?.();
     }, timeUntilExpiry);
   }, []);
 
   // ── Refresh tokens ────────────────────────────────────────────────
   const refreshTokens = useCallback(async () => {
-    console.log("[SESSION] refreshTokens() called");
+    // console.log("[SESSION] refreshTokens() called");
     if (isRefreshingRef.current) {
-      console.log("[SESSION] Already refreshing — skipping");
+      // console.log("[SESSION] Already refreshing — skipping");
       return;
     }
 
     const rt = sessionStorage.getItem("refresh_token");
     if (!rt) {
-      console.log("[SESSION] No refresh token — session expired");
+      // console.log("[SESSION] No refresh token — session expired");
       onSessionExpiredRef.current?.();
       return;
     }
 
     try {
       isRefreshingRef.current = true;
-      console.log("[SESSION] Calling POST /api/v1/auth/refresh…");
+      // console.log("[SESSION] Calling POST /api/v1/auth/refresh…");
       const data = await authApi.refreshTokens();
-      console.log("[SESSION] Refresh SUCCESS");
+      // console.log("[SESSION] Refresh SUCCESS");
 
       updateAccessTokenExpiry();
       // Push the expiry timer out to the NEW token's exp
       resetExpiryTimer();
       return data;
     } catch (err) {
-      console.error("[SESSION] Refresh FAILED:", err);
+      // console.error("[SESSION] Refresh FAILED:", err);
       onSessionExpiredRef.current?.();
     } finally {
       isRefreshingRef.current = false;
@@ -159,7 +159,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
     if (!isActiveRef.current) return;
 
     const evType = e?.type || "init";
-    console.log(`[SESSION] 👆 Activity detected: ${evType}`);
+    // console.log(`[SESSION] 👆 Activity detected: ${evType}`);
 
     lastActivityRef.current = Date.now();
 
@@ -167,7 +167,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
     if (accessExpRef.current) {
       const timeLeft = accessExpRef.current - Date.now();
       if (timeLeft <= refreshLeewayRef.current && !isRefreshingRef.current) {
-        console.log(`[SESSION] Activity with ${(timeLeft / 1000).toFixed(1)}s left — immediate refresh`);
+        // console.log(`[SESSION] Activity with ${(timeLeft / 1000).toFixed(1)}s left — immediate refresh`);
         refreshTokens();
         return;
       }
@@ -179,18 +179,18 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
     // Schedule proactive refresh at 75 % of token lifetime (only once per cycle)
     if (!refreshTimerRef.current) {
       const delay = refreshThresholdRef.current;
-      console.log(`[SESSION] Scheduling refresh check in ${(delay / 1000).toFixed(1)}s`);
+      // console.log(`[SESSION] Scheduling refresh check in ${(delay / 1000).toFixed(1)}s`);
 
       refreshTimerRef.current = setTimeout(function tryRefresh() {
         if (!isActiveRef.current) return; // monitoring stopped
         const sinceLast = Date.now() - lastActivityRef.current;
-        console.log(
-          `[SESSION] Refresh check — last activity ${(sinceLast / 1000).toFixed(1)}s ago ` +
-          `(threshold=${(refreshThresholdRef.current / 1000).toFixed(1)}s)`
-        );
+        // console.log(
+        //   `[SESSION] Refresh check — last activity ${(sinceLast / 1000).toFixed(1)}s ago ` +
+        //   `(threshold=${(refreshThresholdRef.current / 1000).toFixed(1)}s)`
+        // );
 
         if (sinceLast < refreshThresholdRef.current) {
-          console.log("[SESSION] User was recently active → refreshing");
+          // console.log("[SESSION] User was recently active → refreshing");
           refreshTokens()
             .then(() => {
               refreshTimerRef.current = setTimeout(tryRefresh, refreshThresholdRef.current);
@@ -199,7 +199,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
               refreshTimerRef.current = null;
             });
         } else {
-          console.log("[SESSION] User was NOT recently active → skipping refresh");
+          // console.log("[SESSION] User was NOT recently active → skipping refresh");
           refreshTimerRef.current = null;
         }
       }, delay);
@@ -209,7 +209,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   // ── Start / stop monitoring ───────────────────────────────────────
   const startListeners = useCallback(() => {
     if (isActiveRef.current) return;
-    console.log("[SESSION] ✅ Starting session monitoring (events: mousedown, keydown, touchstart)");
+    // console.log("[SESSION] ✅ Starting session monitoring (events: mousedown, keydown, touchstart)");
 
     updateAccessTokenExpiry();
 
@@ -226,7 +226,7 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
 
   const stopListeners = useCallback(() => {
     if (!isActiveRef.current) return;
-    console.log("[SESSION] 🛑 Stopping session monitoring");
+    // console.log("[SESSION] 🛑 Stopping session monitoring");
 
     // Mark inactive FIRST so any lingering callbacks bail out
     isActiveRef.current = false;

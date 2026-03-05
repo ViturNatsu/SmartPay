@@ -121,7 +121,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
   const logout = useCallback(async () => {
     setLoading(true);
     try {
-      await authApi.logout();
+      await authApi.logout("USER_INITIATED");
     } catch (_) {
       // Server-side invalidation failed — still clear local state
     } finally {
@@ -215,7 +215,15 @@ export const AuthProvider = ({ children }) => {
   const clearAuthRef = useRef(null);
 
   const handleSessionExpired = useCallback(() => {
-    console.log("[SESSION] 🔴 handleSessionExpired called — clearing auth and navigating to /login");
+    // console.log("[SESSION] 🔴 handleSessionExpired called — clearing auth and navigating to /login");
+
+    // Revoke the backend session BEFORE clearing local tokens.
+    // authApi.logout() reads the refresh token from sessionStorage,
+    // so it must run before clearAuth removes it.
+    authApi.logout("INACTIVITY").catch(() => {
+      // Fire-and-forget: local cleanup happens regardless
+    });
+
     // Full cleanup: clears user, tokenClaims, tokens, and stops monitoring
     // so ProtectedRoute redirects even on browser back-button
     if (clearAuthRef.current) {
@@ -232,7 +240,7 @@ export const AuthProvider = ({ children }) => {
     const currentPath = window.location.pathname;
     const publicPages = ["/login", "/verify", "/register", "/forgot-password", "/reset-password", "/verify-email"];
     if (publicPages.some((p) => currentPath.startsWith(p))) {
-      console.log(`[SESSION] On public page ${currentPath} — skipping redirect`);
+      // console.log(`[SESSION] On public page ${currentPath} — skipping redirect`);
       return;
     }
 

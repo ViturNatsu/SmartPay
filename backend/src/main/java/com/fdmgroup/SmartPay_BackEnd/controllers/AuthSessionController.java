@@ -138,6 +138,7 @@ public class AuthSessionController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) java.util.Map<String, String> body,
             HttpServletRequest httpRequest) {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -160,7 +161,15 @@ public class AuthSessionController {
                     String status = sessionRevoked
                             ? AuditLog.LOGOUT_SUCCESS
                             : AuditLog.LOGOUT_NO_SESSION;
-                    auditService.logEvent(EventType.LOGOUT, status, user, httpRequest);
+
+                    // Include logout reason in audit event data
+                    java.util.Map<String, Object> eventData = new java.util.HashMap<>();
+                    String reason = (body != null) ? body.get("reason") : null;
+                    if (reason != null && !reason.isBlank()) {
+                        eventData.put("reason", reason);
+                    }
+
+                    auditService.logEvent(EventType.LOGOUT, status, user, eventData, httpRequest);
                 }
             }
         }
