@@ -19,13 +19,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.AuditLogRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.system.AuditLogRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
 
 import jakarta.persistence.EntityManager;
 

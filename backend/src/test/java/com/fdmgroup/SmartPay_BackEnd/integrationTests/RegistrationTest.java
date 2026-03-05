@@ -2,11 +2,12 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.services.user.RegistrationService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -22,7 +23,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RateLimiterFilter;
 
 import java.io.IOException;

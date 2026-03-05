@@ -18,18 +18,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fdmgroup.SmartPay_BackEnd.controllers.AuthSessionController;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.SessionAuthenticationException;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.SessionAuthenticationException;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
-import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
+import com.fdmgroup.SmartPay_BackEnd.controllers.auth.AuthSessionController;
 
 /**
  * US-F02-02-01 (Sign In)
