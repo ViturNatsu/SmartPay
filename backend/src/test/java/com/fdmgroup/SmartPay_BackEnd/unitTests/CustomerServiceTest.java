@@ -1,11 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Customer;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.GovernmentIdType;
-import com.fdmgroup.SmartPay_BackEnd.exception.CustomerInfoNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.CustomerServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.user.CustomerServiceImpl;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

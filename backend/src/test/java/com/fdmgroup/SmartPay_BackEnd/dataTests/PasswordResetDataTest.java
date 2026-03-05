@@ -1,11 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.dataTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp.OtpStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;

@@ -1,9 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.UserServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserServiceImpl;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

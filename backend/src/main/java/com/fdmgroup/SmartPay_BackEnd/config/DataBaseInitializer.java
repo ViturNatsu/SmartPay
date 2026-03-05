@@ -6,12 +6,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Customer;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.GovernmentIdType;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Role;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

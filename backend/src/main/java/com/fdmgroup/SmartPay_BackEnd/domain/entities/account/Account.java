@@ -1,11 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.account;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import jakarta.persistence.*;
 import lombok.*;
