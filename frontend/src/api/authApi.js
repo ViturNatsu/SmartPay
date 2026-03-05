@@ -8,6 +8,12 @@ const CUSTOMER_DETAILS_URL = "/api/v1/customer";
 
 export async function login(payload) {
   try {
+    // Clear any existing session tokens before starting a new login flow.
+    // This prevents old session monitoring from interfering (e.g., expiring
+    // and kicking the user off /verify while they look for the OTP).
+    clearAccessToken();
+    sessionStorage.removeItem("refresh_token");
+
     const response = await axiosInstance.post(`${AUTH_URL}/login`, payload);
     return response.data;
   } catch (err) {
@@ -19,7 +25,9 @@ export async function logout() {
   try {
     const refreshToken = sessionStorage.getItem("refresh_token");
     if (refreshToken) {
-      await axiosInstance.post(`${AUTH_URL}/logout`);
+      await axiosInstance.post(`${AUTH_URL}/logout`, {}, {
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      });
     }
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
