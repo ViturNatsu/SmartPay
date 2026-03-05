@@ -5,8 +5,8 @@ import java.util.List;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
-import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 
 public interface AccountService {
 

@@ -2,10 +2,11 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

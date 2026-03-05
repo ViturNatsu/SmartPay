@@ -1,18 +1,19 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.AuditLog;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeExpiredException;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
-import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
-import com.fdmgroup.SmartPay_BackEnd.services.OtpService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.PasswordResetServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.system.AuditLog;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeExpiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
+import com.fdmgroup.SmartPay_BackEnd.services.system.AuditService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.PasswordResetServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

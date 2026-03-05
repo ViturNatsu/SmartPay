@@ -1,13 +1,15 @@
 package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.repositories.AuditLogRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp.OtpStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.system.AuditLogRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +19,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import com.fdmgroup.SmartPay_BackEnd.repositories.CustomerRepository;
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -85,7 +87,7 @@ public class PasswordResetIntegrationTest {
                                 .password(passwordEncoder.encode("OldPassword123!"))
                                 .status("ACTIVE")
                                 .emailVerified(true) // Ensure user is enabled if checked
-                                .role(com.fdmgroup.SmartPay_BackEnd.domain.entities.Role.USER)
+                                .role(com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role.USER)
                                 .build();
                 userRepository.save(testUser);
         }

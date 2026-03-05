@@ -8,6 +8,20 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeExpiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeInvalidatedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginInvalidCredentialsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+
 import java.util.HashMap;
 import java.util.Map;
 

@@ -2,17 +2,18 @@ package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
-import com.fdmgroup.SmartPay_BackEnd.controllers.PasswordResetController;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.PasswordResetWithOtpDto;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccessCodeUsedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.AccountLockedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.EmailNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.PasswordResetDoNotMatchException;
+import com.fdmgroup.SmartPay_BackEnd.controllers.user.PasswordResetController;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.PasswordResetWithOtpDto;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.PasswordResetService;
-import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.PasswordResetService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

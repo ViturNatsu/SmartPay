@@ -15,13 +15,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.DuplicateEmailException;
-import com.fdmgroup.SmartPay_BackEnd.exception.UserNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.RegistrationServiceImpl;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.UserServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.DuplicateEmailException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.user.RegistrationServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTests {
