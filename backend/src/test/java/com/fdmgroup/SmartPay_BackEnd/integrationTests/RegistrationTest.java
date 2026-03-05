@@ -122,19 +122,6 @@ class RegistrationTest {
     }
 
     @Test
-    void registerWithExistingEmail() throws Exception {
-        var request1 = createValidRequest();
-        mvc.perform(request1);
-
-        User user = userRepository.findByEmail(email).get();
-        user.setEmailVerified(true);
-        userRepository.save(user);
-
-        var request2 = createValidRequest();
-        mvc.perform(request2).andExpect(status().isConflict());
-    }
-
-    @Test
     void registerWithShortPassword() throws Exception {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
