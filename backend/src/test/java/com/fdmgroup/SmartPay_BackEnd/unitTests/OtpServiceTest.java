@@ -1,16 +1,24 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.OtpDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.Otp.OtpStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp.OtpStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.*;
-import com.fdmgroup.SmartPay_BackEnd.repositories.OtpRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.AuditService;
-import com.fdmgroup.SmartPay_BackEnd.services.EmailService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
-import com.fdmgroup.SmartPay_BackEnd.services.impl.OtpServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeExpiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.system.AuditService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

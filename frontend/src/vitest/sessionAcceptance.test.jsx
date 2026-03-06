@@ -2,16 +2,16 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
-import ProtectedRoute from '../routes/ProtectedRoute.jsx';
-import { Login } from '../pages/Login.jsx';
+import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
+import ProtectedRoute from '@/routes/ProtectedRoute.jsx';
+import { Login } from '@/pages/Login/Login';
 
 // Mock API calls to avoid network
-import * as authApi from '../api/authApi';
-import { setAccessToken } from '../api/axios';
+import * as authApi from '@/api/authApi';
+import { setAccessToken } from '@/api/axios';
 
-vi.mock('../api/authApi', async () => {
-  const actual = await vi.importActual('../api/authApi');
+vi.mock('@/api/authApi', async () => {
+  const actual = await vi.importActual('@/api/authApi');
   return {
     ...actual,
     refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),

@@ -17,7 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fdmgroup.SmartPay_BackEnd.security.JwtAuthFilter;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import lombok.AllArgsConstructor;
 

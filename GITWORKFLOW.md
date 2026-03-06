@@ -153,7 +153,9 @@ Review standards:
 - Ensure commit/branch naming, tests, and traceability are correct.
 
 Merge strategy:
-- `develop`: squash merge to keep history clean; ensure PR title follows commit format.
+- `develop`: 
+    - squash merge to keep history clean; ensure PR title follows commit format.
+    - once your MR is approved, rebase onto develop and merge promptly afterwards.
 - `main`: merge only from `release/*` or `hotfix/*` via fast‑forward when possible.
 
 ---

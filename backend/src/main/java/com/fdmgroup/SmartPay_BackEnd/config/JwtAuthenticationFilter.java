@@ -6,10 +6,10 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.SessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

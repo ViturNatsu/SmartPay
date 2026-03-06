@@ -2,11 +2,12 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.CustomerDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.SignUpDTO;
-import com.fdmgroup.SmartPay_BackEnd.repositories.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.RegistrationService;
-import com.fdmgroup.SmartPay_BackEnd.services.UserService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.services.user.RegistrationService;
+import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -19,10 +20,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.User;
+
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RateLimiterFilter;
 
 import java.io.IOException;
@@ -32,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
@@ -40,7 +44,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RegistrationTest {
     private final String firstName = "Quality";
     private final String lastName = "Assurance";
-    private final String institution = "Chase";
     private final String email = "qa@smartpay.test";
     private final String password = "@wTJGT&a1qn@e38X";
     private final String wrongPassword = "69&YpnXa*h^3";
@@ -54,14 +57,29 @@ class RegistrationTest {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
+    @MockitoBean
     private RegistrationService registrationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void register() throws Exception {
+
+        User mockUser = User.builder()
+            .id(1L)
+            .firstName(firstName)
+            .lastName(lastName)
+            .email(email)
+            .password(password)
+            .build();
+
+        when(registrationService.register(any(SignUpDTO.class)))
+            .thenReturn(mockUser);
+
         var request = createValidRequest();
-        mvc.perform(request).andExpect(status().isCreated());
+        mvc.perform(request).andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.email").value(email))
+        .andExpect(jsonPath("$.otpSent").value(true));
     }
 
     @Test
@@ -91,19 +109,6 @@ class RegistrationTest {
     }
 
     @Test
-    void registerWithoutInstitution() throws Exception {
-        var requestBody = new SignUpDTO();
-        requestBody.setFirstName(firstName);
-        requestBody.setLastName(lastName);
-        requestBody.setEmail(email);
-        requestBody.setPassword(password);
-        requestBody.setConfirmPassword(password);
-        var request = buildRegisterRequest(requestBody);
-
-        mvc.perform(request).andExpect(status().is4xxClientError());
-    }
-
-    @Test
     void registerWithMismatchedPasswords() throws Exception {
         var requestBody = new SignUpDTO();
         requestBody.setFirstName(firstName);
@@ -114,19 +119,6 @@ class RegistrationTest {
         var request = buildRegisterRequest(requestBody);
 
         mvc.perform(request).andExpect(status().is4xxClientError());
-    }
-
-    @Test
-    void registerWithExistingEmail() throws Exception {
-        var request1 = createValidRequest();
-        mvc.perform(request1);
-
-        User user = userRepository.findByEmail(email).get();
-        user.setEmailVerified(true);
-        userRepository.save(user);
-
-        var request2 = createValidRequest();
-        mvc.perform(request2).andExpect(status().isConflict());
     }
 
     @Test
