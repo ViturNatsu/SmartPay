@@ -14,7 +14,7 @@ import { SessionManagerProvider, useSessionManager, decodeJwtPayload } from "./S
 
 const AuthContext = createContext(undefined);
 
-const AuthProviderInner = ({ children }) => {
+const AuthProviderInner = ({ children, clearAuthRef }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tokenClaims, setTokenClaims] = useState(null);
@@ -75,6 +75,11 @@ const AuthProviderInner = ({ children }) => {
     stopSessionMonitoringRef.current();
   }, []); // stable — no deps that can change
 
+  // Expose clearAuth to the outer AuthProvider via ref
+  useEffect(() => {
+    if (clearAuthRef) clearAuthRef.current = clearAuth;
+  }, [clearAuth, clearAuthRef]);
+
   // Called from VerifyOtp after successful OTP verification.
   // Stores tokens, decodes claims, fetches full user profile.
   const setAuthFromTokens = useCallback(
@@ -116,7 +121,7 @@ const AuthProviderInner = ({ children }) => {
   const logout = useCallback(async () => {
     setLoading(true);
     try {
-      await authApi.logout();
+      await authApi.logout("USER_INITIATED");
     } catch (_) {
       // Server-side invalidation failed — still clear local state
     } finally {
@@ -207,16 +212,47 @@ const AuthProviderInner = ({ children }) => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const clearAuthRef = useRef(null);
 
   const handleSessionExpired = useCallback(() => {
-    clearAccessToken();
-    sessionStorage.removeItem("refresh_token");
-    navigate("/login", { replace: true, state: { signoutReason: "inactivity" } });
+    // console.log("[SESSION] 🔴 handleSessionExpired called — clearing auth and navigating to /login");
+
+    // Revoke the backend session BEFORE clearing local tokens.
+    // authApi.logout() reads the refresh token from sessionStorage,
+    // so it must run before clearAuth removes it.
+    authApi.logout("INACTIVITY").catch(() => {
+      // Fire-and-forget: local cleanup happens regardless
+    });
+
+    // Full cleanup: clears user, tokenClaims, tokens, and stops monitoring
+    // so ProtectedRoute redirects even on browser back-button
+    if (clearAuthRef.current) {
+      clearAuthRef.current();
+    } else {
+      // Fallback if ref not yet set (shouldn't happen in practice)
+      clearAccessToken();
+      sessionStorage.removeItem("refresh_token");
+    }
+
+    // Don't redirect if user is already on a public page (e.g., /verify while
+    // fetching OTP from MailHog). The old session cleanup is still needed, but
+    // redirecting would interrupt the new login flow.
+    const currentPath = window.location.pathname;
+    const publicPages = ["/login", "/verify", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+    if (publicPages.some((p) => currentPath.startsWith(p))) {
+      // console.log(`[SESSION] On public page ${currentPath} — skipping redirect`);
+      return;
+    }
+
+    // Use sessionStorage to signal the reason — router state gets overwritten
+    // by ProtectedRoute's <Navigate> which fires in the same render cycle.
+    sessionStorage.setItem("signoutReason", "inactivity");
+    navigate("/login", { replace: true });
   }, [navigate]);
 
   return (
     <SessionManagerProvider onSessionExpired={handleSessionExpired}>
-      <AuthProviderInner>{children}</AuthProviderInner>
+      <AuthProviderInner clearAuthRef={clearAuthRef}>{children}</AuthProviderInner>
     </SessionManagerProvider>
   );
 };

@@ -3,5 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.Utility;
 public enum EventType {
     FORGOT_PASSWORD,
     REGISTER,
-    LOGIN
+    LOGIN,
+    LOGOUT,
+    SESSION_EXPIRED
 }

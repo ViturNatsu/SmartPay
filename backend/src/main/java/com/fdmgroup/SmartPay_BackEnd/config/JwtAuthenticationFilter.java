@@ -2,12 +2,13 @@ package com.fdmgroup.SmartPay_BackEnd.config;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import jakarta.servlet.FilterChain;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtSessionService jwtService;
     private final UserService userService;
+    private final SessionService sessionService;
 
     @Override
     protected void doFilterInternal(
@@ -46,19 +48,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long userId = jwtService.getUserIdFromToken(token);
 
                 // Load user details
-                UserDetails userDetails = userService.getUserById(userId);
+                User user = userService.getUserById(userId);
+
+                // Check if the user still has an active backend session.
+                // After logout or session expiry the session row is deleted,
+                // so this rejects reuse of a valid-but-orphaned access token.
+                if (!sessionService.hasActiveSession(user)) {
+                    logger.debug("No active session for user " + user.getEmail()
+                            + " — skipping authentication");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 // Create authentication object
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        user.getAuthorities());
 
                 authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                        new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // Set authentication in security context
                 SecurityContextHolder.getContext().setAuthentication(authentication);

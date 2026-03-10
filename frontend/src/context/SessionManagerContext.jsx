@@ -6,13 +6,12 @@ import {
   useRef,
 } from "react";
 import * as authApi from "../api/authApi";
+import { getAccessToken } from "../api/axios";
 
 const SessionManagerContext = createContext(undefined);
 
-// Time constants
-const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes logout
-const ACTIVE_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes refresh tokens
-const REFRESH_LEEWAY_MS = 2000; // Refresh 2s before token expires
+// Fallback if the access token cannot be decoded
+const DEFAULT_TOKEN_LIFETIME_MS = 15 * 60 * 1000; // 15 minutes
 
 // Lightweight JWT payload decoder (no signature verification)
 const base64UrlDecode = (str) => {
@@ -42,170 +41,220 @@ export const decodeJwtPayload = (token) => {
 };
 
 export const SessionManagerProvider = ({ children, onSessionExpired }) => {
-  // Refs to hold timers and state without triggering re-renders
+  // ── Refs ──────────────────────────────────────────────────────────
   const lastActivityRef = useRef(Date.now());
-  const inactivityTimerRef = useRef(null);
+  const expiryTimerRef = useRef(null);
   const refreshTimerRef = useRef(null);
   const isRefreshingRef = useRef(false);
-  const isActiveRef = useRef(false); // Track if listeners are active
-  const accessExpRef = useRef(null); // Access token expiry in ms
+  const isActiveRef = useRef(false);
+  const accessExpRef = useRef(null);
+  const inactivityLimitRef = useRef(DEFAULT_TOKEN_LIFETIME_MS);
+  const refreshThresholdRef = useRef(DEFAULT_TOKEN_LIFETIME_MS * 0.75);
+  const refreshLeewayRef = useRef(DEFAULT_TOKEN_LIFETIME_MS * 0.25);
 
+  // Keep a stable ref to onSessionExpired so all closures see the latest value
+  const onSessionExpiredRef = useRef(onSessionExpired);
+  useEffect(() => {
+    onSessionExpiredRef.current = onSessionExpired;
+  }, [onSessionExpired]);
+
+  // ── Decode token ──────────────────────────────────────────────────
   const updateAccessTokenExpiry = useCallback(() => {
-    const refreshToken = sessionStorage.getItem("refresh_token");
-    if (!refreshToken) {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      // console.log("[SESSION] No access token — using defaults");
+      inactivityLimitRef.current = DEFAULT_TOKEN_LIFETIME_MS;
+      refreshThresholdRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.75;
+      refreshLeewayRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.25;
       accessExpRef.current = null;
       return;
     }
 
-    const payload = decodeJwtPayload(refreshToken);
-    if (payload?.exp) {
-      // Store refresh token expiry (in milliseconds)
+    const payload = decodeJwtPayload(accessToken);
+    if (payload?.exp && payload?.iat) {
+      const tokenLifetimeMs = (payload.exp - payload.iat) * 1000;
+      inactivityLimitRef.current = tokenLifetimeMs;
+      refreshThresholdRef.current = tokenLifetimeMs * 0.75;
+      refreshLeewayRef.current = tokenLifetimeMs * 0.25;
       accessExpRef.current = payload.exp * 1000;
+      // console.log(
+      //   `[SESSION] Token decoded — lifetime=${tokenLifetimeMs / 1000}s, ` +
+      //   `refreshAt=${(tokenLifetimeMs * 0.75) / 1000}s, ` +
+      //   `expiresAt=${new Date(payload.exp * 1000).toLocaleTimeString()}`
+      // );
+    } else if (payload?.exp) {
+      const remainingMs = Math.max(payload.exp * 1000 - Date.now(), 0);
+      const lifetimeMs = remainingMs || DEFAULT_TOKEN_LIFETIME_MS;
+      inactivityLimitRef.current = lifetimeMs;
+      refreshThresholdRef.current = lifetimeMs * 0.75;
+      refreshLeewayRef.current = lifetimeMs * 0.25;
+      accessExpRef.current = payload.exp * 1000;
+      // console.log(`[SESSION] Token decoded (no iat) — remaining=${lifetimeMs / 1000}s`);
+    } else {
+      // console.log("[SESSION] Could not decode token — using defaults");
+      inactivityLimitRef.current = DEFAULT_TOKEN_LIFETIME_MS;
+      refreshThresholdRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.75;
+      refreshLeewayRef.current = DEFAULT_TOKEN_LIFETIME_MS * 0.25;
+      accessExpRef.current = null;
     }
   }, []);
 
-  // Function to refresh tokens from backend
-  const refreshTokens = useCallback(async () => {
-    console.log("session refresh called")
-    if (isRefreshingRef.current) return; // Avoid overlapping refreshes
+  // ── Set / reset the expiry timer to the token's actual exp time ───
+  const resetExpiryTimer = useCallback(() => {
+    if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
 
-    const refreshToken = sessionStorage.getItem("refresh_token");
-    if (!refreshToken) {
-      // No token session expired
-      onSessionExpired?.();
+    const timeUntilExpiry = accessExpRef.current
+      ? Math.max(accessExpRef.current - Date.now(), 0)
+      : inactivityLimitRef.current;
+
+    // console.log(`[SESSION] Expiry timer → ${(timeUntilExpiry / 1000).toFixed(1)}s`);
+
+    expiryTimerRef.current = setTimeout(() => {
+      // Guard: only fire if monitoring is still active
+      if (!isActiveRef.current) return;
+      // console.log("[SESSION] ⚠️ ACCESS TOKEN EXPIRED — logging user out!");
+      onSessionExpiredRef.current?.();
+    }, timeUntilExpiry);
+  }, []);
+
+  // ── Refresh tokens ────────────────────────────────────────────────
+  const refreshTokens = useCallback(async () => {
+    // console.log("[SESSION] refreshTokens() called");
+    if (isRefreshingRef.current) {
+      // console.log("[SESSION] Already refreshing — skipping");
+      return;
+    }
+
+    const rt = sessionStorage.getItem("refresh_token");
+    if (!rt) {
+      // console.log("[SESSION] No refresh token — session expired");
+      onSessionExpiredRef.current?.();
       return;
     }
 
     try {
       isRefreshingRef.current = true;
+      // console.log("[SESSION] Calling POST /api/v1/auth/refresh…");
       const data = await authApi.refreshTokens();
+      // console.log("[SESSION] Refresh SUCCESS");
 
-      // authApi.refreshTokens handles updating sessionStorage and accessToken
       updateAccessTokenExpiry();
+      // Push the expiry timer out to the NEW token's exp
+      resetExpiryTimer();
       return data;
     } catch (err) {
-      // Refresh failed (expired/invalid) force logout
-      console.error("Token refresh failed:", err);
-      onSessionExpired?.();
+      // console.error("[SESSION] Refresh FAILED:", err);
+      onSessionExpiredRef.current?.();
     } finally {
       isRefreshingRef.current = false;
     }
-  }, [onSessionExpired]);
+  }, [updateAccessTokenExpiry, resetExpiryTimer]);
 
-  const checkTokenExpiry = useCallback(() => {
-    if (!accessExpRef.current) return false;
+  // ── Activity handler ──────────────────────────────────────────────
+  // Only fires on deliberate user input: mousedown, keydown, touchstart.
+  // NOT on: wheel (accidental trackpad), visibilitychange (tab switching),
+  //         scroll (React re-renders), mousemove (passive cursor movement).
+  const handleActivity = useCallback((e) => {
+    // Ignore events after monitoring has been stopped
+    if (!isActiveRef.current) return;
 
-    const now = Date.now();
-    const timeLeft = accessExpRef.current - now;
+    const evType = e?.type || "init";
+    // console.log(`[SESSION] 👆 Activity detected: ${evType}`);
 
-    // If token expired, trigger session expired
-    if (timeLeft <= 0) {
-      console.log("Token expired");
-      onSessionExpired?.();
-      return true;
-    }
-
-    // If token about to expire within leeway, trigger refresh
-    if (timeLeft <= REFRESH_LEEWAY_MS) {
-      console.log("Token about to expire, refreshing...");
-      refreshTokens().catch(() => { });
-      return true;
-    }
-
-    return false;
-  }, [onSessionExpired, refreshTokens]);
-
-  // Called when user has been inactive for INACTIVITY_LIMIT
-  const handleInactivity = useCallback(() => {
-    console.log("Session expired due to inactivity");
-    onSessionExpired?.();
-  }, [onSessionExpired]);
-
-  // Called on any user activity to reset timers
-  const handleActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
 
-    if (checkTokenExpiry()) {
-      return; // Token expired or being refreshed
+    // If token is within 25% of its lifetime, try an immediate refresh
+    if (accessExpRef.current) {
+      const timeLeft = accessExpRef.current - Date.now();
+      if (timeLeft <= refreshLeewayRef.current && !isRefreshingRef.current) {
+        // console.log(`[SESSION] Activity with ${(timeLeft / 1000).toFixed(1)}s left — immediate refresh`);
+        refreshTokens();
+        return;
+      }
     }
 
-    // Reset inactivity timer
-    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    inactivityTimerRef.current = setTimeout(handleInactivity, INACTIVITY_LIMIT);
+    // Reset expiry timer to fire at the token's actual exp
+    resetExpiryTimer();
 
-    // Schedule token refresh if user active long enough
+    // Schedule proactive refresh at 75 % of token lifetime (only once per cycle)
     if (!refreshTimerRef.current) {
+      const delay = refreshThresholdRef.current;
+      // console.log(`[SESSION] Scheduling refresh check in ${(delay / 1000).toFixed(1)}s`);
+
       refreshTimerRef.current = setTimeout(function tryRefresh() {
+        if (!isActiveRef.current) return; // monitoring stopped
         const sinceLast = Date.now() - lastActivityRef.current;
-        if (sinceLast >= ACTIVE_REFRESH_THRESHOLD) {
-          // User has been active for threshold refresh tokens
-          refreshTokens().catch(() => { });
-          // Schedule next refresh while user remains active
-          refreshTimerRef.current = setTimeout(
-            tryRefresh,
-            ACTIVE_REFRESH_THRESHOLD
-          );
+        // console.log(
+        //   `[SESSION] Refresh check — last activity ${(sinceLast / 1000).toFixed(1)}s ago ` +
+        //   `(threshold=${(refreshThresholdRef.current / 1000).toFixed(1)}s)`
+        // );
+
+        if (sinceLast < refreshThresholdRef.current) {
+          // console.log("[SESSION] User was recently active → refreshing");
+          refreshTokens()
+            .then(() => {
+              refreshTimerRef.current = setTimeout(tryRefresh, refreshThresholdRef.current);
+            })
+            .catch(() => {
+              refreshTimerRef.current = null;
+            });
         } else {
-          // Not active long enough clear timer
-          clearTimeout(refreshTimerRef.current);
+          // console.log("[SESSION] User was NOT recently active → skipping refresh");
           refreshTimerRef.current = null;
         }
-      }, ACTIVE_REFRESH_THRESHOLD);
+      }, delay);
     }
-  }, [handleInactivity, refreshTokens]);
+  }, [refreshTokens, resetExpiryTimer]);
 
-  // Start session monitoring: attach listeners for activity and visibility
+  // ── Start / stop monitoring ───────────────────────────────────────
   const startListeners = useCallback(() => {
-    if (isActiveRef.current) return; // Already monitoring
+    if (isActiveRef.current) return;
+    // console.log("[SESSION] ✅ Starting session monitoring (events: mousedown, keydown, touchstart)");
+
     updateAccessTokenExpiry();
-    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+
+    // Only deliberate user interactions count as activity
+    const events = ["mousedown", "keydown", "touchstart"];
     events.forEach((ev) =>
       document.addEventListener(ev, handleActivity, { passive: true })
     );
 
-    const visibilityHandler = () => {
-      if (document.visibilityState === "visible") {
-        handleActivity(); // Reset timers on tab focus
-      }
-    };
-    document.addEventListener("visibilitychange", visibilityHandler);
-
-    // Initialize timers immediately
-    handleActivity();
     isActiveRef.current = true;
-  }, [handleActivity]);
+    // Kick off initial timers (pass no event — logged as "init")
+    handleActivity();
+  }, [handleActivity, updateAccessTokenExpiry]);
 
-  // Stop session monitoring: remove listeners and clear timers
   const stopListeners = useCallback(() => {
-    if (!isActiveRef.current) return; // Already stopped
+    if (!isActiveRef.current) return;
+    // console.log("[SESSION] 🛑 Stopping session monitoring");
 
-    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    // Mark inactive FIRST so any lingering callbacks bail out
+    isActiveRef.current = false;
+
+    const events = ["mousedown", "keydown", "touchstart"];
     events.forEach((ev) => document.removeEventListener(ev, handleActivity));
-    document.removeEventListener("visibilitychange", handleActivity);
 
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
+    if (expiryTimerRef.current) {
+      clearTimeout(expiryTimerRef.current);
+      expiryTimerRef.current = null;
     }
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
       refreshTimerRef.current = null;
     }
     accessExpRef.current = null;
-    isActiveRef.current = false;
   }, [handleActivity]);
 
-  // Cleanup on unmount to avoid memory leaks
+  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      stopListeners();
-    };
+    return () => stopListeners();
   }, [stopListeners]);
 
+  // ── Context value ─────────────────────────────────────────────────
   const value = {
     startSessionMonitoring: startListeners,
     stopSessionMonitoring: stopListeners,
-    refreshTokens, // Exposed for manual refresh if needed
+    refreshTokens,
   };
 
   return (

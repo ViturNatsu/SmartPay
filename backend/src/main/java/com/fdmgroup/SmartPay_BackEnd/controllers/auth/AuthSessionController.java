@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.KeepAliveDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.LoginRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.system.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.SessionAuthenticationException;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.system.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +34,7 @@ public class AuthSessionController {
     private final JwtSessionService jwtService;
     private final SessionService sessionService;
     private final OtpService otpService;
+    private final AuditService auditService;
 
     // Step 1 of login flow: validate credentials and send OTP.
     @PostMapping({ "/login" })
@@ -133,11 +136,41 @@ public class AuthSessionController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) java.util.Map<String, String> body,
+            HttpServletRequest httpRequest) {
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String refreshToken = authHeader.substring(7).trim();
             if (!refreshToken.isBlank()) {
-                sessionService.revokeSession(refreshToken);
+                // Try to resolve the user from the token for audit logging
+                User user = null;
+                try {
+                    if (jwtService.isTokenValid(refreshToken)) {
+                        Long userId = jwtService.getUserIdFromToken(refreshToken);
+                        user = userService.getUserById(userId);
+                    }
+                } catch (Exception ignored) {
+                    // Token may be expired/invalid — still proceed with revocation
+                }
+
+                boolean sessionRevoked = sessionService.revokeSession(refreshToken);
+
+                if (user != null) {
+                    String status = sessionRevoked
+                            ? AuditLog.LOGOUT_SUCCESS
+                            : AuditLog.LOGOUT_NO_SESSION;
+
+                    // Include logout reason in audit event data
+                    java.util.Map<String, Object> eventData = new java.util.HashMap<>();
+                    String reason = (body != null) ? body.get("reason") : null;
+                    if (reason != null && !reason.isBlank()) {
+                        eventData.put("reason", reason);
+                    }
+
+                    auditService.logEvent(EventType.LOGOUT, status, user, eventData, httpRequest);
+                }
             }
         }
         return ResponseEntity.noContent().build();
