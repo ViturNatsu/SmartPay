@@ -216,9 +216,12 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
       logoutChannelRef.current = channel;
 
       channel.onmessage = (event) => {
-        if (event.data?.type === "LOGOUT") {
+        const msgType = event.data?.type;
+        if (msgType === "LOGOUT" || msgType === "SESSION_EXPIRED") {
           clearAuth();
-          sessionStorage.setItem("signoutReason", "session_invalidated");
+          // Use the appropriate reason so the Login page shows the right message
+          const reason = msgType === "SESSION_EXPIRED" ? "inactivity" : "session_invalidated";
+          sessionStorage.setItem("signoutReason", reason);
           navigate("/login", { replace: true });
         }
       };
@@ -254,6 +257,19 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const clearAuthRef = useRef(null);
 
+  // BroadcastChannel for notifying other tabs about session expiry
+  const sessionChannelRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      sessionChannelRef.current = new BroadcastChannel("smartpay_auth");
+    } catch (_) { /* not supported */ }
+    return () => {
+      try { sessionChannelRef.current?.close(); } catch (_) { /* ignore */ }
+      sessionChannelRef.current = null;
+    };
+  }, []);
+
   const handleSessionExpired = useCallback(() => {
     // console.log("[SESSION] 🔴 handleSessionExpired called — clearing auth and navigating to /login");
 
@@ -263,6 +279,11 @@ export const AuthProvider = ({ children }) => {
     authApi.logout("INACTIVITY").catch(() => {
       // Fire-and-forget: local cleanup happens regardless
     });
+
+    // Notify other tabs about the session expiry
+    try {
+      sessionChannelRef.current?.postMessage({ type: "SESSION_EXPIRED" });
+    } catch (_) { /* ignore */ }
 
     // Full cleanup: clears user, tokenClaims, tokens, and stops monitoring
     // so ProtectedRoute redirects even on browser back-button
