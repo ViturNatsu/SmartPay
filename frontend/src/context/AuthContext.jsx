@@ -21,6 +21,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
   const { startSessionMonitoring, stopSessionMonitoring } = useSessionManager();
 
+  // ── BroadcastChannel for cross-tab logout sync ──────────────────
+  const logoutChannelRef = useRef(null);
+
   // Keep stable refs to session monitoring functions so the bootstrap
   // useEffect doesn't need them in its dependency array (which would
   // cause it to re-run every time SessionManagerContext re-renders).
@@ -122,6 +125,12 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     setLoading(true);
     try {
       await authApi.logout("USER_INITIATED");
+      // Notify other tabs that this user logged out
+      try {
+        logoutChannelRef.current?.postMessage({ type: "LOGOUT" });
+      } catch (_bc) {
+        // BroadcastChannel may be closed or unavailable — ignore
+      }
     } catch (_) {
       // Server-side invalidation failed — still clear local state
     } finally {
@@ -194,6 +203,37 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
       cancelled = true;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── BroadcastChannel setup ──────────────────────────────────────
+  // Listens for logout events from other tabs. When received, clears
+  // local auth state and redirects to login. This does NOT fire in the
+  // tab that initiated the logout — BroadcastChannel only delivers to
+  // *other* contexts.
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel("smartpay_auth");
+      logoutChannelRef.current = channel;
+
+      channel.onmessage = (event) => {
+        if (event.data?.type === "LOGOUT") {
+          clearAuth();
+          sessionStorage.setItem("signoutReason", "session_invalidated");
+          navigate("/login", { replace: true });
+        }
+      };
+    } catch (_) {
+      // BroadcastChannel not supported — cross-tab sync won't work,
+      // but single-tab logout still functions normally.
+    }
+
+    return () => {
+      try {
+        channel?.close();
+      } catch (_) { /* ignore */ }
+      logoutChannelRef.current = null;
+    };
+  }, [clearAuth, navigate]);
 
   const value = useMemo(
     () => ({

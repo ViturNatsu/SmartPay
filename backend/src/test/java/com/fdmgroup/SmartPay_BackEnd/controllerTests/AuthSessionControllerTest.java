@@ -62,6 +62,9 @@ class AuthControllerTest {
         @MockitoBean
         private OtpService otpFlowService;
 
+        @MockitoBean
+        private com.fdmgroup.SmartPay_BackEnd.services.system.AuditService auditService;
+
         @Test
         void login_returnsAccepted_whenCredentialsAreValid() throws Exception {
 
@@ -167,6 +170,54 @@ class AuthControllerTest {
                                 .andExpect(status().isUnauthorized());
 
                 verify(sessionService).validateSession(invalidRefresh);
+        }
+
+        // ── Logout tests ──────────────────────────────────────────────────
+
+        @Test
+        void logout_returnsNoContent_whenSessionIsSuccessfullyRevoked() throws Exception {
+                String refreshToken = "validRefreshToken";
+                User user = new User("test@smartpay.com", "encodedPassword");
+                user.setId(1L);
+
+                when(jwtSessionService.isTokenValid(refreshToken)).thenReturn(true);
+                when(jwtSessionService.getUserIdFromToken(refreshToken)).thenReturn(1L);
+                when(userService.getUserById(1L)).thenReturn(user);
+                when(sessionService.revokeSession(refreshToken)).thenReturn(true);
+
+                mockMvc.perform(
+                                post("/api/v1/auth/logout")
+                                                .header("Authorization", "Bearer " + refreshToken))
+                                .andExpect(status().isNoContent());
+
+                verify(sessionService).revokeSession(refreshToken);
+        }
+
+        @Test
+        void logout_returnsUnauthorized_whenSessionIsAlreadyGone() throws Exception {
+                String refreshToken = "staleRefreshToken";
+                User user = new User("test@smartpay.com", "encodedPassword");
+                user.setId(1L);
+
+                when(jwtSessionService.isTokenValid(refreshToken)).thenReturn(true);
+                when(jwtSessionService.getUserIdFromToken(refreshToken)).thenReturn(1L);
+                when(userService.getUserById(1L)).thenReturn(user);
+                when(sessionService.revokeSession(refreshToken)).thenReturn(false);
+
+                mockMvc.perform(
+                                post("/api/v1/auth/logout")
+                                                .header("Authorization", "Bearer " + refreshToken))
+                                .andExpect(status().isUnauthorized());
+
+                verify(sessionService).revokeSession(refreshToken);
+        }
+
+        @Test
+        void logout_returnsUnauthorized_whenNoAuthHeader() throws Exception {
+                mockMvc.perform(post("/api/v1/auth/logout"))
+                                .andExpect(status().isUnauthorized());
+
+                verify(sessionService, never()).revokeSession(anyString());
         }
 
 }
