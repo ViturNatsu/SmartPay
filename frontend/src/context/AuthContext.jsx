@@ -21,6 +21,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
   const { startSessionMonitoring, stopSessionMonitoring } = useSessionManager();
 
+  // ── BroadcastChannel for cross-tab logout sync ──────────────────
+  const logoutChannelRef = useRef(null);
+
   // Keep stable refs to session monitoring functions so the bootstrap
   // useEffect doesn't need them in its dependency array (which would
   // cause it to re-run every time SessionManagerContext re-renders).
@@ -122,6 +125,12 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     setLoading(true);
     try {
       await authApi.logout("USER_INITIATED");
+      // Notify other tabs that this user logged out
+      try {
+        logoutChannelRef.current?.postMessage({ type: "LOGOUT" });
+      } catch (_bc) {
+        // BroadcastChannel may be closed or unavailable — ignore
+      }
     } catch (_) {
       // Server-side invalidation failed — still clear local state
     } finally {
@@ -195,6 +204,40 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── BroadcastChannel setup ──────────────────────────────────────
+  // Listens for logout events from other tabs. When received, clears
+  // local auth state and redirects to login. This does NOT fire in the
+  // tab that initiated the logout — BroadcastChannel only delivers to
+  // *other* contexts.
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel("smartpay_auth");
+      logoutChannelRef.current = channel;
+
+      channel.onmessage = (event) => {
+        const msgType = event.data?.type;
+        if (msgType === "LOGOUT" || msgType === "SESSION_EXPIRED") {
+          clearAuth();
+          // Use the appropriate reason so the Login page shows the right message
+          const reason = msgType === "SESSION_EXPIRED" ? "inactivity" : "session_invalidated";
+          sessionStorage.setItem("signoutReason", reason);
+          navigate("/login", { replace: true });
+        }
+      };
+    } catch (_) {
+      // BroadcastChannel not supported — cross-tab sync won't work,
+      // but single-tab logout still functions normally.
+    }
+
+    return () => {
+      try {
+        channel?.close();
+      } catch (_) { /* ignore */ }
+      logoutChannelRef.current = null;
+    };
+  }, [clearAuth, navigate]);
+
   const value = useMemo(
     () => ({
       user,
@@ -214,6 +257,19 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const clearAuthRef = useRef(null);
 
+  // BroadcastChannel for notifying other tabs about session expiry
+  const sessionChannelRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      sessionChannelRef.current = new BroadcastChannel("smartpay_auth");
+    } catch (_) { /* not supported */ }
+    return () => {
+      try { sessionChannelRef.current?.close(); } catch (_) { /* ignore */ }
+      sessionChannelRef.current = null;
+    };
+  }, []);
+
   const handleSessionExpired = useCallback(() => {
     // console.log("[SESSION] 🔴 handleSessionExpired called — clearing auth and navigating to /login");
 
@@ -223,6 +279,11 @@ export const AuthProvider = ({ children }) => {
     authApi.logout("INACTIVITY").catch(() => {
       // Fire-and-forget: local cleanup happens regardless
     });
+
+    // Notify other tabs about the session expiry
+    try {
+      sessionChannelRef.current?.postMessage({ type: "SESSION_EXPIRED" });
+    } catch (_) { /* ignore */ }
 
     // Full cleanup: clears user, tokenClaims, tokens, and stops monitoring
     // so ProtectedRoute redirects even on browser back-button

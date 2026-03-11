@@ -158,8 +158,11 @@ public class SessionServiceImpl implements SessionService {
         var sessionOpt = sessionRepo.findByRefreshToken(refreshToken);
         if (sessionOpt.isPresent()) {
             SessionEntity session = sessionOpt.get();
-            sessionRepo.delete(session);
-            log.info("Revoked session for user: {}", session.getUser().getEmail());
+            User user = session.getUser();
+            // Delete ALL sessions for this user, not just the one matching the token.
+            // This ensures logging out from one tab invalidates every active session.
+            sessionRepo.deleteByUser(user);
+            log.info("Revoked all sessions for user: {}", user.getEmail());
             return true;
         }
         return false;

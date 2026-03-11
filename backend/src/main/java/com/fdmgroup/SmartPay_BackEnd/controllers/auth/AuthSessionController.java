@@ -141,38 +141,50 @@ public class AuthSessionController {
             @RequestBody(required = false) java.util.Map<String, String> body,
             HttpServletRequest httpRequest) {
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String refreshToken = authHeader.substring(7).trim();
-            if (!refreshToken.isBlank()) {
-                // Try to resolve the user from the token for audit logging
-                User user = null;
-                try {
-                    if (jwtService.isTokenValid(refreshToken)) {
-                        Long userId = jwtService.getUserIdFromToken(refreshToken);
-                        user = userService.getUserById(userId);
-                    }
-                } catch (Exception ignored) {
-                    // Token may be expired/invalid — still proceed with revocation
-                }
-
-                boolean sessionRevoked = sessionService.revokeSession(refreshToken);
-
-                if (user != null) {
-                    String status = sessionRevoked
-                            ? AuditLog.LOGOUT_SUCCESS
-                            : AuditLog.LOGOUT_NO_SESSION;
-
-                    // Include logout reason in audit event data
-                    java.util.Map<String, Object> eventData = new java.util.HashMap<>();
-                    String reason = (body != null) ? body.get("reason") : null;
-                    if (reason != null && !reason.isBlank()) {
-                        eventData.put("reason", reason);
-                    }
-
-                    auditService.logEvent(EventType.LOGOUT, status, user, eventData, httpRequest);
-                }
-            }
+        // No auth header or not a Bearer token → session cannot be identified
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.noContent().build();
+
+        String refreshToken = authHeader.substring(7).trim();
+        if (refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Try to resolve the user from the token for audit logging
+        User user = null;
+        try {
+            if (jwtService.isTokenValid(refreshToken)) {
+                Long userId = jwtService.getUserIdFromToken(refreshToken);
+                user = userService.getUserById(userId);
+            }
+        } catch (Exception ignored) {
+            // Token may be expired/invalid — still proceed with revocation attempt
+        }
+
+        boolean sessionRevoked = sessionService.revokeSession(refreshToken);
+
+        if (user != null) {
+            String status = sessionRevoked
+                    ? AuditLog.LOGOUT_SUCCESS
+                    : AuditLog.LOGOUT_NO_SESSION;
+
+            // Include logout reason in audit event data
+            java.util.Map<String, Object> eventData = new java.util.HashMap<>();
+            String reason = (body != null) ? body.get("reason") : null;
+            if (reason != null && !reason.isBlank()) {
+                eventData.put("reason", reason);
+            }
+
+            auditService.logEvent(EventType.LOGOUT, status, user, eventData, httpRequest);
+        }
+
+        // Session was successfully revoked → 204
+        if (sessionRevoked) {
+            return ResponseEntity.noContent().build();
+        }
+
+        // Session was already gone (logged out from another tab, expired, etc.) → 401
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

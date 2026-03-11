@@ -35,6 +35,14 @@ export async function logout(reason) {
   } catch (err) {
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
+
+    // 401 means the session was already invalidated (e.g. logged out from
+    // another tab). This is not an error — just clear local state quietly.
+    const status = err?.response?.status;
+    if (status === 401) {
+      return;
+    }
+
     throw handleAxiosError(err);
   }
 }

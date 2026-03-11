@@ -32,15 +32,18 @@ export const Login = () => {
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
-  // Check sessionStorage for inactivity signout reason (set by handleSessionExpired).
+  // Check sessionStorage for signout reason (set by handleSessionExpired or cross-tab logout).
   // Router state won't work because ProtectedRoute's <Navigate> overwrites it.
-  const [timeoutMsgOpen, setTimeoutMsgOpen] = React.useState(() => {
+  const [signoutMsg, setSignoutMsg] = React.useState(() => {
     const reason = sessionStorage.getItem("signoutReason");
+    sessionStorage.removeItem("signoutReason"); // Show only once
     if (reason === "inactivity") {
-      sessionStorage.removeItem("signoutReason"); // Show only once
-      return true;
+      return "You've been signed out due to inactivity. Please sign in again.";
     }
-    return false;
+    if (reason === "session_invalidated") {
+      return "Your session is no longer active. Please sign in again.";
+    }
+    return null;
   });
 
 
@@ -143,13 +146,13 @@ export const Login = () => {
               backgroundColor: "transparent",
             }}
           >
-            {timeoutMsgOpen && (
+            {signoutMsg && (
               <Alert
                 severity="info"
-                onClose={() => setTimeoutMsgOpen(false)}
+                onClose={() => setSignoutMsg(null)}
                 sx={{ mb: 2 }}
               >
-                You’ve been signed out due to inactivity. Please sign in again.
+                {signoutMsg}
               </Alert>
             )}
             <Box component="form" onSubmit={handleLogin} noValidate>
@@ -179,7 +182,7 @@ export const Login = () => {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (emailError) setEmailError("");
-                  if (timeoutMsgOpen) setTimeoutMsgOpen(false);
+                  if (signoutMsg) setSignoutMsg(null);
                 }}
                 onBlur={validateEmail}
                 error={Boolean(emailError)}
@@ -238,7 +241,7 @@ export const Login = () => {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError("");
-                  if (timeoutMsgOpen) setTimeoutMsgOpen(false);
+                  if (signoutMsg) setSignoutMsg(null);
                 }}
                 error={Boolean(passwordError)}
                 helperText={passwordError}
