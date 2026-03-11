@@ -37,7 +37,7 @@ public class DataBaseInitializer {
                     .password(encoderConfig.passwordEncoder().encode("Admin1@1234"))
                     .build();
             userRepository.save(admin1);
-            log.info("Database initialized with test user: {}", admin1.getEmail());
+            log.info("Database initialized with admin1 user: {}", admin1.getEmail());
 
             User admin2 = User.builder()
                     .firstName("Admin2FirstName")
@@ -49,7 +49,7 @@ public class DataBaseInitializer {
                     .password(encoderConfig.passwordEncoder().encode("Admin2@1234"))
                     .build();
             userRepository.save(admin2);
-            log.info("Database initialized with test user: {}", admin2.getEmail());
+            log.info("Database initialized with admin2 user: {}", admin2.getEmail());
 
             User testUser = User.builder()
                     .firstName("TestFirstName")
