@@ -1,6 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.user;
 
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,6 +7,7 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
@@ -31,7 +31,7 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
-//@NoArgsConstructor(access = AccessLevel.PROTECTED)
+// @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User implements UserDetails {
@@ -40,11 +40,11 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private Long id;
 
-	@Column(nullable = false)
-	private String firstName;
+    @Column(nullable = false)
+    private String firstName;
 
-	@Column(nullable = false)
-	private String lastName;
+    @Column(nullable = false)
+    private String lastName;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -55,10 +55,10 @@ public class User implements UserDetails {
     @Column(name = "status")
     private String status;
 
-    @Column(name="email_verified")
+    @Column(name = "email_verified")
     private boolean emailVerified;
 
-    @Column(name="email_verified_at")
+    @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
 
     @Column(name = "last_login_at")
@@ -73,7 +73,7 @@ public class User implements UserDetails {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts;
 
@@ -94,15 +94,16 @@ public class User implements UserDetails {
 
     protected User() {
     }
-    
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
 
     @Override
     public String getUsername() {
-        // not a bug. springsecurity userdetails requires a username so i'm just setting it as email 
+        // not a bug. springsecurity userdetails requires a username so i'm just setting
+        // it as email
         return email;
     }
 
