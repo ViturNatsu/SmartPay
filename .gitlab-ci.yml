@@ -3,17 +3,19 @@ stages:
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  SPRING_MAIL_HOST: mailhog
+  SPRING_MAIL_HOST: localhost
   SPRING_MAIL_PORT: 1025
 
 cache:
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
     - backend/.m2/repository
     - frontend/node_modules
 
 build_backend:
   stage: 'build'
-  image: maven:3.9.9-eclipse-temurin-21
+  tags:
+    - smartpay
   script:
     - cd backend
     - mvn clean package -DskipTests
@@ -23,7 +25,8 @@ build_backend:
 
 install-frontend:
   stage: 'build'
-  image: node:20
+  tags:
+    - smartpay
   script:
     - cd frontend
     - npm ci
@@ -34,15 +37,11 @@ install-frontend:
 
 backend-test:
   stage: 'test'
-  image: maven:3.9.9-eclipse-temurin-21
-
-  services:
-    - name: mailhog/mailhog:latest
-      alias: mailhog
+  tags:
+    - smartpay
   script:
     - cd backend
     - mvn test
-
   artifacts:
     when: always
     paths:
@@ -50,6 +49,8 @@ backend-test:
 
 frontend-test:
   stage: 'test'
+  tags:
+    - smartpay
   image: node:20
   script:
     - cd frontend
