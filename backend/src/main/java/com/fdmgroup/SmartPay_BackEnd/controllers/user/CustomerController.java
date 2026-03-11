@@ -10,9 +10,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.Map;
 
@@ -51,7 +51,8 @@ public class CustomerController {
             @ApiResponse(responseCode = "401", description = "Missing or invalid Token"),
             @ApiResponse(responseCode = "400", description = "Invalid userId in Token Subject")
     })
-    public ResponseEntity<Map<String, String>> updateCustomerInfo(Authentication authentication, @Valid @RequestBody CustomerDTO customerDTO) {
+    public ResponseEntity<Map<String, String>> updateCustomerInfo(Authentication authentication,
+            @Valid @RequestBody CustomerDTO customerDTO) {
 
         // Get userId of currently logged-in user
         Long userId = customerService.parseUserId(authentication.getName());
@@ -59,10 +60,9 @@ public class CustomerController {
         // Update the User entity in the database
         customerService.updateCustomerInfo(userId, customerDTO);
 
-        //can return CustomerDTO later on
+        // can return CustomerDTO later on
         return ResponseEntity.ok(
-                Map.of("message", "Customer Data Updated Successfully.")
-        );
+                Map.of("message", "Customer Data Updated Successfully."));
     }
 
 }
