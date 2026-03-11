@@ -8,7 +8,7 @@ app = Flask(__name__)
 def trigger():
     if request.method == "POST":
         subprocess.run([
-            "gcloud","run","jobs","execute","gitlab-ci-runner","--region","us-central1"
+            "gcloud","run","jobs","execute","gitlab-runner","--region","us-central1"
         ])
         return "Job started", 200
 
