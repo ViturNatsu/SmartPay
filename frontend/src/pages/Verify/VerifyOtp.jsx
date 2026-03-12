@@ -35,7 +35,7 @@ export const VerifyOtp = () => {
   const typeParam = searchParams.get("type");
   const codeParam = searchParams.get("code");
 
-  const { setAuthFromTokens } = useAuth();
+  const { setAuthFromTokens, tokenClaims } = useAuth();
 
   // Guard to avoid double submission (React 18 StrictMode may invoke effects twice in dev)
   const submittedRef = useRef(false);
@@ -63,7 +63,13 @@ export const VerifyOtp = () => {
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
           });
-          navigate("/home", { replace: true });
+          // redirect after login based on user role
+          console.log("Token claims after verification:", tokenClaims);
+          if (tokenClaims?.role === "ADMIN") {
+            navigate("/admin/dashboard", { replace: true });
+          } else {
+            navigate("/home", { replace: true });
+          }
           break;
         case "register":
           setShowSuccess(true);
