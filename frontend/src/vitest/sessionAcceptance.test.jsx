@@ -82,7 +82,7 @@ describe('Session Acceptance', () => {
 
     // Should be redirected to login with message
     expect(screen.queryByTestId('protected')).toBeNull();
-    expect(screen.getByText(/You’ve been signed out due to inactivity/i)).toBeTruthy();
+    expect(screen.findByText(/You’ve been signed out due to inactivity/i)).toBeTruthy();
   });
 
   it('Scenario 2: Activity keeps the session active', async () => {

@@ -63,3 +63,20 @@ frontend-test:
     - npm ci
     - npm run test -- --run
 
+e2e-test:
+  stage: 'test'
+  tags:
+    - smartpay
+  dependencies:
+    - install-frontend
+  script:
+    - cd frontend
+    - npm ci
+    - npx playwright install --with-deps chromium
+    - npx playwright test --project=chromium
+  artifacts:
+    when: always
+    paths:
+      - frontend/playwright-report
+      - frontend/test-results
+    expire_in: 7 days

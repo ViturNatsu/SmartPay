@@ -285,6 +285,20 @@ export const AuthProvider = ({ children }) => {
       sessionChannelRef.current?.postMessage({ type: "SESSION_EXPIRED" });
     } catch (_) { /* ignore */ }
 
+    // Don't redirect if user is already on a public page (e.g., /verify while
+    // fetching OTP from MailHog). The old session cleanup is still needed, but
+    // redirecting would interrupt the new login flow.
+    const currentPath = window.location.pathname;
+    const publicPages = ["/login", "/verify", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+    const onPublicPage = publicPages.some((p) => currentPath.startsWith(p));
+
+    // Set signoutReason BEFORE clearAuth — clearAuth triggers ProtectedRoute
+    // to redirect, which mounts Login synchronously.  Login's useState
+    // initializer reads signoutReason at mount time, so it must already be set.
+    if (!onPublicPage) {
+      sessionStorage.setItem("signoutReason", "inactivity");
+    }
+
     // Full cleanup: clears user, tokenClaims, tokens, and stops monitoring
     // so ProtectedRoute redirects even on browser back-button
     if (clearAuthRef.current) {
@@ -295,20 +309,9 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem("refresh_token");
     }
 
-    // Don't redirect if user is already on a public page (e.g., /verify while
-    // fetching OTP from MailHog). The old session cleanup is still needed, but
-    // redirecting would interrupt the new login flow.
-    const currentPath = window.location.pathname;
-    const publicPages = ["/login", "/verify", "/register", "/forgot-password", "/reset-password", "/verify-email"];
-    if (publicPages.some((p) => currentPath.startsWith(p))) {
-      // console.log(`[SESSION] On public page ${currentPath} — skipping redirect`);
-      return;
+    if (!onPublicPage) {
+      navigate("/login", { replace: true });
     }
-
-    // Use sessionStorage to signal the reason — router state gets overwritten
-    // by ProtectedRoute's <Navigate> which fires in the same render cycle.
-    sessionStorage.setItem("signoutReason", "inactivity");
-    navigate("/login", { replace: true });
   }, [navigate]);
 
   return (
