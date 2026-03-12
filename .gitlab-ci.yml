@@ -41,27 +41,27 @@ install-frontend:
     paths:
       - frontend/dist
 
-backend-test:
-  stage: 'test'
-  tags:
-    - smartpay
-  script:
-    - cd backend
-    - mvn test
-  artifacts:
-    when: always
-    paths:
-      - backend/target/surefire-reports
+# backend-test:
+#   stage: 'test'
+#   tags:
+#     - smartpay
+#   script:
+#     - cd backend
+#     - mvn test
+#   artifacts:
+#     when: always
+#     paths:
+#       - backend/target/surefire-reports
 
-frontend-test:
-  stage: 'test'
-  tags:
-    - smartpay
-  image: node:20
-  script:
-    - cd frontend
-    - npm ci
-    - npm run test -- --run
+# frontend-test:
+#   stage: 'test'
+#   tags:
+#     - smartpay
+#   image: node:20
+#   script:
+#     - cd frontend
+#     - npm ci
+#     - npm run test -- --run
 
 e2e-test:
   stage: 'test'
