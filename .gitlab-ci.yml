@@ -1,0 +1,65 @@
+stages:
+  ['build', 'test']
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"
+      when: always
+    - when: never
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  SPRING_MAIL_HOST: localhost
+  SPRING_MAIL_PORT: 1025
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - backend/.m2/repository
+    - frontend/node_modules
+
+build_backend:
+  stage: 'build'
+  tags:
+    - smartpay
+  script:
+    - cd backend
+    - mvn clean package -DskipTests
+  artifacts:
+    paths:
+      - backend/target/*.jar
+
+install-frontend:
+  stage: 'build'
+  tags:
+    - smartpay
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist
+
+backend-test:
+  stage: 'test'
+  tags:
+    - smartpay
+  script:
+    - cd backend
+    - mvn test
+  artifacts:
+    when: always
+    paths:
+      - backend/target/surefire-reports
+
+frontend-test:
+  stage: 'test'
+  tags:
+    - smartpay
+  image: node:20
+  script:
+    - cd frontend
+    - npm ci
+    - npm run test -- --run
+
