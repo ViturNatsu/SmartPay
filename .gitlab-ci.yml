@@ -1,6 +1,12 @@
 stages:
   ['build', 'test']
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"
+      when: always
+    - when: never
+
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
   SPRING_MAIL_HOST: localhost
