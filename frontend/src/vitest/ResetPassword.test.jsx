@@ -15,7 +15,7 @@ import {
   resetPasswordPasswordsDoNotMatch,
   resetPasswordSubmitButton,
   resetPasswordTooManyFailures,
-} from "@/vitest/domqueries";
+} from "@/vitest/domQueries";
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_ALLOWED_PASSWORD_RESETS = 5;

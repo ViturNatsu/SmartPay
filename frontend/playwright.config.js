@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
 const baseURL = 'http://localhost:5173';
 
 /**
@@ -21,11 +22,13 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: 0,
+  retries: isCI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['html', { open: 'never' }]],
+  reporter: isCI
+    ? [['html', { open: 'never' }], ['junit', { outputFile: 'test-results/e2e-results.xml' }]]
+    : [['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
@@ -61,8 +64,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: isCI ? 'npx vite preview --port 5173' : 'npm run dev',
     url: baseURL,
-    reuseExistingServer: true,
+    reuseExistingServer: !isCI,
   },
 });

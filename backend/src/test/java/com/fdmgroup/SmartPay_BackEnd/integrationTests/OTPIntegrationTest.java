@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,6 +32,7 @@ import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OTPIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -62,6 +64,7 @@ public class OTPIntegrationTest {
     void setUp() {
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         tx.execute(status -> {
+            entityManager.createNativeQuery("DELETE FROM sessions").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();

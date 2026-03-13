@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
  && apt-get install -y nodejs
 
+# install playwright chromium system deps (fonts, graphics libs)
+# so npx playwright install --with-deps in CI only downloads the browser binary
+RUN npx playwright install-deps chromium
+
 # install gitlab runner
 RUN curl -L https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64 \
  -o /usr/local/bin/gitlab-runner \

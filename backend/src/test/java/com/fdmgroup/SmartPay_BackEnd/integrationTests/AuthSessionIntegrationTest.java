@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -25,53 +26,55 @@ import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuthSessionIntegrationTest {
-    @Autowired
-    MockMvc mockMvc;
-    
-    @Autowired
-    private JwtSessionService jwtSessionService;
-    
-    @Autowired
-    private SessionService sessionService;
-    
-    @Autowired
-    private UserRepository userRepo;
-	
 	@Autowired
-    private PasswordEncoder passwordEncoder;
-	
+	MockMvc mockMvc;
+
 	@Autowired
-    private PlatformTransactionManager transactionManager;
-	
+	private JwtSessionService jwtSessionService;
+
 	@Autowired
-    private EntityManager entityManager;
-	
+	private SessionService sessionService;
+
+	@Autowired
+	private UserRepository userRepo;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
+	@Autowired
+	private EntityManager entityManager;
+
 	private User testUser;
-	
+
 	@BeforeEach
 	void setup() {
 		TransactionTemplate tx = new TransactionTemplate(transactionManager);
-        tx.execute(status -> {
-            entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
-            return null;
-        });
-		
+		tx.execute(status -> {
+			entityManager.createNativeQuery("DELETE FROM sessions").executeUpdate();
+			entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
+			entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
+			entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
+			entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
+			return null;
+		});
+
 		testUser = User.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email("test@test.com")
-                .password(passwordEncoder.encode("password123"))
-                .emailVerified(true)
-                .role(Role.USER)
-                .failedLoginAttempts(0)
-                .build();
+				.firstName("Test")
+				.lastName("User")
+				.email("test@test.com")
+				.password(passwordEncoder.encode("password123"))
+				.emailVerified(true)
+				.role(Role.USER)
+				.failedLoginAttempts(0)
+				.build();
 		testUser = userRepo.save(testUser);
 	}
-	
+
 	@Test
 	void loginAuthShouldSucceed_andReturnBodyWith_otpSentTrue_whenVerfiedUserLogsIn() throws Exception {
 		mockMvc.perform(post("/api/v1/auth/login")
@@ -82,10 +85,10 @@ public class AuthSessionIntegrationTest {
 							"password" : "password123"
 						}
 						"""))
-			.andExpect(status().isAccepted())
-			.andExpect(jsonPath("$.otpSent").value(true));
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.otpSent").value(true));
 	}
-	
+
 	@Test
 	void loginAuthShouldFail_onIncorrectCredentials() throws Exception {
 		mockMvc.perform(post("/api/v1/auth/login")
@@ -96,22 +99,22 @@ public class AuthSessionIntegrationTest {
 							"password" : "wrong_password"
 						}
 						"""))
-			.andExpect(status().isUnauthorized());
+				.andExpect(status().isUnauthorized());
 	}
-	
+
 	@Test
 	void loginAuthShouldFail_whenUsingUnverifiedEmailAddress() throws Exception {
 		User unverifiedUser = User.builder()
 				.firstName("Unverified")
-                .lastName("User")
-                .email("unverified@test.com")
-                .password(passwordEncoder.encode("password456"))
-                .emailVerified(false)
-                .role(Role.USER)
-                .failedLoginAttempts(0)
-                .build();
+				.lastName("User")
+				.email("unverified@test.com")
+				.password(passwordEncoder.encode("password456"))
+				.emailVerified(false)
+				.role(Role.USER)
+				.failedLoginAttempts(0)
+				.build();
 		userRepo.save(unverifiedUser);
-		
+
 		mockMvc.perform(post("/api/v1/auth/login")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("""
@@ -120,40 +123,40 @@ public class AuthSessionIntegrationTest {
 							"password" : "password456"
 						}
 						"""))
-			.andExpect(status().isForbidden());
+				.andExpect(status().isForbidden());
 	}
-	
+
 	@Test
 	void refreshShouldSucceed_whenValidSessionIsRefreshed() throws Exception {
 		String accessToken = jwtSessionService.createAccessToken(testUser);
 		String refreshToken = jwtSessionService.createRefreshToken(testUser);
 		sessionService.generateNewSession(testUser, refreshToken);
-		
+
 		mockMvc.perform(post("/api/v1/auth/refresh")
 				.header("Authorization", "Bearer " + refreshToken))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.refreshToken").exists())
-			.andExpect(jsonPath("$.accessToken").value(accessToken));
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.refreshToken").exists())
+				.andExpect(jsonPath("$.accessToken").value(accessToken));
 		sessionService.deleteAllUserSessions(testUser);
 	}
-	
+
 	@Test
 	void refreshAuthShouldFail_whenNoAuthHeaderProvided() throws Exception {
 		mockMvc.perform(post("/api/v1/auth/refresh"))
-			.andExpect(status().isUnauthorized());
+				.andExpect(status().isUnauthorized());
 	}
-	
+
 	@Test
 	void refreshAuthShouldFail_whenEmptyBearerTokenProvided() throws Exception {
 		mockMvc.perform(post("/api/v1/auth/refresh")
 				.header("Authorization", "Bearer "))
-			.andExpect(status().isUnauthorized());
+				.andExpect(status().isUnauthorized());
 	}
-	
+
 	@Test
 	void refreshAuthShouldFail_whenInvalidBearerTokenProvided() throws Exception {
 		mockMvc.perform(post("/api/v1/auth/refresh")
 				.header("Authorization", "Bearer 1234567890"))
-			.andExpect(status().isUnauthorized());
+				.andExpect(status().isUnauthorized());
 	}
 }
