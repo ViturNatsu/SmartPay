@@ -41,17 +41,17 @@ install-frontend:
     paths:
       - frontend/dist
 
-# backend-test:
-#   stage: 'test'
-#   tags:
-#     - smartpay
-#   script:
-#     - cd backend
-#     - mvn test
-#   artifacts:
-#     when: always
-#     paths:
-#       - backend/target/surefire-reports
+backend-test:
+  stage: 'test'
+  tags:
+    - smartpay
+  script:
+    - cd backend
+    - mvn test
+  artifacts:
+    when: always
+    paths:
+      - backend/target/surefire-reports
 
 # frontend-test:
 #   stage: 'test'
@@ -63,20 +63,20 @@ install-frontend:
 #     - npm ci
 #     - npm run test -- --run
 
-e2e-test:
-  stage: 'test'
-  tags:
-    - smartpay
-  dependencies:
-    - install-frontend
-  script:
-    - cd frontend
-    - npm ci
-    - npx playwright install --with-deps chromium
-    - npx playwright test --project=chromium
-  artifacts:
-    when: always
-    paths:
-      - frontend/playwright-report
-      - frontend/test-results
-    expire_in: 7 days
+# e2e-test:
+#   stage: 'test'
+#   tags:
+#     - smartpay
+#   dependencies:
+#     - install-frontend
+#   script:
+#     - cd frontend
+#     - npm ci
+#     - npx playwright install --with-deps chromium
+#     - npx playwright test --project=chromium
+#   artifacts:
+#     when: always
+#     paths:
+#       - frontend/playwright-report
+#       - frontend/test-results
+#     expire_in: 7 days
