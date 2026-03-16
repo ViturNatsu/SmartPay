@@ -58,19 +58,23 @@ export const VerifyOtp = () => {
       });
 
       switch (typeParam) {
-        case "login":
-          await setAuthFromTokens({
+        case "login": {
+          const newClaims = await setAuthFromTokens({
             accessToken: res.accessToken,
             refreshToken: res.refreshToken,
           });
-          // redirect after login based on user role
-          console.log("Token claims after verification:", tokenClaims);
-          if (tokenClaims?.role === "ADMIN") {
+          // redirect after login based on user role; use returned claims since
+          // the context state may not have updated yet
+          const role = newClaims?.role || tokenClaims?.role;
+          if (role === "ADMIN") {
+            console.log("Redirecting to admin dashboard");
             navigate("/admin/dashboard", { replace: true });
           } else {
+            console.log("Redirecting to user dashboard");
             navigate("/home", { replace: true });
           }
           break;
+        }
         case "register":
           setShowSuccess(true);
           setSuccessMessage(

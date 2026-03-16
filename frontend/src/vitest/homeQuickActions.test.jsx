@@ -11,6 +11,7 @@ import { CreateAccount } from '@/pages/Accounts/CreateAccount';
 import { ViewHistory } from '@/pages/Accounts/ViewHistory';
 import { AddPayee } from '@/pages/Accounts/AddPayee';
 import { MakeAPayment } from '@/pages/Accounts/MakeAPayment';
+import Forbidden from '@/pages/errors/Forbidden';
 
 // --------- Test Setup ---------
 // npm install -D @testing-library/jest-dom
@@ -19,12 +20,15 @@ import { MakeAPayment } from '@/pages/Accounts/MakeAPayment';
 // Mock API calls to avoid network
 import * as authApi from '@/api/authApi.js';
 import { setAccessToken } from '@/api/axios.js';
+import { createTestAccessToken } from './testUtils.js';
+
+const TEST_ACCESS_TOKEN = createTestAccessToken();
 
 vi.mock('@/api/authApi', async () => {
   const actual = await vi.importActual('@/api/authApi');
   return {
     ...actual,
-    refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),
+    refreshTokens: vi.fn(async () => ({ accessToken: TEST_ACCESS_TOKEN, refreshToken: 'REFRESH' })),
     getMyUser: vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' })),
     logout: vi.fn(async () => ({ ok: true })),
   };
@@ -69,7 +73,7 @@ describe('Home Dashboard Quick Link Acceptance', () => {
   it('Scenario 1: Test Create Account Link', async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(TEST_ACCESS_TOKEN);
 
     render(<AppHarness initialEntries={["/app"]} />);
 
@@ -88,7 +92,7 @@ describe('Home Dashboard Quick Link Acceptance', () => {
   it('Scenario 2: Test View History Link', async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(TEST_ACCESS_TOKEN);
 
     render(<AppHarness initialEntries={["/app"]} />);
 
@@ -104,10 +108,33 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     expect(screen.getByText('View History')).toBeInTheDocument();
   });
 
+  it('Scenario 4: Admin route without privileges shows forbidden', async () => {
+    // adjust mock to return normal user role
+    addValidRefreshToken();
+    setAccessToken(TEST_ACCESS_TOKEN);
+
+    // render a small app with an admin-only route
+    render(
+      <MemoryRouter initialEntries={["/admin/dashboard"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/forbidden" element={<Forbidden />} />
+            <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+              <Route path="/admin/dashboard" element={<div>admin page</div>} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    // should end up on forbidden component
+    expect(await screen.findByText(/403\s*-\s*Forbidden/i)).toBeInTheDocument();
+  });
+
   it('Scenario 3: Test Add Payee Link', async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(TEST_ACCESS_TOKEN);
 
     render(<AppHarness initialEntries={["/app"]} />);
 
@@ -126,7 +153,7 @@ describe('Home Dashboard Quick Link Acceptance', () => {
   it('Scenario 4: Test Make Payment Link', async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(TEST_ACCESS_TOKEN);
 
     render(<AppHarness initialEntries={["/app"]} />);
 

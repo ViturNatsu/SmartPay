@@ -96,8 +96,14 @@ axiosInstance.interceptors.response.use(
 
 export function handleAxiosError(error) {
   if (error.response) {
+    const status = error.response.status;
+    if (status === 403) {
+      // redirect page-level to a dedicated unauthorized screen; doing
+      // a full reload ensures any auth state is cleared by the context
+      window.location.href = '/forbidden';
+    }
     return {
-      status: error.response.status,
+      status,
       message: error.response.data?.message || "Request failed",
       data: error.response.data,
     };
