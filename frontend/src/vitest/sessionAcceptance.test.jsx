@@ -9,12 +9,17 @@ import { Login } from '@/pages/Login/Login';
 // Mock API calls to avoid network
 import * as authApi from '@/api/authApi';
 import { setAccessToken } from '@/api/axios';
+import { createTestAccessToken } from './testUtils.js';
 
 vi.mock('@/api/authApi', async () => {
   const actual = await vi.importActual('@/api/authApi');
   return {
     ...actual,
-    refreshTokens: vi.fn(async () => ({ accessToken: 'ACCESS', refreshToken: 'REFRESH' })),
+    refreshTokens: vi.fn(async () => {
+      const token = createTestAccessToken();
+      setAccessToken(token);
+      return { accessToken: token };
+    }),
     getMyUser: vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' })),
     logout: vi.fn(async () => ({ ok: true })),
   };
@@ -65,7 +70,7 @@ describe('Session Acceptance', () => {
 
   it('Scenario 1: Session times out after inactivity', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     render(<AppHarness initialEntries={["/app"]} />);
 
@@ -87,19 +92,19 @@ describe('Session Acceptance', () => {
 
   it('Scenario 2: Activity keeps the session active', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     render(<AppHarness initialEntries={["/app"]} />);
     await act(async () => vi.advanceTimersByTime(1));
 
     // Nearly at timeout
-    await act(async () => vi.advanceTimersByTime(15 * 60 * 1000 - 10000));
+    await act(async () => vi.advanceTimersByTime(15 * 60 * 1000 - 30000));
     // User activity resets the timer
     await act(async () => {
       document.dispatchEvent(new Event('mousedown'));
     });
     // Advance some time, still before a full new timeout window
-    await act(async () => vi.advanceTimersByTime(30000));
+    await act(async () => vi.advanceTimersByTime(90000));
 
     // Still on protected page
     expect(screen.getByTestId('protected')).toBeTruthy();
@@ -107,7 +112,7 @@ describe('Session Acceptance', () => {
 
   it('Scenario 3: Access is blocked after timeout', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     const { rerender } = render(<AppHarness initialEntries={["/app"]} />);
     await act(async () => vi.advanceTimersByTime(1));
@@ -128,7 +133,7 @@ describe('Session Acceptance', () => {
 
   it('Logout Scenario 1: Session ends successfully on logout', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     render(<AppHarness initialEntries={["/app/logout"]} />);
     await act(async () => vi.advanceTimersByTime(1));
@@ -148,7 +153,7 @@ describe('Session Acceptance', () => {
     authApi.logout.mockResolvedValueOnce({ status: 401, message: 'No active session' });
 
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     render(<AppHarness initialEntries={["/app/logout"]} />);
     await act(async () => vi.advanceTimersByTime(1));
@@ -165,7 +170,7 @@ describe('Session Acceptance', () => {
 
   it('Logout from user: blocks protected access via direct URL, refresh, and back navigation', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     const { rerender } = render(<AppHarness initialEntries={["/app/logout"]} />);
     await act(async () => vi.advanceTimersByTime(1));
@@ -195,7 +200,7 @@ describe('Session Acceptance', () => {
 
   it('Logout from inactivity: blocks protected access via direct URL, refresh, and back navigation', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     const { rerender } = render(<AppHarness initialEntries={["/app"]} />);
 
@@ -231,7 +236,7 @@ describe('Session Acceptance', () => {
 
   it('Logout: API requests after logout are rejected with 401', async () => {
     addValidRefreshToken();
-    setAccessToken('ACCESS');
+    setAccessToken(createTestAccessToken());
 
     render(<AppHarness initialEntries={["/app/logout"]} />);
     await act(async () => vi.advanceTimersByTime(1));
@@ -252,7 +257,7 @@ describe('Session Acceptance', () => {
 
     // Simulate successful re-login by setting new tokens
     addValidRefreshToken();
-    setAccessToken('NEW_ACCESS');
+    setAccessToken(createTestAccessToken());
 
     // Access should be restored: protected API returns user profile
     authApi.getMyUser = vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' }));

@@ -37,6 +37,20 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
   const navigate = useNavigate();
 
   const getMyUser = useCallback(async () => {
+    // In the normal flow we call the customer endpoint.  For admins there is
+    // no customer record, so avoid the 404 by only hitting the API when the
+    // token claims indicate a non‑admin role.  The caller should have already
+    // stored tokenClaims via setTokenClaims.
+    if (tokenClaims?.role === "ADMIN") {
+      // use the minimal info we know from the JWT
+      setUser({
+        id: tokenClaims.userId || null,
+        email: tokenClaims.email || null,
+        role: tokenClaims.role || null,
+      });
+      return;
+    }
+
     try {
       const userData = await authApi.getMyUser();
       if (userData) {
@@ -66,7 +80,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     } catch (err) {
       setUser(null);
     }
-  }, []);
+  }, [tokenClaims]);
 
   // Clears local auth state only — no API call. Safe to call any time,
   // including from bootstrap failure where there's no valid token.
@@ -99,19 +113,32 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
       const claims = decodeJwtPayload(accessToken);
       if (claims) {
-        setTokenClaims({
+        const extracted = {
           userId: claims.sub ?? null,
           role: claims.role ?? null,
           email: claims.email ?? null,
-        });
+        };
+        setTokenClaims(extracted);
+
+        // for admin users we don't hit the customer endpoint (no record)
+        if (extracted.role && extracted.role.toUpperCase() === "ADMIN") {
+          setUser({
+            id: extracted.userId,
+            email: extracted.email,
+            role: extracted.role,
+          });
+        } else {
+          try {
+            await getMyUser();
+          } catch (error) {
+            console.error("Failed to get user data:", error);
+          }
+        }
+
+        // return the claims so callers can react immediately
+        return extracted;
       } else {
         setTokenClaims(null);
-      }
-
-      try {
-        await getMyUser();
-      } catch (error) {
-        console.error("Failed to get user data:", error);
       }
 
       startSessionMonitoringRef.current();
@@ -172,16 +199,26 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
           const claims = decodeJwtPayload(res.accessToken);
           if (claims) {
-            setTokenClaims({
+            const extracted = {
               userId: claims.sub ?? null,
               role: claims.role ?? null,
               email: claims.email ?? null,
-            });
+            };
+            setTokenClaims(extracted);
+
+            if (extracted.role && extracted.role.toUpperCase() === "ADMIN") {
+              setUser({
+                id: extracted.userId,
+                email: extracted.email,
+                role: extracted.role,
+              });
+            } else {
+              await getMyUser();
+            }
           } else {
             setTokenClaims(null);
           }
 
-          await getMyUser();
           startSessionMonitoringRef.current();
         } else {
           clearAuth();

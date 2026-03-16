@@ -23,11 +23,13 @@ import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import GroupIcon from '@mui/icons-material/Group';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 import logo from "@/style/logo.png";
 
 // Update these to match your real routes
-const navItems = [
+const userNavItems = [
   { label: "Dashboard", path: "/", icon: <HomeRoundedIcon /> },
   { label: "Accounts", path: "/accounts", icon: <AccountBalanceWalletOutlinedIcon /> },
   { label: "Transactions", path: "/transactions", icon: <SwapHorizRoundedIcon /> },
@@ -36,21 +38,33 @@ const navItems = [
   { label: "Settings", path: "/settings", icon: <SettingsRoundedIcon /> },
 ];
 
+const adminNavItems = [
+  { label: "Dashboard", path: "/admin/dashboard", icon: <HomeRoundedIcon /> },
+  { label: "Mock Accounts", path: "/admin/mock-accounts", icon: <AccountBalanceIcon /> },
+  { label: "Users", path: "/admin/users", icon: <GroupIcon /> },
+  { label: "Reports", path: "/admin/reports", icon: <InsightsRoundedIcon /> },
+  { label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon /> },
+];
+
 function isPathActive(currentPath, targetPath) {
   if (targetPath === "/") return currentPath === "/";
   return currentPath === targetPath || currentPath.startsWith(targetPath + "/");
 }
 
-export default function Navbar() {
+export default function Navbar({ isAdmin = false }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // xs/sm => mobile
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+
+  const items = isAdmin ? adminNavItems : userNavItems;
+  const homePath = isAdmin ? "/admin/dashboard" : "/";
+
   const activeIndex = React.useMemo(() => {
-    const idx = navItems.findIndex((i) => isPathActive(location.pathname, i.path));
+    const idx = items.findIndex((i) => isPathActive(location.pathname, i.path));
     return idx === -1 ? 0 : idx;
-  }, [location.pathname]);
+  }, [location.pathname, items]);
 
   // -------------------------
   // MOBILE: Top mini bar + Bottom nav
@@ -76,7 +90,7 @@ export default function Navbar() {
               <Box
                 component={RouterLink}
                 aria-label="home"
-                to="/"
+                to={homePath}
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -116,7 +130,7 @@ export default function Navbar() {
             onChange={(_, newValue) => navigate(navItems[newValue].path)}
             showLabels
           >
-            {navItems.map((item) => (
+            {items.map((item) => (
               <BottomNavigationAction
                 key={item.path}
                 label={item.label}
@@ -158,7 +172,7 @@ export default function Navbar() {
         >
           <Box
             component={RouterLink}
-            to="/"
+            to={homePath}
             aria-label="home"
             sx={{
               display: "flex",
@@ -207,7 +221,7 @@ export default function Navbar() {
                 scrollbarWidth: "none",
               }}
             >
-              {navItems.map((item) => {
+              {items.map((item) => {
                 const active = isPathActive(location.pathname, item.path);
                 return (
                   <Button
@@ -249,7 +263,7 @@ export default function Navbar() {
 
             <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
 
-              {/* Paceholder for user's name and premium member status.
+            {/* Paceholder for user's name and premium member status.
               TODO: Grab user's name and status from the backend display it here. */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             </Box>

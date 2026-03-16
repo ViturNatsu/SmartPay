@@ -18,6 +18,9 @@ import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import { ViewHistory } from "@/pages/Accounts/ViewHistory";
 import TermsAndConditions from '@/pages/Registration/TermsAndConditions'
 import PrivacyPolicy from '@/pages/Registration/PrivacyPolicy'
+import AdminDash from '@/pages/Admin/AdminDash';
+import Forbidden from '@/pages/errors/Forbidden';
+import MockAccounts from "../pages/Admin/MockAccounts";
 
 export default function AppRoutes() {
   return (
@@ -30,6 +33,7 @@ export default function AppRoutes() {
       <Route path="/verify" element={<VerifyOtp />} />
       <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/forbidden" element={<Forbidden />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
@@ -42,6 +46,12 @@ export default function AppRoutes() {
         <Route path="/view-history" element={<ViewHistory />} />
         <Route path="/make-a-payment" element={<MakeAPayment />} />
         <Route path="/add-payee" element={<AddPayee />} />
+      </Route>
+
+      {/* admin-only area */}
+      <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+        <Route path="/admin/dashboard" element={<AdminDash />} />
+        <Route path="/admin/mock-accounts" element={<MockAccounts />} />
       </Route>
     </Routes>
   );
