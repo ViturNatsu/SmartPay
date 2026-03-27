@@ -30,11 +30,17 @@ public abstract class Account {
     @Column(name = "account_id")
     private Long id;
 
-    @Column(name = "account_number", unique = true, nullable = false, updatable = false, length = 8)
+    @Column(name = "account_number", unique = true, nullable = false, updatable = false)
     private String accountNumber;
 
     @Column(name = "account_name")
     private String accountName;
+
+    @Column(name = "institution_number")
+    private String institutionNumber;
+
+    @Column(name = "transit_number")
+    private String transitNumber;
 
     @Column(name = "balance")
     private Double balance;

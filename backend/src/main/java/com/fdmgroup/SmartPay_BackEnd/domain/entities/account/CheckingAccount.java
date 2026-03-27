@@ -12,6 +12,4 @@ public class CheckingAccount extends Account {
     public AccountType getType() {
         return AccountType.CHECKING;
     }
-
-    // Additional fields specific to checking accounts can be added here
 }
