@@ -7,19 +7,20 @@ import { VerifyEmail } from "@/pages/Verify/VerifyEmail";
 import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { Home } from "@/pages/Navbar/Home";
-import { Accounts } from '@/pages/Accounts/Accounts';
-import { Transactions } from '@/pages/Navbar/Transactions';
-import { Cards } from '@/pages/Navbar/Cards';
-import { Reports } from '@/pages/Navbar/Reports';
-import { Settings } from '@/pages/Navbar/Settings';
+import { Accounts } from "@/pages/Accounts/Accounts";
+import { Transactions } from "@/pages/Navbar/Transactions";
+import { Cards } from "@/pages/Navbar/Cards";
+import { Reports } from "@/pages/Navbar/Reports";
+import { Settings } from "@/pages/Navbar/Settings";
 import { CreateAccount } from "@/pages/Accounts/CreateAccount";
 import { AddPayee } from "@/pages/Accounts/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import { ViewHistory } from "@/pages/Accounts/ViewHistory";
-import TermsAndConditions from '@/pages/Registration/TermsAndConditions'
-import PrivacyPolicy from '@/pages/Registration/PrivacyPolicy'
-import AdminDash from '@/pages/Admin/AdminDash';
-import Forbidden from '@/pages/errors/Forbidden';
+import AccountDetails from "../pages/Accounts/AccountDetails";
+import TermsAndConditions from "@/pages/Registration/TermsAndConditions";
+import PrivacyPolicy from "@/pages/Registration/PrivacyPolicy";
+import AdminDash from "@/pages/Admin/AdminDash";
+import Forbidden from "@/pages/errors/Forbidden";
 import MockAccounts from "../pages/Admin/MockAccounts";
 
 export default function AppRoutes() {
@@ -38,6 +39,7 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/accounts" element={<Accounts />} />
+        <Route path="/accounts/:accountId" element={<AccountDetails />} />
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/cards" element={<Cards />} />
         <Route path="/reports" element={<Reports />} />
