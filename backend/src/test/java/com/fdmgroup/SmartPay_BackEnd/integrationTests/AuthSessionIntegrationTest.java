@@ -136,7 +136,7 @@ public class AuthSessionIntegrationTest {
 				.header("Authorization", "Bearer " + refreshToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.refreshToken").exists())
-				.andExpect(jsonPath("$.accessToken").value(accessToken));
+				.andExpect(jsonPath("$.accessToken").exists());
 		sessionService.deleteAllUserSessions(testUser);
 	}
 

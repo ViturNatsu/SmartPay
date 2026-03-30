@@ -52,6 +52,9 @@ backend-test:
     when: always
     paths:
       - backend/target/surefire-reports
+    reports:
+      junit:
+        - backend/target/surefire-reports/TEST-*.xml
 
 frontend-test:
   stage: 'test'

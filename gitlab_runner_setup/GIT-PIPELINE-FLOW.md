@@ -70,7 +70,7 @@ Developer Push
       v
  Runner Registers → Executes Jobs → Unregisters
 ```
-
+![img_1.png](img_1.png)
 ---
 
 ## 6. Advantages of Current Architecture
