@@ -10,9 +10,11 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 
 public interface AccountService {
 
-    Account addAccount(Account account)throws UserNotFoundException;
+    Account addAccount(Account account) throws UserNotFoundException;
 
-    List<AccountDto> getAccounts(Long userId, AccountType type) throws  UserNotFoundException;
+    List<AccountDto> getAccounts(Long userId, AccountType type) throws UserNotFoundException;
+
+    List<AccountDto> getAllAccounts();
 
     Account getAccountById(Long accountId) throws AccountNotFoundException;
 

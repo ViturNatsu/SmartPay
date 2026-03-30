@@ -1,6 +1,6 @@
 .admin-dash {
   padding: 2rem;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   font-family: Arial, sans-serif;
 }
@@ -66,8 +66,12 @@
   font-size: 0.9rem;
 }
 
-.status.active { background-color: #28a745; }
-.status.inactive { background-color: #dc3545; }
+.status.active {
+  background-color: #28a745;
+}
+.status.inactive {
+  background-color: #dc3545;
+}
 
 .btn-edit,
 .btn-delete {
@@ -77,5 +81,9 @@
   margin-right: 0.5rem;
 }
 
-.btn-edit { color: #007bff; }
-.btn-delete { color: #dc3545; }
+.btn-edit {
+  color: #007bff;
+}
+.btn-delete {
+  color: #dc3545;
+}

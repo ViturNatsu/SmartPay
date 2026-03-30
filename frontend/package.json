@@ -19,6 +19,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
+    "@mui/x-data-grid": "^8.27.5",
     "axios": "^1.13.2",
     "cors": "^2.8.6",
     "node": "^25.5.0",

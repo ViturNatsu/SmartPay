@@ -67,6 +67,16 @@ public class AccountController {
             return ResponseEntity.ok(accountService.getAccounts(userId, type));
         }
 
+        @GetMapping("/all")
+        @Operation(summary = "Retrieve all accounts", description = "Fetch all accounts in the system.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
+
+        })
+        public ResponseEntity<List<AccountDto>> getAllAccounts() {
+                return ResponseEntity.ok(accountService.getAllAccounts());
+        }
+
         @GetMapping("/{accountId}")
         @Operation(summary = "Retrieve a specific account by ID", description = "Fetch a single account using its account ID.")
         @ApiResponses(value = {

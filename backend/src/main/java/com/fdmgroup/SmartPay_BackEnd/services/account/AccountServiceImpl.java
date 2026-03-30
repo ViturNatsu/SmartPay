@@ -15,13 +15,16 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
+import java.util.ArrayList;
+
 @Service
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountFactory accountFactory;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository, AccountFactory accountFactory) {
+    public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
+            AccountFactory accountFactory) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.accountFactory = accountFactory;
@@ -31,7 +34,8 @@ public class AccountServiceImpl implements AccountService {
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
         User user = userRepository.findById(account.getUser().getId())
-                .orElseThrow(() -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
+                .orElseThrow(
+                        () -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
 
         // 2. Validate Account
         if (account.getType().equals(AccountType.CHECKING)) {
@@ -44,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
             if (account.getAccountNumber() != null && !account.getAccountNumber().matches("\\d{7,12}")) {
                 throw new IllegalArgumentException("Account number must be between 7 and 12 digits");
             }
-            if(accountRepository.findByAccountNumber(account.getAccountNumber()).isPresent()){
+            if (accountRepository.findByAccountNumber(account.getAccountNumber()).isPresent()) {
                 throw new IllegalArgumentException("Account with this account number already exists");
             }
         }
@@ -52,7 +56,8 @@ public class AccountServiceImpl implements AccountService {
         // 3. Create a new account
         Account newAccount = accountFactory.createAccount(account.getType());
 
-        // 4. Manual mapping (BeanUtils will silently fail instead of giving compile error)
+        // 4. Manual mapping (BeanUtils will silently fail instead of giving compile
+        // error)
         newAccount.setAccountName(account.getAccountName());
         newAccount.setBalance(account.getBalance());
         newAccount.setUser(user);
@@ -72,10 +77,9 @@ public class AccountServiceImpl implements AccountService {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
-        List<Account> accounts =
-                (type == null)
-                        ? accountRepository.findByUserId(userId)
-                        : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
+        List<Account> accounts = (type == null)
+                ? accountRepository.findByUserId(userId)
+                : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
 
         return accounts.stream()
                 .map(a -> new AccountDto(
@@ -86,11 +90,25 @@ public class AccountServiceImpl implements AccountService {
                         a.getTransitNumber(),
                         a.getBalance(),
                         a.getType(),
-                        a.getUser() != null ? a.getUser().getId() : null
-                ))
+                        a.getUser() != null ? a.getUser().getId() : null))
                 .toList();
     }
 
+    public List<AccountDto> getAllAccounts() {
+
+        List<AccountDto> accountDtos = new ArrayList<>();
+
+        accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(account.getId(),
+                account.getAccountName(),
+                account.getAccountNumber(),
+                account.getInstitutionNumber(),
+                account.getTransitNumber(),
+                account.getBalance(),
+                account.getType(),
+                account.getUser().getId())).toList();
+        return accountDtos;
+
+    }
 
     @Override
     public Account getAccountById(Long accountId) throws AccountNotFoundException {
@@ -100,8 +118,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account updateUserAccount(Long accountId, Account updateAccount) throws AccountNotFoundException {
-        // To update for both checking and savings account, we need to check the account type and then update accordingly (for a future implementation)
-        Account existingAccount = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        // To update for both checking and savings account, we need to check the account
+        // type and then update accordingly (for a future implementation)
+        Account existingAccount = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         existingAccount.setAccountName(updateAccount.getAccountName());
         existingAccount.setBalance(updateAccount.getBalance());
         return accountRepository.save(existingAccount);
