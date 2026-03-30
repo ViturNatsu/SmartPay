@@ -2,7 +2,7 @@ FROM python:3.11
 
 RUN apt-get update && apt-get install -y curl
 
-RUN curl -sSL https://sdk.cloud.google.com | bash
+RUN curl -sSL https://sdk.cloud.google.com | bash -s -- --disable-prompts
 
 ENV PATH=$PATH:/root/google-cloud-sdk/bin
 

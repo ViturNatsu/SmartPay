@@ -32,6 +32,7 @@ RUN update-ca-certificates
 WORKDIR /runner
 
 COPY entrypoint.sh /entrypoint.sh
+COPY logging.sh /runner/logging.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
