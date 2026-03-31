@@ -57,7 +57,7 @@ public class AccountServiceImpl implements AccountService {
         // 4. Manual mapping (BeanUtils will silently fail instead of giving compile
         // error)
         newAccount.setAccountName(account.getAccountName());
-        newAccount.setBalance(account.getBalance());
+        newAccount.setBalance(account.getBalance()!=null ? account.getBalance() : 1000.0);
         newAccount.setUser(user);
         newAccount.setAccountNumber(account.getAccountNumber());
         newAccount.setActive(account.getActive() != null ? account.getActive() : true);
