@@ -1,45 +1,58 @@
-import React from 'react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
-import ProtectedRoute from '@/routes/ProtectedRoute.jsx';
-import { Login } from '@/pages/Login/Login';
-import { Home } from '@/pages/Navbar/Home';
-import { CreateAccount } from '@/pages/Accounts/CreateAccount';
-import { ViewHistory } from '@/pages/Accounts/ViewHistory';
-import { AddPayee } from '@/pages/Accounts/AddPayee';
-import { MakeAPayment } from '@/pages/Accounts/MakeAPayment';
-import Forbidden from '@/pages/errors/Forbidden';
+import React from "react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { render, screen, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/context/AuthContext.jsx";
+import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
+import { Login } from "@/pages/Login/Login";
+import { Home } from "@/pages/Navbar/Home";
+import { CreateAccount } from "@/pages/Accounts/CreateAccount";
+import { ViewHistory } from "@/pages/Accounts/ViewHistory";
+import { AddPayee } from "@/pages/Accounts/AddPayee";
+import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
+import Forbidden from "@/pages/errors/Forbidden";
 
 // --------- Test Setup ---------
 // npm install -D @testing-library/jest-dom
 // npm test homeQuickActions.test.jsx
 
 // Mock API calls to avoid network
-import * as authApi from '@/api/authApi.js';
-import { setAccessToken } from '@/api/axios.js';
-import { createTestAccessToken } from './testUtils.js';
+import * as authApi from "@/api/authApi.js";
+import { setAccessToken } from "@/api/axios.js";
+import { createTestAccessToken } from "./testUtils.js";
 
 const TEST_ACCESS_TOKEN = createTestAccessToken();
 
-vi.mock('@/api/authApi', async () => {
-  const actual = await vi.importActual('@/api/authApi');
+vi.mock("@/api/authApi", async () => {
+  const actual = await vi.importActual("@/api/authApi");
   return {
     ...actual,
-    refreshTokens: vi.fn(async () => ({ accessToken: TEST_ACCESS_TOKEN, refreshToken: 'REFRESH' })),
-    getMyUser: vi.fn(async () => ({ id: 1, email: 'placeholder@smartpay.local', role: 'fake role' })),
+    refreshTokens: vi.fn(async () => ({
+      accessToken: TEST_ACCESS_TOKEN,
+      refreshToken: "REFRESH",
+    })),
+    getMyUser: vi.fn(async () => ({
+      id: 1,
+      email: "placeholder@smartpay.local",
+      role: "fake role",
+    })),
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
 
 function addValidRefreshToken(expSecondsFromNow = 3600) {
-  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expSecondsFromNow }))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  sessionStorage.setItem('refresh_token', `${header}.${payload}.sig`);
+  const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+  const payload = btoa(
+    JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expSecondsFromNow }),
+  )
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+  sessionStorage.setItem("refresh_token", `${header}.${payload}.sig`);
 }
 
 const ProtectedPage = () => (
@@ -49,7 +62,7 @@ const ProtectedPage = () => (
   </div>
 );
 
-function AppHarness({ initialEntries = ['/app'] }) {
+function AppHarness({ initialEntries = ["/app"] }) {
   return (
     <MemoryRouter initialEntries={initialEntries}>
       <AuthProvider>
@@ -68,9 +81,8 @@ function AppHarness({ initialEntries = ['/app'] }) {
   );
 }
 
-describe('Home Dashboard Quick Link Acceptance', () => {
-
-  it('Scenario 1: Test Create Account Link', async () => {
+describe("Home Dashboard Quick Link Acceptance", () => {
+  it("Scenario 1: Test Create Account Link", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -78,18 +90,20 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     render(<AppHarness initialEntries={["/app"]} />);
 
     // Wait for the protected page with QuickActions to render
-    const protectedContent = await screen.findByTestId('protected');
+    const protectedContent = await screen.findByTestId("protected");
     expect(protectedContent).toBeInTheDocument();
 
     // Find and click the Create Account link
-    const createAccountLink = await screen.findByRole('link', { name: /Open New Account/i });
+    const createAccountLink = await screen.findByRole("link", {
+      name: /Connect New Account/i,
+    });
     await user.click(createAccountLink);
 
     // Verify navigation to create-account page
-    expect(screen.getByText('Create Account')).toBeInTheDocument();
+    expect(screen.getByText("Create Account")).toBeInTheDocument();
   });
 
-  it('Scenario 2: Test View History Link', async () => {
+  it("Scenario 2: Test View History Link", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -97,18 +111,20 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     render(<AppHarness initialEntries={["/app"]} />);
 
     // Wait for the protected page with QuickActions to render
-    const protectedContent = await screen.findByTestId('protected');
+    const protectedContent = await screen.findByTestId("protected");
     expect(protectedContent).toBeInTheDocument();
 
     // Find and click the View History link
-    const viewHistoryLink = await screen.findByRole('link', { name: /View History/i });
+    const viewHistoryLink = await screen.findByRole("link", {
+      name: /View History/i,
+    });
     await user.click(viewHistoryLink);
 
     // Verify navigation to view-history page
-    expect(screen.getByText('View History')).toBeInTheDocument();
+    expect(screen.getByText("View History")).toBeInTheDocument();
   });
 
-  it('Scenario 4: Admin route without privileges shows forbidden', async () => {
+  it("Scenario 4: Admin route without privileges shows forbidden", async () => {
     // adjust mock to return normal user role
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -124,14 +140,14 @@ describe('Home Dashboard Quick Link Acceptance', () => {
             </Route>
           </Routes>
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // should end up on forbidden component
     expect(await screen.findByText(/403\s*-\s*Forbidden/i)).toBeInTheDocument();
   });
 
-  it('Scenario 3: Test Add Payee Link', async () => {
+  it("Scenario 3: Test Add Payee Link", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -139,18 +155,20 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     render(<AppHarness initialEntries={["/app"]} />);
 
     // Wait for the protected page with QuickActions to render
-    const protectedContent = await screen.findByTestId('protected');
+    const protectedContent = await screen.findByTestId("protected");
     expect(protectedContent).toBeInTheDocument();
 
     // Find and click the Add Payee link
-    const addPayeeLink = await screen.findByRole('link', { name: /Add Payee/i });
+    const addPayeeLink = await screen.findByRole("link", {
+      name: /Add Payee/i,
+    });
     await user.click(addPayeeLink);
 
     // Verify navigation to add-payee page
-    expect(screen.getByText('Add Payee')).toBeInTheDocument();
+    expect(screen.getByText("Add Payee")).toBeInTheDocument();
   });
 
-  it('Scenario 4: Test Make Payment Link', async () => {
+  it("Scenario 4: Test Make Payment Link", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -158,14 +176,16 @@ describe('Home Dashboard Quick Link Acceptance', () => {
     render(<AppHarness initialEntries={["/app"]} />);
 
     // Wait for the protected page with QuickActions to render
-    const protectedContent = await screen.findByTestId('protected');
+    const protectedContent = await screen.findByTestId("protected");
     expect(protectedContent).toBeInTheDocument();
 
     // Find and click the Make a Payment link
-    const makePaymentLink = await screen.findByRole('link', { name: /Make a Payment/i });
+    const makePaymentLink = await screen.findByRole("link", {
+      name: /Make a Payment/i,
+    });
     await user.click(makePaymentLink);
 
     // Verify navigation to make-payment page
-    expect(screen.getByText('Make A Payment')).toBeInTheDocument();
+    expect(screen.getByText("Make A Payment")).toBeInTheDocument();
   });
 });

@@ -9,6 +9,10 @@ import {
   Stack,
   Snackbar,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Typography,
 } from "@mui/material";
 import axiosInstance from "../../api/axios";
@@ -85,7 +89,7 @@ const AccountDetails = () => {
         }}
       >
         <Box
-          sx={{ display: "flex", justifyContent: "center", maxWidth: "100%" }}
+          sx={{ display: "flex", justifyContent: "center", minWidth: "100%" }}
         >
           <Card
             elevation={0}
@@ -117,8 +121,18 @@ const AccountDetails = () => {
               container
               spacing={3}
               justifyContent={"center"}
+              direction={"column"}
               alignItems={"center"}
             >
+              <Grid item xs={12}>
+                <TextField
+                  label="Account Type"
+                  name="accountType"
+                  value={account.type || ""}
+                  onChange={handleChange}
+                  disabled
+                />
+              </Grid>
               <Grid item xs={12}>
                 <TextField
                   label="Account Name"
@@ -155,45 +169,52 @@ const AccountDetails = () => {
                   disabled
                 />
               </Grid>
-
               <Grid item xs={12}>
                 <TextField
                   label="Balance"
                   name="balance"
+                  type="number"
                   value={account.balance ?? ""}
                   onChange={handleChange}
+                  fullWidth
                 />
               </Grid>
-
               <Grid item xs={12}>
-                <TextField
-                  label="Account Type"
-                  name="accountType"
-                  value={account.type || ""}
-                  onChange={handleChange}
-                  disabled
-                />
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    name="active"
+                    label="Status"
+                    value={account.active === true ? true : false}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value={true}>Active</MenuItem>
+                    <MenuItem value={false}>Inactive</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={2}
-                justifyContent="center"
-              >
-                <Button
-                  sx={{ maxWidth: 80 }}
-                  variant="outlined"
-                  onClick={handleCancel}
+              <Grid item xs={12}>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  justifyContent="center"
                 >
-                  Cancel
-                </Button>
-                <Button
-                  sx={{ maxWidth: 80, minWidth: 80 }}
-                  variant="contained"
-                  onClick={handleSubmit}
-                >
-                  Save
-                </Button>
-              </Stack>
+                  <Button
+                    sx={{ maxWidth: 80 }}
+                    variant="outlined"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    sx={{ maxWidth: 80, minWidth: 80 }}
+                    variant="contained"
+                    onClick={handleSubmit}
+                  >
+                    Save
+                  </Button>
+                </Stack>
+              </Grid>
             </Grid>
           </Card>
         </Box>
