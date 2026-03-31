@@ -18,6 +18,7 @@ public class AccountDto {
     private Double balance;
     private AccountType accountType;
     private Long userId;
+    private Boolean active;
     
 //  private Customer customer - links to customer info
 }

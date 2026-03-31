@@ -45,6 +45,9 @@ public abstract class Account {
     @Column(name = "balance")
     private Double balance;
 
+    @Column(name = "active")
+    private Boolean active;
+
     @ManyToOne
 	@JoinColumn(name = "fk_user_id")
 	@JsonBackReference

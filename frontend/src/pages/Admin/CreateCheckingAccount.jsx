@@ -7,6 +7,10 @@ import {
   Box,
   Button,
   TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
   Alert,
   CircularProgress,
   useMediaQuery,
@@ -24,7 +28,7 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
     accountNumber: "",
     institutionNumber: "",
     transitNumber: "",
-    balance: "0",
+    balance: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -81,7 +85,8 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
       accountNumber: "",
       institutionNumber: "",
       transitNumber: "",
-      balance: "0",
+      balance: "",
+      active: true,
     });
     setErrors({});
     setServerError("");
@@ -132,6 +137,7 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
         institutionNumber: "",
         transitNumber: "",
         balance: "0",
+        active: true,
       });
 
       setErrors({});
@@ -269,6 +275,24 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
                 disabled={loading}
                 inputProps={{ step: "0.01", min: "0" }}
               />
+            </Box>
+
+            <Box>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  label="Status"
+                  name="active"
+                  value={formData.active === true ? true : false}
+                  onChange={handleChange}
+                  placeholder="Select account status"
+                  error={!!errors.active}
+                  fullWidth
+                >
+                  <MenuItem value={true}>Active</MenuItem>
+                  <MenuItem value={false}>Inactive</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
 
             <Button

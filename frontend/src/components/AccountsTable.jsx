@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axios";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, renderBooleanCell } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 
 const AccountsTable = () => {
@@ -72,13 +72,17 @@ const AccountsTable = () => {
       editable: true,
     },
     {
-      field: "status",
+      field: "active",
       headerName: "Status",
       flex: 1,
       minWidth: 110,
       editable: true,
     },
   ];
+  const rows = accountList.map((acc) => ({
+    ...acc,
+    active: acc.active ? "Active" : "Inactive",
+  }));
 
   return (
     <Box
@@ -95,7 +99,7 @@ const AccountsTable = () => {
       <h3>Mock Accounts</h3>
       <Box sx={{ width: "100%" }}>
         <DataGrid
-          rows={accountList}
+          rows={rows}
           columns={columns}
           initialState={{
             pagination: {

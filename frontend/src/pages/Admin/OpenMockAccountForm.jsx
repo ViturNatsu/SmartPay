@@ -351,21 +351,25 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                 1. Account Agreement
               </Typography>
-              <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-                By opening an account with SmartPay, you agree to be bound by these Terms
-                and Conditions, which constitute a legally binding agreement between you and
-                SmartPay Financial Services. This agreement governs your use of chequing
-                and savings accounts.
+              <Typography
+                variant="body2"
+                sx={{ mb: 2, color: "text.secondary" }}
+              >
+                By opening an account with SmartPay, you agree to be bound by
+                these Terms and Conditions, which constitute a legally binding
+                agreement between you and SmartPay Financial Services. This
+                agreement governs your use of chequing and savings accounts.
               </Typography>
 
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                 2. Eligibility
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                To open an account, you must be at least 18 years of age, a resident of
-                Canada, and possess a valid government-issued identification document.
-                SmartPay reserves the right to verify your identity and decline applications that
-                do not meet our requirements.
+                To open an account, you must be at least 18 years of age, a
+                resident of Canada, and possess a valid government-issued
+                identification document. SmartPay reserves the right to verify
+                your identity and decline applications that do not meet our
+                requirements.
               </Typography>
             </Box>
 
@@ -392,7 +396,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       Account Type
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
@@ -400,7 +409,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       Account Name
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
@@ -408,7 +422,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       Legal Name
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
@@ -416,18 +435,28 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       Address
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
                       {`${formData.addressLine1}, ${formData.addressLine2}, ${formData.city} ${formData.province}, Canada`.replace(
                         ", ,",
-                        ","
+                        ",",
                       )}
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       Phone Number
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
@@ -435,7 +464,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        borderBottom: "1px solid #e0e0e0",
+                      }}
+                    >
                       SIN
                     </TableCell>
                     <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
@@ -444,7 +478,9 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Government ID</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>
+                      Government ID
+                    </TableCell>
                     <TableCell>
                       {formData.governmentId.replace(/./g, "*").slice(0, -3) +
                         formData.governmentId.slice(-3)}
@@ -454,9 +490,13 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
               </Table>
             </TableContainer>
 
-            <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center" }}>
-              Please review your information carefully before submitting. By submitting, you confirm
-              that all information provided is accurate and complete.
+            <Typography
+              variant="body2"
+              sx={{ color: "text.secondary", textAlign: "center" }}
+            >
+              Please review your information carefully before submitting. By
+              submitting, you confirm that all information provided is accurate
+              and complete.
             </Typography>
           </Box>
         );
@@ -480,7 +520,10 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
       }}
     >
       <DialogContent sx={{ p: { xs: 2, sm: 4 } }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, textAlign: "center" }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 600, mb: 3, textAlign: "center" }}
+        >
           Open a New Account
         </Typography>
 
@@ -499,10 +542,13 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                 StepIconComponent={
                   index < activeStep
                     ? () => (
-                      <CheckCircleRoundedIcon
-                        sx={{ color: theme.palette.primary.main, fontSize: 24 }}
-                      />
-                    )
+                        <CheckCircleRoundedIcon
+                          sx={{
+                            color: theme.palette.primary.main,
+                            fontSize: 24,
+                          }}
+                        />
+                      )
                     : undefined
                 }
               >

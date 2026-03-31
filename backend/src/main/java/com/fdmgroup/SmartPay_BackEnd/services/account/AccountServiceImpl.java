@@ -15,8 +15,6 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
-import java.util.ArrayList;
-
 @Service
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
@@ -24,7 +22,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountFactory accountFactory;
 
     public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
-            AccountFactory accountFactory) {
+                              AccountFactory accountFactory) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.accountFactory = accountFactory;
@@ -62,6 +60,7 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setBalance(account.getBalance());
         newAccount.setUser(user);
         newAccount.setAccountNumber(account.getAccountNumber());
+        newAccount.setActive(account.getActive() != null ? account.getActive() : true);
         if (account.getType().equals(AccountType.CHECKING)) {
             newAccount.setTransitNumber(account.getTransitNumber());
             newAccount.setInstitutionNumber(account.getInstitutionNumber());
@@ -90,13 +89,14 @@ public class AccountServiceImpl implements AccountService {
                         a.getTransitNumber(),
                         a.getBalance(),
                         a.getType(),
-                        a.getUser() != null ? a.getUser().getId() : null))
+                        a.getUser() != null ? a.getUser().getId() : null,
+                        a.getActive()))
                 .toList();
     }
 
     public List<AccountDto> getAllAccounts() {
 
-        List<AccountDto> accountDtos = new ArrayList<>();
+        List<AccountDto> accountDtos;
 
         accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(account.getId(),
                 account.getAccountName(),
@@ -105,7 +105,8 @@ public class AccountServiceImpl implements AccountService {
                 account.getTransitNumber(),
                 account.getBalance(),
                 account.getType(),
-                account.getUser().getId())).toList();
+                account.getUser().getId(),
+                account.getActive())).toList();
         return accountDtos;
 
     }
@@ -124,6 +125,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         existingAccount.setAccountName(updateAccount.getAccountName());
         existingAccount.setBalance(updateAccount.getBalance());
+        existingAccount.setActive(updateAccount.getActive());
         return accountRepository.save(existingAccount);
     }
 
