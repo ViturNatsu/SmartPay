@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findByUserId(Long userId);
     Optional<Account> findByAccountNumber(String accountNumber);

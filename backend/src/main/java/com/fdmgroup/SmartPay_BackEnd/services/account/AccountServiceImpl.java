@@ -28,6 +28,17 @@ public class AccountServiceImpl implements AccountService {
         this.accountFactory = accountFactory;
     }
 
+    public Account createAccountForUser(Account account, long id) {
+        /*User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + id + " not found"));
+        Account newAccount = accountFactory.createAccount(account.getType());
+        newAccount.setAccountName(account.getAccountName());
+        newAccount.setBalance(account.getBalance());
+        newAccount.setUser(user);
+        return addAccount(newAccount);*/
+        return addAccount(account);
+    }
+
     @Override
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
@@ -36,7 +47,7 @@ public class AccountServiceImpl implements AccountService {
                         () -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
 
         // 2. Validate Account
-        if (account.getType().equals(AccountType.CHECKING)) {
+
             if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
                 throw new IllegalArgumentException("Institution number must be exactly 3 digits");
             }
@@ -49,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
             if (accountRepository.findByAccountNumber(account.getAccountNumber()).isPresent()) {
                 throw new IllegalArgumentException("Account with this account number already exists");
             }
-        }
+
 
         // 3. Create a new account
         Account newAccount = accountFactory.createAccount(account.getType());
@@ -60,14 +71,17 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setBalance(account.getBalance()!=null ? account.getBalance() : 1000.0);
         newAccount.setUser(user);
         newAccount.setAccountNumber(account.getAccountNumber());
+
+
+        newAccount.setTransitNumber(account.getTransitNumber());
+        newAccount.setInstitutionNumber(account.getInstitutionNumber());
+
+
         newAccount.setActive(account.getActive() != null ? account.getActive() : true);
-        if (account.getType().equals(AccountType.CHECKING)) {
-            newAccount.setTransitNumber(account.getTransitNumber());
-            newAccount.setInstitutionNumber(account.getInstitutionNumber());
-        }
+
+
 
         // 5. Add account to user and save in repo
-        user.getAccounts().add(newAccount);
         return accountRepository.save(newAccount);
     }
 
