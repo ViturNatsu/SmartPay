@@ -31,6 +31,20 @@ public class AccountController {
                 this.accountService = accountService;
         }
 
+        @PostMapping("/forUser/{id}")
+        @Operation(summary = "Creates a new account for user with specified id", description = "Create a new account for a specified user.")
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "201", description = "Account created successfully"),
+                @ApiResponse(responseCode = "404", description = "User with specified id not found"),
+                @ApiResponse(responseCode = "500", description = "Internal server error, likely means account request body was invalid")
+        })
+        public ResponseEntity<Account> createAccountForUser(@Valid @RequestBody Account account, @PathVariable  long id) {
+                Account createdAccount = accountService.createAccountForUser(account, id);
+                URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                        .buildAndExpand(createdAccount.getId()).toUri();
+                return ResponseEntity.created(location).body(createdAccount);
+        }
+
         @PostMapping
         @Operation(summary = "Create a new account", description = "Create a new savings or checking account for a specified user.")
         @ApiResponses(value = {

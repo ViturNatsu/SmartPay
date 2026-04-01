@@ -7,10 +7,14 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface AccountService {
 
-    Account addAccount(Account account) throws UserNotFoundException;
+    Account createAccountForUser(Account account, long id) throws UserNotFoundException;
+
+    Account addAccount(Account account)throws UserNotFoundException;
 
     List<AccountDto> getAccounts(Long userId, AccountType type) throws UserNotFoundException;
 

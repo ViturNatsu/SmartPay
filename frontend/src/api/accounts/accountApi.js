@@ -20,4 +20,21 @@ export async function createAccount(payload) {
   }
 }
 
+export async function createAccountForUser(payload, id) {
+  try {
+    const res = await axiosInstance.post(`${ACCOUNTS_URL}/forUser/${id}`, payload);
+    console.log(res.data);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function deleteAccountById(id) {
+  try {
+    const res = await axiosInstance.delete(`${ACCOUNTS_URL}/${id}`);
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
 

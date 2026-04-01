@@ -18,17 +18,20 @@ import {
 } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 
-function CreateCheckingAccount({ open, onClose, onSuccess }) {
+function CreateMockAccount({ open, onClose, onSuccess }) {
   const { tokenClaims } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const accountTypes = ["CHECKING", "SAVINGS"];
 
   const [formData, setFormData] = useState({
+    userId: 0,
     accountName: "",
     accountNumber: "",
     institutionNumber: "",
     transitNumber: "",
-    balance: "",
+    balance: "1000",
+    type: accountTypes[0],
   });
 
   const [errors, setErrors] = useState({});
@@ -41,6 +44,10 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
 
     if (!formData.accountName.trim()) {
       newErrors.accountName = "Account name is required";
+    }
+
+    if (!formData.userId.trim()) {
+      newErrors.userId = "Account user id is required";
     }
 
     if (!/^\d{3}$/.test(formData.institutionNumber)) {
@@ -81,12 +88,14 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
   const handleClose = () => {
     // Reset form when closing
     setFormData({
+      userId: 0,
       accountName: "",
       accountNumber: "",
       institutionNumber: "",
       transitNumber: "",
-      balance: "",
+      balance: "1000",
       active: true,
+      type: accountTypes[0],
     });
     setErrors({});
     setServerError("");
@@ -117,9 +126,9 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
         institutionNumber: formData.institutionNumber,
         transitNumber: formData.transitNumber,
         balance: parseFloat(formData.balance),
-        type: "CHECKING",
+        type: formData.type,
         user: {
-          id: Number(tokenClaims?.userId),
+          id: Number(formData.userId),
         },
       };
 
@@ -132,12 +141,14 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
 
       // Reset form
       setFormData({
+        userId: 0,
         accountName: "",
         accountNumber: "",
         institutionNumber: "",
         transitNumber: "",
-        balance: "0",
+        balance: "1000",
         active: true,
+        type: accountTypes[0],
       });
 
       setErrors({});
@@ -188,7 +199,7 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
       }}
     >
       <DialogTitle sx={{ fontWeight: 600, fontSize: "1.25rem" }}>
-        Create Mock Checking Account
+        Create Mock Account
       </DialogTitle>
       <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -196,6 +207,43 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
             onSubmit={handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: 16 }}
           >
+
+            <Box>
+              <FormControl fullWidth>
+                <InputLabel>Account Type</InputLabel>
+                <Select
+                  label="Account Type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  placeholder="Select account type"
+                  error={!!errors.type}
+                  fullWidth
+                >
+                  {accountTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <TextField
+                fullWidth
+                label="ID of User For Account"
+                name="userId"
+                type="text"
+                value={formData.userId}
+                onChange={handleChange}
+                placeholder="e.g., Primary Checking"
+                error={!!errors.userId}
+                helperText={errors.userId}
+                disabled={loading}
+              />
+            </Box>
+
             <Box>
               <TextField
                 fullWidth
@@ -329,4 +377,4 @@ function CreateCheckingAccount({ open, onClose, onSuccess }) {
   );
 }
 
-export default CreateCheckingAccount;
+export default CreateMockAccount;

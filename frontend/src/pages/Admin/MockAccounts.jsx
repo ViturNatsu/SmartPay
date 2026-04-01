@@ -24,7 +24,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 
 import Navbar from "@/components/Navbar";
 import OpenAccountForm from "./OpenMockAccountForm";
-import CreateCheckingAccount from "./CreateCheckingAccount";
+import CreateMockAccount from "./CreateMockAccount";
 import { useAuth } from "@/context/AuthContext";
 import {
   getUserAccounts,
@@ -50,6 +50,7 @@ export const MockAccounts = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [openAccountFormOpen, setOpenAccountFormOpen] = useState(false);
   const [adminFormOpen, setAdminFormOpen] = useState(false);
+  const [mockSavingsOpen, setMockSavingsOpen] = useState(false);
   const [accountsState, setAccountsState] = useState({
     chequing: [],
     savings: [],
@@ -88,11 +89,24 @@ export const MockAccounts = () => {
     setAdminFormOpen(false);
   };
 
+  const handleOpenMockSavings = () => {
+    setMockSavingsOpen(true);
+  }
+
+  const handleCloseMockSavings = () => {
+    setMockSavingsOpen(false);
+  }
+
   const handleAdminFormSuccess = (data) => {
     fetchMockAccounts(tokenClaims?.userId);
-    setSnackbarMessage("Mock checking account created successfully!");
+    setSnackbarMessage("Account created successfully!");
     setSuccessSnackbar(true);
   };
+
+  const handleMockSavingsSuccess = () => {
+    setSnackbarMessage("success.")
+    setSuccessSnackbar(true);
+  }
 
   const handleSubmitAccountForm = async (formData) => {
     try {
@@ -139,7 +153,6 @@ export const MockAccounts = () => {
         savings.push({
           ...base,
           type: "savings",
-          goal: Number(acct.goal) || 0,
         });
       }
     });
@@ -155,19 +168,7 @@ export const MockAccounts = () => {
     setError(null);
     try {
       const data = [
-        {
-          id: 1,
-          accountName: "Mock Chequing Account",
-          accountType: "CHECKING",
-          balance: 1000,
-        },
-        {
-          id: 2,
-          accountName: "Mock Savings Account",
-          accountType: "SAVINGS",
-          balance: 5000,
-          goal: 10000,
-        },
+        
       ];
       setAccountsState(
         normalizeAccounts(Array.isArray(data) ? data : data?.accounts || []),
@@ -204,7 +205,7 @@ export const MockAccounts = () => {
               flexWrap: "wrap",
             }}
           >
-            <Button
+            {/*<Button
               variant="contained"
               startIcon={<AddRoundedIcon />}
               onClick={handleOpenAccountForm}
@@ -218,7 +219,7 @@ export const MockAccounts = () => {
               }}
             >
               Open New Mock Account
-            </Button>
+            </Button>*/}
 
             <Button
               variant="outlined"
@@ -233,15 +234,31 @@ export const MockAccounts = () => {
                 my: 4.5,
               }}
             >
-              Create Mock Checking
+              Create Mock Account
             </Button>
+
+            {/*<Button
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={handleOpenMockSavings}
+              sx={{
+                display: { xs: "none", md: "inline-flex" },
+                textTransform: "none",
+                borderRadius: 1,
+                px: 3,
+                py: 1.2,
+                my: 4.5,
+              }}
+            >
+              Create Mock Savings
+            </Button>*/}
           </Box>
 
           {isMediumDown && (
             <Box
               sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}
             >
-              <Button
+              {/*<Button
                 variant="contained"
                 startIcon={<AddRoundedIcon />}
                 onClick={handleOpenAccountForm}
@@ -249,7 +266,7 @@ export const MockAccounts = () => {
                 sx={{ textTransform: "none", borderRadius: 1, py: 1.4 }}
               >
                 Open New Mock Account
-              </Button>
+              </Button>*/}
               <Button
                 variant="outlined"
                 startIcon={<SettingsIcon />}
@@ -257,7 +274,7 @@ export const MockAccounts = () => {
                 fullWidth
                 sx={{ textTransform: "none", borderRadius: 1, py: 1.4 }}
               >
-                Create Mock Checking
+                Create Mock Account
               </Button>
             </Box>
           )}
@@ -270,7 +287,7 @@ export const MockAccounts = () => {
               alignItems: "start",
             }}
           >
-            <Box>
+            {/*<Box>
               {loading ? (
                 <LinearProgress sx={{ mb: 2 }} />
               ) : error ? (
@@ -304,21 +321,21 @@ export const MockAccounts = () => {
                       flexWrap: "wrap",
                     }}
                   >
-                    <Button
+                    {/*<Button
                       variant="contained"
                       startIcon={<AddRoundedIcon />}
                       onClick={handleOpenAccountForm}
                       sx={{ textTransform: "none", borderRadius: 1 }}
                     >
                       Open New Account
-                    </Button>
-                    <Button
+                    </Button>*/}
+                    {/*<Button
                       variant="outlined"
                       startIcon={<SettingsIcon />}
                       onClick={handleOpenAdminForm}
                       sx={{ textTransform: "none", borderRadius: 1 }}
                     >
-                      Create Checking
+                      Create Mock Checking
                     </Button>
                   </Box>
                 </Box>
@@ -423,7 +440,7 @@ export const MockAccounts = () => {
                   </Box>
                 </>
               )}
-            </Box>
+            </Box>*/}
           </Box>
         </Container>
       </Box>
@@ -434,7 +451,7 @@ export const MockAccounts = () => {
         onSubmit={handleSubmitAccountForm}
       />
 
-      <CreateCheckingAccount
+      <CreateMockAccount
         open={adminFormOpen}
         onClose={handleCloseAdminForm}
         onSuccess={handleAdminFormSuccess}

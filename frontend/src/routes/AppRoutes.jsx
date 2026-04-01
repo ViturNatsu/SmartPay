@@ -22,7 +22,6 @@ import PrivacyPolicy from "@/pages/Registration/PrivacyPolicy";
 import AdminDash from "@/pages/Admin/AdminDash";
 import Forbidden from "@/pages/errors/Forbidden";
 import MockAccounts from "../pages/Admin/MockAccounts";
-
 export default function AppRoutes() {
   return (
     <Routes>
@@ -35,6 +34,7 @@ export default function AppRoutes() {
       <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/forbidden" element={<Forbidden />} />
+      
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />

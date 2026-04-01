@@ -8,9 +8,22 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(
+        name = "accounts",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_account_institution_transit_account",
+                        columnNames = {"institution_number", "transit_number", "account_number"}
+                )
+        }
+)
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
@@ -22,7 +35,7 @@ import lombok.*;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = SavingsAccount.class, name = "SAVINGS"),
-        @JsonSubTypes.Type(value = CheckingAccount.class, name = "CHECKING")
+        @JsonSubTypes.Type(value = CheckingAccount.class, name = "CHECKING"),
 })
 public abstract class Account {
     @Id
@@ -50,8 +63,23 @@ public abstract class Account {
 
     @ManyToOne
 	@JoinColumn(name = "fk_user_id")
-	@JsonBackReference
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
 	private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type")
+    private AccountType accountType;
+
+    @CreationTimestamp
+    @Column(name = "creation_timestamp", updatable = false)
+    private LocalDateTime creationTimestamp;
+
+    @PrePersist
+    @PreUpdate
+    private void syncTypeForDb() {
+        this.accountType = getType();
+    }
 
     @JsonProperty("type")
     public abstract AccountType getType();
