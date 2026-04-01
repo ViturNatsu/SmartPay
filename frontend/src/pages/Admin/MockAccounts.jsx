@@ -91,11 +91,11 @@ export const MockAccounts = () => {
 
   const handleOpenMockSavings = () => {
     setMockSavingsOpen(true);
-  }
+  };
 
   const handleCloseMockSavings = () => {
     setMockSavingsOpen(false);
-  }
+  };
 
   const handleAdminFormSuccess = (data) => {
     fetchMockAccounts(tokenClaims?.userId);
@@ -104,9 +104,9 @@ export const MockAccounts = () => {
   };
 
   const handleMockSavingsSuccess = () => {
-    setSnackbarMessage("success.")
+    setSnackbarMessage("success.");
     setSuccessSnackbar(true);
-  }
+  };
 
   const handleSubmitAccountForm = async (formData) => {
     try {
@@ -167,9 +167,7 @@ export const MockAccounts = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = [
-        
-      ];
+      const data = await getUserAccounts(userId);
       setAccountsState(
         normalizeAccounts(Array.isArray(data) ? data : data?.accounts || []),
       );
@@ -236,22 +234,6 @@ export const MockAccounts = () => {
             >
               Create Mock Account
             </Button>
-
-            {/*<Button
-              variant="outlined"
-              startIcon={<SettingsIcon />}
-              onClick={handleOpenMockSavings}
-              sx={{
-                display: { xs: "none", md: "inline-flex" },
-                textTransform: "none",
-                borderRadius: 1,
-                px: 3,
-                py: 1.2,
-                my: 4.5,
-              }}
-            >
-              Create Mock Savings
-            </Button>*/}
           </Box>
 
           {isMediumDown && (
@@ -287,7 +269,7 @@ export const MockAccounts = () => {
               alignItems: "start",
             }}
           >
-            {/*<Box>
+            <Box>
               {loading ? (
                 <LinearProgress sx={{ mb: 2 }} />
               ) : error ? (
@@ -329,7 +311,7 @@ export const MockAccounts = () => {
                     >
                       Open New Account
                     </Button>*/}
-                    {/*<Button
+                    <Button
                       variant="outlined"
                       startIcon={<SettingsIcon />}
                       onClick={handleOpenAdminForm}
@@ -440,7 +422,7 @@ export const MockAccounts = () => {
                   </Box>
                 </>
               )}
-            </Box>*/}
+            </Box>
           </Box>
         </Container>
       </Box>

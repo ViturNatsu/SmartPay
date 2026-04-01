@@ -25,12 +25,12 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
   const accountTypes = ["CHECKING", "SAVINGS"];
 
   const [formData, setFormData] = useState({
-    userId: 0,
+    userId: "",
     accountName: "",
     accountNumber: "",
     institutionNumber: "",
     transitNumber: "",
-    balance: "1000",
+    balance: "",
     type: accountTypes[0],
   });
 
@@ -63,11 +63,6 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
       newErrors.accountNumber = "Account number must be 7 to 12 digits";
     }
 
-    const balanceNum = parseFloat(formData.balance);
-    if (isNaN(balanceNum) || balanceNum < 0) {
-      newErrors.balance = "Balance must be a valid positive number";
-    }
-
     return newErrors;
   };
 
@@ -88,12 +83,12 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
   const handleClose = () => {
     // Reset form when closing
     setFormData({
-      userId: 0,
+      userId: "",
       accountName: "",
       accountNumber: "",
       institutionNumber: "",
       transitNumber: "",
-      balance: "1000",
+      balance: "",
       active: true,
       type: accountTypes[0],
     });
@@ -108,6 +103,8 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
 
     setServerError("");
     setServerResponse(null);
+
+    formData.userId === "" ? "1" : formData.userId; // Default to 1 if userId is empty
 
     const validationErrors = validateForm();
 
@@ -141,12 +138,12 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
 
       // Reset form
       setFormData({
-        userId: 0,
+        userId: "",
         accountName: "",
         accountNumber: "",
         institutionNumber: "",
         transitNumber: "",
-        balance: "1000",
+        balance: "",
         active: true,
         type: accountTypes[0],
       });
@@ -207,7 +204,6 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
             onSubmit={handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: 16 }}
           >
-
             <Box>
               <FormControl fullWidth>
                 <InputLabel>Account Type</InputLabel>
@@ -232,12 +228,12 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
             <Box>
               <TextField
                 fullWidth
-                label="ID of User For Account"
+                label="User ID"
                 name="userId"
                 type="text"
                 value={formData.userId}
                 onChange={handleChange}
-                placeholder="e.g., Primary Checking"
+                placeholder="1"
                 error={!!errors.userId}
                 helperText={errors.userId}
                 disabled={loading}
@@ -310,18 +306,16 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
             <Box>
               <TextField
                 fullWidth
-                label="Initial Balance"
+                label="Balance"
                 name="balance"
                 type="number"
                 value={formData.balance}
                 onChange={handleChange}
                 placeholder="0.00"
                 error={!!errors.balance}
-                helperText={
-                  errors.balance || "Starting balance for the account"
-                }
+                helperText={errors.balance || "Balance of the account"}
                 disabled={loading}
-                inputProps={{ step: "0.01", min: "0" }}
+                inputProps={{ step: "0.01" }}
               />
             </Box>
 

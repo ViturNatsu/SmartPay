@@ -47,20 +47,18 @@ public class AccountServiceImpl implements AccountService {
                         () -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
 
         // 2. Validate Account
-
-            if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
-                throw new IllegalArgumentException("Institution number must be exactly 3 digits");
-            }
-            if (account.getTransitNumber() != null && !account.getTransitNumber().matches("\\d{5}")) {
-                throw new IllegalArgumentException("Transit number must be exactly 5 digits");
-            }
-            if (account.getAccountNumber() != null && !account.getAccountNumber().matches("\\d{7,12}")) {
-                throw new IllegalArgumentException("Account number must be between 7 and 12 digits");
-            }
-            if (accountRepository.findByAccountNumber(account.getAccountNumber()).isPresent()) {
-                throw new IllegalArgumentException("Account with this account number already exists");
-            }
-
+        if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
+            throw new IllegalArgumentException("Institution number must be exactly 3 digits");
+        }
+        if (account.getTransitNumber() != null && !account.getTransitNumber().matches("\\d{5}")) {
+            throw new IllegalArgumentException("Transit number must be exactly 5 digits");
+        }
+        if (account.getAccountNumber() != null && !account.getAccountNumber().matches("\\d{7,12}")) {
+            throw new IllegalArgumentException("Account number must be between 7 and 12 digits");
+        }
+        if (accountRepository.findByAccountNumber(account.getAccountNumber()).isPresent()) {
+            throw new IllegalArgumentException("Account with this account number already exists");
+        }
 
         // 3. Create a new account
         Account newAccount = accountFactory.createAccount(account.getType());
@@ -68,20 +66,15 @@ public class AccountServiceImpl implements AccountService {
         // 4. Manual mapping (BeanUtils will silently fail instead of giving compile
         // error)
         newAccount.setAccountName(account.getAccountName());
-        newAccount.setBalance(account.getBalance()!=null ? account.getBalance() : 1000.0);
+        newAccount.setBalance(account.getBalance() != null ? account.getBalance() : 1000.0);
         newAccount.setUser(user);
-        newAccount.setAccountNumber(account.getAccountNumber());
-
-
+        newAccount.setAccountNumber(account.getAccountNumber() != null ? account.getAccountNumber() : newAccount.getAccountNumber());
         newAccount.setTransitNumber(account.getTransitNumber());
         newAccount.setInstitutionNumber(account.getInstitutionNumber());
-
-
         newAccount.setActive(account.getActive() != null ? account.getActive() : true);
 
-
-
         // 5. Add account to user and save in repo
+        user.getAccounts().add(newAccount);
         return accountRepository.save(newAccount);
     }
 
