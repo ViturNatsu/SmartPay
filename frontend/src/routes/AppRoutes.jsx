@@ -22,6 +22,9 @@ import PrivacyPolicy from "@/pages/Registration/PrivacyPolicy";
 import AdminDash from "@/pages/Admin/AdminDash";
 import Forbidden from "@/pages/errors/Forbidden";
 import MockAccounts from "../pages/Admin/MockAccounts";
+import SimulatedBankAuthorization from "../pages/SimulatedBankAuthorization";
+import LinkBankAccount from "../pages/LinkBankAccount";
+import SimulatedBankAuthSuccess from "../pages/SimulatedBankAuthSuccess";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -34,6 +37,7 @@ export default function AppRoutes() {
       <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/forbidden" element={<Forbidden />} />
+      
       
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
@@ -48,6 +52,10 @@ export default function AppRoutes() {
         <Route path="/view-history" element={<ViewHistory />} />
         <Route path="/make-a-payment" element={<MakeAPayment />} />
         <Route path="/add-payee" element={<AddPayee />} />
+        <Route path="/simulatedbankauth/:selectedBank/:placeholderBankId" element={<SimulatedBankAuthorization />} />
+        <Route path="/linkbankaccount/:institutionNumber" element={<LinkBankAccount />} />
+        <Route path="/linkbankaccount" element={<LinkBankAccount />} />
+        <Route path="/simulatedbankauthsuccess" element={<SimulatedBankAuthSuccess/>}></Route>
       </Route>
 
       {/* admin-only area */}
