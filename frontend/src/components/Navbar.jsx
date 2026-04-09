@@ -31,7 +31,7 @@ import logo from "@/style/logo.png";
 // Update these to match your real routes
 const userNavItems = [
   { label: "Dashboard", path: "/", icon: <HomeRoundedIcon /> },
-  { label: "Accounts", path: "/accounts", icon: <AccountBalanceWalletOutlinedIcon /> },
+  { label: "Payment Methods", path: "/payment-methods", icon: <AccountBalanceWalletOutlinedIcon /> },
   { label: "Transactions", path: "/transactions", icon: <SwapHorizRoundedIcon /> },
   { label: "My Cards", path: "/cards", icon: <CreditCardRoundedIcon /> },
   { label: "Reports", path: "/reports", icon: <InsightsRoundedIcon /> },
