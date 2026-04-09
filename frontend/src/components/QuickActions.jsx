@@ -9,11 +9,11 @@ import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 function QuickActions() {
   const actions = [
     {
-      text: "Connect New Account",
+      text: "Add Payment Method",
       icon: <AccountBalanceOutlinedIcon />,
       color: "#F3E8FF",
       iconColor: "#000000ff",
-      href: "/create-account",
+      href: "/payment-methods",
     },
     {
       text: "View History",

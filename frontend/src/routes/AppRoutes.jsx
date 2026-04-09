@@ -17,6 +17,7 @@ import { AddPayee } from "@/pages/Accounts/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import { ViewHistory } from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";
+import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
 import TermsAndConditions from "@/pages/Registration/TermsAndConditions";
 import PrivacyPolicy from "@/pages/Registration/PrivacyPolicy";
 import AdminDash from "@/pages/Admin/AdminDash";
@@ -48,6 +49,7 @@ export default function AppRoutes() {
         <Route path="/cards" element={<Cards />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/payment-methods" element={<PaymentMethods />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/view-history" element={<ViewHistory />} />
         <Route path="/make-a-payment" element={<MakeAPayment />} />
