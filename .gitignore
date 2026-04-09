@@ -5,3 +5,6 @@
 # Spring Boot for Eclipse
 .metadata/
 backend/data/
+
+# Python bytecode cache
+__pycache__/
