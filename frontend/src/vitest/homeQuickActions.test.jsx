@@ -8,6 +8,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
 import { Login } from "@/pages/Login/Login";
 import { Home } from "@/pages/Navbar/Home";
 import { CreateAccount } from "@/pages/Accounts/CreateAccount";
+import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
 import { ViewHistory } from "@/pages/Accounts/ViewHistory";
 import { AddPayee } from "@/pages/Accounts/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
@@ -70,6 +71,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<ProtectedPage />} />
+            <Route path="/payment-methods" element={<PaymentMethods />} />
             <Route path="/create-account" element={<CreateAccount />} />
             <Route path="/view-history" element={<ViewHistory />} />
             <Route path="/add-payee" element={<AddPayee />} />
@@ -82,7 +84,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
 }
 
 describe("Home Dashboard Quick Link Acceptance", () => {
-  it("Scenario 1: Test Create Account Link", async () => {
+  it("Scenario 1: Test Add Payment Method Link", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -93,14 +95,16 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     const protectedContent = await screen.findByTestId("protected");
     expect(protectedContent).toBeInTheDocument();
 
-    // Find and click the Create Account link
-    const createAccountLink = await screen.findByRole("link", {
-      name: /Connect New Account/i,
+    // Find and click the Add Payment Method link
+    const paymentMethodsLink = await screen.findByRole("link", {
+      name: /Add Payment Method/i,
     });
-    await user.click(createAccountLink);
+    await user.click(paymentMethodsLink);
 
-    // Verify navigation to create-account page
-    expect(screen.getByText("Create Account")).toBeInTheDocument();
+    // Verify navigation to payment methods page
+    expect(
+      screen.getByRole("heading", { name: /^Payment Methods$/i }),
+    ).toBeInTheDocument();
   });
 
   it("Scenario 2: Test View History Link", async () => {
