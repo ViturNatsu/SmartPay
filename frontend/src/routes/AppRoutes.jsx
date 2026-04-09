@@ -23,9 +23,9 @@ import PrivacyPolicy from "@/pages/Registration/PrivacyPolicy";
 import AdminDash from "@/pages/Admin/AdminDash";
 import Forbidden from "@/pages/errors/Forbidden";
 import MockAccounts from "../pages/Admin/MockAccounts";
-import SimulatedBankAuthorization from "../pages/SimulatedBankAuthorization";
-import LinkBankAccount from "../pages/LinkBankAccount";
-import SimulatedBankAuthSuccess from "../pages/SimulatedBankAuthSuccess";
+import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAuthorization";
+import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
+import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 export default function AppRoutes() {
   return (
     <Routes>
