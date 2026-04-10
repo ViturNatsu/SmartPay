@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { Box, Select, MenuItem, FormControl, Button, Typography, Dialog, DialogContent } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { getInstitutionById } from "../../api/financialinstitution/financialinstitutionApi";
+//import { getInstitutionById } from "../../api/financialinstitution/financialinstitutionApi";
 
 function LinkBankAccount({open, onClose}) {
     const theme = useTheme();
@@ -25,7 +25,8 @@ function LinkBankAccount({open, onClose}) {
         
     }
 
-    const fetchInstitution = async () => {
+    // todo: delete once confirmed financial institution is manually selected
+    /*const fetchInstitution = async () => {
         try {
             const institutionNumber = 123; // Placeholder institution number for testing
             const resp = await getInstitutionById(institutionNumber);
@@ -34,11 +35,11 @@ function LinkBankAccount({open, onClose}) {
         } catch (err) {
             setSelectedInstitution(err.message)
         }
-    }
+    }*/
 
-    useEffect(() => {
+    /*useEffect(() => {
         fetchInstitution();
-    })
+    })*/
 
     return (
         <>
