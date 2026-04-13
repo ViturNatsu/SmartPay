@@ -145,6 +145,7 @@ function SimulatedBankAuthorization() {
                             Sandbox Username:
                         </Typography>
                         <TextField
+                            label="username"
                             variant="standard"
                             fullWidth
                             value={username}
@@ -174,6 +175,7 @@ function SimulatedBankAuthorization() {
                             Sandbox Password:
                         </Typography>
                         <TextField
+                            label="password"
                             variant="standard"
                             fullWidth
                             type="password"

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route, useParams } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -10,6 +10,9 @@ import { AuthProvider } from "../context/AuthContext";
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import { setAccessToken } from "../api/axios";
 import { createTestAccessToken } from "./testUtils";
+import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAuthorization";
+import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
+import axiosInstance from "../api/axios";
 
 const TEST_ACCESS_TOKEN = createTestAccessToken();
 
@@ -29,7 +32,6 @@ vi.mock("../api/authApi", async () => {
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
-
 function addValidRefreshToken(expSecondsFromNow = 3600) {
   const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }))
     .replace(/\+/g, "-")
@@ -72,7 +74,8 @@ const renderLinkBankAccountWithRoutes = () => {
         <ThemeProvider theme={theme}>
           <Routes>
             <Route path="/link-bank-account" element={<LinkBankAccount open={true} />} />
-            <Route path="/simulatedbankauth/:bank/:id" element={<SelectedBankPage />} />
+            <Route path="/simulatedbankauth/:selectedBank/:placeholderBankId" element={<SimulatedBankAuthorization />} />
+            <Route path="simulatedbankauthsuccess" element={<SimulatedBankAuthSuccess />} />
           </Routes>
         </ThemeProvider>
       </AuthProvider>
@@ -175,4 +178,84 @@ describe("LinkBankAccount", () => {
 
     expect(await screen.findByText(`You selected: ${bank}`)).toBeInTheDocument();
   });
+
+  it.each([
+    "TD",
+    "RBC",
+    "Scotiabank",
+    "BMO",
+    "CIBC",
+    "National Bank",
+    "Desjardins",
+    "Simplii Financial",
+    "Tangerine",
+    "Other Financial Institution"
+  ])("Displays error message when invalid credentials are entered", async (bank) => {
+    const user = userEvent.setup();
+    renderLinkBankAccountWithRoutes();
+
+    const select = screen.getByRole("combobox");
+    const continueButton = screen.getByRole("button", { name: /Continue/i });
+
+    await user.click(select);
+    const bankOption = screen.getByRole("option", { name: bank });
+    await user.click(bankOption);
+
+    await user.click(continueButton);
+
+    
+    const usernameInput = screen.getByLabelText(/username/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+
+    await user.type(usernameInput, "wrong_user");
+    await user.type(passwordInput, "wrong_pass");
+
+    const submitButton = screen.getByRole("button", { name: /Submit/i });
+    await user.click(submitButton);
+
+    expect(await screen.findByText(`You selected: ${bank}`)).toBeInTheDocument();
+    expect(await screen.findByText("Invalid sandbox credentials. Try again.")).toBeInTheDocument();
+  });
+
+  it.each([
+    "TD",
+    "RBC",
+    "Scotiabank",
+    "BMO",
+    "CIBC",
+    "National Bank",
+    "Desjardins",
+    "Simplii Financial",
+    "Tangerine",
+    "Other Financial Institution"
+  ])("Displays error message when credential fields are empty", async (bank) => {
+    const user = userEvent.setup();
+    renderLinkBankAccountWithRoutes();
+
+    const select = screen.getByRole("combobox");
+    const continueButton = screen.getByRole("button", { name: /Continue/i });
+
+    await user.click(select);
+    const bankOption = screen.getByRole("option", { name: bank });
+    await user.click(bankOption);
+
+    await user.click(continueButton);
+
+    expect(await screen.findByText(`You selected: ${bank}`)).toBeInTheDocument();
+    const usernameField = screen.getByLabelText(/username/i).closest(".MuiFormControl-root");
+
+    expect(
+      within(usernameField).getByText(/this field is required/i)
+    ).toBeInTheDocument();
+
+    const passwordField = screen.getByLabelText(/password/i).closest(".MuiFormControl-root");
+
+    expect(
+      within(passwordField).getByText(/this field is required/i)
+    ).toBeInTheDocument();
+  });
+
+  
+
 });
+
