@@ -82,8 +82,10 @@ public class OtpController {
         switch (payload.getType()) {
             case LOGIN -> {
                 User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
+                sessionService.deleteAllUserSessions(user);
                 String accessToken = jwtSessionService.createAccessToken(user);
                 String refreshToken = jwtSessionService.createRefreshToken(user);
+
                 sessionService.generateNewSession(user, refreshToken);
 
                 otp.markAsUsed();
