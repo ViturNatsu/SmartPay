@@ -7,6 +7,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
@@ -16,6 +17,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
 @Service
+@Transactional
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;

@@ -3,7 +3,7 @@ import { setupAPIMocks, loginAndVerifyOtp } from "./helpers/auth.helpers.js";
 
 let sharedPage;
 
-test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
+test.describe.serial("Payment Methods - Bank Account flows", () => {
   test.beforeAll(async ({ browser }) => {
     sharedPage = await browser.newPage();
     await setupAPIMocks(sharedPage);
@@ -23,10 +23,10 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
     // Force desktop viewport so desktop-only controls are visible
     await sharedPage.setViewportSize({ width: 1280, height: 800 });
 
-    // Navigate to accounts page
-    await sharedPage.goto("/accounts");
+    // Navigate to payment methods page
+    await sharedPage.goto("/payment-methods");
     await expect(
-      sharedPage.getByRole("button", { name: /Connect New Account/i }).first(),
+      sharedPage.getByRole("button", { name: /Bank Account/i }).first(),
     ).toBeVisible({ timeout: 20_000 });
   });
 
@@ -37,15 +37,15 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
       skipOpenClick = false,
     } = opts || {};
 
-    // click the Open button and wait for the dialog
+    // click the add bank account button and wait for the dialog
     if (!skipOpenClick) {
       await page
-        .locator("button", { hasText: "Connect New Account" })
+        .locator("button", { hasText: "Bank Account" })
         .first()
         .click();
     }
     await expect(
-      page.getByRole("heading", { name: "Open a New Account" }),
+      page.getByRole("heading", { name: "Account Details" }),
     ).toBeVisible();
 
     // select account type
@@ -55,9 +55,9 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
     await page.getByLabel("Account Name").fill(accountName);
   };
 
-  test("Acceptance: Connect New Account option is available and Savings option exists", async () => {
+  test("Acceptance: Bank Account option is available and Savings option exists", async () => {
     await sharedPage
-      .getByRole("button", { name: /Connect New Account/i })
+      .getByRole("button", { name: /Bank Account/i })
       .first()
       .click();
     await sharedPage.getByLabel("Account Type").click();
@@ -74,10 +74,7 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
   });
 
   test("Acceptance: Required fields are indicated and Next is disabled until valid", async () => {
-    await sharedPage
-      .getByRole("button", { name: /Connect New Account/i })
-      .first()
-      .click();
+    await sharedPage.getByRole("button", { name: /Bank Account/i }).first().click();
     const nextBtn = sharedPage.getByRole("button", { name: /Next/i });
     await expect(nextBtn).toBeDisabled();
 
@@ -92,7 +89,7 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
     await sharedPage.keyboard.press("Escape");
   });
 
-  test("Scenario: Successfully open a chequing account and it appears in Accounts list", async () => {
+  test("Scenario: Successfully add a chequing bank account and it appears in Payment Methods", async () => {
     const acctName = `Cheq-${Date.now()}`;
     await fillRequiredFields(sharedPage, {
       accountName: acctName,
@@ -113,7 +110,7 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
 
     // dialog should close
     await expect(
-      sharedPage.getByRole("heading", { name: "Open a New Account" }),
+      sharedPage.getByRole("heading", { name: "Account Details" }),
     ).toHaveCount(0, { timeout: 10_000 });
 
     // the account card with the name should appear
@@ -124,7 +121,7 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
 
   test("Scenario: Missing/invalid information prevents submission and shows validation", async () => {
     await sharedPage
-      .getByRole("button", { name: /Connect New Account/i })
+      .getByRole("button", { name: /Bank Account/i })
       .first()
       .click();
 
@@ -139,14 +136,14 @@ test.describe.serial("Accounts - OpenAccountForm flows (focused)", () => {
 
     // Remain on the account opening dialog
     await expect(
-      sharedPage.getByRole("heading", { name: "Open a New Account" }),
+      sharedPage.getByRole("heading", { name: "Account Details" }),
     ).toBeVisible();
 
     // Close the dialog
     await sharedPage.keyboard.press("Escape");
   });
 
-  test("Acceptance: Can create two accounts with different names and numbers are unique", async () => {
+  test("Acceptance: Can create two payment methods with different names and numbers are unique", async () => {
     const name1 = `AcctA-${Date.now()}`;
     const name2 = `AcctB-${Date.now()}`;
 

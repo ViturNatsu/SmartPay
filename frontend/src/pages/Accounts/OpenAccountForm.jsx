@@ -43,7 +43,12 @@ const provinces = [
 
 const accountTypes = ["Chequing", "Savings"];
 
-export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
+export const OpenAccountForm = ({
+  open,
+  onClose,
+  onSubmit,
+  dialogTitle = "Open a New Account",
+}) => {
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -53,17 +58,17 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     accountType: "",
     accountName: "",
-    firstName: user.firstName,
+    firstName: user?.firstName ?? "",
     middleName: "",
-    lastName: user.lastName,
-    addressLine1: user.addressLine1,
-    addressLine2: user.addressLine2 || "",
-    city: user.city,
-    province: user.province,
-    postalCode: user.postalCode,
-    phoneNumber: user.phoneNumber,
-    sin: user.socialInsuranceNumber,
-    governmentId: user.governmentIdNumber,
+    lastName: user?.lastName ?? "",
+    addressLine1: user?.addressLine1 ?? "",
+    addressLine2: user?.addressLine2 || "",
+    city: user?.city ?? "",
+    province: user?.province ?? "",
+    postalCode: user?.postalCode ?? "",
+    phoneNumber: user?.phoneNumber ?? "",
+    sin: user?.socialInsuranceNumber ?? "",
+    governmentId: user?.governmentIdNumber ?? "",
   });
 
   // Prefill form any time the dialog opens or when user data becomes available
@@ -481,7 +486,7 @@ export const OpenAccountForm = ({ open, onClose, onSubmit }) => {
     >
       <DialogContent sx={{ p: { xs: 2, sm: 4 } }}>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, textAlign: "center" }}>
-          Open a New Account
+          {dialogTitle}
         </Typography>
 
         <Stepper

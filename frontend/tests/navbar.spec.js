@@ -21,9 +21,9 @@ test("Navbar works (logo, highlight, logout)", async ({ page }) => {
   await expect(page.getByLabel("home")).toBeVisible({ timeout: 15000 });
   await expect(page.getByLabel("logout")).toBeVisible({ timeout: 15000 });
 
-  // Click Accounts -> /accounts
-  await page.getByTestId("nav-accounts").click();
-  await expect(page).toHaveURL(/\/accounts/);
+  // Click Payment Methods -> /payment-methods
+  await page.getByTestId("nav-payment-methods").click();
+  await expect(page).toHaveURL(/\/payment-methods/);
 
   // Click Transactions -> /transactions
   await page.getByTestId("nav-transactions").click();
