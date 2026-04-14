@@ -17,6 +17,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import OpenAccountForm from "@/pages/Accounts/OpenAccountForm";
+import LinkBankAccount from "./LinkBankAccount";
 import {
   createAccount,
   getUserAccounts,
@@ -50,6 +51,7 @@ export default function PaymentMethods() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openBankAccountForm, setOpenBankAccountForm] = useState(false);
+  const [openLinkBankAccountForm, setOpenLinkBankAccountForm] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState(false);
 
   const activeMethods = useMemo(
@@ -79,6 +81,10 @@ export default function PaymentMethods() {
     }
   }, [authLoading, tokenClaims?.userId]);
 
+  const handleOpenLinkBankAccount = () => {
+    setOpenLinkBankAccountForm(true);
+  }
+
   const handleOpenBankAccount = () => {
     setOpenBankAccountForm(true);
   };
@@ -86,6 +92,10 @@ export default function PaymentMethods() {
   const handleCloseBankAccount = () => {
     setOpenBankAccountForm(false);
   };
+
+  const handleCloseLinkBankAccount = () => {
+    setOpenLinkBankAccountForm(false);
+  }
 
   const handleSubmitBankAccount = async (formData) => {
     try {
@@ -149,7 +159,7 @@ export default function PaymentMethods() {
                   <Button
                     variant="contained"
                     startIcon={<AccountBalanceOutlinedIcon />}
-                    onClick={handleOpenBankAccount}
+                    onClick={handleOpenLinkBankAccount}
                     sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
                   >
                     Bank Account
@@ -192,7 +202,7 @@ export default function PaymentMethods() {
                     <Button
                       variant="outlined"
                       startIcon={<AddRoundedIcon />}
-                      onClick={handleOpenBankAccount}
+                      onClick={handleOpenLinkBankAccount}
                       sx={{ textTransform: "none" }}
                     >
                       Add Bank Account
@@ -243,6 +253,11 @@ export default function PaymentMethods() {
         onClose={handleCloseBankAccount}
         onSubmit={handleSubmitBankAccount}
         dialogTitle="Account Details"
+      />
+
+      <LinkBankAccount
+        open={openLinkBankAccountForm}
+        onClose={handleCloseLinkBankAccount}
       />
 
       <Snackbar
