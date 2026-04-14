@@ -63,11 +63,20 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
       newErrors.accountNumber = "Account number must be 7 to 12 digits";
     }
 
+    if (formData.balance === "" || !/^\d+(\.\d{1,2})?$/.test(formData.balance) || Number(formData.balance) < 0) {
+      newErrors.balance = "Balance must be a non-negative number with up to 2 decimal places";
+}
+
     return newErrors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // only allow up to 2 decimal places for balance
+    if (name === "balance") {
+    if (value !== "" && !/^\d*\.?\d{0,2}$/.test(value)) return;
+  }
 
     setFormData((prev) => ({
       ...prev,
@@ -308,7 +317,8 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
                 fullWidth
                 label="Balance"
                 name="balance"
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={formData.balance}
                 onChange={handleChange}
                 placeholder="0.00"
