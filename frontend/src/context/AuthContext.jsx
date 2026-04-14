@@ -10,7 +10,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import * as authApi from "../api/authApi";
 import { setAccessToken, clearAccessToken } from "../api/axios";
-import { SessionManagerProvider, useSessionManager, decodeJwtPayload } from "./SessionManagerContext";
+import {
+  SessionManagerProvider,
+  useSessionManager,
+  decodeJwtPayload,
+} from "./SessionManagerContext";
 
 const AuthContext = createContext(undefined);
 
@@ -101,6 +105,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
   // Stores tokens, decodes claims, fetches full user profile.
   const setAuthFromTokens = useCallback(
     async ({ accessToken, refreshToken }) => {
+      try {
+        logoutChannelRef.current?.postMessage({ type: "FORCE_LOGOUT" });
+      } catch (error) {}
 
       if (accessToken) setAccessToken(accessToken);
       if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
@@ -143,7 +150,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
       startSessionMonitoringRef.current();
     },
-    [getMyUser]
+    [getMyUser],
   );
 
   // User-initiated logout — calls API to invalidate server session,
@@ -254,10 +261,20 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
       channel.onmessage = (event) => {
         const msgType = event.data?.type;
-        if (msgType === "LOGOUT" || msgType === "SESSION_EXPIRED") {
+        if (
+          msgType === "LOGOUT" ||
+          msgType === "SESSION_EXPIRED" ||
+          "FORCE_LOGOUT"
+        ) {
           clearAuth();
           // Use the appropriate reason so the Login page shows the right message
-          const reason = msgType === "SESSION_EXPIRED" ? "inactivity" : "session_invalidated";
+          const reason =
+            msgType === "SESSION_EXPIRED"
+              ? "inactivity"
+              : msgType === "FORCE_LOGOUT"
+                ? "session_replaced"
+                : "session_invalidated";
+
           sessionStorage.setItem("signoutReason", reason);
           navigate("/login", { replace: true });
         }
@@ -270,7 +287,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     return () => {
       try {
         channel?.close();
-      } catch (_) { /* ignore */ }
+      } catch (_) {
+        /* ignore */
+      }
       logoutChannelRef.current = null;
     };
   }, [clearAuth, navigate]);
@@ -284,7 +303,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
       getMyUser,
       logout,
     }),
-    [user, tokenClaims, loading, getMyUser, setAuthFromTokens, logout]
+    [user, tokenClaims, loading, getMyUser, setAuthFromTokens, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -300,9 +319,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     try {
       sessionChannelRef.current = new BroadcastChannel("smartpay_auth");
-    } catch (_) { /* not supported */ }
+    } catch (_) {
+      /* not supported */
+    }
     return () => {
-      try { sessionChannelRef.current?.close(); } catch (_) { /* ignore */ }
+      try {
+        sessionChannelRef.current?.close();
+      } catch (_) {
+        /* ignore */
+      }
       sessionChannelRef.current = null;
     };
   }, []);
@@ -320,13 +345,22 @@ export const AuthProvider = ({ children }) => {
     // Notify other tabs about the session expiry
     try {
       sessionChannelRef.current?.postMessage({ type: "SESSION_EXPIRED" });
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
 
     // Don't redirect if user is already on a public page (e.g., /verify while
     // fetching OTP from MailHog). The old session cleanup is still needed, but
     // redirecting would interrupt the new login flow.
     const currentPath = window.location.pathname;
-    const publicPages = ["/login", "/verify", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+    const publicPages = [
+      "/login",
+      "/verify",
+      "/register",
+      "/forgot-password",
+      "/reset-password",
+      "/verify-email",
+    ];
     const onPublicPage = publicPages.some((p) => currentPath.startsWith(p));
 
     // Set signoutReason BEFORE clearAuth — clearAuth triggers ProtectedRoute
@@ -353,7 +387,9 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <SessionManagerProvider onSessionExpired={handleSessionExpired}>
-      <AuthProviderInner clearAuthRef={clearAuthRef}>{children}</AuthProviderInner>
+      <AuthProviderInner clearAuthRef={clearAuthRef}>
+        {children}
+      </AuthProviderInner>
     </SessionManagerProvider>
   );
 };
