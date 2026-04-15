@@ -162,7 +162,7 @@ export default function PaymentMethods() {
                     onClick={handleOpenLinkBankAccount}
                     sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
                   >
-                    Bank Account
+                    Connect Bank Account
                   </Button>
                 </Stack>
               </CardContent>
@@ -205,7 +205,7 @@ export default function PaymentMethods() {
                       onClick={handleOpenLinkBankAccount}
                       sx={{ textTransform: "none" }}
                     >
-                      Add Bank Account
+                      Connect Bank Account
                     </Button>
                   </Box>
                 ) : (
