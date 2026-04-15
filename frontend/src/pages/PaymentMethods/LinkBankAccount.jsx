@@ -51,7 +51,7 @@ function LinkBankAccount({open, onClose}) {
                 variant="h6"
                 sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}
             >
-                Link Bank Account
+                Connect Bank Account
             </Typography>
 
             <FormControl fullWidth sx={{ mb: 2 }}>
