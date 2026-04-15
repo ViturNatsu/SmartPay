@@ -99,7 +99,7 @@ public class AccountController {
         })
         public ResponseEntity<AccountDto> getAccountById(@PathVariable("accountId") Long accountId)
                         throws AccountNotFoundException {
-                Account targetAccount = accountService.getAccountById(accountId);
+                AccountDto targetAccount = accountService.getAccountById(accountId);
                 return ResponseEntity.ok(targetAccount);
         }
 
