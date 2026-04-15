@@ -93,7 +93,7 @@ public class AccountServiceImpl implements AccountService {
                 .map(a -> new AccountDto(
                         a.getId(),
                         a.getAccountName(),
-                        a.getAccountNumber(),
+                        MaskingUtil.maskAccountNumber(a.getAccountNumber()),
                         a.getInstitutionNumber(),
                         a.getTransitNumber(),
                         a.getBalance(),
@@ -109,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(account.getId(),
                 account.getAccountName(),
-                account.getAccountNumber(),
+                MaskingUtil.maskAccountNumber(account.getAccountNumber()),
                 account.getInstitutionNumber(),
                 account.getTransitNumber(),
                 account.getBalance(),
@@ -120,10 +120,22 @@ public class AccountServiceImpl implements AccountService {
 
     }
 
-    @Override
-    public Account getAccountById(Long accountId) throws AccountNotFoundException {
-        return accountRepository.findById(accountId)
+      @Override
+    public AccountDto getAccountById(Long accountId) throws AccountNotFoundException {
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
+
+        return new AccountDto(
+                account.getId(),
+                account.getAccountName(),
+                MaskingUtil.maskAccountNumber(account.getAccountNumber()),
+                account.getInstitutionNumber(),
+                account.getTransitNumber(),
+                account.getBalance(),
+                account.getType(),
+                account.getUser() != null ? account.getUser().getId() : null,
+                account.getActive()
+        );
     }
 
     @Override
