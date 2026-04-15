@@ -20,7 +20,7 @@ public interface AccountService {
 
     List<AccountDto> getAllAccounts();
 
-    Account getAccountById(Long accountId) throws AccountNotFoundException;
+    AccountDto getAccountById(Long accountId) throws AccountNotFoundException;
 
     Account updateUserAccount(Long id, Account account) throws AccountNotFoundException;
 
