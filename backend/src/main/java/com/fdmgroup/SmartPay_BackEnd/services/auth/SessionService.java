@@ -19,4 +19,6 @@ public interface SessionService {
     boolean revokeSession(String refreshToken);
 
     boolean hasActiveSession(User user);
+
+    boolean isSessionValid(User user);
 }

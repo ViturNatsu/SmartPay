@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Check if the user still has an active backend session.
                 // After logout or session expiry the session row is deleted,
                 // so this rejects reuse of a valid-but-orphaned access token.
-                if (!sessionService.hasActiveSession(user)) {
+                if (!sessionService.isSessionValid(user)) {
                     logger.debug("No active session for user " + user.getEmail()
                             + " — skipping authentication");
                     filterChain.doFilter(request, response);

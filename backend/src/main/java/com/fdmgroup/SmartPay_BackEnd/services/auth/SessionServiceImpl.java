@@ -169,6 +169,24 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    public boolean isSessionValid(User user) {
+        List<SessionEntity> sessions = sessionRepo.findByUser(user);
+
+        if (sessions.isEmpty()) {
+            return false;
+        }
+
+        SessionEntity session = sessions.get(0);
+
+        if (session.isExpired()) {
+            sessionRepo.delete(session);
+            return false;
+        }
+        return true;
+
+    }
+
+    @Override
     public boolean hasActiveSession(User user) {
         List<SessionEntity> sessions = sessionRepo.findByUser(user);
         return sessions.stream().anyMatch(s -> !s.isExpired());

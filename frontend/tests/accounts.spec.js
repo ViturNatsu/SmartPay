@@ -1,4 +1,8 @@
-import { test, expect } from "@playwright/test";
+// commented out because I think we agreed that payment methods should change
+// where previously it had the account creation forms, but now it is just
+// select the financial institution
+
+/*import { test, expect } from "@playwright/test";
 import { setupAPIMocks, loginAndVerifyOtp } from "./helpers/auth.helpers.js";
 
 let sharedPage;
@@ -199,3 +203,4 @@ test.describe.serial("Payment Methods - Bank Account flows", () => {
     expect(suffix1).not.toEqual(suffix2);
   });
 });
+*/

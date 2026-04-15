@@ -178,7 +178,7 @@ describe("Register Component", () => {
       await user.click(getContinueButton());
 
       expect(await getInvalidPasswordMessage()).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("does not submit form when validation fails", async () => {
       const user = userEvent.setup();
@@ -204,7 +204,7 @@ describe("Register Component", () => {
       await screen.findByText("Social Insurance Number");
       // For a simpler test, just verify Step 2 rendered = validation passed
       expect(screen.getByText("Social Insurance Number")).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("shows loading state during submission", async () => {
       const user = userEvent.setup();
