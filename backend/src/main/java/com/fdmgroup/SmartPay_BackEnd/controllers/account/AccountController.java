@@ -97,7 +97,7 @@ public class AccountController {
                         @ApiResponse(responseCode = "200", description = "Account retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
                         @ApiResponse(responseCode = "404", description = "Account not found with the specified accountId.")
         })
-        public ResponseEntity<Account> getAccountById(@PathVariable("accountId") Long accountId)
+        public ResponseEntity<AccountDto> getAccountById(@PathVariable("accountId") Long accountId)
                         throws AccountNotFoundException {
                 Account targetAccount = accountService.getAccountById(accountId);
                 return ResponseEntity.ok(targetAccount);
