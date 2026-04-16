@@ -4,8 +4,12 @@ import Navbar from "../../components/Navbar";
 import { Box, Button, Collapse, Divider, Paper, TextField, Typography } from "@mui/material";
 import { createPaymentMethod } from "../../api/paymentmethods/paymentmethodApi";
 import LockIcon from "@mui/icons-material/Lock";
+import { useAuth } from "@/context/AuthContext";
+
 
 function SimulatedBankAuthorization() {
+    const { tokenClaims } = useAuth();
+    console.log("TOKEN CLAIMS: ", tokenClaims);
     const navigate = useNavigate();
     const {selectedBank, placeholderBankId} = useParams();
     const [username, setUsername] = useState("");
@@ -41,7 +45,10 @@ function SimulatedBankAuthorization() {
                 bankId: placeholderBankId,
                 bankDisplayName: selectedBank,
                 active: true,
-                accountIdentifierMasked: "****last4"
+                accountIdentifierMasked: "****last4",
+                user: {
+                    id: tokenClaims.userId
+                }
             }
             await createPaymentMethod(payload);
             navigate("/simulatedbankauthsuccess")

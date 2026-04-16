@@ -1,8 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "payment_methods")
@@ -25,4 +29,11 @@ public class PaymentMethod {
 
     @Column(name = "accountIdentifierMasked")
     private String accountIdentifierMasked;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
+    private User user;
+    // TODO
 }
