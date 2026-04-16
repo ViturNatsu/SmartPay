@@ -32,12 +32,12 @@ import {
 } from "/src/api/accounts/accountApi.js";
 
 const formatCurrency = (value) =>
-  value.toLocaleString("en-US", {
+  value.toLocaleString("en-CA", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  });
+  }) + " CAD";
 
 export const MockAccounts = () => {
   const { user, tokenClaims, loading: authLoading } = useAuth();
