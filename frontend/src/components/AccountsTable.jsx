@@ -56,6 +56,13 @@ const AccountsTable = () => {
       flex: 1,
       minWidth: 110,
       editable: true,
+      valueFormatter: (value) =>
+        Number(value || 0).toLocaleString("en-CA", {
+          style: "currency",
+          currency: "CAD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+    }) + " CAD",
     },
     {
       field: "accountType",
