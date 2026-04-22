@@ -9,7 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 
 function SimulatedBankAuthorization() {
     const { tokenClaims } = useAuth();
-    console.log("TOKEN CLAIMS: ", tokenClaims);
     const navigate = useNavigate();
     const {selectedBank, placeholderBankId} = useParams();
     const [username, setUsername] = useState("");
@@ -54,7 +53,6 @@ function SimulatedBankAuthorization() {
             navigate("/simulatedbankauthsuccess")
         } else {
             setInvalid(true);
-            console.log("bad credentials")
             setErrorMsg(ERROR_TEXT);
         }
     }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -22,6 +22,10 @@ import {
   createAccount,
   getUserAccounts,
 } from "@/api/accounts/accountApi";
+import { getPaymentMethodsForUserWithId } from "../../api/paymentmethods/paymentmethodApi";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("en-US", {
@@ -53,6 +57,9 @@ export default function PaymentMethods() {
   const [openBankAccountForm, setOpenBankAccountForm] = useState(false);
   const [openLinkBankAccountForm, setOpenLinkBankAccountForm] = useState(false);
   const [successSnackbar, setSuccessSnackbar] = useState(false);
+  const [currentPageNumber, setCurrentPageNumber] = useState(0);
+  const [pageData, setPageData] = useState({last: false, first: false});
+  const topOfDisplayRef = useRef(null);
 
   const activeMethods = useMemo(
     () => paymentMethods.filter((method) => method.active),
@@ -65,9 +72,14 @@ export default function PaymentMethods() {
     setLoading(true);
     setError("");
     try {
-      const data = await getUserAccounts(Number(userId));
+      const START_PAGE = 0;
+      const res = await getPaymentMethodsForUserWithId(userId, START_PAGE);
+      /*const data = await getUserAccounts(Number(userId));
       const methods = Array.isArray(data) ? data : data?.accounts || [];
-      setPaymentMethods(normalizePaymentMethods(methods));
+      setPaymentMethods(normalizePaymentMethods(methods));*/
+      setPaymentMethods(res.content);
+      setPageData(res);
+      
     } catch (err) {
       setError(err?.message || "Unable to load payment methods");
     } finally {
@@ -80,6 +92,13 @@ export default function PaymentMethods() {
       fetchPaymentMethods(tokenClaims.userId);
     }
   }, [authLoading, tokenClaims?.userId]);
+
+  useEffect(() => {
+    topOfDisplayRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "start"
+    })
+  }, [currentPageNumber]);
 
   const handleOpenLinkBankAccount = () => {
     setOpenLinkBankAccountForm(true);
@@ -118,6 +137,20 @@ export default function PaymentMethods() {
     }
   };
 
+  const handlePageChange = async (page) => {
+    try {
+      const res = await getPaymentMethodsForUserWithId(tokenClaims.userId, page);
+      setPaymentMethods(res.content);
+      setCurrentPageNumber(page);
+      setPageData(res);
+      
+    } catch (err) {
+      setError(err?.message || "Unable to load payment methods");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -135,6 +168,7 @@ export default function PaymentMethods() {
             </Box>
 
             <Card
+              ref={topOfDisplayRef}
               sx={{
                 borderRadius: 2,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
@@ -225,17 +259,20 @@ export default function PaymentMethods() {
                           justifyContent="space-between"
                           alignItems={{ xs: "flex-start", sm: "center" }}
                         >
+                        {/* TODO: Display any other fields as needed */}
                           <Box>
                             <Typography sx={{ fontWeight: 600 }}>
-                              {method.accountName}
+                              {method.bankDisplayName}
                             </Typography>
                             <Typography sx={{ color: "text.secondary" }}>
-                              Bank Account • {method.type === "SAVINGS" ? "Savings" : "Chequing"} •
-                              {" "}...{method.accountNumber.slice(-4)}
+                              {method.accountIdentifierMasked}
+                            </Typography>
+                            <Typography sx={{ color: "text.secondary" }}>
+                              {method.active ? "Active" : "Inactive"}
                             </Typography>
                           </Box>
                           <Typography sx={{ fontWeight: 600 }}>
-                            {formatCurrency(method.balance)}
+                            Payment Method ID: {method.payment_method_id}
                           </Typography>
                         </Stack>
                       </Box>
@@ -244,6 +281,52 @@ export default function PaymentMethods() {
                 )}
               </CardContent>
             </Card>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mt: 4,
+              }}
+            >
+              <Button
+                onClick={() => handlePageChange(currentPageNumber - 1)}
+                disabled={pageData.first}
+                variant="outlined"
+                startIcon={<ArrowBackIosNewIcon />}
+                sx={{
+                  textTransform: "none",
+                  borderColor: "#7C3AED",
+                  color: "#7C3AED",
+                  "&:hover": {
+                    borderColor: "#6D28D9",
+                    backgroundColor: "rgba(124,58,237,0.04)",
+                  },
+                  mr: 1.5,
+                }}
+              >
+                Previous
+              </Button>
+
+              <Button
+                onClick={() => handlePageChange(currentPageNumber + 1)}
+                disabled={pageData.last}
+                variant="outlined"
+                endIcon={<ArrowForwardIosIcon />}
+                sx={{
+                  textTransform: "none",
+                  borderColor: "#7C3AED",
+                  color: "#7C3AED",
+                  "&:hover": {
+                    borderColor: "#6D28D9",
+                    backgroundColor: "rgba(124,58,237,0.04)",
+                  },
+                }}
+              >
+                Next
+              </Button>
+            </Box>
+
           </Stack>
         </Container>
       </Box>
