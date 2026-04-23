@@ -1,3 +1,4 @@
+import axios from "axios";
 import axiosInstance, { handleAxiosError } from "../axios";
 
 const PAYMENT_METHODS_URL = "/api/v1/paymentmethods";
@@ -11,3 +12,29 @@ export async function createPaymentMethod(payload) {
         throw handleAxiosError(err);
     }
 }
+
+export async function getPaymentMethodsForUserWithId(id, page) {
+
+    try {
+        const res = await axiosInstance.get(`${PAYMENT_METHODS_URL}/user/${id}/${page}`);
+        console.log(res);
+        return res.data;
+    } catch (err) {
+        throw handleAxiosError(err);
+    }
+}
+
+//To make payment method inactive instead of deleting it
+export async function updatePaymentMethodStatus(paymentMethodId, activeStatus) {
+  try {
+    const res = await axiosInstance.put(`${PAYMENT_METHODS_URL}/${paymentMethodId}/status`, {
+      active: activeStatus
+    });
+    console.log(res);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err.res?.data?.message || "Failed to update payment method"
+    );
+  }
+};
