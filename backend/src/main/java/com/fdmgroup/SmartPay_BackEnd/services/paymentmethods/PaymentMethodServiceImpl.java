@@ -34,4 +34,35 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         Pageable pageable = PageRequest.of(pageNumber, PAGE_SIZE);
         return paymentRepository.findByUserId(userId, pageable);
     }
+
+    //for admin dashboard
+    @Override
+    public List<PaymentMethod> findAllPaymentMethods() {
+        return paymentRepository.findAll();
+    }
+
+    @Override
+    public PaymentMethod findPaymentMethodById(Long id) {
+        return paymentRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Payment method not found with id: " + id));
+    }
+
+    @Override
+    public void deletePaymentMethod(Long id) {
+        PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
+        paymentRepository.delete(existingPaymentMethod);
+    }
+
+    //Update the payment method active status only
+    @Override
+    public PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {
+        PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
+
+        if (activeStatus != null) {
+            existingPaymentMethod.setActive(activeStatus);
+        }
+
+        return paymentRepository.save(existingPaymentMethod);
+    }
 }

@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.paymentmethod;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,5 +34,35 @@ public class PaymentMethodController {
                                                                        @PathVariable("pageNumber") int pageNumber) {
         Page<PaymentMethod> pms = paymentMethodService.findByUserId(id, pageNumber);
         return ResponseEntity.ok(pms);
+    }
+
+//    for admin dashboard
+    @GetMapping
+    @Operation(summary = "Get all PaymentMethods", description = "Get a list of all payment methods. This endpoint is intended for admin use to manage all payment methods across users.")
+    public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
+        return ResponseEntity.ok(paymentMethodService.findAllPaymentMethods());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a PaymentMethod by ID", description = "Get a payment method by its ID. This endpoint is intended for admin use to view details of a specific payment method.")
+    public ResponseEntity<PaymentMethod> getPaymentMethodById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(paymentMethodService.findPaymentMethodById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Remove a PaymentMethod by ID", description = "Delete a payment method by ID. This endpoint is intended for admin use to remove a payment method from the system.")
+    public ResponseEntity<Void> deletePaymentMethod(@PathVariable("id") Long id) {
+        paymentMethodService.deletePaymentMethod(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/status")
+    @Operation(summary = "Update a PaymentMethod activeStatus", description = "Update the active status of a payment method. This endpoint is intended for users to deactivate their payment methods.")
+    public ResponseEntity<PaymentMethod> updatePaymentMethodStatus(
+            @PathVariable("id") Long id,
+            @RequestBody PaymentMethod pm) {
+
+        PaymentMethod updated = paymentMethodService.updatePaymentMethodActiveStatus(id, pm.getActive());
+        return ResponseEntity.ok(updated);
     }
 }

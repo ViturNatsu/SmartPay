@@ -23,3 +23,18 @@ export async function getPaymentMethodsForUserWithId(id, page) {
         throw handleAxiosError(err);
     }
 }
+
+//To make payment method inactive instead of deleting it
+export async function updatePaymentMethodStatus(paymentMethodId, activeStatus) {
+  try {
+    const res = await axiosInstance.put(`${PAYMENT_METHODS_URL}/${paymentMethodId}/status`, {
+      active: activeStatus
+    });
+    console.log(res);
+    return res.data;
+  } catch (err) {
+    throw new Error(
+      err.res?.data?.message || "Failed to update payment method"
+    );
+  }
+};

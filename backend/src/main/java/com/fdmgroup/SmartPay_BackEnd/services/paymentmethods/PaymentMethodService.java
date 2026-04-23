@@ -16,4 +16,14 @@ public interface PaymentMethodService {
     List<PaymentMethod> findByUserId(Long id);
 
     Page<PaymentMethod> findByUserId(Long userId, int pageNumber);
+
+    //for admin dashboard
+    List<PaymentMethod> findAllPaymentMethods();
+
+    PaymentMethod findPaymentMethodById(Long id);
+
+    void deletePaymentMethod(Long id);
+
+    //Update the payment method active status only
+    PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus);
 }

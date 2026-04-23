@@ -22,7 +22,7 @@ import {
   createAccount,
   getUserAccounts,
 } from "@/api/accounts/accountApi";
-import { getPaymentMethodsForUserWithId } from "../../api/paymentmethods/paymentmethodApi";
+import { getPaymentMethodsForUserWithId, updatePaymentMethodStatus} from "../../api/paymentmethods/paymentmethodApi";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
@@ -151,6 +151,25 @@ export default function PaymentMethods() {
     }
   }
 
+  // Disable the payment method
+  const handleDeactivateMethod = async (paymentMethodId) => {
+    const isConfirmed = window.confirm("Are you sure you want to remove this payment method?");
+  
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
+    await updatePaymentMethodStatus(paymentMethodId, false);
+
+    await fetchPaymentMethods(tokenClaims.userId);
+    
+    setSuccessSnackbar(true);
+  } catch (err) {
+    setError(err?.message || "Failed to remove payment method");
+  }
+};
+
   return (
     <>
       <Navbar />
@@ -271,9 +290,17 @@ export default function PaymentMethods() {
                               {method.active ? "Active" : "Inactive"}
                             </Typography>
                           </Box>
+                          <Stack direction="row" spacing={2} alignItems="center">
                           <Typography sx={{ fontWeight: 600 }}>
                             Payment Method ID: {method.payment_method_id}
                           </Typography>
+                          <Button 
+                            variant="outlined" 
+                            color="error" 
+                            onClick={() => handleDeactivateMethod(method.payment_method_id)}>
+                            Remove
+                          </Button>
+                          </Stack>
                         </Stack>
                       </Box>
                     ))}
