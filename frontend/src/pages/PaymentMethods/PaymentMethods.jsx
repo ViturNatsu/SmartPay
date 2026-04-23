@@ -94,10 +94,12 @@ export default function PaymentMethods() {
   }, [authLoading, tokenClaims?.userId]);
 
   useEffect(() => {
+    if (topOfDisplayRef.current && typeof topOfDisplayRef.current.scrollIntoView === 'function') {
     topOfDisplayRef.current?.scrollIntoView({
       behavior: "auto",
       block: "start"
     })
+  }
   }, [currentPageNumber]);
 
   const handleOpenLinkBankAccount = () => {
