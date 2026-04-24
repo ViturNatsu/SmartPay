@@ -95,11 +95,11 @@ export default function PaymentMethods() {
 
   useEffect(() => {
     if (topOfDisplayRef.current && typeof topOfDisplayRef.current.scrollIntoView === 'function') {
-    topOfDisplayRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "start"
-    })
-  }
+      topOfDisplayRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "start"
+      })
+    }
   }, [currentPageNumber]);
 
   const handleOpenLinkBankAccount = () => {
@@ -293,9 +293,9 @@ export default function PaymentMethods() {
                             </Typography>
                           </Box>
                           <Stack direction="row" spacing={2} alignItems="center">
-                          <Typography sx={{ fontWeight: 600 }}>
+                          {/*<Typography sx={{ fontWeight: 600 }}>
                             Payment Method ID: {method.payment_method_id}
-                          </Typography>
+                          </Typography>*/}
                           <Button 
                             variant="outlined" 
                             color="error" 
