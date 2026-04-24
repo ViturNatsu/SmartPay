@@ -10,6 +10,8 @@ function WalletBalance () {
 
     useEffect(() => {
         const fetchWalletBalance = async () => {
+            if (!tokenClaims?.userId) return;
+
             try {
                 const wallet = await getWalletByUserId(Number(tokenClaims.userId));
                 setBalance(wallet.balance);
@@ -18,8 +20,10 @@ function WalletBalance () {
             }
         };
 
-        fetchWalletBalance();
-    }, []);
+        if (!authLoading) {
+            fetchWalletBalance();
+        }
+    }, [authLoading, tokenClaims?.userId]);
 
     return (
         <Card
