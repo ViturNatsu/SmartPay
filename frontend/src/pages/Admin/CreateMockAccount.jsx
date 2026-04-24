@@ -63,9 +63,6 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
       newErrors.accountNumber = "Account number must be 7 to 12 digits";
     }
 
-    if (formData.balance === "" || !/^\d+(\.\d{1,2})?$/.test(formData.balance) || Number(formData.balance) < 0) {
-      newErrors.balance = "Balance must be a non-negative number with up to 2 decimal places";
-}
 
     return newErrors;
   };
