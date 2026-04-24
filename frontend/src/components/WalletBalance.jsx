@@ -2,9 +2,24 @@ import { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Card, Stack, Typography, ButtonBase, Avatar } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
+import { getWalletByUserId } from "@/api/wallets/walletApi";
 
 function WalletBalance () {
+    const {tokenClaims, loading: authLoading } = useAuth();
     const [balance, setBalance] = useState(0.0);
+
+    useEffect(() => {
+        const fetchWalletBalance = async () => {
+            try {
+                const wallet = await getWalletByUserId(Number(tokenClaims.userId));
+                setBalance(wallet.balance);
+            } catch (error) {
+                console.error("Error fetching wallet balance:", error);
+            }
+        };
+
+        fetchWalletBalance();
+    }, []);
 
     return (
         <Card
