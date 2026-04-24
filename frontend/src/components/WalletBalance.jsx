@@ -45,7 +45,13 @@ function WalletBalance () {
                     Wallet Balance
                 </Typography>
                 <Typography variant="h6">
-                    ${balance.toFixed(2)}
+                    ${Number(balance).toLocaleString(
+                        undefined,
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        },
+                    )}
                 </Typography>
             </Stack>
 
