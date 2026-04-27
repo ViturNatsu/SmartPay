@@ -9,6 +9,7 @@ function LinkBankAccount({open, onClose}) {
     const theme = useTheme();
     //const { institutionNumber } = useParams();
     const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedBank, setSelectedBank] = useState("");
 
     const [selectedInstitution, setSelectedInstitution] = useState("");
@@ -18,12 +19,14 @@ function LinkBankAccount({open, onClose}) {
     ]
     const ERROR_TEXT = "Please select a financial institution to continue"
     const handleClick = () => {
+        if (!selectedBank || isSubmitting) return;
+
+        setIsSubmitting(true);
 
         const placeholderBankId = banks.indexOf(selectedBank);
 
-        navigate(`/simulatedbankauth/${selectedBank}/${placeholderBankId}`)
-        
-    }
+        navigate(`/simulatedbankauth/${selectedBank}/${placeholderBankId}`);
+    };
 
     // todo: delete once confirmed financial institution is manually selected
     /*const fetchInstitution = async () => {
@@ -119,7 +122,9 @@ function LinkBankAccount({open, onClose}) {
                 Please select a financial institution to continue
             </Typography>}
 
-            <Button onClick={handleClick} disabled={selectedBank === ""}
+            <Button 
+                onClick={handleClick} 
+                disabled={selectedBank === "" || isSubmitting}
                 sx={{
                     py: 2,
                     borderRadius: 3,
@@ -134,8 +139,8 @@ function LinkBankAccount({open, onClose}) {
                     "&:active": { transform: "scale(0.98)" },
                     "&.Mui-disabled": { bgcolor: "#eaf5f8", color: "#8ba4ae" },
                 }}
-            >
-                Continue with {selectedBank}
+                >
+                {isSubmitting ? "Loading..." : `Continue with ${selectedBank}`}
             </Button>
         </Box>
 
