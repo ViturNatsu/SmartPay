@@ -38,13 +38,11 @@ function WalletBalance () {
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb="20px"
-                sx={{ borderBottom: "1px solid #000000", pb: 2 }}
             >
                 <Typography variant="h6">
                     Wallet Balance
                 </Typography>
-                <Typography variant="h6">
+                <Typography variant="h5">
                     ${Number(balance).toLocaleString(
                         undefined,
                         {
