@@ -32,17 +32,30 @@ function WalletBalance () {
                 bgcolor: "#fff", 
                 borderRadius: "16px", 
                 border: "1px solid #E5E7EB", 
-                p: 3 }}
+                p: 3,
+                height: "auto",
+            }}
         >
             <Stack
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
+                sx={{
+                    flexWrap: "wrap",
+                    gap: 1,
+                }}
             >
-                <Typography variant="h6">
+                <Typography variant="h6" sx={{ whiteSpace: "nowrap" }}>
                     Wallet Balance
                 </Typography>
-                <Typography variant="h5">
+                <Typography 
+                    variant="h5"
+                    sx={{
+                        wordBreak: "break-all",
+                        textAlign: "right",
+                        flex: "1 1 auto",
+                        minWidth: 0,
+                    }}>
                     ${Number(balance).toLocaleString(
                         undefined,
                         {
