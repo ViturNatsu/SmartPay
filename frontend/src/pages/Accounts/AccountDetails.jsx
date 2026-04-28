@@ -33,7 +33,8 @@ const AccountDetails = () => {
         const response = await axiosInstance.get(
           `http://localhost:8080/api/v1/accounts/${accountId}`,
         );
-        setAccount(response.data);
+        setAccount({
+          ...response.data, balance:response.data.balance? Number(response.data.balance).toFixed(2):0.00.toFixed(2)});
       } catch (error) {
         console.error("fetch account error:", error);
       }
@@ -43,7 +44,10 @@ const AccountDetails = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setAccount((prev) => ({ ...prev, [name]: value }));
+
+    setAccount((prev) => ({ ...prev, [name]: value })
+    
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -176,6 +180,13 @@ const AccountDetails = () => {
                   type="number"
                   value={account.balance ?? ""}
                   onChange={handleChange}
+                  onBlur={(e) => {
+                    const formattedValue = parseFloat(e.target.value);
+                    setAccount((prev)=>({
+                      ...prev, balance:formattedValue.toFixed(2)
+                    }))
+                  }}
+
                   fullWidth
                 />
               </Grid>
