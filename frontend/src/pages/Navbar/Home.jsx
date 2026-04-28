@@ -6,6 +6,7 @@ import AccountOverview from "@/components/AccountOverview";
 import TransactionHistory from "@/components/TransactionHistory";
 
 import { useAuth } from "@/context/AuthContext";
+import WalletBalance from "../../components/WalletBalance";
 
 export const Home = () => {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ export const Home = () => {
           </div>
           <div style={{ width: '338px', flexShrink: 0, flexGrow: 0, overflow: 'visible' }}>
             <Stack spacing={2}>
+              <WalletBalance />
               <ImportantMessages />
               <QuickActions />
             </Stack>
