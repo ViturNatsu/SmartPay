@@ -16,6 +16,13 @@ function QuickActions() {
       href: "/payment-methods",
     },
     {
+      text: "Send Money",
+      icon: <AttachMoneyOutlinedIcon />,
+      color: "#CFFAFE",
+      iconColor: "#000000ff",
+      href: "/make-a-payment",
+    },
+    {
       text: "View History",
       icon: <TrendingUpIcon />,
       color: "#CFFAFE",
@@ -29,13 +36,7 @@ function QuickActions() {
       iconColor: "#000000ff",
       href: "/add-payee",
     },
-    {
-      text: "Make a Payment",
-      icon: <AttachMoneyOutlinedIcon />,
-      color: "#CFFAFE",
-      iconColor: "#000000ff",
-      href: "/make-a-payment",
-    },
+  
   ];
   return (
     <Card
