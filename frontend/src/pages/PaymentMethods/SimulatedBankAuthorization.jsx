@@ -8,9 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 
 
 function SimulatedBankAuthorization() {
-    const { tokenClaims } = useAuth();
+    const { user, tokenClaims, loading: authLoading } = useAuth();
     const navigate = useNavigate();
-    const {selectedBank, placeholderBankId} = useParams();
+    const {selectedBank} = useParams();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
@@ -19,11 +19,19 @@ function SimulatedBankAuthorization() {
     const [invalid, setInvalid] = useState(false);
     const INVALID_CREDENTIALS_MSG = "Invalid sandbox credentials. Try again.";
     const REQUIRED = "This field is required"
-    const banks = ["TD", "RBC", "Scotiabank", "BMO", "CIBC", "National Bank",
-        "Desjardins", "Simplii Financial", "Tangerine", "Other Financial Institution"
-    ]
 
-    if (banks.indexOf(selectedBank) === -1 || banks[placeholderBankId] !== selectedBank) {
+
+    const banks = new Map();
+    banks.set("BMO", "001")
+    banks.set("RBC", "003");
+    banks.set("CIBC", "010");
+    banks.set("TD", "004");
+    banks.set("Scotiabank", "002");
+    banks.set("National Bank", "006");
+    banks.set("Desjardins", "815");
+    banks.set("Tangerine", "614");
+
+    if (!banks.has(selectedBank)) {
         return <Navigate to="/forbidden" /> 
     }
 
@@ -40,17 +48,7 @@ function SimulatedBankAuthorization() {
             console.log("success verify!")
             setInvalid(false);
             setErrorMsg("");
-            const payload = {
-                bankId: placeholderBankId,
-                bankDisplayName: selectedBank,
-                active: true,
-                accountIdentifierMasked: "****last4",
-                user: {
-                    id: tokenClaims.userId
-                }
-            }
-            await createPaymentMethod(payload);
-            navigate("/simulatedbankauthsuccess")
+            navigate(`/simulatedbankauthsuccess/${selectedBank}/${banks.get(selectedBank)}`)
         } else {
             setInvalid(true);
             setErrorMsg(ERROR_TEXT);

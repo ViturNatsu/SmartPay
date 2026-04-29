@@ -54,10 +54,10 @@ export default function AppRoutes() {
         <Route path="/view-history" element={<ViewHistory />} />
         <Route path="/make-a-payment" element={<MakeAPayment />} />
         <Route path="/add-payee" element={<AddPayee />} />
-        <Route path="/simulatedbankauth/:selectedBank/:placeholderBankId" element={<SimulatedBankAuthorization />} />
+        <Route path="/simulatedbankauth/:selectedBank" element={<SimulatedBankAuthorization />} />
         <Route path="/linkbankaccount/:institutionNumber" element={<LinkBankAccount />} />
         <Route path="/linkbankaccount" element={<LinkBankAccount />} />
-        <Route path="/simulatedbankauthsuccess" element={<SimulatedBankAuthSuccess/>}></Route>
+        <Route path="/simulatedbankauthsuccess/:bankName/:institutionNumber" element={<SimulatedBankAuthSuccess/>}></Route>
       </Route>
 
       {/* admin-only area */}

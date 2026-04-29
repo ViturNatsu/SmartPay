@@ -6,6 +6,9 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +18,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Service
 @Transactional
@@ -22,6 +26,8 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountFactory accountFactory;
+
+    Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
                               AccountFactory accountFactory) {
@@ -103,6 +109,47 @@ public class AccountServiceImpl implements AccountService {
                 .toList();
     }
 
+    @Override
+    public List<AccountDto> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException{
+        userRepository.findById(userId).orElseThrow( () -> new UserNotFoundException("Missing user: " + userId) );
+
+        return accountRepository.findAllByUserId(userId).stream()
+          //filter on the account being inactive, and an optional institution number
+          .filter(account ->
+            (account.getActive()) &&
+              (institution == null || account.getInstitutionNumber().equals(institution))
+          )
+          // Map to DTO
+          .map(account -> new AccountDto(
+            account.getId(),
+            account.getAccountName(),
+            MaskingUtil.maskAccountNumber(account.getAccountNumber()),
+            account.getInstitutionNumber(),
+            account.getTransitNumber(),
+            account.getBalance(),
+            account.getType(),
+            account.getUser() != null ? account.getUser().getId() : null,
+            account.getActive()))
+          .toList();
+    }
+
+    @Override
+    public Long matchMaskedAccount(Long userId, String maskedAccount) {
+        return accountRepository.findByUserId(userId).stream()
+          .filter(account -> maskedAccount.equals(MaskingUtil.maskAccountNumber(account.getAccountNumber())))
+          .findFirst().orElseThrow(() -> new AccountNotFoundException("No account matching the masked string"))
+          .getId();
+    }
+
+    @Override
+    @Transactional
+    public void setAccountStatus(Long accountId, boolean accountStatus){
+        accountRepository.findById(accountId).stream()
+          .findFirst().orElseThrow(()->new AccountNotFoundException("No account matching the provided ID"))
+          .setActive(accountStatus);
+    }
+
+    @Override
     public List<AccountDto> getAllAccounts() {
 
         List<AccountDto> accountDtos;

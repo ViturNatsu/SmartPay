@@ -74,8 +74,8 @@ const renderLinkBankAccountWithRoutes = () => {
         <ThemeProvider theme={theme}>
           <Routes>
             <Route path="/link-bank-account" element={<LinkBankAccount open={true} />} />
-            <Route path="/simulatedbankauth/:selectedBank/:placeholderBankId" element={<SimulatedBankAuthorization />} />
-            <Route path="simulatedbankauthsuccess" element={<SimulatedBankAuthSuccess />} />
+            <Route path="/simulatedbankauth/:selectedBank" element={<SimulatedBankAuthorization />} />
+            <Route path="/simulatedbankauthsuccess/:bankName/:institutionNumber" element={<SimulatedBankAuthSuccess />} />
           </Routes>
         </ThemeProvider>
       </AuthProvider>
@@ -95,16 +95,14 @@ describe("LinkBankAccount", () => {
 
     const expectedBanks = [
       "",
-      "TD",
-      "RBC",
-      "Scotiabank",
       "BMO",
+      "RBC",
       "CIBC",
+      "TD",
+      "Scotiabank",
       "National Bank",
       "Desjardins",
-      "Simplii Financial",
       "Tangerine",
-      "Other Financial Institution"
     ];
 
     expect(options).toHaveLength(expectedBanks.length);
@@ -115,16 +113,14 @@ describe("LinkBankAccount", () => {
   });
 
   it.each([
-    "TD",
-    "RBC",
-    "Scotiabank",
     "BMO",
+    "RBC",
     "CIBC",
+    "TD",
+    "Scotiabank",
     "National Bank",
     "Desjardins",
-    "Simplii Financial",
     "Tangerine",
-    "Other Financial Institution"
   ])("enables the Continue button after selecting %s", async (bank) => {
     const user = userEvent.setup();
     renderLinkBankAccount();
@@ -152,17 +148,16 @@ describe("LinkBankAccount", () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
+
   it.each([
-    "TD",
-    "RBC",
-    "Scotiabank",
     "BMO",
+    "RBC",
     "CIBC",
+    "TD",
+    "Scotiabank",
     "National Bank",
     "Desjardins",
-    "Simplii Financial",
     "Tangerine",
-    "Other Financial Institution"
   ])("navigates to the selected bank page after clicking Continue for %s", async (bank) => {
     const user = userEvent.setup();
     renderLinkBankAccountWithRoutes();
@@ -187,9 +182,9 @@ describe("LinkBankAccount", () => {
     "CIBC",
     "National Bank",
     "Desjardins",
-    "Simplii Financial",
+    //"Simplii Financial",
     "Tangerine",
-    "Other Financial Institution"
+    //"Other Financial Institution"
   ])("Displays error message when invalid credentials are entered", async (bank) => {
     const user = userEvent.setup();
     renderLinkBankAccountWithRoutes();
@@ -225,9 +220,9 @@ describe("LinkBankAccount", () => {
     "CIBC",
     "National Bank",
     "Desjardins",
-    "Simplii Financial",
+    //"Simplii Financial",
     "Tangerine",
-    "Other Financial Institution"
+    //"Other Financial Institution"
   ])("Displays error message when credential fields are empty", async (bank) => {
     const user = userEvent.setup();
     renderLinkBankAccountWithRoutes();

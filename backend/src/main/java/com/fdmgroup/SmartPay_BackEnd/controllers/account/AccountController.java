@@ -126,4 +126,18 @@ public class AccountController {
                 return ResponseEntity.ok(updatedAccount);
         }
 
+
+        @Operation(summary = "Returns a list of the user's inactive accounts (Active flag = false). Filtered" +
+          "by an optional Institution number")
+        @ApiResponses(value = {
+          @ApiResponse(responseCode = "200", description = "List of user's inactive accounts"),
+          @ApiResponse(responseCode = "404", description = "User ID not found")
+        })
+        @GetMapping("/inactive/user/{userId}")
+        public ResponseEntity<List<AccountDto>> getInactiveAccountsForUser(
+          @PathVariable Long userId,
+          @RequestParam(required = false) String institution)
+        {
+                return ResponseEntity.ok(accountService.getInactiveAccounts(userId, institution));
+        }
 }

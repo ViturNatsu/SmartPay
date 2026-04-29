@@ -11,6 +11,20 @@ export async function getUserAccounts(userId) {
   }
 }
 
+export async function getInactiveUserAccounts(userId, institutionNumber){
+  // optional filtering on institutionNumber
+  const params = {};
+  if(institutionNumber !== undefined){
+    params.institution = institutionNumber;
+  }
+  try{
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/inactive/user/${userId}`,{params})
+    return res.data;
+  }catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function createAccount(payload) {
   try {
     const res = await axiosInstance.post(`${ACCOUNTS_URL}`, payload);

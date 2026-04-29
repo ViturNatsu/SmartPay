@@ -16,7 +16,13 @@ public interface AccountService {
 
     Account addAccount(Account account)throws UserNotFoundException;
 
+    Long matchMaskedAccount(Long userId, String maskedAccount) throws AccountNotFoundException;
+
+    void setAccountStatus(Long accountId, boolean status) throws AccountNotFoundException;
+
     List<AccountDto> getAccounts(Long userId, AccountType type) throws UserNotFoundException;
+
+    List<AccountDto> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException;
 
     List<AccountDto> getAllAccounts();
 
