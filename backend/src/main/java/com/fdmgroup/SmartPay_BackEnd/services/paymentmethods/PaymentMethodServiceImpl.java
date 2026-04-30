@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.paymentmethods;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
@@ -24,12 +25,19 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         this.accountService = accountService;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public PaymentMethod addPaymentMethod(PaymentMethod pm) {
-        Long accountId = accountService.matchMaskedAccount(pm.getUser().getId(), pm.getAccountIdentifierMasked());
-        accountService.setAccountStatus(accountId, false);
-        return paymentRepository.save(pm);
+        Account account = accountService.matchMaskedAccount(pm.getUser().getId(), pm.getAccountIdentifierMasked())
+          .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
+        accountService.setAccountStatus(account, false);
+
+        // Create new pm if there isn't one, else flip flag and return existing
+        return paymentRepository.findPaymentMethodByAccountIdentifierMasked(pm.getAccountIdentifierMasked())
+          .map(paymentMethod -> {
+              paymentMethod.setActive(true);
+              return paymentMethod;
+          }).orElseGet( () -> paymentRepository.save(pm));
     }
 
     @Override
@@ -57,16 +65,20 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
                         new RuntimeException("Payment method not found with id: " + id));
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deletePaymentMethod(Long id) {
         PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
+        Account account  = accountService
+          .matchMaskedAccount(existingPaymentMethod.getUser().getId(), existingPaymentMethod.getAccountIdentifierMasked())
+          .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
+        accountService.setAccountStatus(account, true);
         paymentRepository.delete(existingPaymentMethod);
     }
 
     //Update the payment method active status only
-    @Transactional
     @Override
+    @Transactional
     public PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {
         PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
 

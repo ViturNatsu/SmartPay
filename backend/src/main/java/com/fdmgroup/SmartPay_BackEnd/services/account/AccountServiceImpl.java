@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.account;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
@@ -134,19 +135,16 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Long matchMaskedAccount(Long userId, String maskedAccount) {
+    public Optional<Account> matchMaskedAccount(Long userId, String maskedAccount) {
         return accountRepository.findByUserId(userId).stream()
           .filter(account -> maskedAccount.equals(MaskingUtil.maskAccountNumber(account.getAccountNumber())))
-          .findFirst().orElseThrow(() -> new AccountNotFoundException("No account matching the masked string"))
-          .getId();
+          .findFirst();
     }
 
     @Override
     @Transactional
-    public void setAccountStatus(Long accountId, boolean accountStatus){
-        accountRepository.findById(accountId).stream()
-          .findFirst().orElseThrow(()->new AccountNotFoundException("No account matching the provided ID"))
-          .setActive(accountStatus);
+    public void setAccountStatus(Account account, boolean accountStatus){
+        account.setActive(accountStatus);
     }
 
     @Override
