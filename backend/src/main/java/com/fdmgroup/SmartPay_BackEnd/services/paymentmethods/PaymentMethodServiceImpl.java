@@ -76,7 +76,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         paymentRepository.delete(existingPaymentMethod);
     }
 
-    //Update the payment method active status only
+    //Update the payment method and accounts active status only
     @Override
     @Transactional
     public PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {
@@ -85,6 +85,11 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         if (activeStatus != null) {
             existingPaymentMethod.setActive(activeStatus);
         }
+
+        Account account = accountService
+                .matchMaskedAccount(existingPaymentMethod.getUser().getId(), existingPaymentMethod.getAccountIdentifierMasked())
+                .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
+        accountService.setAccountStatus(account, true);
 
         return paymentRepository.save(existingPaymentMethod);
     }
