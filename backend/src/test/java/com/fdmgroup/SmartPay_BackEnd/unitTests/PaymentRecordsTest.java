@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -67,7 +68,7 @@ class PaymentRecordsTest {
         account.setAccountNumber("voidlast4");
         account.setId((long) 12);
 
-        Mockito.when(accountService.matchMaskedAccount(Mockito.any(), Mockito.any())).thenReturn(account.getId());
+        Mockito.when(accountService.matchMaskedAccount(Mockito.any(), Mockito.any())).thenReturn(Optional.of(account));
 
         long initCount = paymentRepository.count();
         PaymentMethod pm = new PaymentMethod();
