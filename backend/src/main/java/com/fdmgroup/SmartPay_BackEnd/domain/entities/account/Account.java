@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
-        property = "type",
+        property = "accountType",
         visible = true
 )
 @JsonSubTypes({
