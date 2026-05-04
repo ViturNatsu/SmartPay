@@ -6,10 +6,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
@@ -25,7 +28,7 @@ public class DataBaseInitializer {
     }
 
     @Bean
-    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository) {
+    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository) {
         return args -> {
             if (userRepository.findByEmail("admin1@example.com").isEmpty()) {
                 User admin1 = User.builder()
@@ -127,7 +130,61 @@ public class DataBaseInitializer {
                 customerRepository.save(testCustomer2);
                 log.info("Database initialized with test customer for user: {}", testCustomer2.getUser().getEmail());
 
+
             }
+            User testUser2 = userRepository.findByEmail("test2@example.com").orElse(null);
+            if(testUser2 != null){
+
+                if(!accountRepository.findByAccountNumber("00000401").isPresent()){
+                    Account testAccTd1 = new CheckingAccount();
+                    testAccTd1.setAccountName("TD Test Checking 1");
+                    testAccTd1.setInstitutionNumber("004");
+                    testAccTd1.setTransitNumber("000123");
+                    testAccTd1.setAccountNumber("00000401");
+                    testAccTd1.setBalance(1000.00);
+                    testAccTd1.setActive(true);
+                    testAccTd1.setUser(testUser2);
+                    accountRepository.save(testAccTd1);
+                }
+                 if(!accountRepository.findByAccountNumber("00000402").isPresent()){
+                    Account testAccTd2 = new CheckingAccount();
+                    testAccTd2.setAccountName("TD Test Checking 2");
+                    testAccTd2.setInstitutionNumber("004");
+                    testAccTd2.setTransitNumber("000123");
+                    testAccTd2.setAccountNumber("00000402");
+                    testAccTd2.setBalance(1000.00);
+                    testAccTd2.setActive(true);
+                    testAccTd2.setUser(testUser2);
+                    accountRepository.save(testAccTd2);
+                }
+
+                if(!accountRepository.findByAccountNumber("00000301").isPresent()){
+                    Account testAccRbc1 = new CheckingAccount();
+                    testAccRbc1.setAccountName("RBC Test Checking 1");
+                    testAccRbc1.setInstitutionNumber("003");
+                    testAccRbc1.setTransitNumber("000124");
+                    testAccRbc1.setAccountNumber("00000301");
+                    testAccRbc1.setBalance(1000.00);
+                    testAccRbc1.setActive(true);
+                    testAccRbc1.setUser(testUser2);
+                    accountRepository.save(testAccRbc1);
+                }
+                if(!accountRepository.findByAccountNumber("00000302").isPresent()){
+                    Account testAccRbc2 = new CheckingAccount();
+                    testAccRbc2.setAccountName("RBC Test Checking 2");
+                    testAccRbc2.setInstitutionNumber("003");
+                    testAccRbc2.setTransitNumber("000124");
+                    testAccRbc2.setAccountNumber("00000302");
+                    testAccRbc2.setBalance(1000.00);
+                    testAccRbc2.setActive(true);
+                    testAccRbc2.setUser(testUser2);
+                    accountRepository.save(testAccRbc2);
+                }
+
+                
+
+            }
+             
 
         };
     }
