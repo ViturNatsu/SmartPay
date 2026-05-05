@@ -68,6 +68,8 @@ public class OTPIntegrationTest {
             entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM chequing_accounts").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM accounts").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
             return null;
         });

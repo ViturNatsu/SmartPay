@@ -13,6 +13,20 @@ export async function createPaymentMethod(payload) {
     }
 }
 
+export async function batchCreatePaymentMethod(payloadArray) {
+    try{
+        const res = await Promise.all(
+            payloadArray.map(payload => {
+                axiosInstance.post(`${PAYMENT_METHODS_URL}`, payload);
+            })
+        )
+
+        console.log(res);
+    }catch (err) {
+        throw handleAxiosError(err);
+    }
+}
+
 export async function getPaymentMethodsForUserWithId(id, page) {
 
     try {

@@ -23,4 +23,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query(value = "SELECT NEXT VALUE FOR ACCOUNT_NUMBER_SEQ", nativeQuery = true)
     Long getNextAccountNumberSequence();
+
+    List<Account> findAllByUserId(Long userId);
 }

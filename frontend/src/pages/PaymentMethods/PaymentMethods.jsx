@@ -10,6 +10,11 @@ import {
   Snackbar,
   Stack,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -60,6 +65,8 @@ export default function PaymentMethods() {
   const [currentPageNumber, setCurrentPageNumber] = useState(0);
   const [pageData, setPageData] = useState({last: false, first: false});
   const topOfDisplayRef = useRef(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [methodToRemove, setMethodToRemove] = useState(null);
 
   const activeMethods = useMemo(
     () => paymentMethods.filter((method) => method.active),
@@ -153,24 +160,30 @@ export default function PaymentMethods() {
     }
   }
 
-  // Disable the payment method
-  const handleDeactivateMethod = async (paymentMethodId) => {
-    const isConfirmed = window.confirm("Are you sure you want to remove this payment method?");
-  
-    if (!isConfirmed) {
-      return;
-    }
+  const handleConfirmDialog = (paymentMethodId) => {
+    setMethodToRemove(paymentMethodId);
+    setOpenConfirmDialog(true);
+  };
+
+  const handleConfirmDeactivate = async () => {
+    setOpenConfirmDialog(false);
+    if (!methodToRemove) return;
 
     try {
-    await updatePaymentMethodStatus(paymentMethodId, false);
+      await updatePaymentMethodStatus(methodToRemove, false);
+      await fetchPaymentMethods(tokenClaims.userId);
+      setSuccessSnackbar(true);
+    } catch (err) {
+      setError(err?.message || "Failed to remove payment method");
+    } finally {
+      setMethodToRemove(null);
+    }
+  };
 
-    await fetchPaymentMethods(tokenClaims.userId);
-    
-    setSuccessSnackbar(true);
-  } catch (err) {
-    setError(err?.message || "Failed to remove payment method");
-  }
-};
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+    setMethodToRemove(null);
+  };
 
   return (
     <>
@@ -299,7 +312,7 @@ export default function PaymentMethods() {
                           <Button 
                             variant="outlined" 
                             color="error" 
-                            onClick={() => handleDeactivateMethod(method.payment_method_id)}>
+                            onClick={() => handleConfirmDialog(method.payment_method_id)}>
                             Remove
                           </Button>
                           </Stack>
@@ -372,6 +385,39 @@ export default function PaymentMethods() {
         onClose={handleCloseLinkBankAccount}
       />
 
+      <Dialog
+        open={openConfirmDialog}
+        onClose={handleCloseConfirmDialog}
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Remove this Payment Method?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to remove this payment method? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, px: 3 }}>
+          <Button 
+            onClick={handleCloseConfirmDialog} 
+            variant="outlined"
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDeactivate} 
+            color="error" 
+            variant="contained" 
+            autoFocus
+            sx={{ textTransform: "none" }}
+          >
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={successSnackbar}
         autoHideDuration={4000}
@@ -383,7 +429,7 @@ export default function PaymentMethods() {
           severity="success"
           variant="filled"
         >
-          Payment method saved successfully!
+          Payment method removed successfully!
         </Alert>
       </Snackbar>
     </>

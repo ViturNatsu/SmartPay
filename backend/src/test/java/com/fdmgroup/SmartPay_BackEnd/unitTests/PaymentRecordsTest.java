@@ -1,7 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.SavingsAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
@@ -12,10 +15,13 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,6 +33,12 @@ class PaymentRecordsTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    AccountRepository accountRepository;
+
+    @MockitoBean
+    AccountService accountService;
 
     @Autowired
     PaymentRepository paymentRepository;
@@ -50,6 +62,13 @@ class PaymentRecordsTest {
         User saved = userRepository.save(testUser);
         long TEST_USER_ID = saved.getId();
 
+        // Adding an account and Mocking the accountService: Should be fine since we are testing PaymentMethod
+        AccountFactory accountFactory = new AccountFactory(accountRepository);
+        Account account = accountFactory.createAccount(AccountType.SAVINGS);
+        account.setAccountNumber("voidlast4");
+        account.setId((long) 12);
+
+        Mockito.when(accountService.matchMaskedAccount(Mockito.any(), Mockito.any())).thenReturn(Optional.of(account));
 
         long initCount = paymentRepository.count();
         PaymentMethod pm = new PaymentMethod();

@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.paymentmethods;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,7 @@ public interface PaymentMethodService {
 
 
 
-    PaymentMethod addPaymentMethod(PaymentMethod pm);
+    PaymentMethod addPaymentMethod(PaymentMethod pm) throws AccountNotFoundException;
 
     List<PaymentMethod> findByUserId(Long id);
 
@@ -22,7 +23,7 @@ public interface PaymentMethodService {
 
     PaymentMethod findPaymentMethodById(Long id);
 
-    void deletePaymentMethod(Long id);
+    void deletePaymentMethod(Long id) throws AccountNotFoundException;
 
     //Update the payment method active status only
     PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus);
