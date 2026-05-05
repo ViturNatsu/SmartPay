@@ -143,7 +143,7 @@ public class DataBaseInitializer {
                     testAccTd1.setAccountNumber("00000401");
                     testAccTd1.setBalance(1000.00);
                     testAccTd1.setActive(true);
-                    testAccTd1.setUser(testUser2);
+                    testAccTd1.getUsers().add(testUser2);
                     accountRepository.save(testAccTd1);
                 }
                  if(!accountRepository.findByAccountNumber("00000402").isPresent()){
@@ -154,7 +154,7 @@ public class DataBaseInitializer {
                     testAccTd2.setAccountNumber("00000402");
                     testAccTd2.setBalance(1000.00);
                     testAccTd2.setActive(true);
-                    testAccTd2.setUser(testUser2);
+                    testAccTd2.getUsers().add(testUser2);
                     accountRepository.save(testAccTd2);
                 }
 
@@ -166,7 +166,7 @@ public class DataBaseInitializer {
                     testAccRbc1.setAccountNumber("00000301");
                     testAccRbc1.setBalance(1000.00);
                     testAccRbc1.setActive(true);
-                    testAccRbc1.setUser(testUser2);
+                    testAccRbc1.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc1);
                 }
                 if(!accountRepository.findByAccountNumber("00000302").isPresent()){
@@ -177,7 +177,7 @@ public class DataBaseInitializer {
                     testAccRbc2.setAccountNumber("00000302");
                     testAccRbc2.setBalance(1000.00);
                     testAccRbc2.setActive(true);
-                    testAccRbc2.setUser(testUser2);
+                    testAccRbc2.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc2);
                 }
 

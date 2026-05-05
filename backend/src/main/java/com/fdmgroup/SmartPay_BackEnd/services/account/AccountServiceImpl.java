@@ -51,9 +51,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
-        User user = userRepository.findById(account.getUser().getId())
+        User user = userRepository.findById(account.getUsers().get(0).getId())
                 .orElseThrow(
-                        () -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
+                        () -> new UserNotFoundException("User with id: " + account.getUsers().get(0).getId() + " not found"));
 
         // 2. Validate Account
         if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
@@ -76,7 +76,8 @@ public class AccountServiceImpl implements AccountService {
         // error)
         newAccount.setAccountName(account.getAccountName());
         newAccount.setBalance(account.getBalance() != null ? account.getBalance() : 1000.0);
-        newAccount.setUser(user);
+        // newAccount.setUser(user);
+        newAccount.getUsers().add(user);
         newAccount.setAccountNumber(account.getAccountNumber() != null ? account.getAccountNumber() : newAccount.getAccountNumber());
         newAccount.setTransitNumber(account.getTransitNumber());
         newAccount.setInstitutionNumber(account.getInstitutionNumber());
@@ -105,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
                         a.getTransitNumber(),
                         a.getBalance(),
                         a.getType(),
-                        a.getUser() != null ? a.getUser().getId() : null,
+                        a.getUsers().get(0) != null ? a.getUsers().get(0).getId() : null,
                         a.getActive()))
                 .toList();
     }
@@ -129,7 +130,7 @@ public class AccountServiceImpl implements AccountService {
             account.getTransitNumber(),
             account.getBalance(),
             account.getType(),
-            account.getUser() != null ? account.getUser().getId() : null,
+            account.getUsers().get(0) != null ? account.getUsers().get(0).getId() : null,
             account.getActive()))
           .toList();
     }
@@ -159,7 +160,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getTransitNumber(),
                 account.getBalance(),
                 account.getType(),
-                account.getUser().getId(),
+                account.getUsers().get(0).getId(),
                 account.getActive())).toList();
         return accountDtos;
 
@@ -178,7 +179,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getTransitNumber(),
                 account.getBalance(),
                 account.getType(),
-                account.getUser() != null ? account.getUser().getId() : null,
+                account.getUsers().get(0) != null ? account.getUsers().get(0).getId() : null,
                 account.getActive()
         );
     }
@@ -199,4 +200,5 @@ public class AccountServiceImpl implements AccountService {
     public void deleteAccount(Long accountId) {
         accountRepository.deleteById(accountId);
     }
+
 }

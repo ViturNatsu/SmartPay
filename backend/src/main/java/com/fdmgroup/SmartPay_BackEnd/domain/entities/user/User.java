@@ -74,8 +74,10 @@ public class User implements UserDetails {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
-    @Column(name = "accounts")
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @Column(name = "accounts")
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Account> accounts = new ArrayList<>();
+    @ManyToMany(mappedBy = "users")
     private List<Account> accounts = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
