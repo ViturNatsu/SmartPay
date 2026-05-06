@@ -10,7 +10,7 @@ const SANDBOX_TIMEOUT_MS = 15 * 60 * 1000;
 
 
 function SimulatedBankAuthorization() {
-    const { user, tokenClaims, loading: authLoading } = useAuth();
+    const { user, tokenClaims, loading: authLoading, logout } = useAuth();
     const navigate = useNavigate();
     const {selectedBank} = useParams();
     const [username, setUsername] = useState("");
@@ -23,17 +23,17 @@ function SimulatedBankAuthorization() {
     const REQUIRED = "This field is required"
 
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
+        const timeoutId = setTimeout(async () => {
             setUsername("");
             setPassword("");
             setInvalid(false);
             setErrorMsg("");
 
-            window.location.reload();
+            await logout();
         }, SANDBOX_TIMEOUT_MS);
 
         return () => clearTimeout(timeoutId);
-    }, []);
+    }, [logout]);
 
 
     const banks = new Map();
