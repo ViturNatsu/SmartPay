@@ -6,6 +6,8 @@ import { createPaymentMethod } from "../../api/paymentmethods/paymentmethodApi";
 import LockIcon from "@mui/icons-material/Lock";
 import { useAuth } from "@/context/AuthContext";
 
+const SANDBOX_TIMEOUT_MS = 15 * 60 * 1000; 
+
 
 function SimulatedBankAuthorization() {
     const { user, tokenClaims, loading: authLoading } = useAuth();
@@ -19,6 +21,19 @@ function SimulatedBankAuthorization() {
     const [invalid, setInvalid] = useState(false);
     const INVALID_CREDENTIALS_MSG = "Invalid sandbox credentials. Try again.";
     const REQUIRED = "This field is required"
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setUsername("");
+            setPassword("");
+            setInvalid(false);
+            setErrorMsg("");
+
+            window.location.reload();
+        }, SANDBOX_TIMEOUT_MS);
+
+        return () => clearTimeout(timeoutId);
+    }, []);
 
 
     const banks = new Map();
