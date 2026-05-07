@@ -21,24 +21,19 @@ public class Customer {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "fk_user_id",
-            nullable = false,
-            unique = true
-    )
+    @JoinColumn(name = "fk_user_id", nullable = false, unique = true)
     @JsonBackReference
     private User user;
 
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String firstName;
 
-
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String lastName;
 
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String dob;
 
@@ -53,11 +48,11 @@ public class Customer {
     @Column(nullable = false)
     private String city;
 
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String province;
 
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String country;
 
@@ -66,15 +61,14 @@ public class Customer {
     private String postalCode;
 
     @Convert(converter = PersonalInformationEncryptor.class)
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
-
 
     @Convert(converter = PersonalInformationEncryptor.class)
     @Column(nullable = false)
     private String socialInsuranceNumber;
 
-   // @Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GovernmentIdType governmentIdType;
@@ -83,15 +77,13 @@ public class Customer {
     @Column(nullable = false)
     private String governmentIdNumber;
 
-
-    //@Convert(converter = PersonalInformationEncryptor.class)
+    // @Convert(converter = PersonalInformationEncryptor.class)
     private String occupation;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
 
     @PrePersist
     protected void onCreate() {
