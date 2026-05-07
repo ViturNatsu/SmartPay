@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
@@ -78,6 +79,7 @@ public class User implements UserDetails {
     // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<Account> accounts = new ArrayList<>();
     @ManyToMany(mappedBy = "users")
+    @JsonIgnore
     private List<Account> accounts = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

@@ -33,5 +33,7 @@ public interface AccountService {
 
     Account updateUserAccount(Long id, Account account) throws AccountNotFoundException;
 
+    Account updateAccountUsers(Long accountId, List<Long> userIds) throws AccountNotFoundException, UserNotFoundException;
+
     void deleteAccount(Long id);
 }

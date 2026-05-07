@@ -25,13 +25,13 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
   const accountTypes = ["CHECKING", "SAVINGS"];
 
   const [formData, setFormData] = useState({
-    userId: "",
+    // userId: "",
     accountName: "",
     accountNumber: "",
     institutionNumber: "",
     transitNumber: "",
     balance: "",
-    type: accountTypes[0],
+    accountType: accountTypes[0],
   });
 
   const [errors, setErrors] = useState({});
@@ -46,9 +46,9 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
       newErrors.accountName = "Account name is required";
     }
 
-    if (!formData.userId.trim()) {
-      newErrors.userId = "Account user id is required";
-    }
+    // if (!formData.userId.trim()) {
+    //   newErrors.userId = "Account user id is required";
+    // }
 
     if (!/^\d{3}$/.test(formData.institutionNumber)) {
       newErrors.institutionNumber =
@@ -89,14 +89,14 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
   const handleClose = () => {
     // Reset form when closing
     setFormData({
-      userId: "",
+      // userId: "",
       accountName: "",
       accountNumber: "",
       institutionNumber: "",
       transitNumber: "",
       balance: "",
       active: true,
-      type: accountTypes[0],
+      accountType: accountTypes[0],
     });
     setErrors({});
     setServerError("");
@@ -110,7 +110,8 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
     setServerError("");
     setServerResponse(null);
 
-    formData.userId === "" ? "1" : formData.userId; // Default to 1 if userId is empty
+    // Default to 1 if userId is empty
+    // formData.userId === "" ? "1" : formData.userId; 
 
     const validationErrors = validateForm();
 
@@ -129,10 +130,10 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
         institutionNumber: formData.institutionNumber,
         transitNumber: formData.transitNumber,
         balance: parseFloat(formData.balance),
-        type: formData.type,
-        user: {
-          id: Number(formData.userId),
-        },
+        accountType: formData.accountType,
+        // user: {
+        //   id: Number(formData.userId),
+        // },
       };
 
       const response = await axiosInstance.post(
@@ -144,14 +145,14 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
 
       // Reset form
       setFormData({
-        userId: "",
+        // userId: "",
         accountName: "",
         accountNumber: "",
         institutionNumber: "",
         transitNumber: "",
         balance: "",
         active: true,
-        type: accountTypes[0],
+        accountType: accountTypes[0],
       });
 
       setErrors({});
@@ -215,11 +216,11 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
                 <InputLabel>Account Type</InputLabel>
                 <Select
                   label="Account Type"
-                  name="type"
-                  value={formData.type}
+                  name="accountType"
+                  value={formData.accountType}
                   onChange={handleChange}
                   placeholder="Select account type"
-                  error={!!errors.type}
+                  error={!!errors.accountType}
                   fullWidth
                 >
                   {accountTypes.map((type) => (
@@ -231,7 +232,7 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
               </FormControl>
             </Box>
 
-            <Box>
+            {/* <Box> 
               <TextField
                 fullWidth
                 label="User ID"
@@ -244,7 +245,7 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
                 helperText={errors.userId}
                 disabled={loading}
               />
-            </Box>
+            </Box> */}
 
             <Box>
               <TextField

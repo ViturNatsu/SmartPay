@@ -77,6 +77,9 @@ const AccountDetails = () => {
   const handleAlertClose = (event, reason) => {
     setopenAlert({ ...openAlert, open: false });
   };
+  const handleAddUser = () => {
+    navigate(`/admin/accounts/${accountId}/add-user`);
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -205,6 +208,19 @@ const AccountDetails = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  justifyContent="center"
+                >
+                  <Button
+                    sx={{ maxWidth: 80 }}
+                    variant="outlined"
+                    onClick={handleAddUser}
+                  >
+                    Update Users
+                  </Button>
+                </Stack>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={2}

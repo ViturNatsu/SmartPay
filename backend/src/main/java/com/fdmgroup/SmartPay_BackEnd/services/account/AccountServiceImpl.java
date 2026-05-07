@@ -51,9 +51,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
-        User user = userRepository.findById(account.getUsers().get(0).getId())
-                .orElseThrow(
-                        () -> new UserNotFoundException("User with id: " + account.getUsers().get(0).getId() + " not found"));
+        // User user = userRepository.findById(account.getUsers().get(0).getId())
+        //         .orElseThrow(
+        //                 () -> new UserNotFoundException("User with id: " + account.getUsers().get(0).getId() + " not found"));
 
         // 2. Validate Account
         if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
@@ -77,14 +77,14 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setAccountName(account.getAccountName());
         newAccount.setBalance(account.getBalance() != null ? account.getBalance() : 1000.0);
         // newAccount.setUser(user);
-        newAccount.getUsers().add(user);
+        // newAccount.getUsers().add(user);
         newAccount.setAccountNumber(account.getAccountNumber() != null ? account.getAccountNumber() : newAccount.getAccountNumber());
         newAccount.setTransitNumber(account.getTransitNumber());
         newAccount.setInstitutionNumber(account.getInstitutionNumber());
         newAccount.setActive(account.getActive() != null ? account.getActive() : true);
 
         // 5. Add account to user and save in repo
-        user.getAccounts().add(newAccount);
+        // user.getAccounts().add(newAccount);
         return accountRepository.save(newAccount);
     }
 
@@ -106,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
                         a.getTransitNumber(),
                         a.getBalance(),
                         a.getType(),
-                        a.getUsers().get(0) != null ? a.getUsers().get(0).getId() : null,
+                        a.getUsers() != null ? a.getUsers() : null,
                         a.getActive()))
                 .toList();
     }
@@ -130,7 +130,7 @@ public class AccountServiceImpl implements AccountService {
             account.getTransitNumber(),
             account.getBalance(),
             account.getType(),
-            account.getUsers().get(0) != null ? account.getUsers().get(0).getId() : null,
+            account.getUsers() != null ? account.getUsers() : null,
             account.getActive()))
           .toList();
     }
@@ -153,14 +153,15 @@ public class AccountServiceImpl implements AccountService {
 
         List<AccountDto> accountDtos;
 
-        accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(account.getId(),
+        accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(
+                account.getId(),
                 account.getAccountName(),
                 MaskingUtil.maskAccountNumber(account.getAccountNumber()),
                 account.getInstitutionNumber(),
                 account.getTransitNumber(),
                 account.getBalance(),
                 account.getType(),
-                account.getUsers().get(0).getId(),
+                account.getUsers(),
                 account.getActive())).toList();
         return accountDtos;
 
@@ -179,7 +180,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getTransitNumber(),
                 account.getBalance(),
                 account.getType(),
-                account.getUsers().get(0) != null ? account.getUsers().get(0).getId() : null,
+                account.getUsers() != null ? account.getUsers() : null,
                 account.getActive()
         );
     }
@@ -194,6 +195,22 @@ public class AccountServiceImpl implements AccountService {
         existingAccount.setBalance(updateAccount.getBalance());
         existingAccount.setActive(updateAccount.getActive());
         return accountRepository.save(existingAccount);
+    }
+
+    @Override
+    public Account updateAccountUsers(Long accountId, List<Long> userIds) throws AccountNotFoundException, UserNotFoundException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
+
+        List<User> newUsers = userIds.stream()
+                .map(userId -> userRepository.findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId)))
+                .toList();
+
+        account.getUsers().clear();
+        account.getUsers().addAll(newUsers);
+
+        return accountRepository.save(account);
     }
 
     @Override

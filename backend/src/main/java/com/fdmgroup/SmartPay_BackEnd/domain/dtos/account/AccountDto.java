@@ -1,6 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.account;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import lombok.*;
 
@@ -17,7 +21,8 @@ public class AccountDto {
     private String transitNumber;
     private Double balance;
     private AccountType accountType;
-    private Long userId;
+    @JsonIgnoreProperties({"accounts"})
+    private List<User> users;
     private Boolean active;
     
 //  private Customer customer - links to customer info

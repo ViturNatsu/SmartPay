@@ -103,6 +103,20 @@ public class AccountController {
                 return ResponseEntity.ok(targetAccount);
         }
 
+        @PutMapping("/admin/{accountId}/users")
+        @Operation(summary = "Update account users", description = "Replace the full user list for an existing account. Users not in the list will be removed.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Account users updated successfully. Returns the updated account.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
+                        @ApiResponse(responseCode = "404", description = "Account or user not found."),
+                        @ApiResponse(responseCode = "500", description = "Internal server error.")
+        })
+        public ResponseEntity<Account> updateAccountUsers(
+                        @PathVariable("accountId") Long accountId,
+                        @RequestBody List<Long> userIds) {
+                Account updatedAccount = accountService.updateAccountUsers(accountId, userIds);
+                return ResponseEntity.ok(updatedAccount);
+        }
+
         @DeleteMapping("/{accountId}")
         @Operation(summary = "Delete an account", description = "Delete an account using its account ID.")
         @ApiResponses(value = {
