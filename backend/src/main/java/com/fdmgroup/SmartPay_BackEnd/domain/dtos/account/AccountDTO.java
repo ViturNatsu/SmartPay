@@ -8,11 +8,12 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountDto {
+public class AccountDTO {
 
     private Long id;
     private String accountName;
     private String accountNumber;
+    private String accountNumberDigest;
     private String institutionNumber;
     private String transitNumber;
     private Double balance;
