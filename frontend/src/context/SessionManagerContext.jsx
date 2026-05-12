@@ -6,7 +6,7 @@ import {
   useRef,
 } from "react";
 import * as authApi from "../api/authApi";
-import { getAccessToken } from "../api/axios";
+import {  getAccessToken, setAccessToken } from "../api/axios";
 
 const SessionManagerContext = createContext(undefined);
 
@@ -138,8 +138,15 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
       const data = await authApi.refreshTokens();
       // console.log("[SESSION] Refresh SUCCESS");
 
+      if (data?.accessToken) {
+        setAccessToken(data.accessToken);
+      }
+
+      if (data?.refreshToken) {
+        sessionStorage.setItem("refresh_token", data.refreshToken);
+      }
+
       updateAccessTokenExpiry();
-      // Push the expiry timer out to the NEW token's exp
       resetExpiryTimer();
       return data;
     } catch (err) {
