@@ -264,7 +264,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         if (
           msgType === "LOGOUT" ||
           msgType === "SESSION_EXPIRED" ||
-          "FORCE_LOGOUT"
+          msgType === "FORCE_LOGOUT"
         ) {
           clearAuth();
           // Use the appropriate reason so the Login page shows the right message
