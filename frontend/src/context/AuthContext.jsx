@@ -17,6 +17,7 @@ import {
 } from "./SessionManagerContext";
 
 const AuthContext = createContext(undefined);
+let bootstrapRefreshPromise = null;
 
 const AuthProviderInner = ({ children, clearAuthRef }) => {
   const [user, setUser] = useState(null);
@@ -193,7 +194,13 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
       setLoading(true);
       try {
-        const res = await authApi.refreshTokens();
+        if (!bootstrapRefreshPromise) {
+          bootstrapRefreshPromise = authApi.refreshTokens().finally(() => {
+            bootstrapRefreshPromise = null;
+          });
+        }
+
+        const res = await bootstrapRefreshPromise;
 
         if (cancelled) return;
 
