@@ -133,7 +133,8 @@ public class DataBaseInitializer {
 
             }
             User testUser2 = userRepository.findByEmail("test2@example.com").orElse(null);
-            if(testUser2 != null){
+            User testUser1 = userRepository.findByEmail("test@example.com").orElse(null);
+            if(testUser2 != null && testUser1 != null){
 
                 if(!accountRepository.findByAccountNumber("00000401").isPresent()){
                     Account testAccTd1 = new CheckingAccount();
@@ -144,6 +145,7 @@ public class DataBaseInitializer {
                     testAccTd1.setBalance(1000.00);
                     testAccTd1.setActive(true);
                     testAccTd1.getUsers().add(testUser2);
+                    testAccTd1.getUsers().add(testUser1);
                     accountRepository.save(testAccTd1);
                 }
                  if(!accountRepository.findByAccountNumber("00000402").isPresent()){
@@ -155,6 +157,7 @@ public class DataBaseInitializer {
                     testAccTd2.setBalance(1000.00);
                     testAccTd2.setActive(true);
                     testAccTd2.getUsers().add(testUser2);
+                    testAccTd2.getUsers().add(testUser1);
                     accountRepository.save(testAccTd2);
                 }
 
