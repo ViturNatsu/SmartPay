@@ -30,6 +30,7 @@ function SimulatedBankAuthorization() {
             setErrorMsg("");
 
             await logout();
+            navigate("/login", { replace: true });
         }, SANDBOX_TIMEOUT_MS);
 
         return () => clearTimeout(timeoutId);
