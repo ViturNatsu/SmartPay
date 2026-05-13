@@ -160,6 +160,16 @@ public class DataBaseInitializer {
                     testAccTd2.getUsers().add(testUser1);
                     accountRepository.save(testAccTd2);
                 }
+                if(!accountRepository.findByAccountNumber("00000403").isPresent()){
+                    Account testAccTd3 = new CheckingAccount();
+                    testAccTd3.setAccountName("TD Test Checking 3");
+                    testAccTd3.setInstitutionNumber("004");
+                    testAccTd3.setTransitNumber("000123");
+                    testAccTd3.setAccountNumber("00000403");
+                    testAccTd3.setBalance(1000.00);
+                    testAccTd3.setActive(true);
+                    accountRepository.save(testAccTd3);
+                }
 
                 if(!accountRepository.findByAccountNumber("00000301").isPresent()){
                     Account testAccRbc1 = new CheckingAccount();
