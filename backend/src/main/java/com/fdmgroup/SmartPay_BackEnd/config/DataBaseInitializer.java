@@ -119,7 +119,7 @@ public class DataBaseInitializer {
                         .firstName("TestFirstName")
                         .lastName("TestLastName")
                         .occupation("Software Engineer")
-                        .phoneNumber("4161234567")
+                        .phoneNumber("4167654321")
                         .postalCode("M5H 2N2")
                         .province("ON")
                         .socialInsuranceNumber("123-456-789")
