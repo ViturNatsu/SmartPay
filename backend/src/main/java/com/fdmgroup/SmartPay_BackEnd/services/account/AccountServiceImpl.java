@@ -247,4 +247,20 @@ public class AccountServiceImpl implements AccountService {
           account.getActive()
         );
     }
+
+    @Override
+    public Account updateAccountUsers(Long accountId, List<Long> userIds) throws AccountNotFoundException, UserNotFoundException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
+
+        List<User> newUsers = userIds.stream()
+                .map(userId -> userRepository.findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId)))
+                .toList();
+
+        account.getUsers().clear();
+        account.getUsers().addAll(newUsers);
+
+        return accountRepository.save(account);
+    }
 }
