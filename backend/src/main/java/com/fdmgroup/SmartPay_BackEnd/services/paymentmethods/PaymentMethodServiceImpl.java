@@ -1,14 +1,18 @@
 package com.fdmgroup.SmartPay_BackEnd.services.paymentmethods;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod.PaymentMethodDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,27 +21,42 @@ import java.util.List;
 @Service
 public class PaymentMethodServiceImpl implements PaymentMethodService {
 
-    PaymentRepository paymentRepository;
-    AccountService accountService;
+    private final MaskingUtil maskingUtil;
+    private final PaymentRepository paymentRepository;
+    private final AccountService accountService;
 
-    public PaymentMethodServiceImpl(PaymentRepository paymentRepository, AccountService accountService) {
+    private final Logger log = LoggerFactory.getLogger(PaymentMethodServiceImpl.class);
+
+    public PaymentMethodServiceImpl(PaymentRepository paymentRepository, AccountService accountService, MaskingUtil maskingUtil) {
         this.paymentRepository = paymentRepository;
         this.accountService = accountService;
+        this.maskingUtil = maskingUtil;
     }
 
     @Override
     @Transactional
-    public PaymentMethod addPaymentMethod(PaymentMethod pm) {
-        Account account = accountService.matchMaskedAccount(pm.getUser().getId(), pm.getAccountIdentifierMasked())
-          .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
-        accountService.setAccountStatus(account, false);
-
-        // Create new pm if there isn't one, else flip flag and return existing
-        return paymentRepository.findPaymentMethodByAccountIdentifierMasked(pm.getAccountIdentifierMasked())
-          .map(paymentMethod -> {
-              paymentMethod.setActive(true);
-              return paymentMethod;
-          }).orElseGet( () -> paymentRepository.save(pm));
+    public PaymentMethodDTO addPaymentMethod(PaymentMethodDTO pmDto) {
+        log.warn("Looking at: {}", pmDto.getAccountIdentifierDigest());
+        return paymentRepository.findAllByUser_Id(pmDto.getUser().getId()).stream()
+          .filter(pm -> {
+              log.warn("comparing against: {}", maskingUtil.maskAccountNumber(pm.getAccount().getAccountNumber()).getSecond());
+              return maskingUtil.maskAccountNumber(pm.getAccount().getAccountNumber()).getSecond()
+                .equals(pmDto.getAccountIdentifierDigest());
+            })
+          .map(pm -> {
+              pm.setActive(true);
+              accountService.setAccountStatus(pm.getAccount(), false);
+              return paymentMethodToDto(pm);
+            })
+          .findFirst()
+          .orElseGet( () -> {
+              Account account = accountService.matchAccountDigest(pmDto.getAccountIdentifierDigest())
+                .orElseThrow(() -> new AccountNotFoundException("No matching account"));
+              accountService.setAccountStatus(account, false);
+              PaymentMethod pm = paymentRepository.save(dtoToPaymentMethod(pmDto, account));
+              log.warn("created pm: {}", pm);
+              return paymentMethodToDto(pm);
+          });
     }
 
     @Override
@@ -46,10 +65,11 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     }
 
     @Override
-    public Page<PaymentMethod> findByUserId(Long userId, int pageNumber) {
+    public Page<PaymentMethodDTO> findByUserId(Long userId, int pageNumber) {
         final int PAGE_SIZE = 5;
         Pageable pageable = PageRequest.of(pageNumber, PAGE_SIZE);
-        return paymentRepository.findByUserId(userId, pageable);
+        Page<PaymentMethod> pmPage = paymentRepository.findByUserId(userId, pageable);
+        return pmPage.map(this::paymentMethodToDto);
     }
 
     //for admin dashboard
@@ -68,29 +88,47 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Override
     @Transactional
     public void deletePaymentMethod(Long id) {
-        PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
-        Account account  = accountService
-          .matchMaskedAccount(existingPaymentMethod.getUser().getId(), existingPaymentMethod.getAccountIdentifierMasked())
-          .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
-        accountService.setAccountStatus(account, true);
-        paymentRepository.delete(existingPaymentMethod);
+        PaymentMethod pm = findPaymentMethodById(id);
+        accountService.setAccountStatus(pm.getAccount(), true);
+        paymentRepository.delete(pm);
     }
 
     //Update the payment method and accounts active status only
     @Override
     @Transactional
-    public PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {
-        PaymentMethod existingPaymentMethod = findPaymentMethodById(id);
-
+    public PaymentMethodDTO updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {
+        PaymentMethod pm = findPaymentMethodById(id);
         if (activeStatus != null) {
-            existingPaymentMethod.setActive(activeStatus);
+            pm.setActive(activeStatus);
         }
-
-        Account account = accountService
-                .matchMaskedAccount(existingPaymentMethod.getUser().getId(), existingPaymentMethod.getAccountIdentifierMasked())
-                .orElseThrow(() -> new AccountNotFoundException("No matching account mask"));
-        accountService.setAccountStatus(account, true);
-
-        return paymentRepository.save(existingPaymentMethod);
+        accountService.setAccountStatus(pm.getAccount(), true);
+        return paymentMethodToDto(pm);
     }
+
+
+    private PaymentMethodDTO paymentMethodToDto(final PaymentMethod pm){
+        PaymentMethodDTO pmDto = new PaymentMethodDTO();
+        pmDto.setPaymentMethodId(pm.getPaymentMethodId());
+        pmDto.setBankId(pm.getBankId());
+        pmDto.setBankDisplayName(pm.getBankDisplayName());
+        pmDto.setActive(pm.getActive());
+        pmDto.setAccountName(pm.getAccount().getAccountName());
+        pmDto.setUser(pm.getUser());
+
+        Pair<String, String> masks = maskingUtil.maskAccountNumber(pm.getAccount().getAccountNumber());
+        pmDto.setAccountIdentifierMasked(masks.getFirst());
+        pmDto.setAccountIdentifierDigest(masks.getSecond());
+        return pmDto;
+    }
+
+    private PaymentMethod dtoToPaymentMethod(final PaymentMethodDTO pmDto, final Account account){
+        PaymentMethod pm = new PaymentMethod();
+        pm.setAccount(account);
+        pm.setBankId(pmDto.getBankId());
+        pm.setBankDisplayName(pmDto.getBankDisplayName());
+        pm.setActive(pmDto.getActive());
+        pm.setUser(pmDto.getUser());
+        return pm;
+    }
+
 }

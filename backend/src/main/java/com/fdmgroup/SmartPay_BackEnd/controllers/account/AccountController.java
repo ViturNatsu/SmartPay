@@ -1,6 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.account;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -66,7 +65,7 @@ public class AccountController {
                 @ApiResponse(responseCode = "403", description = "Forbidden: user cannot access another user's accounts."),
                 @ApiResponse(responseCode = "404", description = "User not found with the specified userId.")
         })
-        public ResponseEntity<List<AccountDto>> getAccounts(
+        public ResponseEntity<List<AccountDTO>> getAccounts(
                 @PathVariable("userId") Long userId,
                 @RequestParam(value = "type", required = false) AccountType type,
                 Authentication authentication
@@ -87,7 +86,7 @@ public class AccountController {
                         @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
 
         })
-        public ResponseEntity<List<AccountDto>> getAllAccounts() {
+        public ResponseEntity<List<AccountDTO>> getAllAccounts() {
                 return ResponseEntity.ok(accountService.getAllAccounts());
         }
 
@@ -97,9 +96,9 @@ public class AccountController {
                         @ApiResponse(responseCode = "200", description = "Account retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
                         @ApiResponse(responseCode = "404", description = "Account not found with the specified accountId.")
         })
-        public ResponseEntity<AccountDto> getAccountById(@PathVariable("accountId") Long accountId)
+        public ResponseEntity<AccountDTO> getAccountById(@PathVariable("accountId") Long accountId)
                         throws AccountNotFoundException {
-                AccountDto targetAccount = accountService.getAccountById(accountId);
+                AccountDTO targetAccount = accountService.getAccountById(accountId);
                 return ResponseEntity.ok(targetAccount);
         }
 
@@ -148,7 +147,7 @@ public class AccountController {
           @ApiResponse(responseCode = "404", description = "User ID not found")
         })
         @GetMapping("/inactive/user/{userId}")
-        public ResponseEntity<List<AccountDto>> getInactiveAccountsForUser(
+        public ResponseEntity<List<AccountDTO>> getInactiveAccountsForUser(
           @PathVariable Long userId,
           @RequestParam(required = false) String institution)
         {

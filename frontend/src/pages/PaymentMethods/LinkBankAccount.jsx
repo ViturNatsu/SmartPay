@@ -101,7 +101,7 @@ function LinkBankAccount({open, onClose}) {
                             }}
                         >
                             <MenuItem value=""></MenuItem>
-                            {[...banks.entries()].map(([bank, tarnsitNumber]) => (
+                            {[...banks.entries()].map(([bank]) => (
                                 <MenuItem key={bank} value={bank}
                                           sx={{
                                               fontSize: 15,
