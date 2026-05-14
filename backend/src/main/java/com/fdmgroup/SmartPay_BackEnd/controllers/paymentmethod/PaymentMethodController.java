@@ -30,7 +30,7 @@ public class PaymentMethodController {
 			Authentication authentication) {
 
 		User principalUser = (User) authentication.getPrincipal();
-        pm.setUser(principalUser);
+        pmDto.setUser(principalUser);
 
         PaymentMethodDTO created = paymentMethodService.addPaymentMethod(pmDto);
 
