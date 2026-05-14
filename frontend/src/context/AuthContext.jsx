@@ -106,9 +106,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
   // Stores tokens, decodes claims, fetches full user profile.
   const setAuthFromTokens = useCallback(
     async ({ accessToken, refreshToken }) => {
-      try {
-        logoutChannelRef.current?.postMessage({ type: "FORCE_LOGOUT" });
-      } catch (error) {}
+      // try {
+      //   logoutChannelRef.current?.postMessage({ type: "FORCE_LOGOUT" });
+      // } catch (error) {}
 
       if (accessToken) setAccessToken(accessToken);
       if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
@@ -239,9 +239,14 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         }
       } catch (err) {
         if (!cancelled) {
-          // Token is expired or invalid — clear it so we don't loop
-          sessionStorage.removeItem("refresh_token");
-          clearAuth();
+          console.error("Bootstrap refresh failed:", err);
+
+          // Only clear auth if there is truly no refresh token left
+          const stillHasRefreshToken = sessionStorage.getItem("refresh_token");
+
+          if (!stillHasRefreshToken) {
+            clearAuth();
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
