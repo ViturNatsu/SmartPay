@@ -15,9 +15,11 @@ import {
   useSessionManager,
   decodeJwtPayload,
 } from "./SessionManagerContext";
+import { getAccessToken } from "../api/axios";
 
 const AuthContext = createContext(undefined);
 let bootstrapRefreshPromise = null;
+let consecutiveRefreshFailures = 0;
 
 const AuthProviderInner = ({ children, clearAuthRef }) => {
   const [user, setUser] = useState(null);
@@ -201,6 +203,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         }
 
         const res = await bootstrapRefreshPromise;
+        consecutiveRefreshFailures = 0;
 
         if (cancelled) return;
 
@@ -241,11 +244,29 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         if (!cancelled) {
           console.error("Bootstrap refresh failed:", err);
 
-          // Only clear auth if there is truly no refresh token left
-          const stillHasRefreshToken = sessionStorage.getItem("refresh_token");
 
-          if (!stillHasRefreshToken) {
+          const stillHasRefreshToken = sessionStorage.getItem("refresh_token");
+          const currentAccessToken = getAccessToken();
+
+          consecutiveRefreshFailures++;
+
+          // Allow a few stale refresh failures before forcing logout
+          if (consecutiveRefreshFailures >= 3) {
+            sessionStorage.setItem("signoutReason", "refresh_limit");
+
             clearAuth();
+
+            navigate("/login", { replace: true });
+          } else if (!stillHasRefreshToken && !currentAccessToken) {
+            sessionStorage.setItem("signoutReason", "refresh_limit");
+
+            clearAuth();
+
+            navigate("/login", { replace: true });
+          } else {
+            console.warn(
+              `Ignoring stale refresh failure (${consecutiveRefreshFailures}) because session still exists.`
+            );
           }
         }
       } finally {
