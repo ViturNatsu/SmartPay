@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.account;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,6 +94,9 @@ public class AccountServiceImpl implements AccountService {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
+        User user = userRepository.findById(userId).get();
+        List<User> users = new ArrayList<>();
+        users.add(user);
         List<Account> accounts = (type == null)
                 ? accountRepository.findByUserId(userId)
                 : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
@@ -106,7 +110,7 @@ public class AccountServiceImpl implements AccountService {
                         a.getTransitNumber(),
                         a.getBalance(),
                         a.getType(),
-                        a.getUsers() != null ? a.getUsers() : null,
+                        users,
                         a.getActive()))
                 .toList();
     }
