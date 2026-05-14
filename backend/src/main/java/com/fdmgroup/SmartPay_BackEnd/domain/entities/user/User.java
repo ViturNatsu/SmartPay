@@ -128,4 +128,13 @@ public class User implements UserDetails {
     public List<Account> getAccounts() {
         return accounts;
     }
+
+    @PreRemove
+    private void preRemove() {
+        // Break the many-to-many association with accounts to avoid FK constraint violations on the user_account_table join table.
+        for (Account account : new ArrayList<>(this.accounts)) {
+            account.getUsers().remove(this);
+        }
+        this.accounts.clear();
+    }
 }
