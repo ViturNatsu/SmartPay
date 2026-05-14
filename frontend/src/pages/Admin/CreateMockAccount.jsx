@@ -130,14 +130,14 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
         institutionNumber: formData.institutionNumber,
         transitNumber: formData.transitNumber,
         balance: parseFloat(formData.balance),
-        accountType: formData.accountType,
-        // user: {
-        //   id: Number(formData.userId),
-        // },
+        accountType: formData.type,
+        user: {
+          id: Number(formData.userId),
+        },
       };
 
       const response = await axiosInstance.post(
-        "/api/v1/accounts",
+        "/api/v1/accounts/admin",
         accountPayload,
       );
 

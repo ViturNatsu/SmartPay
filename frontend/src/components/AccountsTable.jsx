@@ -15,10 +15,11 @@ const AccountsTable = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getAllAccounts();
-        const accounts = Array.isArray(data) ? data : data?.accounts || [];
-        setaccountList(accounts);
-      } catch (err) {
+		const response = await axiosInstance.get(
+          "http://localhost:8080/api/v1/accounts/admin/all",
+        );
+        setaccountList(response.data);
+	  } catch (err) {
         setError(err?.message || "Failed to load accounts");
         console.error(err);
       } finally {

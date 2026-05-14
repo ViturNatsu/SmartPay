@@ -17,7 +17,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
@@ -56,8 +55,8 @@ public class PasswordResetIntegrationTest {
         @MockitoBean
         private JwtSessionService jwtSessionService;
 
-        @MockitoBean
-        private JwtService jwtService;
+//        @MockitoBean
+//        private JwtService jwtService;
 
         @MockitoBean
         private RequestCounter requestCounter;
