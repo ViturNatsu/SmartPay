@@ -34,7 +34,7 @@ function SimulatedBankAuthorization() {
         }, SANDBOX_TIMEOUT_MS);
 
         return () => clearTimeout(timeoutId);
-    }, [logout]);
+    }, [logout, navigate]);
 
 
     const banks = new Map();
