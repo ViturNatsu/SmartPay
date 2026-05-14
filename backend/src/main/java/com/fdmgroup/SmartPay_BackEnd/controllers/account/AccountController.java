@@ -6,6 +6,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,7 +32,7 @@ public class AccountController {
                 this.accountService = accountService;
         }
 
-        @PostMapping("/forUser/{id}")
+        @PostMapping("/admin/forUser/{id}")
         @Operation(summary = "Creates a new account for user with specified id", description = "Create a new account for a specified user.")
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "201", description = "Account created successfully"),
@@ -44,7 +46,7 @@ public class AccountController {
                 return ResponseEntity.created(location).body(createdAccount);
         }
 
-        @PostMapping
+        @PostMapping("/admin")
         @Operation(summary = "Create a new account", description = "Create a new savings or checking account for a specified user.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Account created successfully. Returns the created account object.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
@@ -71,7 +73,10 @@ public class AccountController {
                 Authentication authentication
         ) throws UserNotFoundException {
 
-            Long authenticatedUserId = Long.valueOf(authentication.getName());
+//            Long authenticatedUserId = Long.valueOf(authentication.getName());
+
+            User principalUser = (User) authentication.getPrincipal();
+            Long authenticatedUserId = principalUser.getId();
 
             if (!authenticatedUserId.equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -80,7 +85,7 @@ public class AccountController {
             return ResponseEntity.ok(accountService.getAccounts(userId, type));
         }
 
-        @GetMapping("/all")
+        @GetMapping("/admin/all")
         @Operation(summary = "Retrieve all accounts", description = "Fetch all accounts in the system.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
@@ -90,7 +95,7 @@ public class AccountController {
                 return ResponseEntity.ok(accountService.getAllAccounts());
         }
 
-        @GetMapping("/{accountId}")
+        @GetMapping("/admin/{accountId}")
         @Operation(summary = "Retrieve a specific account by ID", description = "Fetch a single account using its account ID.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Account retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
@@ -116,7 +121,7 @@ public class AccountController {
                 return ResponseEntity.ok(updatedAccount);
         }
 
-        @DeleteMapping("/{accountId}")
+        @DeleteMapping("/admin/{accountId}")
         @Operation(summary = "Delete an account", description = "Delete an account using its account ID.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Account deleted successfully."),
@@ -127,7 +132,7 @@ public class AccountController {
                 return ResponseEntity.noContent().build();
         }
 
-        @PutMapping("/{accountId}")
+        @PutMapping("/admin/{accountId}")
         @Operation(summary = "Update an existing account", description = "Update account details (name, balance) for the specified account.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Account updated successfully. Returns the updated account object.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),

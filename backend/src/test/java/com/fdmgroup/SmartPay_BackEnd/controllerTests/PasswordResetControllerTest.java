@@ -8,7 +8,6 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
-import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.PasswordResetService;
@@ -45,8 +44,8 @@ class PasswordResetControllerTest {
     @MockitoBean
     private JwtSessionService jwtSessionService;
 
-    @MockitoBean
-    private JwtService jwtService;
+//    @MockitoBean
+//    private JwtService jwtService;
 
     @MockitoBean
     private RequestCounter requestCounter;

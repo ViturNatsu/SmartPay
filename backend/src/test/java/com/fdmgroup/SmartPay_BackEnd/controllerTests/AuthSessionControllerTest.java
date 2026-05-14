@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.SessionAuthenticationException;
-import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
@@ -50,8 +49,8 @@ class AuthControllerTest {
         @MockitoBean
         private HttpServletRequest httpServletRequest;
 
-        @MockitoBean
-        private JwtService jwtService;
+//        @MockitoBean
+//        private JwtService jwtService;
 
         @MockitoBean
         private RequestCounter requestCounter;

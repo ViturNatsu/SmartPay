@@ -27,7 +27,7 @@ export async function getInactiveUserAccounts(userId, institutionNumber){
 
 export async function createAccount(payload) {
   try {
-    const res = await axiosInstance.post(`${ACCOUNTS_URL}`, payload);
+    const res = await axiosInstance.post(`${ACCOUNTS_URL}/admin`, payload);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -36,7 +36,7 @@ export async function createAccount(payload) {
 
 export async function createAccountForUser(payload, id) {
   try {
-    const res = await axiosInstance.post(`${ACCOUNTS_URL}/forUser/${id}`, payload);
+    const res = await axiosInstance.post(`${ACCOUNTS_URL}/admin/forUser/${id}`, payload);
     console.log(res.data);
     return res.data;
   } catch (err) {
@@ -73,7 +73,7 @@ export async function updateAccountUsers(accountId, userIds) {
 
 export async function deleteAccountById(id) {
   try {
-    const res = await axiosInstance.delete(`${ACCOUNTS_URL}/${id}`);
+    const res = await axiosInstance.delete(`${ACCOUNTS_URL}/admin/${id}`);
   } catch (err) {
     throw handleAxiosError(err);
   }
