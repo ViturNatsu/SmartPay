@@ -1,4 +1,3 @@
-import axios from "axios";
 import axiosInstance, { handleAxiosError } from "../axios";
 
 const PAYMENT_METHODS_URL = "/api/v1/paymentmethods";
@@ -15,13 +14,11 @@ export async function createPaymentMethod(payload) {
 
 export async function batchCreatePaymentMethod(payloadArray) {
     try{
-        const res = await Promise.all(
+        return Promise.all(
             payloadArray.map(payload => {
                 axiosInstance.post(`${PAYMENT_METHODS_URL}`, payload);
             })
         )
-
-        console.log(res);
     }catch (err) {
         throw handleAxiosError(err);
     }

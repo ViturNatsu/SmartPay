@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
+    private final MaskingUtil maskingUtil;
 
     @Override
     public CustomerDTO getCustomerInfo(Long userId) {
@@ -75,10 +76,10 @@ public class CustomerServiceImpl implements CustomerService {
                 .country(customer.getCountry())
                 .phoneNumber(customer.getPhoneNumber())
                 .socialInsuranceNumber(
-                        MaskingUtil.maskSin(customer.getSocialInsuranceNumber()))
+                        maskingUtil.maskSin(customer.getSocialInsuranceNumber()).getFirst())
                 .governmentIdType(customer.getGovernmentIdType().name())
-                .governmentIdNumber(MaskingUtil.maskGovernmentId(
-                                customer.getGovernmentIdNumber()))
+                .governmentIdNumber(
+                        maskingUtil.maskGovernmentId( customer.getGovernmentIdNumber()).getFirst())
                 .occupation(customer.getOccupation())
                 .build();
     }

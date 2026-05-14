@@ -32,12 +32,12 @@ function SimulatedBankAuthSuccess() {
       if(selectedAccounts.length === 0) return;
 
       let payloads = [];
-      selectedAccounts.forEach(accountNumber => {
+      selectedAccounts.forEach(accountDigest => {
           const payload = {
               bankId: institutionNumber,
               bankDisplayName: bankName,
               active: true,
-              accountIdentifierMasked: accountNumber,
+              accountIdentifierDigest: accountDigest,
               user: {
                   id: tokenClaims.userId
               }
@@ -45,14 +45,17 @@ function SimulatedBankAuthSuccess() {
           payloads = [...payloads, payload];
       });
       await batchCreatePaymentMethod(payloads)
+
+      // hack to wait for DB sync
+      await new Promise(r => setTimeout(r, 100));
       navigate("/payment-methods")
   }
 
-  const handleSelectingPaymentMethod =  (accountNumber) => {
-      if(selectedAccounts.includes(accountNumber)){
-          setSelectedAccounts(selectedAccounts.filter(accNum => accNum !== accountNumber));
+  const handleSelectingPaymentMethod =  (accountDigest) => {
+      if(selectedAccounts.includes(accountDigest)){
+          setSelectedAccounts(selectedAccounts.filter(accNum => accNum !== accountDigest));
       }else{
-          setSelectedAccounts([...selectedAccounts, accountNumber]);
+          setSelectedAccounts([...selectedAccounts, accountDigest]);
       }
   }
 
@@ -111,13 +114,13 @@ function SimulatedBankAuthSuccess() {
             <Stack spacing={1.0}>
                 {accounts.map((account) => (
                     <Stack
-                        key={account.number}
+                        key={account.id}
                         component={"button"}
-                        onClick={() => handleSelectingPaymentMethod(account.accountNumber)}
+                        onClick={() => handleSelectingPaymentMethod(account.accountNumberDigest)}
                         direction="row"
                         justifyContent="space-between"
                         alignItems="center"
-                        sx={{ bgcolor: selectedAccounts.includes(account.accountNumber) ? "#CFFAFE" : "#F9FAFB" ,
+                        sx={{ bgcolor: selectedAccounts.includes(account.accountNumberDigest) ? "#CFFAFE" : "#F9FAFB" ,
                             borderRadius: "12px",
                             p: 2,
                             cursor: "pointer" }}
@@ -126,8 +129,8 @@ function SimulatedBankAuthSuccess() {
                             <Typography sx={{ color: "#4B5563" }}>
                                 {account.accountName}
                             </Typography>
-                            <Typography sx={{ color: "#6B7280" }}>
-                                {account.accountNumber}
+                            <Typography sx={{ color: "#6B7280" , textAlign: "left"}}>
+                                {account.accountNumber.substring(2)}
                             </Typography>
                         </Stack>
                     </Stack>

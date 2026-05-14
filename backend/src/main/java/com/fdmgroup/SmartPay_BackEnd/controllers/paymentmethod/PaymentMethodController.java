@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.paymentmethod;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod.PaymentMethodDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,18 +23,19 @@ public class PaymentMethodController {
     }
 
     @PostMapping
-    public ResponseEntity<PaymentMethod> createPaymentRecord(@RequestBody PaymentMethod pm) {
-        PaymentMethod created = paymentMethodService.addPaymentMethod(pm);
+    public ResponseEntity<PaymentMethodDTO> createPaymentRecord(@RequestBody PaymentMethodDTO pmDto) {
+        PaymentMethodDTO created = paymentMethodService.addPaymentMethod(pmDto);
+
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(created.getPayment_method_id()).toUri();
+                .buildAndExpand(created.getPaymentMethodId()).toUri();
         return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/user/{id}/{pageNumber}")
-    public ResponseEntity<Page<PaymentMethod>> getPaymentRecordsOfUser(@PathVariable("id") Long id,
+    public ResponseEntity<Page<PaymentMethodDTO>> getPaymentRecordsOfUser(@PathVariable("id") Long id,
                                                                        @PathVariable("pageNumber") int pageNumber) {
-        Page<PaymentMethod> pms = paymentMethodService.findByUserId(id, pageNumber);
-        return ResponseEntity.ok(pms);
+        Page<PaymentMethodDTO> pmDtos = paymentMethodService.findByUserId(id, pageNumber);
+        return ResponseEntity.ok(pmDtos);
     }
 
 //    for admin dashboard
@@ -58,11 +60,11 @@ public class PaymentMethodController {
 
     @PutMapping("/{id}/status")
     @Operation(summary = "Update a PaymentMethod activeStatus", description = "Update the active status of a payment method. This endpoint is intended for users to deactivate their payment methods.")
-    public ResponseEntity<PaymentMethod> updatePaymentMethodStatus(
+    public ResponseEntity<PaymentMethodDTO> updatePaymentMethodStatus(
             @PathVariable("id") Long id,
-            @RequestBody PaymentMethod pm) {
+            @RequestBody PaymentMethodDTO pmDto) {
 
-        PaymentMethod updated = paymentMethodService.updatePaymentMethodActiveStatus(id, pm.getActive());
+        PaymentMethodDTO updated = paymentMethodService.updatePaymentMethodActiveStatus(id, pmDto.getActive());
         return ResponseEntity.ok(updated);
     }
 }

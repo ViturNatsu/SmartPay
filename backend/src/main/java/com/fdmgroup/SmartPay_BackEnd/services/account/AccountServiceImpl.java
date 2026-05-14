@@ -7,19 +7,18 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @Service
 @Transactional
@@ -27,14 +26,16 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountFactory accountFactory;
+    private final MaskingUtil maskingUtil;
 
     Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository,
-                              AccountFactory accountFactory) {
+                              AccountFactory accountFactory, MaskingUtil maskingUtil) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.accountFactory = accountFactory;
+        this.maskingUtil = maskingUtil;
     }
 
     public Account createAccountForUser(Account account, long id) {
@@ -88,7 +89,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDto> getAccounts(Long userId, AccountType type) throws UserNotFoundException {
+    public List<AccountDTO> getAccounts(Long userId, AccountType type) throws UserNotFoundException {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
@@ -97,93 +98,88 @@ public class AccountServiceImpl implements AccountService {
                 : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
 
         return accounts.stream()
-                .map(a -> new AccountDto(
-                        a.getId(),
-                        a.getAccountName(),
-                        MaskingUtil.maskAccountNumber(a.getAccountNumber()),
-                        a.getInstitutionNumber(),
-                        a.getTransitNumber(),
-                        a.getBalance(),
-                        a.getType(),
-                        a.getUser() != null ? a.getUser().getId() : null,
-                        a.getActive()))
+                .map(this::accountToDto)
                 .toList();
     }
 
+    /**
+     * Soon to be deprecated. currently acts as a Getter for AccountDTOs corresponding to inactive accounts
+     * @param userId The User's userId whom account are to be retrieved
+     * @param institution A String corresponding to an optional filter parameter
+     * @return A List of AccountDTOs for inactive Accounts
+     * @throws UserNotFoundException
+     */
     @Override
-    public List<AccountDto> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException{
+    public List<AccountDTO> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException{
         userRepository.findById(userId).orElseThrow( () -> new UserNotFoundException("Missing user: " + userId) );
 
         return accountRepository.findAllByUserId(userId).stream()
-          //filter on the account being inactive, and an optional institution number
+          //filter on the account being inactive and an optional institution number
           .filter(account ->
             (account.getActive()) &&
-              (institution == null || account.getInstitutionNumber().equals(institution))
-          )
-          // Map to DTO
-          .map(account -> new AccountDto(
-            account.getId(),
-            account.getAccountName(),
-            MaskingUtil.maskAccountNumber(account.getAccountNumber()),
-            account.getInstitutionNumber(),
-            account.getTransitNumber(),
-            account.getBalance(),
-            account.getType(),
-            account.getUser() != null ? account.getUser().getId() : null,
-            account.getActive()))
+              (institution == null || account.getInstitutionNumber().equals(institution)))
+          .map(this::accountToDto )
           .toList();
     }
 
+    /**
+     * A filter method used in matching Accounts based on their hashed accountNumber
+     * @param accountNumberDigest A String hash value
+     * @return An Optional containing an Account if a match is found
+     */
     @Override
-    public Optional<Account> matchMaskedAccount(Long userId, String maskedAccount) {
-        return accountRepository.findByUserId(userId).stream()
-          .filter(account -> maskedAccount.equals(MaskingUtil.maskAccountNumber(account.getAccountNumber())))
+    public Optional<Account> matchAccountDigest(String accountNumberDigest) {
+        return accountRepository.findAll().stream()
+          .filter(account ->
+            accountNumberDigest.equals(maskingUtil.maskAccountNumber(account.getAccountNumber()).getSecond())
+          )
           .findFirst();
     }
 
+    /**
+     * Setter method for Accounts, used in activating and deactivating accounts.
+     * @param account An Account object to update
+     * @param accountStatus A boolean corresponding to the new Account status
+     */
     @Override
     @Transactional
     public void setAccountStatus(Account account, boolean accountStatus){
         account.setActive(accountStatus);
+        accountRepository.save(account);
     }
 
+    /**
+     * Getter method for AccountDTOs
+     * @return returns a List of AccountDTOs for all accounts in the DB
+     */
     @Override
-    public List<AccountDto> getAllAccounts() {
-
-        List<AccountDto> accountDtos;
-
-        accountDtos = accountRepository.findAll().stream().map(account -> new AccountDto(account.getId(),
-                account.getAccountName(),
-                MaskingUtil.maskAccountNumber(account.getAccountNumber()),
-                account.getInstitutionNumber(),
-                account.getTransitNumber(),
-                account.getBalance(),
-                account.getType(),
-                account.getUser().getId(),
-                account.getActive())).toList();
-        return accountDtos;
-
+    public List<AccountDTO> getAllAccounts() {
+        return accountRepository.findAll().stream().map(this::accountToDto).toList();
     }
 
-      @Override
-    public AccountDto getAccountById(Long accountId) throws AccountNotFoundException {
+    /**
+     * Getter method for AccountDTOs given an accountId
+     * @param accountId A Long corresponding to the account's accountId
+     * @return An AccountDTO of the target Account
+     * @throws AccountNotFoundException
+     */
+    @Override
+    public AccountDTO getAccountById(Long accountId) throws AccountNotFoundException {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
-
-        return new AccountDto(
-                account.getId(),
-                account.getAccountName(),
-                MaskingUtil.maskAccountNumber(account.getAccountNumber()),
-                account.getInstitutionNumber(),
-                account.getTransitNumber(),
-                account.getBalance(),
-                account.getType(),
-                account.getUser() != null ? account.getUser().getId() : null,
-                account.getActive()
-        );
+        return accountToDto(account);
     }
 
+
+    /**
+     * Transactional method that updates a given account idempotently
+     * @param accountId Long corresponding to the target account's accountId
+     * @param updateAccount An Account object holding the new field values
+     * @return An Account object corresponding to the updated account
+     * @throws AccountNotFoundException
+     */
     @Override
+    @Transactional
     public Account updateUserAccount(Long accountId, Account updateAccount) throws AccountNotFoundException {
         // To update for both checking and savings account, we need to check the account
         // type and then update accordingly (for a future implementation)
@@ -195,8 +191,34 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.save(existingAccount);
     }
 
+    /**
+     * Transactional method to delete an Account given an ID
+     * @param accountId a Long representing the accountId to be deleted
+     */
     @Override
+    @Transactional
     public void deleteAccount(Long accountId) {
         accountRepository.deleteById(accountId);
+    }
+
+    /**
+     * Utility method to convert accounts to their DTO before transmission
+     * @param account The Account to convert
+     * @return An AccountDTO object corresponding to account
+     */
+    private AccountDTO accountToDto(Account account){
+        Pair<String, String> masked = maskingUtil.maskAccountNumber(account.getAccountNumber());
+        return new AccountDTO(
+          account.getId(),
+          account.getAccountName(),
+          masked.getFirst(),
+          masked.getSecond(),
+          account.getInstitutionNumber(),
+          account.getTransitNumber(),
+          account.getBalance(),
+          account.getType(),
+          account.getUser() != null ? account.getUser().getId() : null,
+          account.getActive()
+        );
     }
 }
