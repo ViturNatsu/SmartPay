@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.account;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,9 +53,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
-        User user = userRepository.findById(account.getUser().getId())
-                .orElseThrow(
-                        () -> new UserNotFoundException("User with id: " + account.getUser().getId() + " not found"));
+        // User user = userRepository.findById(account.getUsers().get(0).getId())
+        //         .orElseThrow(
+        //                 () -> new UserNotFoundException("User with id: " + account.getUsers().get(0).getId() + " not found"));
 
         // 2. Validate Account
         if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {
@@ -77,14 +78,15 @@ public class AccountServiceImpl implements AccountService {
         // error)
         newAccount.setAccountName(account.getAccountName());
         newAccount.setBalance(account.getBalance() != null ? account.getBalance() : 1000.0);
-        newAccount.setUser(user);
+        // newAccount.setUser(user);
+        // newAccount.getUsers().add(user);
         newAccount.setAccountNumber(account.getAccountNumber() != null ? account.getAccountNumber() : newAccount.getAccountNumber());
         newAccount.setTransitNumber(account.getTransitNumber());
         newAccount.setInstitutionNumber(account.getInstitutionNumber());
         newAccount.setActive(account.getActive() != null ? account.getActive() : true);
 
         // 5. Add account to user and save in repo
-        user.getAccounts().add(newAccount);
+        // user.getAccounts().add(newAccount);
         return accountRepository.save(newAccount);
     }
 
@@ -93,12 +95,15 @@ public class AccountServiceImpl implements AccountService {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found with id: " + userId);
         }
+        User user = userRepository.findById(userId).get();
+        List<User> users = new ArrayList<>();
+        users.add(user);
         List<Account> accounts = (type == null)
                 ? accountRepository.findByUserId(userId)
                 : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
 
         return accounts.stream()
-                .map(this::accountToDto)
+                .map(account -> this.accountToDtoUserLimited(account, users))
                 .toList();
     }
 
@@ -217,8 +222,45 @@ public class AccountServiceImpl implements AccountService {
           account.getTransitNumber(),
           account.getBalance(),
           account.getType(),
-          account.getUser() != null ? account.getUser().getId() : null,
+          account.getUsers() != null ? account.getUsers() : null,
           account.getActive()
         );
+    }
+
+    /**
+     * Utility method to convert accounts to their DTO before transmission
+     * @param account The Account to convert
+     * @return An AccountDTO object corresponding to account
+     */
+    private AccountDTO accountToDtoUserLimited(Account account, List<User> users){
+        Pair<String, String> masked = maskingUtil.maskAccountNumber(account.getAccountNumber());
+        return new AccountDTO(
+          account.getId(),
+          account.getAccountName(),
+          masked.getFirst(),
+          masked.getSecond(),
+          account.getInstitutionNumber(),
+          account.getTransitNumber(),
+          account.getBalance(),
+          account.getType(),
+          users != null ? users : null,
+          account.getActive()
+        );
+    }
+
+    @Override
+    public Account updateAccountUsers(Long accountId, List<Long> userIds) throws AccountNotFoundException, UserNotFoundException {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
+
+        List<User> newUsers = userIds.stream()
+                .map(userId -> userRepository.findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId)))
+                .toList();
+
+        account.getUsers().clear();
+        account.getUsers().addAll(newUsers);
+
+        return accountRepository.save(account);
     }
 }

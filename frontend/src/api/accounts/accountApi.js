@@ -44,6 +44,33 @@ export async function createAccountForUser(payload, id) {
   }
 }
 
+export async function getAllAccounts() {
+  try {
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/all`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function getAccountById(accountId) {
+  try {
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/${accountId}`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function updateAccountUsers(accountId, userIds) {
+  try {
+    const res = await axiosInstance.put(`${ACCOUNTS_URL}/admin/${accountId}/users`, userIds);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function deleteAccountById(id) {
   try {
     const res = await axiosInstance.delete(`${ACCOUNTS_URL}/${id}`);

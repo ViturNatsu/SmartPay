@@ -13,6 +13,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -61,11 +63,20 @@ public abstract class Account {
     @Column(name = "active")
     private Boolean active;
 
-    @ManyToOne
-	@JoinColumn(name = "fk_user_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-	private User user;
+//     @ManyToOne
+// 	@JoinColumn(name = "fk_user_id")
+//     @OnDelete(action = OnDeleteAction.CASCADE)
+//     @JsonBackReference
+// 	private User user;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_account_table",
+            joinColumns = @JoinColumn(name = "account_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Column(name = "users")
+    private List<User> users = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type")
