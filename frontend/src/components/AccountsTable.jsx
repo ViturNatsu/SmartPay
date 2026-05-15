@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getAllAccounts } from "@/api/accounts/accountApi";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import axiosInstance from "@/api/axios";
 
 const AccountsTable = () => {
   const navigate = useNavigate();
@@ -15,10 +16,9 @@ const AccountsTable = () => {
       setLoading(true);
       setError(null);
       try {
-		const response = await axiosInstance.get(
-          "http://localhost:8080/api/v1/accounts/admin/all",
-        );
-        setaccountList(response.data);
+		const data = await getAllAccounts();
+        const accounts = Array.isArray(data) ? data : data?.accounts || [];
+        setaccountList(accounts);
 	  } catch (err) {
         setError(err?.message || "Failed to load accounts");
         console.error(err);
