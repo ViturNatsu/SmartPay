@@ -99,6 +99,7 @@ const AccountsTable = () => {
   const rows = Array.isArray(accountList)
     ? accountList.map((acc) => ({
         ...acc,
+        accountNumber: acc.accountNumber.substring(2),
         id: acc.id,
         active: acc.active ? "Active" : "Inactive",
         userId: acc.users?.map((u) => u.id).join(", ") || "",
