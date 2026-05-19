@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.account;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountFilterParamDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -63,26 +65,20 @@ public class AccountController {
         @Operation(summary = "Retrieve user accounts", description = "Fetch accounts associated with a user. Can be filtered by type (SAVINGS or CHECKING).")
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "List of accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid account type provided."),
+                @ApiResponse(responseCode = "401", description = "Invalid or missing Authentication"),
                 @ApiResponse(responseCode = "403", description = "Forbidden: user cannot access another user's accounts."),
                 @ApiResponse(responseCode = "404", description = "User not found with the specified userId.")
         })
-        public ResponseEntity<List<AccountDTO>> getAccounts(
-                @PathVariable("userId") Long userId,
-                @RequestParam(value = "type", required = false) AccountType type,
-                Authentication authentication
-        ) throws UserNotFoundException {
+        public ResponseEntity<List<AccountDTO>> getAccounts(@PathVariable Long userId,
+                                                            @ModelAttribute AccountFilterParamDTO filter,
+                                                            Authentication authentication)
+          throws UserNotFoundException {
+                // Auth checks
+                User principalUser = (User) authentication.getPrincipal();
+                if(principalUser == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                if (!principalUser.getId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
-//            Long authenticatedUserId = Long.valueOf(authentication.getName());
-
-            User principalUser = (User) authentication.getPrincipal();
-            Long authenticatedUserId = principalUser.getId();
-
-            if (!authenticatedUserId.equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            return ResponseEntity.ok(accountService.getAccounts(userId, type));
+                return ResponseEntity.ok(accountService.getAccounts(userId, filter));
         }
 
         @GetMapping("/admin/all")
@@ -142,20 +138,5 @@ public class AccountController {
                         @Valid @RequestBody Account account) throws AccountNotFoundException {
                 Account updatedAccount = accountService.updateUserAccount(accountId, account);
                 return ResponseEntity.ok(updatedAccount);
-        }
-
-
-        @Operation(summary = "Returns a list of the user's inactive accounts (Active flag = false). Filtered" +
-          "by an optional Institution number")
-        @ApiResponses(value = {
-          @ApiResponse(responseCode = "200", description = "List of user's inactive accounts"),
-          @ApiResponse(responseCode = "404", description = "User ID not found")
-        })
-        @GetMapping("/inactive/user/{userId}")
-        public ResponseEntity<List<AccountDTO>> getInactiveAccountsForUser(
-          @PathVariable Long userId,
-          @RequestParam(required = false) String institution)
-        {
-                return ResponseEntity.ok(accountService.getInactiveAccounts(userId, institution));
         }
 }
