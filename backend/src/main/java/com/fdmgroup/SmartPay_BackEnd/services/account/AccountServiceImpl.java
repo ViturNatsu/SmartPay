@@ -53,9 +53,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account addAccount(Account account) throws UserNotFoundException {
         // 1. Validate User
-        // User user = userRepository.findById(account.getUsers().get(0).getId())
-        //         .orElseThrow(
-        //                 () -> new UserNotFoundException("User with id: " + account.getUsers().get(0).getId() + " not found"));
+        // No Longer needed
 
         // 2. Validate Account
         if (account.getInstitutionNumber() != null && !account.getInstitutionNumber().matches("\\d{3}")) {

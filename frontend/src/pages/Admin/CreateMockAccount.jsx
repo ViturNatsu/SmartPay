@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axiosInstance from "../../api/axios";
+import axiosInstance from "@/api/axios";
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
+import { createAccount } from "@/api/accounts/accountApi";
 
 function CreateMockAccount({ open, onClose, onSuccess }) {
   const { tokenClaims } = useAuth();
@@ -130,16 +131,15 @@ function CreateMockAccount({ open, onClose, onSuccess }) {
         institutionNumber: formData.institutionNumber,
         transitNumber: formData.transitNumber,
         balance: parseFloat(formData.balance),
-        accountType: formData.type,
-        user: {
-          id: Number(formData.userId),
-        },
+        accountType: formData.accountType,
       };
 
-      const response = await axiosInstance.post(
-        "/api/v1/accounts/admin",
-        accountPayload,
-      );
+      const response = await createAccount(accountPayload);
+      
+      // axiosInstance.post(
+      //   "/api/v1/accounts/admin",
+      //   accountPayload,
+      // );
 
       setServerResponse(response.data);
 

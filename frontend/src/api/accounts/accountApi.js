@@ -46,7 +46,7 @@ export async function createAccountForUser(payload, id) {
 
 export async function getAllAccounts() {
   try {
-    const res = await axiosInstance.get(`${ACCOUNTS_URL}/all`);
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/admin/all`);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -55,7 +55,7 @@ export async function getAllAccounts() {
 
 export async function getAccountById(accountId) {
   try {
-    const res = await axiosInstance.get(`${ACCOUNTS_URL}/${accountId}`);
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/admin/${accountId}`);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);

@@ -63,12 +63,6 @@ public abstract class Account {
     @Column(name = "active")
     private Boolean active;
 
-//     @ManyToOne
-// 	@JoinColumn(name = "fk_user_id")
-//     @OnDelete(action = OnDeleteAction.CASCADE)
-//     @JsonBackReference
-// 	private User user;
-
     @ManyToMany
     @JoinTable(
             name = "user_account_table",
