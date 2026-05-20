@@ -91,7 +91,6 @@ function SimulatedBankAuthSuccess() {
               borderRadius: "12px",
               p: 2,
               margin:2,
-
               cursor: disabled ? "arrow" : "pointer",
               opacity: disabled ? 0.5 : 1,
               filter: disabled ? "greyscale(100%)": "",
