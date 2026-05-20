@@ -14,6 +14,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AccountFilterParamDTO {
+  private String institutionNumber;
   private Boolean active;
 
   /**
@@ -23,6 +24,19 @@ public class AccountFilterParamDTO {
    */
   public Boolean match(Account account){
     if(account == null) return false;
-    return active == null || (account.getActive() != null);
+    if(active != null && (account.getActive() == null || !account.getActive().equals(active))) return false;
+    if(institutionNumber != null && (account.getInstitutionNumber() == null
+      || !account.getInstitutionNumber().equals(institutionNumber))) return false;
+
+    return true;
+  }
+
+  @Override
+  public String toString(){
+    return getClass().getName() + " " + Integer.toHexString(hashCode())
+      + "\n{"
+      + "\n  Active status: " + (active == null ? "NULL" : active)
+      + "\n  Institution number: " + (institutionNumber == null ? "NULL" : institutionNumber)
+      + "\n}";
   }
 }

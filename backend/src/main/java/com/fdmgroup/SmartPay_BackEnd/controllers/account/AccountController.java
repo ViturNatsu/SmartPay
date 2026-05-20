@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("api/v1/accounts")
 public class AccountController {
@@ -65,7 +67,7 @@ public class AccountController {
         @Operation(summary = "Retrieve user accounts", description = "Fetch accounts associated with a user. Can be filtered by type (SAVINGS or CHECKING).")
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "List of accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
-                @ApiResponse(responseCode = "401", description = "Invalid or missing Authentication"),
+                @ApiResponse(responseCode = "401", description = "Missing or Invalid Token"),
                 @ApiResponse(responseCode = "403", description = "Forbidden: user cannot access another user's accounts."),
                 @ApiResponse(responseCode = "404", description = "User not found with the specified userId.")
         })

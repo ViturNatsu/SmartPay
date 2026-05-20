@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import {useAuth} from "@/context/AuthContext.jsx";
-import {getInactiveUserAccounts, getUserAccounts} from "@/api/accounts/accountApi.js";
+import {getFilteredUserAccounts} from "@/api/accounts/accountApi.js";
 import {handleAxiosError} from "@/api/axios.js";
 import {Box, Card, CardContent, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod, createPaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 
 
 function SimulatedBankAuthSuccess() {
@@ -18,8 +17,10 @@ function SimulatedBankAuthSuccess() {
   const [selectedAccounts, setSelectedAccounts] = useState([]);
 
   useEffect(() => {
+      console.log(tokenClaims.userId);
       async function initLoad(){
-          const res = await getInactiveUserAccounts(tokenClaims.userId, institutionNumber)
+          const res = await getFilteredUserAccounts(tokenClaims.userId,
+              {institutionNumber: institutionNumber})
           setAccounts(res);
       }
       initLoad().catch(err => handleAxiosError(err));

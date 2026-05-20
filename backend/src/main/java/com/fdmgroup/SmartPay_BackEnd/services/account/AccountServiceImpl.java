@@ -90,7 +90,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * Retrieve all of the user's accounts that match the filter
+     * Retrieve all the user's accounts that match the filter
      * @param userId A Long userId
      * @param filter An AccountFilterParamDTO object with optional filter params
      * @return A list of matching Accounts represented as their DTO objects
@@ -102,6 +102,8 @@ public class AccountServiceImpl implements AccountService {
           .findById(userId).orElseThrow(
             () -> new UserNotFoundException("User not found with id: " + userId));
 
+        log.info("filter");
+        log.info("{}", filter);
         return accountRepository.findByUserId(userId).stream()
           .filter((filter::match))
           .map(this::accountToDto)
@@ -109,6 +111,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
+     * @deprecated
+     *
      * Soon to be deprecated. currently acts as a Getter for AccountDTOs corresponding to inactive accounts
      * @param userId The User's userId whom account are to be retrieved
      * @param institution A String corresponding to an optional filter parameter
