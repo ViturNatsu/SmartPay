@@ -111,28 +111,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * @deprecated
-     *
-     * Soon to be deprecated. currently acts as a Getter for AccountDTOs corresponding to inactive accounts
-     * @param userId The User's userId whom account are to be retrieved
-     * @param institution A String corresponding to an optional filter parameter
-     * @return A List of AccountDTOs for inactive Accounts
-     * @throws UserNotFoundException
-     */
-    @Override
-    public List<AccountDTO> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException{
-        userRepository.findById(userId).orElseThrow( () -> new UserNotFoundException("Missing user: " + userId) );
-
-        return accountRepository.findAllByUserId(userId).stream()
-          //filter on the account being inactive and an optional institution number
-          .filter(account ->
-            (account.getActive()) &&
-              (institution == null || account.getInstitutionNumber().equals(institution)))
-          .map(this::accountToDto )
-          .toList();
-    }
-
-    /**
      * A filter method used in matching Accounts based on their hashed accountNumber
      * @param accountNumberDigest A String hash value
      * @return An Optional containing an Account if a match is found

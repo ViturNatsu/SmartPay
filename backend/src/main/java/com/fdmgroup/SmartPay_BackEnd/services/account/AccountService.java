@@ -24,8 +24,6 @@ public interface AccountService {
 
     List<AccountDTO> getAccounts(Long userId, AccountFilterParamDTO filter) throws UserNotFoundException;
 
-    List<AccountDTO> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException;
-
     List<AccountDTO> getAllAccounts();
 
     AccountDTO getAccountById(Long accountId) throws AccountNotFoundException;
