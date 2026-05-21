@@ -122,12 +122,14 @@ public class AuthSessionController {
             User user = userService.getUserById(userId);
 
             String newAccessToken = jwtService.createAccessToken(user);
-            String newRefreshToken = jwtService.createRefreshToken(user);
-            sessionService.rotateRefreshToken(oldRefreshToken, newRefreshToken);
+
+            // Do NOT create a new refresh token here.
+            // Keep the same refresh token to avoid logout during fast browser refresh.
+            sessionService.rotateRefreshToken(oldRefreshToken, oldRefreshToken);
 
             KeepAliveDTO dto = new KeepAliveDTO();
             dto.setAccessToken(newAccessToken);
-            dto.setRefreshToken(newRefreshToken);
+            dto.setRefreshToken(oldRefreshToken);
             return ResponseEntity.ok(dto);
 
         } catch (SessionAuthenticationException e) {

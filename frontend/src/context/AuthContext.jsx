@@ -265,8 +265,48 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
             navigate("/login", { replace: true });
           } else {
             console.warn(
-              `Ignoring stale refresh failure (${consecutiveRefreshFailures}) because session still exists.`
+              `Retrying stale refresh failure (${consecutiveRefreshFailures}) because session still exists.`
             );
+
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            try {
+              const retryRes = await authApi.refreshTokens();
+
+              if (retryRes?.accessToken) {
+                setAccessToken(retryRes.accessToken);
+
+                if (retryRes.refreshToken) {
+                  sessionStorage.setItem("refresh_token", retryRes.refreshToken);
+                }
+
+                const claims = decodeJwtPayload(retryRes.accessToken);
+
+                if (claims) {
+                  const extracted = {
+                    userId: claims.sub ?? null,
+                    role: claims.role ?? null,
+                    email: claims.email ?? null,
+                  };
+
+                  setTokenClaims(extracted);
+
+                  if (extracted.role?.toUpperCase() === "ADMIN") {
+                    setUser({
+                      id: extracted.userId,
+                      email: extracted.email,
+                      role: extracted.role,
+                    });
+                  } else {
+                    await getMyUser();
+                  }
+
+                  startSessionMonitoringRef.current();
+                }
+              }
+            } catch (retryErr) {
+              console.error("Bootstrap retry failed:", retryErr);
+            }
           }
         }
       } finally {

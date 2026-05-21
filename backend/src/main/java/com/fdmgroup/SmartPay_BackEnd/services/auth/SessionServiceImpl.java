@@ -146,10 +146,15 @@ public class SessionServiceImpl implements SessionService {
                     "You've been signed out due to inactivity. Please sign in again.");
         }
 
-        session.setRefreshToken(newRefreshToken);
+        // session.setRefreshToken(newRefreshToken);
+        // session.updateLastUsed();
+        // sessionRepo.save(session);
+        // log.info("Rotated refresh token for user: {}", session.getUser().getEmail());
+        // Keep the same refresh token
         session.updateLastUsed();
         sessionRepo.save(session);
-        log.info("Rotated refresh token for user: {}", session.getUser().getEmail());
+
+        log.info("Updated session activity for user: {}", session.getUser().getEmail());
     }
 
     @Override
