@@ -231,6 +231,14 @@ public class AccountServiceImpl implements AccountService {
         );
     }
 
+    /**
+     * Transactional method to update the users associated with an account
+     * @param accountId a Long representing the accountId to be updated
+     * @param userIds a List of Longs representing the new user IDs
+     * @return An Account object corresponding to the updated account
+     * @throws AccountNotFoundException
+     * @throws UserNotFoundException
+     */
     @Override
     public Account updateAccountUsers(Long accountId, List<Long> userIds) throws AccountNotFoundException, UserNotFoundException {
         Account account = accountRepository.findById(accountId)
@@ -245,5 +253,16 @@ public class AccountServiceImpl implements AccountService {
         account.getUsers().addAll(newUsers);
 
         return accountRepository.save(account);
+    }
+
+    @Override
+    public List<AccountDTO> getInUseAccounts(Long userId) {
+        List<Account> userAccounts = accountRepository.findInUseAccountsByUserId(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        return userAccounts.stream()
+                .map(account -> accountToDtoUserLimited(account, users))
+                .toList();
     }
 }

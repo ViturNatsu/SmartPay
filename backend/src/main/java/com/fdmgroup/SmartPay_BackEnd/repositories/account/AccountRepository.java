@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +29,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId")
     List<Account> findAllByUserId(@Param("userId") Long userId);
+    @NativeQuery("SELECT a.* FROM accounts a JOIN payment_methods pm ON a.account_id = pm.account_id JOIN users u ON pm.user_id = u.id WHERE u.id = :userId AND pm.active_status = true")
+    List<Account> findInUseAccountsByUserId(Long userId);
 }
