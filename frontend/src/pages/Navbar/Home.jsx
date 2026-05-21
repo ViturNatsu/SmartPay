@@ -55,9 +55,9 @@ export const Home = () => {
               overflow: "visible",
             }}
           >
-            <Stack spacing={2}>
-              <ImportantMessages />
+            <Stack spacing={2.25}>
               <QuickActions />
+              <ImportantMessages />
             </Stack>
           </div>
         </div>
