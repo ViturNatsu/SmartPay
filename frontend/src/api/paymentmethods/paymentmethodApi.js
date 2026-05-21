@@ -13,13 +13,12 @@ export async function createPaymentMethod(payload) {
 }
 
 export async function batchCreatePaymentMethod(payloadArray) {
-    try{
-        return Promise.all(
-            payloadArray.map(payload => {
-                axiosInstance.post(`${PAYMENT_METHODS_URL}`, payload);
-            })
-        )
-    }catch (err) {
+    try {
+        const responses = await Promise.all(
+            payloadArray.map(payload => axiosInstance.post(`${PAYMENT_METHODS_URL}`, payload))
+        );
+        return responses.map(res => res.data);
+    } catch (err) {
         throw handleAxiosError(err);
     }
 }

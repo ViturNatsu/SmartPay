@@ -11,6 +11,15 @@ export async function getUserAccounts(userId) {
   }
 }
 
+export async function getInUseUserAccounts(userId) {
+  try {
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/user/inuse/${userId}`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 
 export async function getFilteredUserAccounts(userId, filterParam) {
   console.log(filterParam)

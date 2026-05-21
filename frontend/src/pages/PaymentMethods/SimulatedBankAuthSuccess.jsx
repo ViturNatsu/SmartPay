@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import {useAuth} from "@/context/AuthContext.jsx";
-import {getFilteredUserAccounts} from "@/api/accounts/accountApi.js";
+import {getFilteredUserAccounts, getInUseUserAccounts} from "@/api/accounts/accountApi.js";
 import {handleAxiosError} from "@/api/axios.js";
 import {Box, Card, CardContent, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod, createPaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
@@ -16,29 +16,50 @@ function SimulatedBankAuthSuccess() {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccounts, setSelectedAccounts] = useState([]);
   const [disabledAccounts, setDisabledAccounts] = useState([]);
+  const [fetchedAccounts, setFetchedAccounts] = useState(null);
+  const [inUseAccounts, setInUseAccounts] = useState(null);
 
   useEffect(() => {
-      console.log(tokenClaims.userId);
-      async function initLoad(){
-          const res = await getFilteredUserAccounts(tokenClaims.userId,
-              {institutionNumber: institutionNumber})
+    console.log(tokenClaims.userId);
 
-          let usableAccounts = [];
-          let unUsableAccounts = []
-          res.map((acc) => {
-              if(acc != null && Object.hasOwn(acc, "active")){
-                  if(acc.active === true){
-                      usableAccounts = [...usableAccounts, acc]
-                  }else{
-                      unUsableAccounts = [...unUsableAccounts, acc];
-                  }
-              }
-          })
-          setAccounts(usableAccounts);
-          setDisabledAccounts(unUsableAccounts);
+    const fetchFilteredAccounts = async () => {
+      const res = await getFilteredUserAccounts(tokenClaims.userId,
+          {institutionNumber: institutionNumber});
+      console.log("Insitution accounts:");
+      console.log(res);
+      setFetchedAccounts(res);
+    };
+
+    const fetchInUseAccounts = async () => {
+      const inUse = await getInUseUserAccounts(tokenClaims.userId);
+      console.log("In use accounts:");
+      console.log(inUse);
+      setInUseAccounts(inUse);
+    };
+
+    fetchFilteredAccounts().catch(err => handleAxiosError(err));
+    fetchInUseAccounts().catch(err => handleAxiosError(err));
+  }, []);
+
+  useEffect(() => {
+    if (fetchedAccounts === null || inUseAccounts === null) return;
+
+    let usableAccounts = [];
+    let unUsableAccounts = [];
+    fetchedAccounts.map((acc) => {
+      if(acc != null && Object.hasOwn(acc, "active")){
+        if(acc.active === true){
+          if(inUseAccounts.some(inUseAcc => inUseAcc.id === acc.id)) {
+            unUsableAccounts = [...unUsableAccounts, acc];
+          } else {
+            usableAccounts = [...usableAccounts, acc]
+          }
+        }
       }
-      initLoad().catch(err => handleAxiosError(err));
-      }, []);
+    })
+    setAccounts(usableAccounts);
+    setDisabledAccounts(unUsableAccounts);
+  }, [fetchedAccounts, inUseAccounts]);
   useEffect(() => {
         console.log(accounts)
     }, [accounts]);
