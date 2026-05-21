@@ -29,6 +29,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId")
     List<Account> findAllByUserId(@Param("userId") Long userId);
-    @NativeQuery("SELECT a.* FROM accounts a JOIN payment_methods pm ON a.account_id = pm.account_id JOIN users u ON pm.user_id = u.id WHERE u.id = :userId AND pm.active_status = true")
-    List<Account> findInUseAccountsByUserId(Long userId);
+    @Query("SELECT DISTINCT pm.account FROM PaymentMethod pm WHERE pm.user.id = :userId AND pm.active = true")
+    List<Account> findInUseAccountsByUserId(@Param("userId") Long userId);
 }
