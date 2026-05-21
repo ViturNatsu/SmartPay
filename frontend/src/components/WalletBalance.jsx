@@ -1,73 +1,91 @@
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { Card, Stack, Typography, ButtonBase, Avatar } from "@mui/material";
+import { Card, Stack, Typography } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId } from "@/api/wallets/walletApi";
 
-function WalletBalance () {
-    const {tokenClaims, loading: authLoading } = useAuth();
-    const [balance, setBalance] = useState(0.0);
+function WalletBalance() {
+  const { tokenClaims, loading: authLoading } = useAuth();
+  const [balance, setBalance] = useState(0);
 
-    useEffect(() => {
-        const fetchWalletBalance = async () => {
-            if (!tokenClaims?.userId) return;
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      if (!tokenClaims?.userId) return;
 
-            try {
-                const wallet = await getWalletByUserId(Number(tokenClaims.userId));
-                setBalance(wallet.balance);
-            } catch (error) {
-                console.error("Error fetching wallet balance:", error);
-            }
-        };
+      try {
+        const wallet = await getWalletByUserId(Number(tokenClaims.userId));
+        setBalance(wallet.balance);
+      } catch (error) {
+        console.error("Error fetching wallet balance:", error);
+      }
+    };
 
-        if (!authLoading) {
-            fetchWalletBalance();
-        }
-    }, [authLoading, tokenClaims?.userId]);
+    if (!authLoading) {
+      fetchWalletBalance();
+    }
+  }, [authLoading, tokenClaims?.userId]);
 
-    return (
-        <Card
-            elevation={0} 
-            sx={{ width: "100%", 
-                bgcolor: "#fff", 
-                borderRadius: "16px", 
-                border: "1px solid #E5E7EB", 
-                p: 3,
-                height: "auto",
-            }}
+  const formatted = Number(balance).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        width: "100%",
+        minHeight: "154px",
+        p: "26px",
+        boxSizing: "border-box",
+        borderRadius: "16px",
+        border: "none",
+        background: "linear-gradient(135deg, #062f3d, #0097a7)",
+        color: "#fff",
+      }}
+    >
+      <Stack
+        spacing={1}
+        alignItems="flex-start"
+        sx={{ width: "100%" }}
+      >
+        <Typography
+          component="h2"
+          sx={{
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "1rem",
+            lineHeight: 1.4,
+          }}
         >
-            <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{
-                    flexWrap: "wrap",
-                    gap: 1,
-                }}
-            >
-                <Typography variant="h6" sx={{ whiteSpace: "nowrap" }}>
-                    Wallet Balance
-                </Typography>
-                <Typography 
-                    variant="h5"
-                    sx={{
-                        wordBreak: "break-all",
-                        textAlign: "right",
-                        flex: "1 1 auto",
-                        minWidth: 0,
-                    }}>
-                    ${Number(balance).toLocaleString(
-                        undefined,
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        },
-                    )}
-                </Typography>
-            </Stack>
-
-        </Card>
-    );
+          Wallet Balance
+        </Typography>
+        <Typography
+          sx={{
+            color: "#fff",
+            fontSize: "44px",
+            lineHeight: 1.15,
+            fontWeight: 600,
+            textAlign: "left",
+            width: "100%",
+            wordBreak: "break-word",
+          }}
+        >
+          ${formatted}
+        </Typography>
+        <Typography
+          sx={{
+            color: "#fff",
+            fontSize: "0.875rem",
+            lineHeight: 1.43,
+            opacity: 0.95,
+            textAlign: "left",
+          }}
+        >
+          Available balance for transfers and payments
+        </Typography>
+      </Stack>
+    </Card>
+  );
 }
 
 export default WalletBalance;
