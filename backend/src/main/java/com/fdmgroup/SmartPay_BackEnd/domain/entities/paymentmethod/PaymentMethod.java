@@ -29,7 +29,7 @@ public class PaymentMethod {
     @Column(name = "active")
     private Boolean active;
 
-    @OneToOne
+    @ManyToOne
     @JsonBackReference
     private Account account;
 

@@ -45,14 +45,14 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
             })
           .map(pm -> {
               pm.setActive(true);
-              accountService.setAccountStatus(pm.getAccount(), false);
+            //   accountService.setAccountStatus(pm.getAccount(), false);
               return paymentMethodToDto(pm);
             })
           .findFirst()
           .orElseGet( () -> {
               Account account = accountService.matchAccountDigest(pmDto.getAccountIdentifierDigest())
                 .orElseThrow(() -> new AccountNotFoundException("No matching account"));
-              accountService.setAccountStatus(account, false);
+            //   accountService.setAccountStatus(account, false);
               PaymentMethod pm = paymentRepository.save(dtoToPaymentMethod(pmDto, account));
               log.warn("created pm: {}", pm);
               return paymentMethodToDto(pm);
@@ -89,7 +89,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Transactional
     public void deletePaymentMethod(Long id) {
         PaymentMethod pm = findPaymentMethodById(id);
-        accountService.setAccountStatus(pm.getAccount(), true);
+        // accountService.setAccountStatus(pm.getAccount(), true);
         paymentRepository.delete(pm);
     }
 
