@@ -1,88 +1,89 @@
 import { Link as RouterLink } from "react-router-dom";
-import { Card, Stack, Typography, ButtonBase, Avatar } from "@mui/material";
-
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import { Card, Stack, Typography, ButtonBase, Box } from "@mui/material";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
-import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
+import NorthEastIcon from "@mui/icons-material/NorthEast";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+
+const ACTIONS = [
+  {
+    text: "Add a Payee",
+    icon: PersonAddAlt1OutlinedIcon,
+    href: "/add-payee",
+  },
+  {
+    text: "Send Money",
+    icon: NorthEastIcon,
+    href: "/make-a-payment",
+  },
+  {
+    text: "Load Wallet",
+    icon: AccountBalanceWalletOutlinedIcon,
+    href: "/payment-methods",
+  },
+];
 
 function QuickActions() {
-  const actions = [
-    {
-      text: "Add Payment Method",
-      icon: <AccountBalanceOutlinedIcon />,
-      color: "#F3E8FF",
-      iconColor: "#000000ff",
-      href: "/payment-methods",
-    },
-    {
-      text: "View History",
-      icon: <TrendingUpIcon />,
-      color: "#CFFAFE",
-      iconColor: "#0891B2",
-      href: "/view-history",
-    },
-    {
-      text: "Add Payee",
-      icon: <PersonAddAlt1OutlinedIcon />,
-      color: "#DBEAFE",
-      iconColor: "#000000ff",
-      href: "/add-payee",
-    },
-    {
-      text: "Make a Payment",
-      icon: <AttachMoneyOutlinedIcon />,
-      color: "#CFFAFE",
-      iconColor: "#000000ff",
-      href: "/make-a-payment",
-    },
-  ];
   return (
     <Card
       elevation={0}
       sx={{
         width: "100%",
         bgcolor: "#fff",
-        borderRadius: "16px",
+        borderRadius: "18px",
         border: "1px solid #E5E7EB",
-        p: 3,
+        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+        p: "22px",
       }}
     >
       <Typography
         variant="h6"
-        mb="20px"
-        sx={{ borderBottom: "1px solid #000000" }}
+        sx={{
+          fontSize: 18,
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          mb: 0.5,
+        }}
       >
         Quick Actions
       </Typography>
-      <Stack spacing={1.0}>
-        {/* gap:12px */}
-        {actions.map((action) => (
+      <Stack spacing={1.25} sx={{ mt: 1.5 }}>
+        {ACTIONS.map(({ text, icon: Icon, href }) => (
           <ButtonBase
-            LinkComponent={RouterLink}
-            to={action.href}
-            key={action.text}
+            key={text}
+            component={RouterLink}
+            to={href}
             sx={{
               width: "100%",
               display: "flex",
-              justifyContent: "flex-start",
-              p: 2.5,
-              borderRadius: "16px",
-              border: "2px solid #E5E7EB",
+              alignItems: "center",
+              justifyContent: "space-between",
+              p: "15px",
+              borderRadius: "14px",
+              border: "1px solid #E5E7EB",
+              bgcolor: "#fff",
+              textAlign: "left",
             }}
           >
-            <Avatar
-              sx={{
-                bgcolor: action.color,
-                color: action.iconColor,
-                width: 44,
-                height: 44,
-                mr: 1.5,
-              }}
-            >
-              {action.icon}
-            </Avatar>
-            <Typography>{action.text}</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  bgcolor: "#F2EFFF",
+                  color: "#5B35D5",
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <Icon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: 14, fontWeight: 650, color: "#111827" }}>
+                {text}
+              </Typography>
+            </Box>
+            <ChevronRightIcon sx={{ fontSize: 18, color: "#9CA3AF" }} />
           </ButtonBase>
         ))}
       </Stack>
