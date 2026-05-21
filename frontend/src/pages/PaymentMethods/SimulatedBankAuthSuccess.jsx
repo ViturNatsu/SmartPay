@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import {useAuth} from "@/context/AuthContext.jsx";
-import {getInactiveUserAccounts, getUserAccounts} from "@/api/accounts/accountApi.js";
+import {getFilteredUserAccounts} from "@/api/accounts/accountApi.js";
 import {handleAxiosError} from "@/api/axios.js";
 import {Box, Card, CardContent, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod, createPaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 
 
 function SimulatedBankAuthSuccess() {
@@ -16,11 +15,27 @@ function SimulatedBankAuthSuccess() {
   const {bankName, institutionNumber} = useParams();
   const [accounts, setAccounts] = useState([]);
   const [selectedAccounts, setSelectedAccounts] = useState([]);
+  const [disabledAccounts, setDisabledAccounts] = useState([]);
 
   useEffect(() => {
+      console.log(tokenClaims.userId);
       async function initLoad(){
-          const res = await getInactiveUserAccounts(tokenClaims.userId, institutionNumber)
-          setAccounts(res);
+          const res = await getFilteredUserAccounts(tokenClaims.userId,
+              {institutionNumber: institutionNumber})
+
+          let usableAccounts = [];
+          let unUsableAccounts = []
+          res.map((acc) => {
+              if(acc != null && Object.hasOwn(acc, "active")){
+                  if(acc.active === true){
+                      usableAccounts = [...usableAccounts, acc]
+                  }else{
+                      unUsableAccounts = [...unUsableAccounts, acc];
+                  }
+              }
+          })
+          setAccounts(usableAccounts);
+          setDisabledAccounts(unUsableAccounts);
       }
       initLoad().catch(err => handleAxiosError(err));
       }, []);
@@ -58,6 +73,44 @@ function SimulatedBankAuthSuccess() {
           setSelectedAccounts([...selectedAccounts, accountDigest]);
       }
   }
+
+
+  const renderAccount = (account, disabled) => (
+      <Stack
+          key={account.id}
+          component={disabled ? "div" : "button"}
+          onClick={() => disabled
+              ? undefined
+              : handleSelectingPaymentMethod(account.accountNumberDigest)}
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ bgcolor: disabled
+                  ? "#caccce"
+                  : selectedAccounts.includes(account.accountNumberDigest) ? "#DFF6F8" : "#F9FAFB" ,
+              borderRadius: "12px",
+              p: 2,
+              margin:2,
+              cursor: disabled ? "arrow" : "pointer",
+              opacity: disabled ? 0.5 : 1,
+              filter: disabled ? "greyscale(100%)": "",
+
+      }}
+
+      >
+      <Stack>
+          <Typography sx={{ color: "#4B5563" }}>
+              {account.accountName}
+          </Typography>
+          <Typography sx={{ color: "#6B7280" , textAlign: "left"}}>
+              {account.accountNumber.substring(2)}
+          </Typography>
+      </Stack>
+      </Stack>
+  );
+
+
+
 
   return (
     <>
@@ -112,30 +165,8 @@ function SimulatedBankAuthSuccess() {
 
 
             <Stack spacing={1.0}>
-                {accounts.map((account) => (
-                    <Stack
-                        key={account.id}
-                        component={"button"}
-                        onClick={() => handleSelectingPaymentMethod(account.accountNumberDigest)}
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        sx={{ bgcolor: selectedAccounts.includes(account.accountNumberDigest) ? "#CFFAFE" : "#F9FAFB" ,
-                            borderRadius: "12px",
-                            p: 2,
-                            cursor: "pointer" }}
-                    >
-                        <Stack>
-                            <Typography sx={{ color: "#4B5563" }}>
-                                {account.accountName}
-                            </Typography>
-                            <Typography sx={{ color: "#6B7280" , textAlign: "left"}}>
-                                {account.accountNumber.substring(2)}
-                            </Typography>
-                        </Stack>
-                    </Stack>
-
-                ))}
+                {accounts.map(account => renderAccount(account, false))}
+                {disabledAccounts.map(account => renderAccount(account, true))}
             </Stack>
         </Card>
     </>

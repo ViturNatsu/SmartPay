@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountFilterParamDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
@@ -88,40 +89,24 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.save(newAccount);
     }
 
-    @Override
-    public List<AccountDTO> getAccounts(Long userId, AccountType type) throws UserNotFoundException {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException("User not found with id: " + userId);
-        }
-        User user = userRepository.findById(userId).get();
-        List<User> users = new ArrayList<>();
-        users.add(user);
-        List<Account> accounts = (type == null)
-                ? accountRepository.findByUserId(userId)
-                : accountRepository.findByUserIdAndClazz(userId, type.getEntityClass());
-
-        return accounts.stream()
-                .map(account -> this.accountToDtoUserLimited(account, users))
-                .toList();
-    }
-
     /**
-     * Soon to be deprecated. currently acts as a Getter for AccountDTOs corresponding to inactive accounts
-     * @param userId The User's userId whom account are to be retrieved
-     * @param institution A String corresponding to an optional filter parameter
-     * @return A List of AccountDTOs for inactive Accounts
+     * Retrieve all the user's accounts that match the filter
+     * @param userId A Long userId
+     * @param filter An AccountFilterParamDTO object with optional filter params
+     * @return A list of matching Accounts represented as their DTO objects
      * @throws UserNotFoundException
      */
     @Override
-    public List<AccountDTO> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException{
-        userRepository.findById(userId).orElseThrow( () -> new UserNotFoundException("Missing user: " + userId) );
+    public List<AccountDTO> getAccounts(Long userId, AccountFilterParamDTO filter) throws UserNotFoundException {
+        User user = userRepository
+          .findById(userId).orElseThrow(
+            () -> new UserNotFoundException("User not found with id: " + userId));
 
-        return accountRepository.findAllByUserId(userId).stream()
-          //filter on the account being inactive and an optional institution number
-          .filter(account ->
-            (account.getActive()) &&
-              (institution == null || account.getInstitutionNumber().equals(institution)))
-          .map(this::accountToDto )
+        log.info("filter");
+        log.info("{}", filter);
+        return accountRepository.findByUserId(userId).stream()
+          .filter((filter::match))
+          .map(this::accountToDto)
           .toList();
     }
 

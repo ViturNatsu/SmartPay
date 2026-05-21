@@ -11,16 +11,25 @@ export async function getUserAccounts(userId) {
   }
 }
 
-export async function getInactiveUserAccounts(userId, institutionNumber){
-  // optional filtering on institutionNumber
-  const params = {};
-  if(institutionNumber !== undefined){
-    params.institution = institutionNumber;
+
+export async function getFilteredUserAccounts(userId, filterParam) {
+  console.log(filterParam)
+  if(filterParam == null){
+    console.log("Invalid call to filtered request with no filter params");
+    return;
   }
-  try{
-    const res = await axiosInstance.get(`${ACCOUNTS_URL}/inactive/user/${userId}`,{params})
+  let params = {}
+  Object.entries(filterParam).forEach(([key, val])=>{
+    if(val != null) params[key] = val;
+  })
+
+  try {
+    const res = await axiosInstance.get(`${ACCOUNTS_URL}/user/${userId}`, {params});
+    console.log(res.data)
     return res.data;
-  }catch (err) {
+
+  } catch (err) {
+    console.log("Caught in getFilteredUserAccounts" + err);
     throw handleAxiosError(err);
   }
 }

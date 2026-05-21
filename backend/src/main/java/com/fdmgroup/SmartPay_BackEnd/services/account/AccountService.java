@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.account.AccountFilterParamDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
@@ -21,9 +22,7 @@ public interface AccountService {
 
     void setAccountStatus(Account account, boolean status) throws AccountNotFoundException;
 
-    List<AccountDTO> getAccounts(Long userId, AccountType type) throws UserNotFoundException;
-
-    List<AccountDTO> getInactiveAccounts(Long userId, String institution) throws UserNotFoundException;
+    List<AccountDTO> getAccounts(Long userId, AccountFilterParamDTO filter) throws UserNotFoundException;
 
     List<AccountDTO> getAllAccounts();
 
