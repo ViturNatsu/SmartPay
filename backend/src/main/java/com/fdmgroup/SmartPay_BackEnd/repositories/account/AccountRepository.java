@@ -12,10 +12,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    List<Account> findByUserId(Long userId);
+
+    @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId")
+    List<Account> findByUserId(@Param("userId") Long userId);
     Optional<Account> findByAccountNumber(String accountNumber);
     
-    @Query("SELECT a FROM Account a WHERE a.user.id = :userId AND TYPE(a) = :clazz")
+    @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId AND TYPE(a) = :clazz")
     List<Account> findByUserIdAndClazz(
             @Param("userId") Long userId,
             @Param("clazz") Class<? extends Account> clazz
@@ -24,5 +26,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(value = "SELECT NEXT VALUE FOR ACCOUNT_NUMBER_SEQ", nativeQuery = true)
     Long getNextAccountNumberSequence();
 
-    List<Account> findAllByUserId(Long userId);
+    @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId")
+    List<Account> findAllByUserId(@Param("userId") Long userId);
 }

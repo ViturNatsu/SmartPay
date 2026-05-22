@@ -63,7 +63,7 @@ function AccountOverview() {
             <Stack spacing={1.0}>
                 {accounts.map((account) => (
                     <Stack
-                        key={account.number}
+                        key={account.id}
                         direction="row"
                         justifyContent="space-between"
                         alignItems="center"

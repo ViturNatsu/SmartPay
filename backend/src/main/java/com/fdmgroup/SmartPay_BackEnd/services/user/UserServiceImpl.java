@@ -1,14 +1,17 @@
 package com.fdmgroup.SmartPay_BackEnd.services.user;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginInvalidCredentialsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailException;
@@ -133,5 +136,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(
                         "User not found with email: " + email));
+    }
+
+    @Override
+    public @Nullable List<User> getAllUsers() {
+        List<User> customers = userRepository.findByRole(Role.USER);
+        return customers.isEmpty() ? null : customers;
     }
 }
