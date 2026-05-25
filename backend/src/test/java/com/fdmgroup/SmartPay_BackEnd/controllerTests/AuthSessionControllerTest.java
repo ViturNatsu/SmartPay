@@ -111,10 +111,10 @@ class AuthControllerTest {
         }
 
         @Test
-        void refresh_returnsOk_andRotatesTokens_whenRefreshTokenIsValid() throws Exception {
+        void refresh_returnsOk_andKeepsRefreshToken_whenRefreshTokenIsValid() throws Exception {
                 String oldRefresh = "oldRefreshToken";
                 String newAccess = "newAccessToken";
-                String newRefresh = "newRefreshToken";
+                String sameRefresh  = "oldRefreshToken";
 
                 User user = new User("test@smartpay.com", "encodedPassword");
                 user.setId(1L);
