@@ -9,12 +9,14 @@ import org.springframework.context.annotation.Configuration;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +30,7 @@ public class DataBaseInitializer {
     }
 
     @Bean
-    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository) {
+    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository, PaymentRepository paymentRepository) {
         return args -> {
             if (userRepository.findByEmail("admin1@example.com").isEmpty()) {
                 User admin1 = User.builder()
@@ -160,7 +162,7 @@ public class DataBaseInitializer {
                     testAccTd2.getUsers().add(testUser1);
                     accountRepository.save(testAccTd2);
                 }
-                if(!accountRepository.findByAccountNumber("00000403").isPresent()){
+                if(accountRepository.findByAccountNumber("00000403").isEmpty()){
                     Account testAccTd3 = new CheckingAccount();
                     testAccTd3.setAccountName("TD Test Checking 3");
                     testAccTd3.setInstitutionNumber("004");
@@ -193,6 +195,23 @@ public class DataBaseInitializer {
                     testAccRbc2.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc2);
                 }
+
+                Account testTD1 = accountRepository.findByAccountNumber("00000401").get();
+                PaymentMethod testPM1 = new PaymentMethod();
+                testPM1.setAccount(testTD1);
+                testPM1.setUser(testUser1);
+                testPM1.setBankDisplayName("TD");
+                testPM1.setBankId(4l);
+                testPM1.setActive(true);
+                paymentRepository.save(testPM1);
+                PaymentMethod testPM2 = new PaymentMethod();
+                testPM2.setAccount(testTD1);
+                testPM2.setUser(testUser2);
+                testPM2.setBankDisplayName("TD");
+                testPM2.setBankId(4l);
+                testPM2.setActive(true);
+                paymentRepository.save(testPM2);
+
             }
         };
     }

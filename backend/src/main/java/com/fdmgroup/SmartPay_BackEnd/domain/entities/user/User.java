@@ -75,9 +75,6 @@ public class User implements UserDetails {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
-    // @Column(name = "accounts")
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<Account> accounts = new ArrayList<>();
     @ManyToMany(mappedBy = "users")
     @JsonIgnore
     private List<Account> accounts = new ArrayList<>();
