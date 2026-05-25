@@ -5,7 +5,7 @@ import {useAuth} from "@/context/AuthContext.jsx";
 import {getFilteredUserAccounts, getInUseUserAccounts} from "@/api/accounts/accountApi.js";
 import {handleAxiosError} from "@/api/axios.js";
 import {Box, Card, CardContent, Stack, Typography} from "@mui/material";
-import {batchCreatePaymentMethod, createPaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
+import {batchCreatePaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
 
 
@@ -19,6 +19,7 @@ function SimulatedBankAuthSuccess() {
   const [fetchedAccounts, setFetchedAccounts] = useState(null);
   const [inUseAccounts, setInUseAccounts] = useState(null);
 
+  //Fetch filtered accounts and get a list of in use accounts
   useEffect(() => {
     console.log(tokenClaims.userId);
 
@@ -41,6 +42,7 @@ function SimulatedBankAuthSuccess() {
     fetchInUseAccounts().catch(err => handleAxiosError(err));
   }, []);
 
+  //Process the Account lists to determine useable and unusable accounts
   useEffect(() => {
     if (fetchedAccounts === null || inUseAccounts === null) return;
 

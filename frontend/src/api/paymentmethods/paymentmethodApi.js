@@ -34,7 +34,6 @@ export async function getPaymentMethodsForUserWithId(id, page) {
     }
 }
 
-//To make payment method inactive instead of deleting it
 export async function updatePaymentMethodStatus(paymentMethodId, activeStatus) {
   try {
     const res = await axiosInstance.put(`${PAYMENT_METHODS_URL}/${paymentMethodId}/status`, {

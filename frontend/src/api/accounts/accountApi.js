@@ -20,7 +20,6 @@ export async function getInUseUserAccounts(userId) {
   }
 }
 
-
 export async function getFilteredUserAccounts(userId, filterParam) {
   console.log(filterParam)
   if(filterParam == null){
