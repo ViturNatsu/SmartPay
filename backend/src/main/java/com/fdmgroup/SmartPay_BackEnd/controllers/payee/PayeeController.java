@@ -35,12 +35,12 @@ public class PayeeController {
     }
 
     @PostMapping
-    public ResponseEntity<PayeeResponseDTO> addPayee(Authentication authentication,
+    public ResponseEntity<PayeeResponseDTO> addPayee(@AuthenticationPrincipal User authenticatedUser,
     @RequestBody PayeeRequestDTO payeeRequestDTO) {
-
-    Long authenticatedUserId = Long.parseLong(authentication.getName());
+    System.out.println("authenticated user ID "+authenticatedUser.getId());
+    
    
-    PayeeResponseDTO payee = payeeService.addPayee(authenticatedUserId,
+    PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(),
     payeeRequestDTO.getRecipientId());
     URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
     .buildAndExpand(payee.getPayeeId()).toUri();
@@ -48,11 +48,9 @@ public class PayeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PayeeResponseDTO>> getUserPayees(Authentication  authentication) {
-            Long authenticatedUserId = Long.parseLong(authentication.getName());
-
-
-        return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUserId));
+    public ResponseEntity<List<PayeeResponseDTO>> getUserPayees(@AuthenticationPrincipal User authenticatedUser) {
+        
+        return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUser.getId()));
 
     }
 
