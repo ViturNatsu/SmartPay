@@ -22,7 +22,7 @@ export const Home = () => {
         }}
       >
         <h1>
-          Welcome, {user?.firstName} {user?.lastName}!
+          Welcome, {user?.firstName}!
         </h1>
         <p>Here's your financial overview for today</p>
         <div
