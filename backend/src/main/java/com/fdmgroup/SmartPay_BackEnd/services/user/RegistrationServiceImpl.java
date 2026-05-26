@@ -31,20 +31,23 @@ public class RegistrationServiceImpl implements RegistrationService {
         CustomerDTO customerDto = userDto.getCustomer();
         String normalizedPhone = normalizePhone(customerDto.getPhoneNumber());
 
-        Optional<Customer> existingPhoneNumber = customerRepository.findByPhoneNumber(normalizedPhone);
         Optional<User> existingUser = userRepository.findByEmail(email);
+        Optional<Customer> existingPhoneNumber = customerRepository.findByPhoneNumber(normalizedPhone);
+
+        if(existingUser.isPresent() && existingUser.get().isEmailVerified()){
+            throw new DuplicateEmailException("Email already in use");
+        }
+
         if (existingPhoneNumber.isPresent()) {
             Customer existingCustomer = existingPhoneNumber.get();
-            if(existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())){
+            if (existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())) {
                 throw new DuplicatePhoneException("Phone number already in use");
             }
         }
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            if (user.isEmailVerified()) {
-                throw new DuplicateEmailException("Email already in use");
-            }
+            
             user.setFirstName(userDto.getFirstName());
             user.setLastName(userDto.getLastName());
             user.setPassword(userDto.getPassword());
