@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartPay Load Wallet Flow Wireframe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; }
+    body { background: #f5f7fa; color: #0d1b2a; }
+    .page { max-width: 1160px; margin: 0 auto; padding: 32px; }
+    .screen { margin-bottom: 54px; border: 1px dashed #b8dfe4; border-radius: 22px; padding: 26px; background: #fbfefe; }
+    .flow-label { color: #0f7490; font-size: 13px; font-weight: 800; margin-bottom: 16px; text-transform: uppercase; letter-spacing: .04em; }
+    .page-title { font-size: 28px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.04em; }
+    .subtitle { color: #334155; font-size: 15px; line-height: 1.5; }
+
+    .wallet-panel { margin-top: 30px; background: #fff; border: 1px solid #dce4ec; border-radius: 22px; padding: 28px; display: grid; grid-template-columns: 300px 1fr; gap: 32px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .virtual-card { width: 300px; height: 180px; background: linear-gradient(135deg, #0f2336 0%, #1a3a52 60%, #0f7490 100%); border-radius: 16px; padding: 22px 24px; color: #fff; position: relative; box-shadow: 0 8px 32px rgba(15,36,54,.35); overflow: hidden; }
+    .virtual-card::before { content: ''; position: absolute; top: -45px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.05); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; position: relative; z-index: 1; }
+    .card-logo { font-size: 14px; font-weight: 800; }
+    .virtual-badge { font-size: 10px; letter-spacing: .12em; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 4px 9px; opacity: .8; }
+    .blur-text { filter: blur(4px); opacity: .65; user-select: none; }
+    .card-number { font-family: monospace; font-size: 15px; letter-spacing: .18em; margin-bottom: 28px; }
+    .card-bottom { display: flex; justify-content: space-between; align-items: end; font-size: 10px; opacity: .75; }
+    .visa { font-size: 20px; font-weight: 900; font-style: italic; }
+    .show-details { position: absolute; left: 90px; bottom: -14px; background: #fff; color: #475569; border: 1px solid #cbd5e1; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 700; box-shadow: 0 3px 10px rgba(0,0,0,.14); }
+    .card-wrap { position: relative; width: 300px; }
+
+    .wallet-info { padding: 4px 0; }
+    .balance-label { font-size: 12px; font-weight: 800; color: #8da0bc; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+    .balance-amount { font-size: 44px; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 14px; }
+    .divider { height: 1px; background: #dce4ec; margin-bottom: 18px; }
+    .available-label { font-size: 13px; color: #8da0bc; margin-bottom: 5px; }
+    .available-amount { font-size: 21px; font-weight: 800; margin-bottom: 24px; }
+    .button-row-wallet { display: flex; gap: 12px; margin-bottom: 28px; }
+    .primary-btn, .secondary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; border-radius: 10px; font-weight: 800; font-size: 14px; border: none; }
+    .primary-btn { background: #0f7490; color: #fff; box-shadow: 0 6px 14px rgba(15,116,144,.3); }
+    .secondary-btn { background: #e5f5fa; color: #0a5a70; border: 1px solid #b2dde8; }
+
+    .activity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .activity-title { font-size: 16px; font-weight: 900; }
+    .view-all { color: #0f7490; font-size: 13px; font-weight: 800; }
+    .activity-item { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid #e2e8f0; }
+    .activity-item:last-child { border-bottom: none; }
+    .icon { width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; font-weight: 900; }
+    .icon.credit { background: #dcfce7; color: #15803d; }
+    .icon.debit { background: #e5f5fa; color: #0f7490; }
+    .activity-name { font-weight: 800; font-size: 14px; }
+    .activity-sub { color: #8da0bc; font-size: 12px; }
+    .amount { font-weight: 900; font-size: 14px; text-align: right; }
+    .amount.positive { color: #15803d; }
+    .date { color: #8da0bc; font-size: 12px; text-align: right; }
+    .status { color: #8da0bc; font-size: 12px; }
+
+    .flow-arrow { text-align: center; color: #0f7490; font-weight: 900; margin: -30px 0 20px; }
+    .form-shell, .success-shell { max-width: 780px; margin: 26px auto 0; }
+    .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 24px; box-shadow: 0 8px 20px rgba(15,23,42,.04); }
+    .breadcrumb { color: #64748b; font-size: 13px; margin-bottom: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+    .field.full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; font-weight: 800; margin-bottom: 8px; color: #334155; }
+    input, select { width: 100%; height: 48px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 0 14px; font-size: 14px; background: #fff; }
+    .helper { margin-top: 7px; font-size: 12px; color: #64748b; }
+    .balance-strip { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mini-card { border-radius: 14px; padding: 16px; background: #f7fafb; border: 1px solid #e2e8f0; }
+    .mini-label { color: #64748b; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+    .mini-value { font-size: 20px; font-weight: 900; }
+    .success-inline { margin-top: 18px; padding: 14px 16px; border-radius: 12px; border: 1px solid #86efac; background: #dcfce7; color: #15803d; font-size: 13px; display: flex; gap: 10px; }
+    .error-box { margin-top: 18px; padding: 14px 16px; border-radius: 12px; border: 1px solid #fca5a5; background: #fee2e2; color: #b91c1c; font-size: 13px; display: flex; gap: 10px; }
+    .button-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; }
+    .btn { height: 46px; padding: 0 22px; border-radius: 12px; border: 1px solid #cbd5e1; background: #fff; font-weight: 800; font-size: 14px; }
+    .btn-primary { border: 0; color: #fff; background: #0f7490; box-shadow: 0 10px 20px rgba(15,116,144,.18); }
+    .confirm-box { margin-top: 24px; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; }
+    .confirm-row { display: flex; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #eef2f3; font-size: 14px; }
+    .confirm-row:last-child { border-bottom: 0; }
+    .confirm-label { color: #64748b; font-weight: 700; }
+    .confirm-value { font-weight: 900; }
+    .success-card { text-align: center; padding: 54px 44px; }
+    .checkmark { width: 82px; height: 82px; border-radius: 999px; background: #dcfce7; color: #15803d; display: grid; place-items: center; margin: 0 auto 22px; font-size: 42px; font-weight: 900; border: 1px solid #86efac; }
+    .success-card h2 { font-size: 30px; margin-bottom: 10px; letter-spacing: -0.03em; }
+    .success-card p { color: #64748b; font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
+    .annotation { margin-top: 24px; border: 1px dashed #0f7490; background: #e5f5fa; color: #0a5a70; padding: 16px 18px; border-radius: 14px; font-size: 13px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="screen">
+      <div class="flow-label">Step 1 — Wallet Page with Load Wallet CTA</div>
+      <h1 class="page-title">Wallet</h1>
+      <p class="subtitle">Manage your SmartPay wallet, view your balance and load funds<br>to send money or make payments.</p>
+
+      <div class="wallet-panel">
+        <div class="card-wrap">
+          <div class="virtual-card">
+            <div class="card-top"><div class="card-logo">◉ SmartPay</div><div class="virtual-badge">VIRTUAL</div></div>
+            <div class="card-number blur-text">5412 7512 3456 1234</div>
+            <div class="card-bottom">
+              <div><div>VALID<br>THRU</div><div class="blur-text">08/28</div></div>
+              <div><div>CARDHOLDER</div><div class="blur-text">TestFirstName</div></div>
+              <div class="visa">VISA</div>
+            </div>
+          </div>
+          <button class="show-details">⊙ Show details</button>
+        </div>
+
+        <div class="wallet-info">
+          <div class="balance-label">Wallet Balance</div>
+          <div class="balance-amount">$200.00</div>
+          <div class="divider"></div>
+          <div class="available-label">Available Balance</div>
+          <div class="available-amount">$200.00</div>
+
+          <div class="button-row-wallet">
+            <button class="primary-btn">⊕ Load Wallet</button>
+            <button class="secondary-btn">↑ Withdraw Funds</button>
+          </div>
+
+          <div class="activity-header">
+            <div class="activity-title">Recent Wallet Activity</div>
+            <div class="view-all">View all transactions →</div>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item"><div class="icon credit">↑</div><div><div class="activity-name">Funds Loaded</div><div class="activity-sub">From TD Bank •••• 1234</div></div><div><div class="amount positive">+$200.00</div><div class="status">Completed</div></div><div class="date">Today, 10:24 AM</div></div>
+            <div class="activity-item"><div class="icon debit">↗</div><div><div class="activity-name">Money Sent</div><div class="activity-sub">To John Smith</div></div><div><div class="amount">-$75.00</div><div class="status">Completed</div></div><div class="date">Yesterday, 4:15 PM</div></div>
+            <div class="activity-item"><div class="icon credit">↑</div><div><div class="activity-name">Funds Loaded</div><div class="activity-sub">From RBC •••• 5678</div></div><div><div class="amount positive">+$150.00</div><div class="status">Completed</div></div><div class="date">Jan 10, 2026, 9:30 AM</div></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="annotation"><strong>Interaction:</strong> User selects <strong>Load Wallet</strong> from the Wallet page. This starts the wallet funding flow below.</section>
+    </section>
+
+    <div class="flow-arrow">↓</div>
+
+    <section class="screen">
+      <div class="flow-label">Step 2 — Enter Load Wallet Details</div>
+      <div class="form-shell">
+        <div class="breadcrumb">Wallet / Load Wallet</div>
+        <section class="panel">
+          <h1 class="page-title">Load Wallet</h1>
+          <p class="subtitle">Transfer money from a linked bank account into your SmartPay wallet balance.</p>
+
+          <div class="balance-strip">
+            <div class="mini-card">
+              <div class="mini-label">Current Wallet Balance</div>
+              <div class="mini-value">$200.00</div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-label">Selected Funding Source</div>
+              <div class="mini-value">TD •••• 1234</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label>Load Funds From</label>
+              <select>
+                <option>TD Bank Chequing Account •••• 1234</option>
+                <option>RBC Chequing Account •••• 5678</option>
+              </select>
+              <div class="helper">Only verified linked payment methods should appear here.</div>
+            </div>
+
+            <div class="field full">
+              <label>Load Amount</label>
+              <input type="text" value="$150.00" placeholder="Enter amount" />
+              <div class="helper">Amount must be greater than $0.00 and within daily wallet funding limits.</div>
+            </div>
+          </div>
+
+          <div class="success-inline">
+            <strong>✓</strong>
+            <span><strong>Funding source available.</strong> Your linked bank account can successfully fund this wallet load request.</span>
+          </div>
+
+          <div class="error-box">
+            <strong>!</strong>
+            <span><strong>Insufficient bank account funds.</strong> The selected linked payment method does not have enough available balance to complete this wallet load.</span>
+          </div>
+
+          <div class="button-row">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary">Continue</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="flow-arrow">↓</div>
+
+    <section class="screen">
+      <div class="flow-label">Step 3 — Review Wallet Load</div>
+      <div class="form-shell">
+        <div class="breadcrumb">Wallet / Load Wallet / Review</div>
+        <section class="panel">
+          <h1 class="page-title">Confirm Wallet Load</h1>
+          <p class="subtitle">Review the wallet funding details before transferring money into your SmartPay wallet.</p>
+
+          <div class="confirm-box">
+            <div class="confirm-row"><span class="confirm-label">Load From</span><span class="confirm-value">TD Bank Chequing •••• 1234</span></div>
+            <div class="confirm-row"><span class="confirm-label">Deposit To</span><span class="confirm-value">SmartPay Wallet</span></div>
+            <div class="confirm-row"><span class="confirm-label">Load Amount</span><span class="confirm-value">$150.00</span></div>
+            <div class="confirm-row"><span class="confirm-label">Updated Wallet Balance</span><span class="confirm-value">$350.00</span></div>
+          </div>
+
+          <div class="button-row">
+            <button class="btn">Back</button>
+            <button class="btn btn-primary">Confirm Load</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="flow-arrow">↓</div>
+
+    <section class="screen">
+      <div class="flow-label">Step 4 — Wallet Load Success</div>
+      <div class="success-shell">
+        <section class="panel success-card">
+          <div class="checkmark">✓</div>
+          <h2>Wallet Loaded</h2>
+          <p>$150.00 has been successfully transferred from TD Bank Chequing Account •••• 1234 into your SmartPay wallet.</p>
+          <button class="btn btn-primary">Return to Wallet</button>
+        </section>
+      </div>
+
+      <section class="annotation"><strong>Final state:</strong> Wallet balance updates from <strong>$200.00</strong> to <strong>$350.00</strong>, and a new wallet inflow transaction appears in Recent Wallet Activity.</section>
+    </section>
+  </main>
+</body>
+</html>
