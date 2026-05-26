@@ -45,7 +45,7 @@ class RegistrationIntegrationTest {
     void shouldRegisterSuccessfully() throws Exception {
 
         String email = "integration@test.com";
-        var request = createValidRequest(email);
+        var request = createValidRequest(email,"+1 416-555-1123");
 
         mvc.perform(request)
                 .andExpect(status().isCreated());
@@ -64,7 +64,7 @@ class RegistrationIntegrationTest {
         String email = "duplicate@test.com";
 
         // First registration
-        mvc.perform(createValidRequest(email))
+        mvc.perform(createValidRequest(email, "+1 416-555-1234"))
                 .andExpect(status().isCreated());
 
         // Mark email as verified to simulate real duplicate scenario
@@ -73,7 +73,7 @@ class RegistrationIntegrationTest {
         userRepository.save(user);
 
         // Second registration attempt
-        mvc.perform(createValidRequest(email))
+        mvc.perform(createValidRequest(email,"+1 416-555-0123"))
                 .andExpect(status().isConflict());
     }
 
@@ -89,7 +89,7 @@ class RegistrationIntegrationTest {
         requestBody.setEmail("invalid@test.com");
         requestBody.setPassword("weak");
         requestBody.setConfirmPassword("weak");
-        requestBody.setCustomer(createValidCustomer());
+        requestBody.setCustomer(createValidCustomer("+1 416-555-0001"));
 
         var request = buildRegisterRequest(requestBody);
 
@@ -101,7 +101,7 @@ class RegistrationIntegrationTest {
     // Helper Methods
     // -------------------------------------------------------
 
-    private MockHttpServletRequestBuilder createValidRequest(String email)
+    private MockHttpServletRequestBuilder createValidRequest(String email, String phoneNumber)
             throws JsonProcessingException {
 
         SignUpDTO requestBody = new SignUpDTO();
@@ -110,12 +110,12 @@ class RegistrationIntegrationTest {
         requestBody.setEmail(email);
         requestBody.setPassword(validPassword);
         requestBody.setConfirmPassword(validPassword);
-        requestBody.setCustomer(createValidCustomer());
+        requestBody.setCustomer(createValidCustomer(phoneNumber));
 
         return buildRegisterRequest(requestBody);
     }
 
-    private CustomerDTO createValidCustomer() {
+    private CustomerDTO createValidCustomer(String phoneNumber) {
         return CustomerDTO.builder()
                 .addressLine1("123 King Street West")
                 .addressLine2("Unit 10")
@@ -123,7 +123,7 @@ class RegistrationIntegrationTest {
                 .province("ON")
                 .country("Canada")
                 .postalCode("M5V 3L9")
-                .phoneNumber("+1 416-555-0123")
+                .phoneNumber(phoneNumber)
                 .socialInsuranceNumber("123-456-789")
                 .governmentIdType("PASSPORT")
                 .governmentIdNumber("AB1234567")
