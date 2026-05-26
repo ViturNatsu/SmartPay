@@ -1,11 +1,13 @@
 package com.fdmgroup.SmartPay_BackEnd.repositories.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,7 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long>{
 	@Query("SELECT u FROM User u WHERE u.email = :email LIMIT 1")
     Optional<User> findByEmail(@Param("email") String email);
+
+@Query("SELECT u FROM User u WHERE u.role = :role")
+    List<User> findByRole(@Param("role") Role role);
 }

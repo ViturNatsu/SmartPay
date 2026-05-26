@@ -1,8 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.user;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
-import com.fdmgroup.SmartPay_BackEnd.security.JwtService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.CustomerService;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final JwtService jwtService;
+//    private final JwtService jwtService;
 
     @GetMapping
     @Operation(summary = "Get Customer Personal Information")
@@ -35,11 +35,12 @@ public class CustomerController {
     public ResponseEntity<CustomerDTO> getCustomerInfo(Authentication authentication) {
 
         // Get userId of currently logged-in user
-        Long userId = customerService.parseUserId(authentication.getName());
+//        Long userId = customerService.parseUserId(authentication.getName());
+        User principalUser = (User) authentication.getPrincipal();
 
         // Fetch the User entity from the database
-        CustomerDTO customerInfo = customerService.getCustomerInfo(userId);
-
+//        CustomerDTO customerInfo = customerService.getCustomerInfo(userId);
+        CustomerDTO customerInfo = customerService.getCustomerInfo(principalUser.getId());
         return ResponseEntity.ok(customerInfo);
     }
 
@@ -55,10 +56,12 @@ public class CustomerController {
             @Valid @RequestBody CustomerDTO customerDTO) {
 
         // Get userId of currently logged-in user
-        Long userId = customerService.parseUserId(authentication.getName());
+//        Long userId = customerService.parseUserId(authentication.getName());
+        User principalUser = (User) authentication.getPrincipal();
 
         // Update the User entity in the database
-        customerService.updateCustomerInfo(userId, customerDTO);
+//        customerService.updateCustomerInfo(userId, customerDTO);
+        customerService.updateCustomerInfo(principalUser.getId(), customerDTO);
 
         // can return CustomerDTO later on
         return ResponseEntity.ok(

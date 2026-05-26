@@ -60,6 +60,7 @@ public class AuthSessionIntegrationTest {
 			entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
 			entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM chequing_accounts").executeUpdate();
+			entityManager.createNativeQuery("DELETE FROM user_account_table").executeUpdate();
             entityManager.createNativeQuery("DELETE FROM accounts").executeUpdate();
 			entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
 			return null;

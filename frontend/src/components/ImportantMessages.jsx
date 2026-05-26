@@ -1,47 +1,105 @@
-import { Link as RouterLink } from "react-router-dom";
-import { Card, Stack, Typography, ButtonBase } from "@mui/material";
+import { useState } from "react";
+import { Card, Typography, Link, Stack, Box } from "@mui/material";
 
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+const MESSAGES = [
+  {
+    title: "New Account Opened",
+    body: "Your new SmartPay account is active. Review your account details in Settings.",
+  },
+  {
+    title: "Change to credit limit",
+    body: "Your credit limit was updated on March 1, 2026. Sign in to view the new limit.",
+  },
+  {
+    title: "January 2026 Statement",
+    body: "Your January 2026 statement is ready. Download it from Reports when available.",
+  },
+];
 
 function ImportantMessages() {
-  const messages = [
-    {
-      text: "New Account Opened",
-    },
-    {
-      text: "Change to credit limit",
-    },
-    {
-      text: "January 2026 Statement",
-    },
-  ];
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <Card elevation={0} sx={{ width: "100%", bgcolor: "#fff", borderRadius: "16px", border: "1px solid #E5E7EB", p: 3 }}>
-      <Typography variant="h6" mb="20px" sx={{ borderBottom: "1px solid #000000" }}>
-        Important Messages
-      </Typography>
-      <Stack spacing={1.0}>
-        {/* gap:12px */}
-        {messages.map((message) => (
-          <ButtonBase
-            LinkComponent={RouterLink}
-            to={message.href}
-            key={message.text}
+    <Card
+      elevation={0}
+      sx={{
+        width: "100%",
+        bgcolor: "#fff",
+        borderRadius: "18px",
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+        p: "22px",
+        minHeight: expanded ? "auto" : 92,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <div>
+        <Typography
+          variant="h6"
+          sx={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            mb: 1.25,
+          }}
+        >
+          Important Messages
+        </Typography>
+        {!expanded && (
+          <Typography
             sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "flex-start",
-              p: 1,
-              bgcolor: "#F3F4F6",
-              borderRadius: "16px",
-              border: "2px solid #E5E7EB",
+              color: "#6B7280",
+              fontSize: 13,
+              lineHeight: 1.45,
             }}
           >
-            <EmailOutlinedIcon sx={{ mr: 1.5 }}/>
-            <Typography>{message.text}</Typography>
-          </ButtonBase>
-        ))}
-      </Stack>
+            Messages are minimized to reduce dashboard clutter.
+          </Typography>
+        )}
+        {expanded && (
+          <Stack spacing={2} sx={{ mt: 0.5 }}>
+            {MESSAGES.map((message) => (
+              <Box
+                key={message.title}
+                sx={{
+                  pb: 2,
+                  borderBottom: "1px solid #E5E7EB",
+                  "&:last-child": { borderBottom: "none", pb: 0 },
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.5 }}>
+                  {message.title}
+                </Typography>
+                <Typography sx={{ color: "#6B7280", fontSize: 13, lineHeight: 1.45 }}>
+                  {message.body}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </div>
+      <Link
+        component="button"
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        sx={{
+          color: "#008C99",
+          fontSize: 13,
+          fontWeight: 650,
+          textDecoration: "none",
+          mt: 2,
+          alignSelf: "flex-start",
+          cursor: "pointer",
+          border: "none",
+          background: "none",
+          p: 0,
+          "&:hover": { textDecoration: "underline" },
+        }}
+      >
+        {expanded ? "See less" : "See more →"}
+      </Link>
     </Card>
   );
 }

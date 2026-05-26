@@ -3,6 +3,9 @@ package com.fdmgroup.SmartPay_BackEnd.services.user;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 
+import java.util.List;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
@@ -20,4 +23,6 @@ public interface UserService extends UserDetailsService {
      */
     User validateCredentials(String email, String password);
     User getUserById(Long userId);
+    @Nullable
+    List<User> getAllUsers();
 }

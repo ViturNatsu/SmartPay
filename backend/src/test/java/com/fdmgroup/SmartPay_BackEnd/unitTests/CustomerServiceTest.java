@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.util.Pair;
 
 import java.util.Optional;
 
@@ -25,6 +27,8 @@ class CustomerServiceTest  {
 
     @Mock
     private CustomerRepository customerRepository;
+    @Mock
+    private MaskingUtil maskingUtil;
 
     @InjectMocks
     private CustomerServiceImpl customerService;
@@ -56,6 +60,9 @@ class CustomerServiceTest  {
     void getCustomerInfo_shouldReturnCustomerDTO_whenCustomerExists() {
         when(customerRepository.findByUserId(1L))
                 .thenReturn(Optional.of(customer));
+
+        when(maskingUtil.maskSin(anyString())).thenReturn(Pair.of("0x12345678", "***-***-321"));
+        when(maskingUtil.maskGovernmentId(anyString())).thenReturn(Pair.of("0x12345678", "*******543"));
 
         CustomerDTO result = customerService.getCustomerInfo(1L);
 
@@ -105,6 +112,8 @@ class CustomerServiceTest  {
         when(customerRepository.save(any(Customer.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(maskingUtil.maskSin(anyString())).thenReturn(Pair.of("0x12345678", "***-***-321"));
+        when(maskingUtil.maskGovernmentId(anyString())).thenReturn(Pair.of("0x12345678", "*******543"));
         CustomerDTO result = customerService.updateCustomerInfo(1L, inputDto);
 
         assertNotNull(result);

@@ -86,7 +86,7 @@ export default function PaymentMethods() {
       setPaymentMethods(normalizePaymentMethods(methods));*/
       setPaymentMethods(res.content);
       setPageData(res);
-      
+
     } catch (err) {
       setError(err?.message || "Unable to load payment methods");
     } finally {
@@ -298,11 +298,11 @@ export default function PaymentMethods() {
                             <Typography sx={{ fontWeight: 600 }}>
                               {method.bankDisplayName}
                             </Typography>
-                            <Typography sx={{ color: "text.secondary" }}>
-                              {method.accountIdentifierMasked}
+                            <Typography sx={{ color: "text.secondary", fontVariantLigatures: "Normal"}}>
+                              {method.accountIdentifierMasked.substring(2)}
                             </Typography>
                             <Typography sx={{ color: "text.secondary" }}>
-                              {method.active ? "Active" : "Inactive"}
+                              {method.accountName}
                             </Typography>
                           </Box>
                           <Stack direction="row" spacing={2} alignItems="center">
@@ -312,7 +312,7 @@ export default function PaymentMethods() {
                           <Button 
                             variant="outlined" 
                             color="error" 
-                            onClick={() => handleConfirmDialog(method.payment_method_id)}>
+                            onClick={() => handleConfirmDialog(method.paymentMethodId)}>
                             Remove
                           </Button>
                           </Stack>

@@ -15,8 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import com.fdmgroup.SmartPay_BackEnd.security.JwtAuthFilter;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 import lombok.AllArgsConstructor;
@@ -71,32 +69,31 @@ public class SecurityConfig {
         }
 
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .csrf(csrf -> csrf.disable())
-                                .exceptionHandling(
-                                                exception -> exception.authenticationEntryPoint(
-                                                                (request, response, authException) -> {
-                                                                        response.setStatus(
-                                                                                        HttpServletResponse.SC_UNAUTHORIZED); // 401
-                                                                        response.setContentType("application/json");
-                                                                        Map<String, String> errorBody = new HashMap<>();
-                                                                        errorBody.put("status", "401");
-                                                                        errorBody.put("error", "UNAUTHORIZED");
-                                                                        errorBody.put("message",
-                                                                                        "Missing Or Invalid Token.");
-                                                                        ObjectMapper mapper = new ObjectMapper();
-                                                                        response.getWriter().write(mapper
-                                                                                        .writeValueAsString(errorBody));
-                                                                }))
+                                .exceptionHandling(exception -> exception
+                                        // 401 Unauthorized
+                                        .authenticationEntryPoint((request, response, authException) -> {
+                                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                            response.setContentType("application/json");
+                                            response.getWriter().write("{\"status\":\"401\",\"error\":\"UNAUTHORIZED\",\"message\":\"Missing Or Invalid Token.\"}");
+                                        })
+                                        // 403 Forbidden
+                                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                            response.setContentType("application/json");
+                                            response.getWriter().write("{\"status\":\"403\",\"error\":\"FORBIDDEN\",\"message\":\"You do not have permission to access this resource.\"}");
+                                        })
+                                )
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers(HttpMethod.PUT, "/api/v*/password-reset/**")
                                                 .permitAll()
                                                 .requestMatchers(PUBLIC_API_ENDPOINTS).permitAll()
                                                 .requestMatchers(DEV_ONLY).permitAll()
-                                                .requestMatchers("/api/v*/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/api/v*/accounts/admin/**", "/api/v*/admin/**", "/api/v*/paymentmethods/admin/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                                 .sessionManagement(session -> session

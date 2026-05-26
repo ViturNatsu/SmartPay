@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.paymentmethods;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod.PaymentMethodDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
 import org.springframework.data.domain.Page;
@@ -12,11 +13,11 @@ public interface PaymentMethodService {
 
 
 
-    PaymentMethod addPaymentMethod(PaymentMethod pm) throws AccountNotFoundException;
+    PaymentMethodDTO addPaymentMethod(PaymentMethodDTO pm) throws AccountNotFoundException;
 
     List<PaymentMethod> findByUserId(Long id);
 
-    Page<PaymentMethod> findByUserId(Long userId, int pageNumber);
+    Page<PaymentMethodDTO> findByUserId(Long userId, int pageNumber);
 
     //for admin dashboard
     List<PaymentMethod> findAllPaymentMethods();
@@ -26,5 +27,5 @@ public interface PaymentMethodService {
     void deletePaymentMethod(Long id) throws AccountNotFoundException;
 
     //Update the payment method active status only
-    PaymentMethod updatePaymentMethodActiveStatus(Long id, Boolean activeStatus);
+    PaymentMethodDTO updatePaymentMethodActiveStatus(Long id, Boolean activeStatus);
 }
