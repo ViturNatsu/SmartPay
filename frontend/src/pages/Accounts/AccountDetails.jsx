@@ -31,7 +31,7 @@ const AccountDetails = () => {
     const fetchAccounts = async () => {
       try {
         const response = await axiosInstance.get(
-          `http://localhost:8080/api/v1/accounts/${accountId}`,
+          `http://localhost:8080/api/v1/accounts/admin/${accountId}`,
         );
         setAccount({
           ...response.data, balance:response.data.balance? Number(response.data.balance).toFixed(2):0.00.toFixed(2)});
@@ -54,7 +54,7 @@ const AccountDetails = () => {
     e.preventDefault();
     try {
       await axiosInstance.put(
-        `http://localhost:8080/api/v1/accounts/${accountId}`,
+        `http://localhost:8080/api/v1/accounts/admin/${accountId}`,
         account,
       );
       setopenAlert({
@@ -77,6 +77,9 @@ const AccountDetails = () => {
   const handleAlertClose = (event, reason) => {
     setopenAlert({ ...openAlert, open: false });
   };
+  const handleAddUser = () => {
+    navigate(`/admin/accounts/${accountId}/add-user`);
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -205,6 +208,19 @@ const AccountDetails = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  justifyContent="center"
+                >
+                  <Button
+                    sx={{ maxWidth: 80 }}
+                    variant="outlined"
+                    onClick={handleAddUser}
+                  >
+                    Update Users
+                  </Button>
+                </Stack>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={2}

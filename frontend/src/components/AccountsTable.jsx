@@ -1,20 +1,30 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axios";
-import { DataGrid, renderBooleanCell } from "@mui/x-data-grid";
-import { Box } from "@mui/material";
+import { getAllAccounts } from "@/api/accounts/accountApi";
+import { DataGrid } from "@mui/x-data-grid";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import axiosInstance from "@/api/axios";
 
 const AccountsTable = () => {
   const navigate = useNavigate();
   const [accountList, setaccountList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     const fetchAccounts = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axiosInstance.get(
-          "http://localhost:8080/api/v1/accounts/all",
-        );
-        setaccountList(response.data);
-      } catch (error) {}
+		const data = await getAllAccounts();
+        const accounts = Array.isArray(data) ? data : data?.accounts || [];
+        setaccountList(accounts);
+	  } catch (err) {
+        setError(err?.message || "Failed to load accounts");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchAccounts();
   }, []);
@@ -86,10 +96,15 @@ const AccountsTable = () => {
       editable: true,
     },
   ];
-  const rows = accountList.map((acc) => ({
-    ...acc,
-    active: acc.active ? "Active" : "Inactive",
-  }));
+  const rows = Array.isArray(accountList)
+    ? accountList.map((acc) => ({
+        ...acc,
+        accountNumber: acc.accountNumber.substring(2),
+        id: acc.id,
+        active: acc.active ? "Active" : "Inactive",
+        userId: acc.users?.map((u) => u.id).join(", ") || "",
+      }))
+    : [];
 
   return (
     <Box
@@ -104,20 +119,33 @@ const AccountsTable = () => {
       }}
     >
       <h3>Mock Accounts</h3>
-      <Box sx={{ width: "100%" }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10 },
-            },
-          }}
-          pageSizeOptions={[5]}
-          showToolbar={true}
-          onRowClick={(params) => navigate(`/accounts/${params.row.id}`)}
-        />
-      </Box>
+      {loading && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 4 }}>
+          <CircularProgress size={24} />
+          <Typography>Loading accounts...</Typography>
+        </Box>
+      )}
+      {error && (
+        <Typography color="error" sx={{ py: 2 }}>
+          {error}
+        </Typography>
+      )}
+      {!loading && !error && (
+        <Box sx={{ width: "100%" }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10 },
+              },
+            }}
+            pageSizeOptions={[5]}
+            showToolbar={true}
+            onRowClick={(params) => navigate(`/accounts/${params.row.id}`)}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

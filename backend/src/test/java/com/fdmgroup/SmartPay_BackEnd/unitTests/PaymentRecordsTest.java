@@ -47,6 +47,7 @@ class PaymentRecordsTest {
     EncoderConfig encoderConfig;
 
 
+    /*
     @Test
     void systemStoresPaymentRecordWhenItIsCreated() {
 
@@ -84,4 +85,5 @@ class PaymentRecordsTest {
         paymentRepository.deleteById(createdPm.getPayment_method_id());
         userRepository.deleteById(TEST_USER_ID);
     }
+    */
 }

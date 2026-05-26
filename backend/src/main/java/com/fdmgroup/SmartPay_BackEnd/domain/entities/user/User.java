@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
@@ -74,8 +75,11 @@ public class User implements UserDetails {
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
 
-    @Column(name = "accounts")
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @Column(name = "accounts")
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // private List<Account> accounts = new ArrayList<>();
+    @ManyToMany(mappedBy = "users")
+    @JsonIgnore
     private List<Account> accounts = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -123,5 +127,14 @@ public class User implements UserDetails {
 
     public List<Account> getAccounts() {
         return accounts;
+    }
+
+    @PreRemove
+    private void preRemove() {
+        // Break the many-to-many association with accounts to avoid FK constraint violations on the user_account_table join table.
+        for (Account account : new ArrayList<>(this.accounts)) {
+            account.getUsers().remove(this);
+        }
+        this.accounts.clear();
     }
 }

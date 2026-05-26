@@ -28,23 +28,29 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public User register(SignUpDTO userDto) throws DuplicateEmailException {
         String email = consistentEmail(userDto.getEmail());
+       
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        
+
+        if(existingUser.isPresent() && existingUser.get().isEmailVerified()){
+            throw new DuplicateEmailException("Email already in use");
+        } 
+
         CustomerDTO customerDto = userDto.getCustomer();
         String normalizedPhone = normalizePhone(customerDto.getPhoneNumber());
-
         Optional<Customer> existingPhoneNumber = customerRepository.findByPhoneNumber(normalizedPhone);
-        Optional<User> existingUser = userRepository.findByEmail(email);
+
         if (existingPhoneNumber.isPresent()) {
             Customer existingCustomer = existingPhoneNumber.get();
-            if(existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())){
-                throw new DuplicatePhoneException("Phone number already in use");
+            if (existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())) {
+                throw new DuplicatePhoneException("This phone number is already linked to a SmartPay Account");
             }
         }
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            if (user.isEmailVerified()) {
-                throw new DuplicateEmailException("Email already in use");
-            }
+            
             user.setFirstName(userDto.getFirstName());
             user.setLastName(userDto.getLastName());
             user.setPassword(userDto.getPassword());

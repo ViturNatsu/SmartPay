@@ -133,9 +133,10 @@ public class DataBaseInitializer {
 
             }
             User testUser2 = userRepository.findByEmail("test2@example.com").orElse(null);
-            if(testUser2 != null){
+            User testUser1 = userRepository.findByEmail("test@example.com").orElse(null);
+            if(testUser2 != null && testUser1 != null){
 
-                if(!accountRepository.findByAccountNumber("00000401").isPresent()){
+                if(accountRepository.findByAccountNumber("00000401").isEmpty()){
                     Account testAccTd1 = new CheckingAccount();
                     testAccTd1.setAccountName("TD Test Checking 1");
                     testAccTd1.setInstitutionNumber("004");
@@ -143,10 +144,11 @@ public class DataBaseInitializer {
                     testAccTd1.setAccountNumber("00000401");
                     testAccTd1.setBalance(1000.00);
                     testAccTd1.setActive(true);
-                    testAccTd1.setUser(testUser2);
+                    testAccTd1.getUsers().add(testUser2);
+                    testAccTd1.getUsers().add(testUser1);
                     accountRepository.save(testAccTd1);
                 }
-                 if(!accountRepository.findByAccountNumber("00000402").isPresent()){
+                 if(accountRepository.findByAccountNumber("00000402").isEmpty()){
                     Account testAccTd2 = new CheckingAccount();
                     testAccTd2.setAccountName("TD Test Checking 2");
                     testAccTd2.setInstitutionNumber("004");
@@ -154,38 +156,44 @@ public class DataBaseInitializer {
                     testAccTd2.setAccountNumber("00000402");
                     testAccTd2.setBalance(1000.00);
                     testAccTd2.setActive(true);
-                    testAccTd2.setUser(testUser2);
+                    testAccTd2.getUsers().add(testUser2);
+                    testAccTd2.getUsers().add(testUser1);
                     accountRepository.save(testAccTd2);
                 }
+                if(!accountRepository.findByAccountNumber("00000403").isPresent()){
+                    Account testAccTd3 = new CheckingAccount();
+                    testAccTd3.setAccountName("TD Test Checking 3");
+                    testAccTd3.setInstitutionNumber("004");
+                    testAccTd3.setTransitNumber("000123");
+                    testAccTd3.setAccountNumber("00000403");
+                    testAccTd3.setBalance(1000.00);
+                    testAccTd3.setActive(true);
+                    accountRepository.save(testAccTd3);
+                }
 
-                if(!accountRepository.findByAccountNumber("00000301").isPresent()){
+                if(accountRepository.findByAccountNumber("77777301").isEmpty()){
                     Account testAccRbc1 = new CheckingAccount();
                     testAccRbc1.setAccountName("RBC Test Checking 1");
                     testAccRbc1.setInstitutionNumber("003");
                     testAccRbc1.setTransitNumber("000124");
-                    testAccRbc1.setAccountNumber("00000301");
+                    testAccRbc1.setAccountNumber("77777301");
                     testAccRbc1.setBalance(1000.00);
                     testAccRbc1.setActive(true);
-                    testAccRbc1.setUser(testUser2);
+                    testAccRbc1.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc1);
                 }
-                if(!accountRepository.findByAccountNumber("00000302").isPresent()){
+                if(accountRepository.findByAccountNumber("00000301").isEmpty()){
                     Account testAccRbc2 = new CheckingAccount();
                     testAccRbc2.setAccountName("RBC Test Checking 2");
                     testAccRbc2.setInstitutionNumber("003");
                     testAccRbc2.setTransitNumber("000124");
-                    testAccRbc2.setAccountNumber("00000302");
+                    testAccRbc2.setAccountNumber("00000301");
                     testAccRbc2.setBalance(1000.00);
                     testAccRbc2.setActive(true);
-                    testAccRbc2.setUser(testUser2);
+                    testAccRbc2.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc2);
                 }
-
-                
-
             }
-             
-
         };
     }
 }

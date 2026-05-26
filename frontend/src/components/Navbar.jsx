@@ -33,7 +33,7 @@ const userNavItems = [
   { label: "Dashboard", path: "/", icon: <HomeRoundedIcon /> },
   { label: "Payment Methods", path: "/payment-methods", icon: <AccountBalanceWalletOutlinedIcon /> },
   { label: "Transactions", path: "/transactions", icon: <SwapHorizRoundedIcon /> },
-  { label: "My Cards", path: "/cards", icon: <CreditCardRoundedIcon /> },
+  { label: "Wallet", path: "/cards", icon: <CreditCardRoundedIcon /> },
   { label: "Reports", path: "/reports", icon: <InsightsRoundedIcon /> },
   { label: "Settings", path: "/settings", icon: <SettingsRoundedIcon /> },
 ];
