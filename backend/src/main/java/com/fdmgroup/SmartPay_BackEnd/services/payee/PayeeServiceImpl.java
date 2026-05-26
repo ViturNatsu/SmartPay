@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class PayeeServiceImpl implements PayeeService {
         .build();
         payeeRepository.save(payee);
         PayeeResponseDTO payeeDTO = new PayeeResponseDTO(
-            payee.getOwner().getId(),
+            payee.getPayeeId(),
             payee.getRecipient().getId(), 
             payee.getRecipient().getFirstName(), 
             payee.getRecipient().getLastName(),
@@ -54,18 +55,16 @@ public class PayeeServiceImpl implements PayeeService {
     @Override
     public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
         List<Payee> payees = payeeRepository.findByOwnerId(ownerId);
-        List<PayeeResponseDTO> payeesDTO = new ArrayList<>();
-
-        for (Payee payee : payees) {
-            PayeeResponseDTO payeeDTO = new PayeeResponseDTO(
+         List<PayeeResponseDTO> payeesDTO = payees.stream().map(payee-> new PayeeResponseDTO(
                     payee.getPayeeId(),
                     payee.getRecipient().getId(),
                     payee.getRecipient().getFirstName(),
                     payee.getRecipient().getLastName(),
-                    payee.getRecipient().getEmail());
-            payeesDTO.add(payeeDTO);
+                    payee.getRecipient().getEmail())).collect(Collectors.toList());
 
-        }
+
+        
+    
         return payeesDTO;
 
     }
