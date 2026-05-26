@@ -1,15 +1,19 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import {Stack} from "@mui/material";
+import { Stack } from "@mui/material";
 import QuickActions from "@/components/QuickActions";
 import ImportantMessages from "@/components/ImportantMessages";
 import AccountOverview from "@/components/AccountOverview";
 import TransactionHistory from "@/components/TransactionHistory";
-
-import {useAuth} from "@/context/AuthContext";
+import LoadWalletDialog from "@/components/LoadWalletDialog";
+import { useAuth } from "@/context/AuthContext";
 import WalletBalance from "@/components/WalletBalance";
 
 export const Home = () => {
-  const {user, logout} = useAuth();
+  const { user } = useAuth();
+  const [loadWalletOpen, setLoadWalletOpen] = useState(false);
+  const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+
   return (
     <>
       <Navbar />
@@ -42,7 +46,7 @@ export const Home = () => {
             }}
           >
             <Stack spacing={2}>
-              <WalletBalance />
+              <WalletBalance refreshKey={walletRefreshKey} />
               <AccountOverview />
               <TransactionHistory />
             </Stack>
@@ -56,12 +60,18 @@ export const Home = () => {
             }}
           >
             <Stack spacing={2.25}>
-              <QuickActions />
+              <QuickActions onLoadWallet={() => setLoadWalletOpen(true)} />
               <ImportantMessages />
             </Stack>
           </div>
         </div>
       </div>
+
+      <LoadWalletDialog
+        open={loadWalletOpen}
+        onClose={() => setLoadWalletOpen(false)}
+        onSuccess={() => setWalletRefreshKey((k) => k + 1)}
+      />
     </>
   );
 };
