@@ -36,7 +36,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         if(existingUser.isPresent() && existingUser.get().isEmailVerified()){
             throw new DuplicateEmailException("Email already in use");
         } 
-        
+
         CustomerDTO customerDto = userDto.getCustomer();
         String normalizedPhone = normalizePhone(customerDto.getPhoneNumber());
         Optional<Customer> existingPhoneNumber = customerRepository.findByPhoneNumber(normalizedPhone);
@@ -44,7 +44,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (existingPhoneNumber.isPresent()) {
             Customer existingCustomer = existingPhoneNumber.get();
             if (existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())) {
-                throw new DuplicatePhoneException("Phone number already in use");
+                throw new DuplicatePhoneException("This phone number is already linked to a SmartPay Account");
             }
         }
 
