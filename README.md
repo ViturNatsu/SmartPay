@@ -41,3 +41,10 @@ Start the backend by finding the class `SmartPayBackEndApplication.java` under `
 ### Running the Frontend
 
 Start the frontend by navigating the current directory into `frontend` and run `npm install` to install frontend dependencies. Then run `npm run dev` to start the frontend. You should be able to now access the frontend at http://localhost:5173/.
+
+
+## For developers
+## Security & Endpoint Guidelines
+- **Admin Endpoints**: Must include `/admin` in the URL path (e.g., `/api/v1/paymentmethods/admin`). This is secured at the route level in `SecurityConfig.java`.
+- **User Endpoints**: Do not trust IDs from URLs or payloads. Always verify ownership using the auth token: `User user = (User) authentication.getPrincipal();` before performing actions.
+- **Adding New Controllers**: Make sure to add the new `/admin` wildcard pattern to the `.requestMatchers(...)` list in `SecurityConfig.java`.

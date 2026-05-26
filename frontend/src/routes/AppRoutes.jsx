@@ -26,6 +26,7 @@ import MockAccounts from "../pages/Admin/MockAccounts";
 import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAuthorization";
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
+import AddUser from "../pages/Admin/AddUser";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -64,6 +65,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
         <Route path="/admin/dashboard" element={<AdminDash />} />
         <Route path="/admin/mock-accounts" element={<MockAccounts />} />
+        <Route path="/admin/accounts/:accountId/add-user" element={<AddUser />} />
       </Route>
     </Routes>
   );

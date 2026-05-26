@@ -54,7 +54,7 @@ class MockSavingPersistenceTest {
         account.setAccountName("test mock savings");
         account.setAccountNumber("12341234");
         account.setBalance(0.0);
-        account.setUser(userRepository.findById(TEST_USER_ID).get());
+        account.getUsers().add(userRepository.findById(TEST_USER_ID).get());
         Account created = accountService.createAccountForUser(account, TEST_USER_ID);
 
         assertEquals(initCount + 1, accountRepository.count());
