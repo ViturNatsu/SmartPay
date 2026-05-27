@@ -1,10 +1,12 @@
 import Navbar from "@/components/Navbar"
 
-export function AddPayee() {
+
+import React from 'react'
+
+const AddPayee = () => {
   return (
-    <>
-      <Navbar />
-      <h1>Add Payee</h1>
-    </>
-  );
+    <div>AddPayee</div>
+  )
 }
+
+export default AddPayee
