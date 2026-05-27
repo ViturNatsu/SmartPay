@@ -108,7 +108,7 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     });
     await user.click(sendMoneyLink);
 
-    expect(screen.getByText("Make A Payment")).toBeInTheDocument();
+    expect(screen.getByText("Send Money")).toBeInTheDocument();
   });
 
   it("Scenario 3: Add a Payee link navigates to add payee", async () => {
