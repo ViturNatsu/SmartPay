@@ -158,7 +158,7 @@ function SimulatedBankAuthSuccess() {
                         :
                         <Stack
                             direction="row"
-                            spacing={1}   // 👈 only affects buttons
+                            spacing={1}
                             sx={{ alignSelf: { xs: "stretch", sm: "auto" } }}
                         >
                             <Button
