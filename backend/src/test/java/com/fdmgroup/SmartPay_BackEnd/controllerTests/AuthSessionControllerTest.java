@@ -111,10 +111,10 @@ class AuthControllerTest {
         }
 
         @Test
-        void refresh_returnsOk_andRotatesTokens_whenRefreshTokenIsValid() throws Exception {
+        void refresh_returnsOk_andKeepsRefreshToken_whenRefreshTokenIsValid() throws Exception {
                 String oldRefresh = "oldRefreshToken";
                 String newAccess = "newAccessToken";
-                String newRefresh = "newRefreshToken";
+                String sameRefresh  = "oldRefreshToken";
 
                 User user = new User("test@smartpay.com", "encodedPassword");
                 user.setId(1L);
@@ -124,7 +124,7 @@ class AuthControllerTest {
                 when(jwtSessionService.getUserIdFromToken(oldRefresh)).thenReturn(1L);
                 when(userService.getUserById(1L)).thenReturn(user);
                 when(jwtSessionService.createAccessToken(user)).thenReturn(newAccess);
-                when(jwtSessionService.createRefreshToken(user)).thenReturn(newRefresh);
+                when(jwtSessionService.createRefreshToken(user)).thenReturn(sameRefresh);
 
                 mockMvc.perform(
                                 post("/api/v1/auth/refresh")
@@ -132,10 +132,10 @@ class AuthControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.accessToken").value(newAccess))
-                                .andExpect(jsonPath("$.refreshToken").value(newRefresh));
+                                .andExpect(jsonPath("$.refreshToken").value(sameRefresh));
 
                 verify(sessionService).validateSession(oldRefresh);
-                verify(sessionService).rotateRefreshToken(oldRefresh, newRefresh);
+                verify(sessionService).rotateRefreshToken(oldRefresh, sameRefresh);
         }
 
         @Test

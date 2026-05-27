@@ -4,9 +4,10 @@ import Navbar from "../../components/Navbar";
 import {useAuth} from "@/context/AuthContext.jsx";
 import {getFilteredUserAccounts, getInUseUserAccounts} from "@/api/accounts/accountApi.js";
 import {handleAxiosError} from "@/api/axios.js";
-import {Box, Card, CardContent, Stack, Typography} from "@mui/material";
+import {Alert, Box, Card, CardContent, Snackbar, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
+import {blueGrey} from "@mui/material/colors";
 
 
 function SimulatedBankAuthSuccess() {
@@ -16,6 +17,8 @@ function SimulatedBankAuthSuccess() {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccounts, setSelectedAccounts] = useState([]);
   const [disabledAccounts, setDisabledAccounts] = useState([]);
+  const [noAccountsToSelect, setNoAccountsToSelect] = useState(false);
+    const [failSnackbar, setFailSnackBar] = useState(false);
   const [fetchedAccounts, setFetchedAccounts] = useState(null);
   const [inUseAccounts, setInUseAccounts] = useState(null);
 
@@ -63,7 +66,8 @@ function SimulatedBankAuthSuccess() {
     setDisabledAccounts(unUsableAccounts);
   }, [fetchedAccounts, inUseAccounts]);
   useEffect(() => {
-        console.log(accounts)
+        setNoAccountsToSelect(accounts.length === 0);
+        setFailSnackBar(accounts.length === 0);
     }, [accounts]);
 
   const handleLinkingPaymentMethods = async () => {
@@ -161,13 +165,39 @@ function SimulatedBankAuthSuccess() {
                             Select accounts to link as payment methods.
                         </Typography>
                     </Box>
-                    <Button
-                        variant="contained"
-                        onClick={handleLinkingPaymentMethods}
-                        sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
-                    >
-                        Confirm and Link
-                    </Button>
+                    {noAccountsToSelect
+                        ?
+                        <Button
+                            variant="contained"
+                            onClick={() => {navigate("/payment-methods")}}
+                            sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
+                        >
+                            Back
+                        </Button>
+                        :
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ alignSelf: { xs: "stretch", sm: "auto" } }}
+                        >
+                            <Button
+                                variant="contained"
+                                onClick={() => {navigate("/payment-methods")}}
+                                sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" },
+                                    bgcolor: blueGrey[400] }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                onClick={handleLinkingPaymentMethods}
+                                sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" }}}
+                            >
+                                Confirm and Link
+                            </Button>
+                        </Stack>
+                    }
                 </Stack>
             </CardContent>
         </Card>
@@ -191,7 +221,24 @@ function SimulatedBankAuthSuccess() {
                 {accounts.map(account => renderAccount(account, false))}
                 {disabledAccounts.map(account => renderAccount(account, true))}
             </Stack>
+
+
+            <Snackbar
+                open={failSnackbar}
+                autoHideDuration={4000}
+                onClose={() => setFailSnackBar(false)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setFailSnackBar(false)}
+                    severity="error"
+                    variant="filled"
+                >
+                    No available Accounts to link!
+                </Alert>
+            </Snackbar>
         </Card>
+
     </>
   );
 }
