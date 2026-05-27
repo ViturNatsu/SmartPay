@@ -197,20 +197,24 @@ public class DataBaseInitializer {
                 }
 
                 Account testTD1 = accountRepository.findByAccountNumber("00000401").get();
-                PaymentMethod testPM1 = new PaymentMethod();
-                testPM1.setAccount(testTD1);
-                testPM1.setUser(testUser1);
-                testPM1.setBankDisplayName("TD");
-                testPM1.setBankId(4l);
-                testPM1.setActive(true);
-                paymentRepository.save(testPM1);
-                PaymentMethod testPM2 = new PaymentMethod();
-                testPM2.setAccount(testTD1);
-                testPM2.setUser(testUser2);
-                testPM2.setBankDisplayName("TD");
-                testPM2.setBankId(4l);
-                testPM2.setActive(true);
-                paymentRepository.save(testPM2);
+                if(paymentRepository.findByUserIdAndAccountId(3, 1).isEmpty()){
+                    PaymentMethod testPM1 = new PaymentMethod();
+                    testPM1.setAccount(testTD1);
+                    testPM1.setUser(testUser1);
+                    testPM1.setBankDisplayName("TD");
+                    testPM1.setBankId(4l);
+                    testPM1.setActive(true);
+                    paymentRepository.save(testPM1);
+                }
+                if(paymentRepository.findByUserIdAndAccountId(4, 1).isEmpty()) {
+                    PaymentMethod testPM2 = new PaymentMethod();
+                    testPM2.setAccount(testTD1);
+                    testPM2.setUser(testUser2);
+                    testPM2.setBankDisplayName("TD");
+                    testPM2.setBankId(4l);
+                    testPM2.setActive(true);
+                    paymentRepository.save(testPM2);
+                }
 
             }
         };
