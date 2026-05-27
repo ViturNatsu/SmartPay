@@ -15,8 +15,11 @@ import {
   useSessionManager,
   decodeJwtPayload,
 } from "./SessionManagerContext";
+import { getAccessToken } from "../api/axios";
 
 const AuthContext = createContext(undefined);
+let bootstrapRefreshPromise = null;
+let consecutiveRefreshFailures = 0;
 
 const AuthProviderInner = ({ children, clearAuthRef }) => {
   const [user, setUser] = useState(null);
@@ -105,9 +108,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
   // Stores tokens, decodes claims, fetches full user profile.
   const setAuthFromTokens = useCallback(
     async ({ accessToken, refreshToken }) => {
-      try {
-        logoutChannelRef.current?.postMessage({ type: "FORCE_LOGOUT" });
-      } catch (error) {}
+      // try {
+      //   logoutChannelRef.current?.postMessage({ type: "FORCE_LOGOUT" });
+      // } catch (error) {}
 
       if (accessToken) setAccessToken(accessToken);
       if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
@@ -193,7 +196,14 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
       setLoading(true);
       try {
-        const res = await authApi.refreshTokens();
+        if (!bootstrapRefreshPromise) {
+          bootstrapRefreshPromise = authApi.refreshTokens().finally(() => {
+            bootstrapRefreshPromise = null;
+          });
+        }
+
+        const res = await bootstrapRefreshPromise;
+        consecutiveRefreshFailures = 0;
 
         if (cancelled) return;
 
@@ -232,9 +242,72 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         }
       } catch (err) {
         if (!cancelled) {
-          // Token is expired or invalid — clear it so we don't loop
-          sessionStorage.removeItem("refresh_token");
-          clearAuth();
+          console.error("Bootstrap refresh failed:", err);
+
+
+          const stillHasRefreshToken = sessionStorage.getItem("refresh_token");
+          const currentAccessToken = getAccessToken();
+
+          consecutiveRefreshFailures++;
+
+          // Allow a few stale refresh failures before forcing logout
+          if (consecutiveRefreshFailures >= 3) {
+            sessionStorage.setItem("signoutReason", "refresh_limit");
+
+            clearAuth();
+
+            navigate("/login", { replace: true });
+          } else if (!stillHasRefreshToken && !currentAccessToken) {
+            sessionStorage.setItem("signoutReason", "refresh_limit");
+
+            clearAuth();
+
+            navigate("/login", { replace: true });
+          } else {
+            console.warn(
+              `Retrying stale refresh failure (${consecutiveRefreshFailures}) because session still exists.`
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            try {
+              const retryRes = await authApi.refreshTokens();
+
+              if (retryRes?.accessToken) {
+                setAccessToken(retryRes.accessToken);
+
+                if (retryRes.refreshToken) {
+                  sessionStorage.setItem("refresh_token", retryRes.refreshToken);
+                }
+
+                const claims = decodeJwtPayload(retryRes.accessToken);
+
+                if (claims) {
+                  const extracted = {
+                    userId: claims.sub ?? null,
+                    role: claims.role ?? null,
+                    email: claims.email ?? null,
+                  };
+
+                  setTokenClaims(extracted);
+
+                  if (extracted.role?.toUpperCase() === "ADMIN") {
+                    setUser({
+                      id: extracted.userId,
+                      email: extracted.email,
+                      role: extracted.role,
+                    });
+                  } else {
+                    await getMyUser();
+                  }
+
+                  startSessionMonitoringRef.current();
+                }
+              }
+            } catch (retryErr) {
+              console.error("Bootstrap retry failed:", retryErr);
+            }
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -264,7 +337,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
         if (
           msgType === "LOGOUT" ||
           msgType === "SESSION_EXPIRED" ||
-          "FORCE_LOGOUT"
+          msgType === "FORCE_LOGOUT"
         ) {
           clearAuth();
           // Use the appropriate reason so the Login page shows the right message
