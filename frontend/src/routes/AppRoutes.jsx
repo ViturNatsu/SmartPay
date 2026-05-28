@@ -13,7 +13,7 @@ import { Cards } from "@/pages/Navbar/Cards";
 import { Reports } from "@/pages/Navbar/Reports";
 import { Settings } from "@/pages/Navbar/Settings";
 import { CreateAccount } from "@/pages/Accounts/CreateAccount";
-import { AddPayee } from "@/pages/Accounts/AddPayee";
+import  AddPayee  from "@/pages/Accounts/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import { ViewHistory } from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";
