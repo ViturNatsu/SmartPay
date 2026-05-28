@@ -83,6 +83,25 @@ public class AccountController {
                 return ResponseEntity.ok(accountService.getAccounts(userId, filter));
         }
 
+        @GetMapping("/user/inuse/{userId}")
+        @Operation(summary = "Retrieve in-use accounts for a user", description = "Fetch accounts associated with a user that are currently in use.")
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "200", description = "List of in-use accounts retrieved successfully.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Account.class))),
+                @ApiResponse(responseCode = "401", description = "Missing or Invalid Token"),
+                @ApiResponse(responseCode = "403", description = "Forbidden: user cannot access another user's accounts."),
+                @ApiResponse(responseCode = "404", description = "User not found with the specified userId.")
+        })
+        public ResponseEntity<List<AccountDTO>> getInUseAccounts(@PathVariable Long userId,
+                                                                 Authentication authentication)
+                throws UserNotFoundException {
+                // Auth checks
+                User principalUser = (User) authentication.getPrincipal();
+                if(principalUser == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                if (!principalUser.getId().equals(userId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+
+                return ResponseEntity.ok(accountService.getInUseAccounts(userId));
+        }
+
         @GetMapping("/admin/all")
         @Operation(summary = "Retrieve all accounts", description = "Fetch all accounts in the system.")
         @ApiResponses(value = {
