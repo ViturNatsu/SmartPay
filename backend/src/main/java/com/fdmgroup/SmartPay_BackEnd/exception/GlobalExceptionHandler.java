@@ -21,6 +21,8 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginInvalidCredentialsExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -237,6 +239,36 @@ public class GlobalExceptionHandler {
                         .body(errorBody);
         }
         
+        // US-09-01-28 (Wallet Withdraw)
+        @ExceptionHandler(InsufficientFundsException.class)
+        public ResponseEntity<Map<String, String>> handleInsufficientFunds(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "422");
+                errorBody.put(ERROR, "Insufficient Funds");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
+        // US-09-01-28 (Wallet Withdraw)
+        @ExceptionHandler(InvalidWithdrawAmountException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidWithdrawAmount(RuntimeException ex) {
+
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Invalid Withdrawal Amount");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
         @ExceptionHandler(MailSendException.class)
         public ResponseEntity<Map<String, String>> handleMailSendException(RuntimeException ex) {
 
