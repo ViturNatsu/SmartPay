@@ -6,7 +6,7 @@ import {
   useRef,
 } from "react";
 import * as authApi from "../api/authApi";
-import { getAccessToken } from "../api/axios";
+import {  getAccessToken, setAccessToken } from "../api/axios";
 
 const SessionManagerContext = createContext(undefined);
 
@@ -118,36 +118,47 @@ export const SessionManagerProvider = ({ children, onSessionExpired }) => {
   }, []);
 
   // ── Refresh tokens ────────────────────────────────────────────────
+  let refreshPromise = null;
   const refreshTokens = useCallback(async () => {
-    // console.log("[SESSION] refreshTokens() called");
-    if (isRefreshingRef.current) {
-      // console.log("[SESSION] Already refreshing — skipping");
-      return;
+    if (refreshPromise) {
+      return refreshPromise;
     }
 
     const rt = sessionStorage.getItem("refresh_token");
+
     if (!rt) {
-      // console.log("[SESSION] No refresh token — session expired");
       onSessionExpiredRef.current?.();
       return;
     }
 
-    try {
-      isRefreshingRef.current = true;
-      // console.log("[SESSION] Calling POST /api/v1/auth/refresh…");
-      const data = await authApi.refreshTokens();
-      // console.log("[SESSION] Refresh SUCCESS");
+    refreshPromise = (async () => {
+      try {
+        isRefreshingRef.current = true;
 
-      updateAccessTokenExpiry();
-      // Push the expiry timer out to the NEW token's exp
-      resetExpiryTimer();
-      return data;
-    } catch (err) {
-      // console.error("[SESSION] Refresh FAILED:", err);
-      onSessionExpiredRef.current?.();
-    } finally {
-      isRefreshingRef.current = false;
-    }
+        const data = await authApi.refreshTokens();
+
+        if (data?.accessToken) {
+          setAccessToken(data.accessToken);
+        }
+
+        if (data?.refreshToken) {
+          sessionStorage.setItem("refresh_token", data.refreshToken);
+        }
+
+        updateAccessTokenExpiry();
+        resetExpiryTimer();
+
+        return data;
+      } catch (err) {
+        onSessionExpiredRef.current?.();
+        throw err;
+      } finally {
+        isRefreshingRef.current = false;
+        refreshPromise = null;
+      }
+    })();
+
+    return refreshPromise;
   }, [updateAccessTokenExpiry, resetExpiryTimer]);
 
   // ── Activity handler ──────────────────────────────────────────────

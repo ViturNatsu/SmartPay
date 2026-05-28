@@ -24,6 +24,7 @@ import { SmartPayBanner } from "@/components/SmartPayBanner";
 
 export const Login = () => {
   const location = useLocation();
+  
   const [showPassword, setShowPassword] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [emailError, setEmailError] = React.useState("");
@@ -42,6 +43,9 @@ export const Login = () => {
     }
     if (reason === "session_invalidated") {
       return "Your session is no longer active. Please sign in again.";
+    }
+    if (reason === "refresh_limit") {
+      return "Your session expired because the page was refreshed too many times. Please sign in again.";
     }
     return null;
   });
