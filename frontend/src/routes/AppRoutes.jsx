@@ -49,7 +49,6 @@ export default function AppRoutes() {
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/accounts/:accountId" element={<AccountDetails />} />
         <Route path="/transactions" element={<Transactions />} />
-        <Route path="/cards" element={<Wallet />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/payment-methods" element={<PaymentMethods />} />
