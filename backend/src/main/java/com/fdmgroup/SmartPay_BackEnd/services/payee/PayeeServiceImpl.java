@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
@@ -37,12 +38,15 @@ public class PayeeServiceImpl implements PayeeService {
         User recipient;
         if (recipientIdentifier.contains("@")) {
             recipient = userRepository.findByEmail(recipientIdentifier)
-                    .orElseThrow(() -> new IllegalArgumentException("User with the provided email does not exist"));
+                    .orElseThrow(() -> new IllegalArgumentException("SmartPay user not found"));
         } else {
             Customer customer = customerRepository.findByPhoneNumber(recipientIdentifier)
                     .orElseThrow(
-                            () -> new IllegalArgumentException("User with the provided phone number does not exist"));
+                            () -> new IllegalArgumentException("SmartPay user not found"));
             recipient = customer.getUser();
+        }
+        if(recipient.getRole().equals(Role.ADMIN)){
+            throw new IllegalArgumentException("SmartPay user not found");
         }
 
         if (recipient.getId().equals(ownerId)) {

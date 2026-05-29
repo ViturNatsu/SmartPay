@@ -89,7 +89,7 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
 
               {/* Description */}
               <Typography
-                variant="subtitle2"
+                variant="subtitle1"
                 sx={{
                   maxWidth: "md",
                 }}
