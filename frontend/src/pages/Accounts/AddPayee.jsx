@@ -15,13 +15,19 @@ import {
 
 import React, { useState } from "react";
 import { addPayee } from "../../api/payee/payeeApi";
+import AddPayeeSuccess from "./AddPayeeSuccess";
+import { useNavigate } from "react-router-dom";
 
 const AddPayee = () => {
+  const navigate = useNavigate();
   const [recipientName, setRecipientName] = useState("");
   const [recipientIdentifier, setRecipientIdentifier] = useState("");
 
   const [recipientNameErr, setRecipientNameErr] = useState("");
   const [recipientErr, setRecipientErr] = useState("");
+
+  const [payeeSaved, setPayeeSaved] = useState(false);
+  const [savedPayee, setSavedPayee] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +63,10 @@ const AddPayee = () => {
         recipientIdentifier,
       };
 
-      const savedPayee = await addPayee(payload);
+      const res = await addPayee(payload);
+
+      setSavedPayee(res);
+      setPayeeSaved(true);
 
       setRecipientName("");
       setRecipientIdentifier("");
@@ -70,7 +79,9 @@ const AddPayee = () => {
   return (
     <div>
       <Navbar />
+      
       <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4 }}>
+        {!payeeSaved? (
         <Container maxWidth="md">
           <Stack spacing={3}>
             <Box>
@@ -211,6 +222,7 @@ const AddPayee = () => {
             </Card>
           </Stack>
         </Container>
+        ) : <AddPayeeSuccess payeeName={savedPayee?.payeeName} onSendMoney={()=> navigate("/make-a-payment")}/>}
       </Box>
     </div>
   );
