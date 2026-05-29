@@ -10,6 +10,7 @@ import lombok.Setter;
 public class PayeeResponseDTO {
 
     private Long payeeId;
+    private String payeeName;
     private Long recipientId;
     private String firstName;
     private String lastName;

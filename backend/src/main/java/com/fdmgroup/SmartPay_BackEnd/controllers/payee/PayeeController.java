@@ -40,8 +40,8 @@ public class PayeeController {
     System.out.println("authenticated user ID "+authenticatedUser.getId());
     
    
-    PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(),
-    payeeRequestDTO.getRecipientId());
+    PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(),payeeRequestDTO.getPayeeName(),
+    payeeRequestDTO.getRecipientIdentifier());
     URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
     .buildAndExpand(payee.getPayeeId()).toUri();
     return ResponseEntity.created(location).body(payee);

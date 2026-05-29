@@ -40,7 +40,8 @@ private User owner;
 @JoinColumn(name = "recipient_user_id", nullable = false)
 private User recipient;
 
-
+@Column(name = "payee_name", nullable = false)
+private String payeeName;
 
 
 
