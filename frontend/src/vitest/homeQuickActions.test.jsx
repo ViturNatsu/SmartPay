@@ -108,6 +108,7 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     });
     await user.click(loadWalletButton);
 
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /^Load Wallet$/i }),
     ).toBeInTheDocument();

@@ -166,6 +166,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
         {step === "form" && (
           <>
             <Typography
+              component="h2"
               sx={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.04em", mb: 0.75, pr: 4 }}
             >
               Load Wallet
