@@ -80,7 +80,7 @@ const AddPayee = () => {
     <div>
       <Navbar />
       
-      <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4,}}>
         {!payeeSaved? (
         <Container maxWidth="md">
           <Stack spacing={3}>
@@ -103,9 +103,9 @@ const AddPayee = () => {
               <CardContent
                 sx={{ p: 3, display: "flex", justifyContent: "center" }}
               >
-                <Box sx={{ m: 2 }}>
-                  <Grid container spacing={3} columns={1}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                <Box sx={{ m: 2, width:"100%"}}>
+                  <Grid container spacing={3}>
+                    <Grid size={12} >
                       <FormControl fullWidth>
                         <FormLabel>
                           <Typography
@@ -127,17 +127,30 @@ const AddPayee = () => {
                           value={recipientName}
                           onChange={(e) => setRecipientName(e.target.value)}
                           error={recipientNameErr ? true : false}
-                          helperText = {recipientNameErr}
+                          helperText = {recipientNameErr? recipientNameErr:" "}
+                          slotProps={{
+                            formHelperText:{
+                              sx:{
+                                height: 20,
+                                margin: 0,
+                                
+                                px:"12px"
+                            
+                              } 
+                            }
+                          }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "12px",
+                              height: 56,
+                            
                             },
                           }}
                         ></TextField>
                       </FormControl>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <FormControl fullWidth>
+                    <Grid size={12} >
+                      <FormControl fullWidth sx={{height: 100}}>
                         <FormLabel>
                           <Typography
                             variant="subtitle1"
@@ -158,10 +171,23 @@ const AddPayee = () => {
                           value={recipientIdentifier}
                           onChange={(e)=>setRecipientIdentifier(e.target.value)}
                           error={recipientErr? true:false}
-                          helperText = {recipientErr}
+                          helperText = {recipientErr? recipientErr : " "}
+                          slotProps={{
+                            formHelperText:{
+                              sx:{
+                                height:20,
+                                margin: 0,
+                               
+                                
+                                px:"12px"
+                                
+                              } 
+                            }
+                          }}
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               borderRadius: "12px",
+                              height: 56
                             },
                           }}
                         ></TextField>
@@ -169,7 +195,7 @@ const AddPayee = () => {
                     </Grid>
 
                     <Grid
-                      size={{ xs: 12 }}
+                      size={12}
                       sx={{
                         display: "flex",
                         justifyContent: "flex-end",
