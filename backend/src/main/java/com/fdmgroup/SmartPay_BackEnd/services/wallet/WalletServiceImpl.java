@@ -1,21 +1,28 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
@@ -28,6 +35,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
 
@@ -35,11 +43,13 @@ public class WalletServiceImpl implements WalletService {
             WalletRepository walletRepository,
             PaymentRepository paymentRepository,
             AccountRepository accountRepository,
+            WalletTransactionRepository walletTransactionRepository,
             UserService userService,
             PaymentMethodService paymentMethodService) {
         this.walletRepository = walletRepository;
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
         this.userService = userService;
         this.paymentMethodService = paymentMethodService;
     }
@@ -81,7 +91,10 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = getWalletByUserId(userId);
         double walletBalance = wallet.getBalance() != null ? wallet.getBalance() : 0.0;
         wallet.setBalance(walletBalance + amount);
-        return walletRepository.save(wallet);
+        Wallet savedWallet = walletRepository.save(wallet);
+
+        recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod);
+        return savedWallet;
     }
 
     @Override
@@ -108,6 +121,57 @@ public class WalletServiceImpl implements WalletService {
         }
 
         wallet.setBalance(wallet.getBalance() - request.getAmount());
-        return walletRepository.save(wallet);
+        Wallet savedWallet = walletRepository.save(wallet);
+
+        recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
+        return savedWallet;
+    }
+
+    @Override
+    public List<WalletTransactionDTO> getTransactions(long userId, int limit) {
+        int pageSize = Math.min(Math.max(limit, 1), 50);
+        return walletTransactionRepository
+                .findByWallet_User_IdOrderByCreatedAtDesc(userId, PageRequest.of(0, pageSize))
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private void recordTransaction(
+            Wallet wallet,
+            WalletTransactionType type,
+            double amount,
+            PaymentMethod paymentMethod) {
+        WalletTransaction transaction = new WalletTransaction();
+        transaction.setWallet(wallet);
+        transaction.setType(type);
+        transaction.setAmount(amount);
+        transaction.setPaymentMethodId(paymentMethod.getPaymentMethodId());
+        transaction.setBankDisplayName(paymentMethod.getBankDisplayName());
+        transaction.setStatus("COMPLETED");
+        walletTransactionRepository.save(transaction);
+    }
+
+    private WalletTransactionDTO toDto(WalletTransaction transaction) {
+        WalletTransactionDTO dto = new WalletTransactionDTO();
+        dto.setTransactionId(transaction.getTransactionId());
+        dto.setType(transaction.getType());
+        dto.setAmount(transaction.getAmount());
+        dto.setBankDisplayName(transaction.getBankDisplayName());
+        dto.setDescription(buildDescription(transaction));
+        dto.setStatus(transaction.getStatus());
+        dto.setCreatedAt(transaction.getCreatedAt());
+        return dto;
+    }
+
+    private String buildDescription(WalletTransaction transaction) {
+        String bank = transaction.getBankDisplayName() != null
+                ? transaction.getBankDisplayName()
+                : "linked bank account";
+
+        if (transaction.getType() == WalletTransactionType.LOAD) {
+            return "Wallet load from " + bank;
+        }
+        return "Withdraw to " + bank;
     }
 }

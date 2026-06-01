@@ -16,7 +16,7 @@ import SouthWestIcon from "@mui/icons-material/SouthWest";
 import Navbar from "@/components/Navbar";
 import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
 import { useAuth } from "@/context/AuthContext";
-import { getWalletByUserId } from "@/api/wallets/walletApi";
+import { getWalletByUserId, getWalletTransactions } from "@/api/wallets/walletApi";
 import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
 
 /**
@@ -48,6 +48,8 @@ export function Wallet() {
   const [pmLoading, setPmLoading] = useState(true);
 
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [txLoading, setTxLoading] = useState(true);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
 
@@ -79,10 +81,25 @@ export function Wallet() {
     }
   };
 
+  const fetchTransactions = async () => {
+    if (!tokenClaims?.userId) return;
+    setTxLoading(true);
+    try {
+      const data = await getWalletTransactions(tokenClaims.userId, 5);
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch wallet transactions:", err);
+      setTransactions([]);
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading) {
       fetchWallet();
       fetchPaymentMethods();
+      fetchTransactions();
     }
   }, [authLoading, tokenClaims?.userId]);
 
@@ -91,6 +108,29 @@ export function Wallet() {
   /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
   const handleWithdrawSuccess = (updatedWallet) => {
     setBalance(updatedWallet.balance ?? 0);
+    fetchTransactions();
+  };
+
+  const formatTransactionDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toLocaleString("en-CA", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const formatTransactionAmount = (type, amount) => {
+    const value = Number(amount ?? 0);
+    const formatted = value.toLocaleString("en-CA", {
+      style: "currency",
+      currency: "CAD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return type === "LOAD" ? `+${formatted}` : `-${formatted}`;
   };
 
   // ── Formatting ────────────────────────────────────────────────────────────
@@ -245,7 +285,7 @@ export function Wallet() {
                   </Typography>
                 )}
 
-                {/* Recent wallet activity — static placeholder (transaction history is a separate story) */}
+                {/* Recent wallet activity */}
                 <Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
@@ -259,9 +299,54 @@ export function Wallet() {
                       View all transactions →
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
-                    Transaction history will be available in a future update.
-                  </Typography>
+
+                  {txLoading ? (
+                    <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+                      Loading activity...
+                    </Typography>
+                  ) : transactions.length === 0 ? (
+                    <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+                      No wallet activity yet. Load funds to see your first transaction.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.5}>
+                      {transactions.map((tx) => (
+                        <Box
+                          key={tx.transactionId}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            py: 1.25,
+                            borderBottom: "1px solid #EEF2F7",
+                          }}
+                        >
+                          <Box>
+                            <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+                              {tx.description}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#8DA0BC" }}>
+                              {formatTransactionDate(tx.createdAt)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: "right" }}>
+                            <Typography
+                              sx={{
+                                fontSize: 14,
+                                fontWeight: 800,
+                                color: tx.type === "LOAD" ? "#15803D" : "#DC2626",
+                              }}
+                            >
+                              {formatTransactionAmount(tx.type, tx.amount)}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#8DA0BC" }}>
+                              {tx.status ?? "Completed"}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               </Box>
             </Stack>

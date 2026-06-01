@@ -3,14 +3,18 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -39,6 +43,22 @@ public class WalletController {
         User user = (User) authentication.getPrincipal();
         Wallet wallet = walletService.loadFunds(user.getId(), request);
         return ResponseEntity.ok(wallet);
+    }
+
+    @GetMapping("/{userId}/transactions")
+    @Operation(summary = "Get wallet transaction history",
+               description = "Returns recent wallet load and withdraw events for the authenticated user.")
+    public ResponseEntity<List<WalletTransactionDTO>> getWalletTransactions(
+            @PathVariable long userId,
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
+
+        User principalUser = (User) authentication.getPrincipal();
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(walletService.getTransactions(userId, limit));
     }
 
     @GetMapping("/{userId}")

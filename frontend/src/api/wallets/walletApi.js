@@ -31,3 +31,14 @@ export async function withdrawFromWallet(userId, payload) {
     throw handleAxiosError(err);
   }
 }
+
+export async function getWalletTransactions(userId, limit = 10) {
+  try {
+    const res = await axiosInstance.get(`${WALLETS_URL}/${userId}/transactions`, {
+      params: { limit },
+    });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
