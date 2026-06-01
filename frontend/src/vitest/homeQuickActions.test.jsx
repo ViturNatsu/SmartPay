@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
 import { Login } from "@/pages/Login/Login";
 import { Home } from "@/pages/Navbar/Home";
+import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
 import { AddPayee } from "@/pages/Accounts/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import Forbidden from "@/pages/errors/Forbidden";
@@ -29,31 +30,10 @@ vi.mock("@/api/authApi", async () => {
       id: 1,
       email: "placeholder@smartpay.local",
       role: "fake role",
-      firstName: "Test",
-      lastName: "User",
     })),
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
-
-vi.mock("@/api/wallets/walletApi", () => ({
-  getWalletByUserId: vi.fn(async () => ({ balance: 0 })),
-  loadWallet: vi.fn(async () => ({ balance: 100 })),
-}));
-
-vi.mock("@/api/paymentmethods/paymentmethodApi", () => ({
-  getPaymentMethodsForUserWithId: vi.fn(async () => ({
-    content: [
-      {
-        paymentMethodId: 1,
-        bankDisplayName: "TD",
-        accountIdentifierMasked: "**401",
-        accountName: "TD Test Checking 1",
-        active: true,
-      },
-    ],
-  })),
-}));
 
 function addValidRefreshToken(expSecondsFromNow = 3600) {
   const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }))
@@ -84,6 +64,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<ProtectedPage />} />
+            <Route path="/payment-methods" element={<PaymentMethods />} />
             <Route path="/add-payee" element={<AddPayee />} />
             <Route path="/make-a-payment" element={<MakeAPayment />} />
           </Route>
@@ -94,7 +75,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
 }
 
 describe("Home Dashboard Quick Link Acceptance", () => {
-  it("Scenario 1: Load Wallet opens load wallet dialog", async () => {
+  it("Scenario 1: Load Wallet link navigates to payment methods", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -103,14 +84,13 @@ describe("Home Dashboard Quick Link Acceptance", () => {
 
     await screen.findByTestId("protected");
 
-    const loadWalletButton = await screen.findByRole("button", {
+    const loadWalletLink = await screen.findByRole("link", {
       name: /Load Wallet/i,
     });
-    await user.click(loadWalletButton);
+    await user.click(loadWalletLink);
 
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /^Load Wallet$/i }),
+      screen.getByRole("heading", { name: /^Payment Methods$/i }),
     ).toBeInTheDocument();
   });
 
