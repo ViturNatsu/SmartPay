@@ -33,6 +33,11 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         this.maskingUtil = maskingUtil;
     }
 
+    /**
+     * Add a new payment method for a user
+     * @param pmDto The payment method DTO to add
+     * @return The added payment method DTO
+     */
     @Override
     @Transactional
     public PaymentMethodDTO addPaymentMethod(PaymentMethodDTO pmDto) {
@@ -45,25 +50,34 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
             })
           .map(pm -> {
               pm.setActive(true);
-              accountService.setAccountStatus(pm.getAccount(), false);
               return paymentMethodToDto(pm);
             })
           .findFirst()
           .orElseGet( () -> {
               Account account = accountService.matchAccountDigest(pmDto.getAccountIdentifierDigest())
                 .orElseThrow(() -> new AccountNotFoundException("No matching account"));
-              accountService.setAccountStatus(account, false);
               PaymentMethod pm = paymentRepository.save(dtoToPaymentMethod(pmDto, account));
               log.warn("created pm: {}", pm);
               return paymentMethodToDto(pm);
           });
     }
 
+    /**
+     * Find payment methods by user ID
+     * @param id The user ID
+     * @return A list of payment methods
+     */
     @Override
     public List<PaymentMethod> findByUserId(Long id) {
         return paymentRepository.findByUserId(id);
     }
 
+    /**
+     * Find payment methods by user ID with pagination
+     * @param userId The user ID
+     * @param pageNumber The page number
+     * @return A page of payment methods
+     */
     @Override
     public Page<PaymentMethodDTO> findByUserId(Long userId, int pageNumber) {
         final int PAGE_SIZE = 5;
@@ -72,12 +86,20 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
         return pmPage.map(this::paymentMethodToDto);
     }
 
-    //for admin dashboard
+    /**
+     * Find all payment methods - Used in the Admin dashboard
+     * @return A list of all payment methods
+     */
     @Override
     public List<PaymentMethod> findAllPaymentMethods() {
         return paymentRepository.findAll();
     }
 
+    /**
+     * Find a payment method by ID
+     * @param id The ID of the payment method to find
+     * @return The found payment method
+     */
     @Override
     public PaymentMethod findPaymentMethodById(Long id) {
         return paymentRepository.findById(id)
@@ -85,15 +107,23 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
                         new RuntimeException("Payment method not found with id: " + id));
     }
 
+    /**
+     * Delete a payment method by ID
+     * @param id The ID of the payment method to delete
+     */
     @Override
     @Transactional
     public void deletePaymentMethod(Long id) {
         PaymentMethod pm = findPaymentMethodById(id);
-        accountService.setAccountStatus(pm.getAccount(), true);
         paymentRepository.delete(pm);
     }
 
-    //Update the payment method and accounts active status only
+    /**
+     * Update the active status of a payment method
+     * @param id The ID of the payment method to update
+     * @param activeStatus The new active status
+     * @return The updated payment method DTO
+     */
     @Override
     @Transactional
     public PaymentMethodDTO updatePaymentMethodActiveStatus(Long id, Boolean activeStatus) {

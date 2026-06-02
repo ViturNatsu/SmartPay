@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import {Link as RouterLink, useLocation, useNavigate} from "react-router-dom";
+import {useAuth} from "@/context/AuthContext";
 
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -14,7 +14,7 @@ import Divider from "@mui/material/Divider";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useTheme } from "@mui/material/styles";
+import {useTheme} from "@mui/material/styles";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
@@ -23,27 +23,39 @@ import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import GroupIcon from '@mui/icons-material/Group';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import GroupIcon from "@mui/icons-material/Group";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
 import logo from "@/style/logo.png";
 
 // Update these to match your real routes
 const userNavItems = [
-  { label: "Dashboard", path: "/", icon: <HomeRoundedIcon /> },
-  { label: "Payment Methods", path: "/payment-methods", icon: <AccountBalanceWalletOutlinedIcon /> },
-  { label: "Transactions", path: "/transactions", icon: <SwapHorizRoundedIcon /> },
-  { label: "Wallet", path: "/cards", icon: <CreditCardRoundedIcon /> },
-  { label: "Reports", path: "/reports", icon: <InsightsRoundedIcon /> },
-  { label: "Settings", path: "/settings", icon: <SettingsRoundedIcon /> },
+  {label: "Dashboard", path: "/", icon: <HomeRoundedIcon />},
+  {
+    label: "Payment Methods",
+    path: "/payment-methods",
+    icon: <AccountBalanceWalletOutlinedIcon />,
+  },
+  {
+    label: "Transactions",
+    path: "/transactions",
+    icon: <SwapHorizRoundedIcon />,
+  },
+  {label: "Wallet", path: "/wallet", icon: <CreditCardRoundedIcon />},
+  {label: "Reports", path: "/reports", icon: <InsightsRoundedIcon />},
+  {label: "Settings", path: "/settings", icon: <SettingsRoundedIcon />},
 ];
 
 const adminNavItems = [
-  { label: "Dashboard", path: "/admin/dashboard", icon: <HomeRoundedIcon /> },
-  { label: "Mock Accounts", path: "/admin/mock-accounts", icon: <AccountBalanceIcon /> },
-  { label: "Users", path: "/admin/users", icon: <GroupIcon /> },
-  { label: "Reports", path: "/admin/reports", icon: <InsightsRoundedIcon /> },
-  { label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon /> },
+  {label: "Dashboard", path: "/admin/dashboard", icon: <HomeRoundedIcon />},
+  {
+    label: "Mock Accounts",
+    path: "/admin/mock-accounts",
+    icon: <AccountBalanceIcon />,
+  },
+  {label: "Users", path: "/admin/users", icon: <GroupIcon />},
+  {label: "Reports", path: "/admin/reports", icon: <InsightsRoundedIcon />},
+  {label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon />},
 ];
 
 function isPathActive(currentPath, targetPath) {
@@ -51,18 +63,18 @@ function isPathActive(currentPath, targetPath) {
   return currentPath === targetPath || currentPath.startsWith(targetPath + "/");
 }
 
-export default function Navbar({ isAdmin = false }) {
+export default function Navbar({isAdmin = false}) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // xs/sm => mobile
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const {logout} = useAuth();
 
   const items = isAdmin ? adminNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : "/";
 
   const activeIndex = React.useMemo(() => {
-    const idx = items.findIndex((i) => isPathActive(location.pathname, i.path));
+    const idx = items.findIndex(i => isPathActive(location.pathname, i.path));
     return idx === -1 ? 0 : idx;
   }, [location.pathname, items]);
 
@@ -85,7 +97,7 @@ export default function Navbar({ isAdmin = false }) {
           <Container maxWidth="xl">
             <Toolbar
               disableGutters
-              sx={{ minHeight: 64, px: 2, display: "flex", alignItems: "center" }}
+              sx={{minHeight: 64, px: 2, display: "flex", alignItems: "center"}}
             >
               <Box
                 component={RouterLink}
@@ -99,17 +111,27 @@ export default function Navbar({ isAdmin = false }) {
                   color: "inherit",
                 }}
               >
-                <Box component="img" src={logo} alt="SmartPay Logo" sx={{ height: 34, width: "auto" }} />
-                <Typography sx={{ fontWeight: 700, fontSize: 18 }}>SmartPay</Typography>
+                <Box
+                  component="img"
+                  src={logo}
+                  alt="SmartPay Logo"
+                  sx={{height: 34, width: "auto"}}
+                />
+                <Typography sx={{fontWeight: 700, fontSize: 18}}>
+                  SmartPay
+                </Typography>
               </Box>
 
-              <Box sx={{ flexGrow: 1 }} />
+              <Box sx={{flexGrow: 1}} />
 
-              <IconButton aria-label="notifications" sx={{ color: "rgba(0,0,0,0.65)" }}>
+              <IconButton
+                aria-label="notifications"
+                sx={{color: "rgba(0,0,0,0.65)"}}
+              >
                 <NotificationsNoneRoundedIcon />
               </IconButton>
 
-              <Avatar alt="Alex N" sx={{ width: 34, height: 34, ml: 1 }} />
+              <Avatar alt="Alex N" sx={{width: 34, height: 34, ml: 1}} />
             </Toolbar>
           </Container>
         </AppBar>
@@ -130,7 +152,7 @@ export default function Navbar({ isAdmin = false }) {
             onChange={(_, newValue) => navigate(navItems[newValue].path)}
             showLabels
           >
-            {items.map((item) => (
+            {items.map(item => (
               <BottomNavigationAction
                 key={item.path}
                 label={item.label}
@@ -164,7 +186,7 @@ export default function Navbar({ isAdmin = false }) {
           disableGutters
           sx={{
             minHeight: 72,
-            px: { xs: 2, md: 0 },
+            px: {xs: 2, md: 0},
             display: "flex",
             alignItems: "center",
             gap: 2,
@@ -188,12 +210,12 @@ export default function Navbar({ isAdmin = false }) {
               component="img"
               src={logo}
               alt="SmartPay Logo"
-              sx={{ height: 42, width: "auto" }}
+              sx={{height: 42, width: "auto"}}
             />
             <Typography
               variant="h6"
               noWrap
-              sx={{ fontWeight: 700, letterSpacing: "0.02em" }}
+              sx={{fontWeight: 700, letterSpacing: "0.02em"}}
             >
               SmartPay
             </Typography>
@@ -216,12 +238,12 @@ export default function Navbar({ isAdmin = false }) {
                 whiteSpace: "nowrap",
                 px: 1,
                 maxWidth: "100%",
-                "&::-webkit-scrollbar": { display: "none" },
+                "&::-webkit-scrollbar": {display: "none"},
                 msOverflowStyle: "none",
                 scrollbarWidth: "none",
               }}
             >
-              {items.map((item) => {
+              {items.map(item => {
                 const active = isPathActive(location.pathname, item.path);
                 return (
                   <Button
@@ -238,14 +260,16 @@ export default function Navbar({ isAdmin = false }) {
                       borderRadius: 2,
                       px: 2,
                       py: 1,
-                      backgroundColor: active ? "rgba(25, 118, 210, 0.10)" : "transparent",
+                      backgroundColor: active
+                        ? "rgba(25, 118, 210, 0.10)"
+                        : "transparent",
                       color: active ? "#1976d2" : "rgba(0,0,0,0.65)",
                       "&:hover": {
                         backgroundColor: active
                           ? "rgba(25, 118, 210, 0.14)"
                           : "rgba(0,0,0,0.06)",
                       },
-                      "& .MuiButton-startIcon": { color: "inherit" },
+                      "& .MuiButton-startIcon": {color: "inherit"},
                     }}
                   >
                     {item.label}
@@ -256,17 +280,21 @@ export default function Navbar({ isAdmin = false }) {
           </Box>
 
           {/* RIGHT: bell + divider + profile + logout. */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-            <IconButton aria-label="notifications" sx={{ color: "rgba(0,0,0,0.65)" }}>
+          <Box
+            sx={{display: "flex", alignItems: "center", gap: 2, flexShrink: 0}}
+          >
+            <IconButton
+              aria-label="notifications"
+              sx={{color: "rgba(0,0,0,0.65)"}}
+            >
               <NotificationsNoneRoundedIcon />
             </IconButton>
 
-            <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+            <Divider orientation="vertical" flexItem sx={{mx: 0.5}} />
 
             {/* Paceholder for user's name and premium member status.
               TODO: Grab user's name and status from the backend display it here. */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            </Box>
+            <Box sx={{display: "flex", alignItems: "center", gap: 1.25}}></Box>
 
             <IconButton
               aria-label="logout"
@@ -275,7 +303,7 @@ export default function Navbar({ isAdmin = false }) {
                 borderRadius: 2,
                 backgroundColor: "rgba(244, 67, 54, 0.08)",
                 color: "#f44336",
-                "&:hover": { backgroundColor: "rgba(244, 67, 54, 0.12)" },
+                "&:hover": {backgroundColor: "rgba(244, 67, 54, 0.12)"},
               }}
             >
               <LogoutRoundedIcon />

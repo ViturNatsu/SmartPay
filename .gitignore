@@ -8,3 +8,6 @@ backend/data/
 
 # Python bytecode cache
 __pycache__/
+
+# Database
+data/*
