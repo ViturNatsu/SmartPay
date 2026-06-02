@@ -17,8 +17,15 @@ import CheckIcon from "@mui/icons-material/CheckOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleIcon from "@mui/icons-material/Circle";
 
-const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
-    
+const SuccessCard = ({
+  data,
+  title,
+  message,
+  primaryButtonText,
+  onPrimaryClick,
+  secondaryButtonText,
+  onSecondaryClick,
+}) => {
   return (
     <div>
       <Container maxWidth="md">
@@ -60,7 +67,6 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                 
                 }}
               >
                 <CircleIcon
@@ -72,8 +78,7 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
                   }}
                 ></CircleIcon>
                 <CheckIcon
-                  
-                  sx={{ color: "#25A18E", position: "absolute", fontSize: 40}}
+                  sx={{ color: "#25A18E", position: "absolute", fontSize: 40 }}
                 />
               </Box>
 
@@ -94,15 +99,14 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
                   maxWidth: "md",
                 }}
               >
-                <strong>{payeeName}</strong> has been saved as a payee. You can
-                now send money to this recipient from your SmartPay wallet.
+                <strong>{data}</strong> {message}
               </Typography>
 
               {/* Buttons */}
               <Stack direction="row" spacing={2}>
                 <Button
                   variant="contained"
-                  onClick={onSendMoney}
+                  onClick={onPrimaryClick}
                   sx={{
                     px: 2,
                     py: 1.5,
@@ -115,7 +119,7 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
                     variant="subtitle"
                     sx={{ fontWeight: 700, textTransform: "none" }}
                   >
-                    Send Money
+                    {primaryButtonText}
                   </Typography>
                 </Button>
               </Stack>
@@ -127,4 +131,4 @@ const AddPayeeSuccess = ({ payeeName, onSendMoney }) => {
   );
 };
 
-export default AddPayeeSuccess;
+export default SuccessCard;
