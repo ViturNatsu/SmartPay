@@ -8,7 +8,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
 import { Login } from "@/pages/Login/Login";
 import { Home } from "@/pages/Navbar/Home";
 import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
-import { AddPayee } from "@/pages/Accounts/AddPayee";
+import  AddPayee  from "@/pages/Payee/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import Forbidden from "@/pages/errors/Forbidden";
 
@@ -125,7 +125,7 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     });
     await user.click(addPayeeLink);
 
-    expect(screen.getByText("Add Payee")).toBeInTheDocument();
+    expect(screen.getByText("Add a Payee")).toBeInTheDocument();
   });
 
   it("Scenario 4: Admin route without privileges shows forbidden", async () => {
