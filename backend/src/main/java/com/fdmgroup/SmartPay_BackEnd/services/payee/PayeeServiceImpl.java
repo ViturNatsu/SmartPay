@@ -12,6 +12,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
@@ -34,27 +37,27 @@ public class PayeeServiceImpl implements PayeeService {
     public PayeeResponseDTO addPayee(Long ownerId, String payeeName, String recipientIdentifier) {
 
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("Owner not found"));
+                .orElseThrow(() -> new UserNotFoundException("Owner not found"));
         User recipient;
         if (recipientIdentifier.contains("@")) {
             recipient = userRepository.findByEmail(recipientIdentifier)
-                    .orElseThrow(() -> new IllegalArgumentException("SmartPay user not found"));
+                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
         } else {
             Customer customer = customerRepository.findByPhoneNumber(recipientIdentifier)
                     .orElseThrow(
-                            () -> new IllegalArgumentException("SmartPay user not found"));
+                            () -> new UserNotFoundException("SmartPay user not found"));
             recipient = customer.getUser();
         }
         if(recipient.getRole().equals(Role.ADMIN)){
-            throw new IllegalArgumentException("SmartPay user not found");
+            throw new InvalidPayeeException("SmartPay user not found");
         }
 
         if (recipient.getId().equals(ownerId)) {
-            throw new IllegalArgumentException("Cannot add yourself as a payee");
+            throw new InvalidPayeeException("Cannot add yourself as a payee");
         }
         boolean alreadyExists = payeeRepository.existsByOwnerIdAndRecipientId(ownerId, recipient.getId());
         if (alreadyExists) {
-            throw new IllegalArgumentException("Payee already exists!");
+            throw new PayeeAlreadyExistsException("Payee already exists");
         }
 
         Payee payee = Payee.builder()
