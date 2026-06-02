@@ -14,7 +14,7 @@ import {Reports} from "@/pages/Navbar/Reports";
 import {Settings} from "@/pages/Navbar/Settings";
 import {Wallet} from "@/pages/Navbar/Wallet";
 import {CreateAccount} from "@/pages/Accounts/CreateAccount";
-import AddPayee from "@/pages/Accounts/AddPayee";
+import AddPayee from "@/pages/Payee/AddPayee";
 import {MakeAPayment} from "@/pages/Accounts/MakeAPayment";
 import {ViewHistory} from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";

@@ -15,7 +15,7 @@ import {
 
 import React, { useState } from "react";
 import { addPayee } from "../../api/payee/payeeApi";
-import AddPayeeSuccess from "./AddPayeeSuccess";
+import SuccessCard from "../../components/SuccessCard";
 import { useNavigate } from "react-router-dom";
 
 const AddPayee = () => {
@@ -31,6 +31,9 @@ const AddPayee = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const successTitle = "Payee Added";
+  const successMessage = "has been saved as a payee. You can now send money to this recipient from your SmartPay wallet.";
+  
   const validateEmail = (value) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
@@ -248,7 +251,7 @@ const AddPayee = () => {
             </Card>
           </Stack>
         </Container>
-        ) : <AddPayeeSuccess payeeName={savedPayee?.payeeName} onSendMoney={()=> navigate("/make-a-payment")}/>}
+        ) : <SuccessCard data={savedPayee?.payeeName} primaryButtonText={"Send Money"} onPrimaryClick={()=> navigate("/make-a-payment")} title={successTitle} message={successMessage}/>}
       </Box>
     </div>
   );
