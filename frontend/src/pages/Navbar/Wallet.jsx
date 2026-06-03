@@ -14,6 +14,7 @@ import NorthEastIcon from "@mui/icons-material/NorthEast";
 import SouthWestIcon from "@mui/icons-material/SouthWest";
 
 import Navbar from "@/components/Navbar";
+import LoadWalletDialog from "@/components/LoadWalletDialog";
 import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId, getWalletTransactions } from "@/api/wallets/walletApi";
@@ -22,8 +23,8 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
 /**
  * Wallet page — Scenario 1
  *
- * Displays the user's wallet balance, a "Load Wallet" stub and a
- * "Withdraw Funds" button. Clicking Withdraw Funds opens the
+ * Displays the user's wallet balance, Load Wallet and Withdraw Funds
+ * actions. Clicking Withdraw Funds opens the
  * WithdrawFundsDialog which owns the multi-step withdrawal flow
  * (Details → Review → Success).
  *
@@ -47,6 +48,7 @@ export function Wallet() {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [pmLoading, setPmLoading] = useState(true);
 
+  const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [txLoading, setTxLoading] = useState(true);
@@ -104,6 +106,15 @@ export function Wallet() {
   }, [authLoading, tokenClaims?.userId]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleLoadSuccess = (newBalance) => {
+    if (newBalance != null) {
+      setBalance(newBalance);
+    } else {
+      fetchWallet();
+    }
+    fetchTransactions();
+  };
 
   /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
   const handleWithdrawSuccess = (updatedWallet) => {
@@ -243,11 +254,11 @@ export function Wallet() {
 
                 {/* Action buttons — Scenario 1: Withdraw Funds visible alongside Load Wallet */}
                 <Stack direction="row" spacing={1.5} sx={{ mb: 3.5 }}>
-                  {/* Load Wallet is a stub for a future story */}
                   <Button
                     variant="contained"
                     startIcon={<SouthWestIcon />}
-                    disabled
+                    onClick={() => setLoadWalletOpen(true)}
+                    disabled={paymentMethods.length === 0}
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
@@ -281,7 +292,7 @@ export function Wallet() {
                 {/* No linked accounts message when Withdraw is unavailable */}
                 {!pmLoading && paymentMethods.length === 0 && (
                   <Typography sx={{ fontSize: 13, color: "#64748B" }}>
-                    Link a bank account in Payment Methods to enable withdrawals.
+                    Link a bank account in Payment Methods to load funds and withdraw.
                   </Typography>
                 )}
 
@@ -354,7 +365,12 @@ export function Wallet() {
         </Container>
       </Box>
 
-      {/* Withdrawal dialog — owns the 3-step flow (SRP) */}
+      <LoadWalletDialog
+        open={loadWalletOpen}
+        onClose={() => setLoadWalletOpen(false)}
+        onSuccess={handleLoadSuccess}
+      />
+
       <WithdrawFundsDialog
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}

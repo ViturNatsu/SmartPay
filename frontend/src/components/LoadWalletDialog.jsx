@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import SuccessCard from "@/components/SuccessCard";
 import { useAuth } from "@/context/AuthContext";
 import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
 import { getWalletByUserId, loadWallet } from "@/api/wallets/walletApi";
@@ -23,7 +24,6 @@ import {
   secondaryButtonSx,
 } from "@/components/wallet/walletTheme";
 
-const ALERT_SLOT_MIN_HEIGHT = 48;
 const REVIEW_ALERT_SLOT_MIN_HEIGHT = 52;
 
 function AlertBox({ variant, children, sx: sxOverride = {} }) {
@@ -139,7 +139,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
     try {
       const wallet = await loadWallet(selectedMethod.paymentMethodId, numericAmount);
       setSuccessMessage(
-        `${formatMoney(numericAmount)} has been successfully transferred from ${paymentMethodLabel(selectedMethod)} into your SmartPay wallet.`,
+        `has been successfully transferred from ${paymentMethodLabel(selectedMethod)} into your SmartPay wallet.`,
       );
       setStep("success");
       onSuccess?.(wallet.balance);
@@ -259,22 +259,19 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  error={Boolean(validationMessage)}
+                  helperText={validationMessage}
                   inputProps={{ min: MIN_LOAD_AMOUNT, max: MAX_LOAD_AMOUNT, step: "0.01" }}
-                  sx={{ "& .MuiOutlinedInput-root": { height: 48, borderRadius: "12px" } }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": { height: 48, borderRadius: "12px" },
+                    "& .MuiFormHelperText-root": { mx: 0, mt: 0.75, fontSize: 12 },
+                  }}
                 />
-                <Typography sx={{ mt: 0.875, fontSize: 12, color: WALLET_COLORS.muted }}>
-                  Amount must be greater than $0.00 and within daily wallet funding limits.
-                </Typography>
-
-                <Box
-                  sx={{ mt: 1, minHeight: ALERT_SLOT_MIN_HEIGHT }}
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  {validationMessage ? (
-                    <AlertBox variant="warning">{validationMessage}</AlertBox>
-                  ) : null}
-                </Box>
+                {!validationMessage && (
+                  <Typography sx={{ mt: 0.875, fontSize: 12, color: WALLET_COLORS.muted }}>
+                    Amount must be greater than $0.00 and within daily wallet funding limits.
+                  </Typography>
+                )}
               </Box>
             )}
 
@@ -364,35 +361,14 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
         )}
 
         {step === "success" && (
-          <Box sx={{ textAlign: "center", py: 2, px: 2 }}>
-            <Box
-              sx={{
-                width: 82,
-                height: 82,
-                borderRadius: "50%",
-                bgcolor: WALLET_COLORS.successBg,
-                color: WALLET_COLORS.successText,
-                border: `1px solid ${WALLET_COLORS.successBorder}`,
-                display: "grid",
-                placeItems: "center",
-                mx: "auto",
-                mb: 2,
-                fontSize: 42,
-                fontWeight: 900,
-              }}
-            >
-              ✓
-            </Box>
-            <Typography sx={{ fontSize: 30, fontWeight: 800, mb: 1.25 }}>Wallet Loaded</Typography>
-            <Typography sx={{ color: WALLET_COLORS.muted, fontSize: 14, lineHeight: 1.5, mb: 2 }}>
-              {successMessage}
-            </Typography>
-            <AlertBox variant="success">
-              <strong>Funds loaded successfully.</strong> Your wallet balance has been updated.
-            </AlertBox>
-            <Button onClick={handleClose} sx={{ ...primaryButtonSx, mt: 2 }}>
-              Close
-            </Button>
+          <Box sx={{ pt: 1, "& .MuiContainer-root": { px: 0, maxWidth: "100%" } }}>
+            <SuccessCard
+              title="Wallet Loaded"
+              data={formatMoney(numericAmount)}
+              message={successMessage}
+              primaryButtonText="Close"
+              onPrimaryClick={handleClose}
+            />
           </Box>
         )}
       </Box>
