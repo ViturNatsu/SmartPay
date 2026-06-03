@@ -35,7 +35,8 @@ const STEP_TITLES = {
  *  walletBalance  {number}   - Current wallet balance for display + validation
  *  paymentMethods {Array}    - Active linked bank accounts for the dropdown
  */
-function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentMethods }) {
+
+function WithdrawFundsDialog({ open, onClose, onSuccess, wallet, walletBalance, paymentMethods }) {
   const { tokenClaims } = useAuth();
 
   const [step, setStep]                     = useState(STEPS.DETAILS);
@@ -68,6 +69,14 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
   const parsedAmount    = parseFloat(amountInput.replace(/^\$/, "")) || 0;
   const remainingBalance = walletBalance - parsedAmount;
   const selectedMethod  = paymentMethods.find((m) => m.paymentMethodId === selectedMethodId);
+  const dailyLimit = wallet?.dailySpendingLimit;
+  const perTransactionLimit = wallet?.perTransactionLimit;
+  const dailySpentToday = wallet?.dailySpentAmount ?? 0;
+
+  const dailyRemaining =
+    dailyLimit == null
+      ? null
+      : dailyLimit - dailySpentToday;
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -137,6 +146,10 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
         <WithdrawReviewStep
           {...sharedProps}
           remainingBalance={remainingBalance}
+          dailyLimit={dailyLimit}
+          perTransactionLimit={perTransactionLimit}
+          dailySpentToday={dailySpentToday}
+          dailyRemaining={dailyRemaining}
           submitting={submitting}
           onBack={() => setStep(STEPS.DETAILS)}
           onConfirm={handleConfirm}

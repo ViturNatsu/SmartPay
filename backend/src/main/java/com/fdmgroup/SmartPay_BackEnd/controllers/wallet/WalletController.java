@@ -14,6 +14,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,6 +42,46 @@ public class WalletController {
     public ResponseEntity<Wallet> getWalletByUserId(@PathVariable long userId) {
         Wallet wallet = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(wallet);
+    }
+
+    /**
+     * Updates the wallet-level daily spending limit for the authenticated user.
+     *
+     * The daily spending limit applies across the entire wallet and all linked
+     * funding sources. Any outgoing wallet transaction contributes toward this
+     * daily limit regardless of which funding source is used.
+     *
+     * Ownership is verified before updating the limit to ensure users can only
+     * modify limits on their own wallet.
+     *
+     * @param userId the owner of the wallet
+     * @param request DTO containing the new daily spending limit
+     * @param authentication the authenticated user principal
+     * @return the updated wallet containing the new daily spending limit
+     */
+    @PostMapping("/{userId}/limits/daily")
+    @Operation(summary = "Update wallet daily spending limit",
+            description = "Updates the wallet-level daily spending limit.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Daily limit updated successfully"),
+        @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
+        @ApiResponse(responseCode = "400", description = "Invalid limit amount")
+    })
+    public ResponseEntity<Wallet> updateDailySpendingLimit(
+            @PathVariable long userId,
+            @RequestBody WalletDailyLimitRequestDTO request,
+            Authentication authentication) {
+
+        User principalUser = (User) authentication.getPrincipal();
+
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Wallet updatedWallet =
+                walletService.updateDailySpendingLimit(userId, request);
+
+        return ResponseEntity.ok(updatedWallet);
     }
 
     /**
@@ -76,5 +118,44 @@ public class WalletController {
 
         Wallet updated = walletService.withdrawFunds(userId, request);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Updates the wallet-level per-transaction spending limit for the authenticated user.
+     *
+     * The per-transaction limit applies to any single outgoing wallet transaction,
+     * regardless of which linked funding source is used.
+     *
+     * Ownership is verified before updating the limit to ensure users can only
+     * modify limits on their own wallet.
+     *
+     * @param userId the owner of the wallet
+     * @param request DTO containing the new per-transaction limit
+     * @param authentication the authenticated user principal
+     * @return the updated wallet containing the new per-transaction limit
+     */
+    @PostMapping("/{userId}/limits/per-transaction")
+    @Operation(summary = "Update wallet per-transaction spending limit",
+            description = "Updates the wallet-level per-transaction spending limit.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Per-transaction limit updated successfully"),
+        @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
+        @ApiResponse(responseCode = "400", description = "Invalid limit amount")
+    })
+    public ResponseEntity<Wallet> updatePerTransactionLimit(
+            @PathVariable long userId,
+            @RequestBody WalletPerTransactionLimitRequestDTO request,
+            Authentication authentication) {
+
+        User principalUser = (User) authentication.getPrincipal();
+
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Wallet updatedWallet =
+                walletService.updatePerTransactionLimit(userId, request);
+
+        return ResponseEntity.ok(updatedWallet);
     }
 }

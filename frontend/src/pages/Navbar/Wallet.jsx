@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SettingsIcon from "@mui/icons-material/Settings";
 import {
   Box,
   Button,
@@ -18,6 +19,8 @@ import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId } from "@/api/wallets/walletApi";
 import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
+import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
+
 
 /**
  * Wallet page — Scenario 1
@@ -40,6 +43,7 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
 export function Wallet() {
   const { tokenClaims, loading: authLoading } = useAuth();
 
+  const [wallet, setWallet] = useState(null);
   const [balance, setBalance] = useState(0);
   const [walletLoading, setWalletLoading] = useState(true);
 
@@ -48,6 +52,7 @@ export function Wallet() {
   const [pmLoading, setPmLoading] = useState(true);
 
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [walletLimitsOpen, setWalletLimitsOpen] = useState(false);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
 
@@ -56,6 +61,7 @@ export function Wallet() {
     setWalletLoading(true);
     try {
       const wallet = await getWalletByUserId(Number(tokenClaims.userId));
+      setWallet(wallet);
       setBalance(wallet.balance ?? 0);
     } catch (err) {
       console.error("Failed to fetch wallet:", err);
@@ -90,8 +96,14 @@ export function Wallet() {
 
   /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
   const handleWithdrawSuccess = (updatedWallet) => {
+    setWallet(updatedWallet);
     setBalance(updatedWallet.balance ?? 0);
   };
+  
+  const handleWalletLimitsSuccess = (updatedWallet) => {
+  setWallet(updatedWallet);
+  setBalance(updatedWallet.balance ?? 0);
+};
 
   // ── Formatting ────────────────────────────────────────────────────────────
 
@@ -236,6 +248,25 @@ export function Wallet() {
                   >
                     Withdraw Funds
                   </Button>
+
+                  <Button
+                    variant="outlined"
+                    startIcon={<SettingsIcon />}
+                    onClick={() => setWalletLimitsOpen(true)}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 800,
+                      borderColor: "#B2DDE8",
+                      color: "#0F7490",
+                      bgcolor: "#FFFFFF",
+                      "&:hover": {
+                        bgcolor: "#F8FAFC",
+                        borderColor: "#0A5A70",
+                      },
+                    }}
+                  >
+                    Wallet Limits
+                  </Button>
                 </Stack>
 
                 {/* No linked accounts message when Withdraw is unavailable */}
@@ -274,7 +305,17 @@ export function Wallet() {
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         onSuccess={handleWithdrawSuccess}
+        wallet={wallet}
         walletBalance={balance}
+        paymentMethods={paymentMethods}
+      />
+
+      <WalletLimitsDialog
+        open={walletLimitsOpen}
+        onClose={() => setWalletLimitsOpen(false)}
+        onSuccess={handleWalletLimitsSuccess}
+        wallet={wallet}
+        userId={Number(tokenClaims?.userId)}
         paymentMethods={paymentMethods}
       />
     </>

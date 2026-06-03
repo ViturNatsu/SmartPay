@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.util.Optional;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,9 +11,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 
 @Service
 public class WalletServiceImpl implements WalletService {
@@ -61,6 +65,27 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet wallet = getWalletByUserId(userId);
 
+        LocalDate today = LocalDate.now();
+
+        if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(today)) {
+            wallet.setDailySpentDate(today);
+            wallet.setDailySpentAmount(0.0);
+        }
+
+        if (wallet.getPerTransactionLimit() != null
+                && request.getAmount() > wallet.getPerTransactionLimit()) {
+            throw new InvalidWithdrawAmountException(
+                    "This transaction exceeds your wallet per-transaction limit of $"
+                            + String.format("%.2f", wallet.getPerTransactionLimit()));
+        }
+
+        if (wallet.getDailySpendingLimit() != null
+                && wallet.getDailySpentAmount() + request.getAmount() > wallet.getDailySpendingLimit()) {
+            throw new InvalidWithdrawAmountException(
+                    "This transaction exceeds your wallet daily spending limit of $"
+                            + String.format("%.2f", wallet.getDailySpendingLimit()));
+        }
+
         // Scenario 7: reject amounts that exceed available balance
         if (request.getAmount() > wallet.getBalance()) {
             throw new InsufficientFundsException(
@@ -79,6 +104,62 @@ public class WalletServiceImpl implements WalletService {
 
         // Deduct the amount and persist
         wallet.setBalance(wallet.getBalance() - request.getAmount());
+        wallet.setDailySpentAmount(wallet.getDailySpentAmount() + request.getAmount());
+        wallet.setDailySpentDate(today);
+        return walletRepository.save(wallet);
+    }
+
+    @Override
+    @Transactional
+    public Wallet updateDailySpendingLimit(long userId,
+                                       WalletDailyLimitRequestDTO request) {
+
+        Wallet wallet = getWalletByUserId(userId);
+
+        if (request.getDailySpendingLimit() == null) {
+            wallet.setDailySpendingLimit(null);
+            return walletRepository.save(wallet);
+        }
+
+        if (request.getDailySpendingLimit() <= 0) {
+            throw new InvalidWithdrawAmountException(
+                    "Daily spending limit must be greater than $0.00");
+        }
+
+        wallet.setDailySpendingLimit(request.getDailySpendingLimit());
+
+        return walletRepository.save(wallet);
+    }
+
+    /**
+     * Updates the wallet-level per-transaction spending limit.
+     *
+     * Validation rules:
+     * 1. Limit must not be null
+     * 2. Limit must be greater than $0.00
+     *
+     * The limit applies to any single outgoing wallet transaction,
+     * regardless of which linked funding source is used.
+     */
+    @Override
+    @Transactional
+    public Wallet updatePerTransactionLimit(long userId,
+                                        WalletPerTransactionLimitRequestDTO request) {
+
+        Wallet wallet = getWalletByUserId(userId);
+
+        if (request.getPerTransactionLimit() == null) {
+            wallet.setPerTransactionLimit(null);
+            return walletRepository.save(wallet);
+        }
+
+        if (request.getPerTransactionLimit() <= 0) {
+            throw new WalletLimitExceededException(
+                    "Per-transaction limit must be greater than $0.00");
+        }
+
+        wallet.setPerTransactionLimit(request.getPerTransactionLimit());
+
         return walletRepository.save(wallet);
     }
 }

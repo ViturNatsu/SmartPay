@@ -1,9 +1,11 @@
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
   DialogActions,
   DialogContent,
+  LinearProgress,
   Typography,
 } from "@mui/material";
 
@@ -14,14 +16,18 @@ import {
  * before committing the transaction (Scenario 4).
  * "Back" returns to the Details step without submitting (Scenario 5).
  */
-function WithdrawReviewStep({
-  selectedMethod,
-  parsedAmount,
-  remainingBalance,
-  submitting,
-  onBack,
-  onConfirm,
-}) {
+  function WithdrawReviewStep({
+    selectedMethod,
+    parsedAmount,
+    remainingBalance,
+    dailyLimit,
+    perTransactionLimit,
+    dailySpentToday,
+    dailyRemaining,
+    submitting,
+    onBack,
+    onConfirm,
+  }) {
   const destinationLabel = selectedMethod
     ? `${selectedMethod.bankDisplayName} ${selectedMethod.accountIdentifierMasked?.slice(2) ?? ""}`
     : "—";
@@ -32,6 +38,38 @@ function WithdrawReviewStep({
     { label: "Withdrawal Amount",     value: `$${parsedAmount.toFixed(2)}` },
     { label: "Remaining Wallet Balance", value: `$${remainingBalance.toFixed(2)}` },
   ];
+
+  const formatCurrency = (value) =>
+    Number(value ?? 0).toLocaleString("en-CA", {
+      style: "currency",
+      currency: "CAD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const dailyUsageAfterTransaction =
+    dailyLimit == null ? null : dailySpentToday + parsedAmount;
+
+  const dailyRemainingAfterTransaction =
+    dailyLimit == null
+      ? null
+      : dailyLimit - dailySpentToday - parsedAmount;
+
+  const dailyUsedPercent =
+  dailyLimit == null || dailyLimit === 0
+    ? 0
+    : Math.min((dailyUsageAfterTransaction / dailyLimit) * 100, 100);
+
+  const withinPerTransactionLimit =
+    perTransactionLimit == null ||
+    parsedAmount <= perTransactionLimit;
+
+  const withinDailyLimit =
+    dailyLimit == null ||
+    dailyUsageAfterTransaction <= dailyLimit;
+
+  const transactionAllowed =
+    withinPerTransactionLimit && withinDailyLimit; 
 
   return (
     <>
@@ -62,6 +100,137 @@ function WithdrawReviewStep({
             </Box>
           ))}
         </Box>
+        <Box sx={{ mt: 3 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 900, mb: 0.5 }}>
+            Transaction Limit Check
+          </Typography>
+
+          <Typography sx={{ color: "#64748B", fontSize: 14, mb: 2 }}>
+            This transaction is within your wallet-level spending limits.
+          </Typography>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+              gap: 1.5,
+              mb: 2.5,
+            }}
+          >
+            <Box
+              sx={{
+                borderRadius: 2,
+                p: 2,
+                bgcolor: transactionAllowed ? "#DCFCE7" : "#FEE2E2",
+                border: transactionAllowed
+                  ? "1px solid #86EFAC"
+                  : "1px solid #FCA5A5",
+              }}
+            >
+              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+                Transaction Amount
+              </Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+                {formatCurrency(parsedAmount)}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                borderRadius: 2,
+                p: 2,
+                bgcolor: "#F5F7FA",
+                border: "1px solid #E2E8F0",
+              }}
+            >
+              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+                Per-Transaction Limit
+              </Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+                {perTransactionLimit == null
+                  ? "No limit"
+                  : formatCurrency(perTransactionLimit)}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                borderRadius: 2,
+                p: 2,
+                bgcolor: "#F5F7FA",
+                border: "1px solid #E2E8F0",
+              }}
+            >
+              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+                Daily Limit Remaining
+              </Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+                {dailyRemainingAfterTransaction == null
+                  ? "No limit"
+                  : formatCurrency(dailyRemainingAfterTransaction)}
+              </Typography>
+            </Box>
+          </Box>
+
+          {dailyLimit != null && (
+            <Box sx={{ mb: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ fontSize: 13, fontWeight: 800 }}>
+                  Daily Usage After Transaction
+                </Typography>
+                <Typography sx={{ fontSize: 13, fontWeight: 800 }}>
+                 {formatCurrency(dailyRemainingAfterTransaction)} remaining / {formatCurrency(dailyLimit)}
+                </Typography>
+              </Box>
+
+              <LinearProgress
+                variant="determinate"
+                value={dailyUsedPercent}
+                sx={{
+                  height: 12,
+                  borderRadius: 999,
+                  bgcolor: "#E2E8F0",
+                  "& .MuiLinearProgress-bar": {
+                    borderRadius: 999,
+                    bgcolor: "#0F7490",
+                  },
+                }}
+              />
+            </Box>
+          )}
+
+          <Alert severity={transactionAllowed ? "success" : "error"}>
+            {transactionAllowed ? (
+              <>
+                <strong>Transaction approved.</strong> This transaction is within
+                both the wallet daily spending limit and wallet
+                per-transaction limit.
+              </>
+            ) : (
+              <>
+                <strong>Transaction exceeds wallet limits.</strong>{" "}
+                {!withinDailyLimit &&
+                  "Daily spending limit would be exceeded. "}
+                {!withinPerTransactionLimit &&
+                  "Per-transaction limit would be exceeded."}
+              </>
+            )}
+          </Alert>
+          {!transactionAllowed && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              <strong>Note:</strong> Wallet limits apply across the entire wallet,
+              not per linked bank account, card, or funding source.
+            </Alert>
+          )}
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
@@ -72,7 +241,7 @@ function WithdrawReviewStep({
         <Button
           onClick={onConfirm}
           variant="contained"
-          disabled={submitting}
+          disabled={submitting || !transactionAllowed}
           startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
           sx={{ textTransform: "none", bgcolor: "#0F7490", "&:hover": { bgcolor: "#0A5A70" } }}
         >
