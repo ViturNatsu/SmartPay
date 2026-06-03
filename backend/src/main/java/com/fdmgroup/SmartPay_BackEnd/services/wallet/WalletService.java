@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.transaction.WalletTransactionDTO;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
@@ -23,4 +24,6 @@ public interface WalletService {
      * @param request DTO containing the amount and destination payment method ID
      */
     Wallet withdrawFunds(long userId, WithdrawRequestDTO request);
+
+    void internalTransfer(WalletTransactionDTO req);
 }

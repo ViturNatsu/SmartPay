@@ -1,7 +1,13 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.transaction.WalletTransactionDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.exception.transaction.InvalidWalletTransferAmount;
+import com.fdmgroup.SmartPay_BackEnd.exception.transaction.InvalidWalletTransferMemo;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFound;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +26,10 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
+
+    private static final double EXCLUSIVE_MINIMUM_WALLET_TRANSFER_AMOUNT = 0.0;
+    private static final double INCLUSIVE_MAXIMUM_WALLET_TRANSFER_AMOUNT = 3000.0;
+    private static final String walletTransferMemoPattern ="[A-Za-z0-9]{0,100}";
 
     public WalletServiceImpl(WalletRepository walletRepository,
                              UserService userService,
@@ -80,5 +90,27 @@ public class WalletServiceImpl implements WalletService {
         // Deduct the amount and persist
         wallet.setBalance(wallet.getBalance() - request.getAmount());
         return walletRepository.save(wallet);
+    }
+
+
+    @Transactional
+    @Override
+    public void internalTransfer(WalletTransactionDTO req) {
+        User sender = userService.getUserById(req.getSenderUserId());
+        User receiver = userService.getUserById(req.getReceiverUserId());
+
+        Wallet src = walletRepository.findByUserId(sender.getId()).orElseThrow(WalletNotFound::new);
+        Wallet dst = walletRepository.findByUserId(receiver.getId()).orElseThrow(WalletNotFound::new);
+        Double amount = req.getAmount();
+        String memo = req.getMemo();
+
+        if(EXCLUSIVE_MINIMUM_WALLET_TRANSFER_AMOUNT<=amount || amount < INCLUSIVE_MAXIMUM_WALLET_TRANSFER_AMOUNT){
+            throw new InvalidWalletTransferAmount(amount);
+        }else if(Pattern.matches(walletTransferMemoPattern, memo)){
+            throw new InvalidWalletTransferMemo();
+        }
+
+        src.setBalance(src.getBalance() - amount);
+        dst.setBalance(dst.getBalance() + amount);
     }
 }

@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.transaction.WalletTransactionDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -76,5 +77,16 @@ public class WalletController {
 
         Wallet updated = walletService.withdrawFunds(userId, request);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/internal-transfer")
+    public ResponseEntity<Void> internalTransfer(@RequestBody WalletTransactionDTO req, Authentication authentication){
+        if(authentication == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User pricipalUser = (User) authentication.getPrincipal();
+        Long sender = req.getSenderUserId();
+        if(!pricipalUser.getId().equals(sender)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        walletService.internalTransfer(req);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
