@@ -79,6 +79,14 @@ public class WalletController {
         return ResponseEntity.ok(updated);
     }
 
+
+    /**
+     *  Note: This as per the convo with Jasper and Justin, should be moved to a
+     *  Transactions folder. It handles Wallet to Wallet transfers so (internal)
+     * @param req
+     * @param authentication
+     * @return
+     */
     @PostMapping("/internal-transfer")
     public ResponseEntity<Void> internalTransfer(@RequestBody WalletTransactionDTO req, Authentication authentication){
         if(authentication == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

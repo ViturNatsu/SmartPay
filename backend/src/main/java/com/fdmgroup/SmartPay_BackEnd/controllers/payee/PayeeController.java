@@ -28,7 +28,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
 @RequestMapping("api/v1/payee")
 public class PayeeController {
 
-    private PayeeService payeeService;
+    private final PayeeService payeeService;
 
     public PayeeController(PayeeService payeeService) {
         this.payeeService = payeeService;
