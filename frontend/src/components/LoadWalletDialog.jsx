@@ -23,7 +23,10 @@ import {
   secondaryButtonSx,
 } from "@/components/wallet/walletTheme";
 
-function AlertBox({ variant, children }) {
+const ALERT_SLOT_MIN_HEIGHT = 48;
+const REVIEW_ALERT_SLOT_MIN_HEIGHT = 52;
+
+function AlertBox({ variant, children, sx: sxOverride = {} }) {
   const styles =
     variant === "error"
       ? {
@@ -46,13 +49,13 @@ function AlertBox({ variant, children }) {
   return (
     <Box
       sx={{
-        mt: 2,
-        p: "14px 16px",
+        p: "10px 12px",
         borderRadius: "12px",
         fontSize: 13,
         display: "flex",
         gap: 1,
         ...styles,
+        ...sxOverride,
       }}
     >
       <strong>{variant === "error" ? "!" : variant === "success" ? "✓" : "⚠"}</strong>
@@ -154,7 +157,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <Box sx={{ p: 3, position: "relative" }}>
+      <Box sx={{ p: 2.5, position: "relative" }}>
         <IconButton
           onClick={handleClose}
           aria-label="close"
@@ -220,12 +223,14 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
             </Box>
 
             {paymentMethods.length === 0 ? (
-              <AlertBox variant="error">
-                <strong>No linked accounts.</strong> Connect a bank account under Payment Methods
-                first.
-              </AlertBox>
+              <Box sx={{ mt: 2 }}>
+                <AlertBox variant="error">
+                  <strong>No linked accounts.</strong> Connect a bank account under Payment Methods
+                  first.
+                </AlertBox>
+              </Box>
             ) : (
-              <Box sx={{ mt: 2.75 }}>
+              <Box sx={{ mt: 2 }}>
                 <Typography sx={{ fontSize: 13, fontWeight: 800, mb: 1, color: "#334155" }}>
                   Load Funds From
                 </Typography>
@@ -261,13 +266,19 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                   Amount must be greater than $0.00 and within daily wallet funding limits.
                 </Typography>
 
-                {validationMessage && (
-                  <AlertBox variant="warning">{validationMessage}</AlertBox>
-                )}
+                <Box
+                  sx={{ mt: 1, minHeight: ALERT_SLOT_MIN_HEIGHT }}
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {validationMessage ? (
+                    <AlertBox variant="warning">{validationMessage}</AlertBox>
+                  ) : null}
+                </Box>
               </Box>
             )}
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 3.25 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 2 }}>
               <Button onClick={handleClose} sx={secondaryButtonSx}>
                 Cancel
               </Button>
@@ -295,7 +306,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
 
             <Box
               sx={{
-                mt: 3,
+                mt: 2,
                 border: `1px solid ${WALLET_COLORS.border}`,
                 borderRadius: "16px",
                 overflow: "hidden",
@@ -312,7 +323,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
-                    p: "16px 18px",
+                    p: "12px 14px",
                     borderBottom: index < rows.length - 1 ? "1px solid #eef2f3" : "none",
                     fontSize: 14,
                   }}
@@ -325,13 +336,23 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
               ))}
             </Box>
 
-            {error && (
-              <AlertBox variant="error">
-                <strong>Insufficient bank account funds.</strong> {error}
-              </AlertBox>
-            )}
+            <Box
+              sx={{
+                mt: 1,
+                minHeight: REVIEW_ALERT_SLOT_MIN_HEIGHT,
+                overflow: "auto",
+              }}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {error ? (
+                <AlertBox variant="error">
+                  <strong>Insufficient bank account funds.</strong> {error}
+                </AlertBox>
+              ) : null}
+            </Box>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 3.25 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 2 }}>
               <Button onClick={() => setStep("form")} sx={secondaryButtonSx}>
                 Back
               </Button>
@@ -343,7 +364,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
         )}
 
         {step === "success" && (
-          <Box sx={{ textAlign: "center", py: 3, px: 2 }}>
+          <Box sx={{ textAlign: "center", py: 2, px: 2 }}>
             <Box
               sx={{
                 width: 82,
@@ -355,7 +376,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                 display: "grid",
                 placeItems: "center",
                 mx: "auto",
-                mb: 2.75,
+                mb: 2,
                 fontSize: 42,
                 fontWeight: 900,
               }}
@@ -369,7 +390,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
             <AlertBox variant="success">
               <strong>Funds loaded successfully.</strong> Your wallet balance has been updated.
             </AlertBox>
-            <Button onClick={handleClose} sx={{ ...primaryButtonSx, mt: 3 }}>
+            <Button onClick={handleClose} sx={{ ...primaryButtonSx, mt: 2 }}>
               Close
             </Button>
           </Box>
