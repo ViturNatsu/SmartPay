@@ -156,16 +156,13 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
   const updatedBalance = Number(walletBalance || 0) + (isValidAmount ? numericAmount : 0);
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md" slotProps={{paper:{
+      sx:{
+        borderRadius: 6,
+      }
+    } }}>
       <Box sx={{ p: 2.5, position: "relative" }}>
-        <IconButton
-          onClick={handleClose}
-          aria-label="close"
-          sx={{ position: "absolute", right: 12, top: 12 }}
-        >
-          <CloseIcon />
-        </IconButton>
-
+       
         {step === "form" && (
           <>
             <Typography
@@ -368,6 +365,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
               message={successMessage}
               primaryButtonText="Close"
               onPrimaryClick={handleClose}
+              showCard = {false}
             />
           </Box>
         )}
