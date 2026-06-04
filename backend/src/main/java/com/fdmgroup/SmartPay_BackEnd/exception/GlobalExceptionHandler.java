@@ -25,6 +25,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -241,10 +242,8 @@ public class GlobalExceptionHandler {
                                 .body(errorBody);
         }
         
-        // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InsufficientFundsException.class)
-        public ResponseEntity<Map<String, String>> handleInsufficientFunds(RuntimeException ex) {
-
+        public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException ex) {
                 Map<String, String> errorBody = new HashMap<>();
                 errorBody.put(STATUS, "422");
                 errorBody.put(ERROR, "Insufficient Funds");
@@ -256,10 +255,8 @@ public class GlobalExceptionHandler {
                         .body(errorBody);
         }
 
-        // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InvalidWithdrawAmountException.class)
         public ResponseEntity<Map<String, String>> handleInvalidWithdrawAmount(RuntimeException ex) {
-
                 Map<String, String> errorBody = new HashMap<>();
                 errorBody.put(STATUS, "400");
                 errorBody.put(ERROR, "Invalid Withdrawal Amount");
@@ -267,6 +264,19 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
+        @ExceptionHandler(PaymentMethodNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handlePaymentMethodNotFound(PaymentMethodNotFoundException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Not Found");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(errorBody);
         }

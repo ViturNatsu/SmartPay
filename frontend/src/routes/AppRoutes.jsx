@@ -28,6 +28,7 @@ import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAut
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 import AddUser from "../pages/Admin/AddUser";
+
 export default function AppRoutes() {
   return (
     <Routes>

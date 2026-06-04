@@ -3,7 +3,7 @@ import { Card, Stack, Typography } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId } from "@/api/wallets/walletApi";
 
-function WalletBalance() {
+function WalletBalance({ refreshKey = 0 }) {
   const { tokenClaims, loading: authLoading } = useAuth();
   const [balance, setBalance] = useState(0);
 
@@ -22,7 +22,7 @@ function WalletBalance() {
     if (!authLoading) {
       fetchWalletBalance();
     }
-  }, [authLoading, tokenClaims?.userId]);
+  }, [authLoading, tokenClaims?.userId, refreshKey]);
 
   const formatted = Number(balance).toLocaleString(undefined, {
     minimumFractionDigits: 2,
