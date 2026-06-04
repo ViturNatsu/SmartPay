@@ -25,7 +25,7 @@ const SuccessCard = ({
   onPrimaryClick,
   secondaryButtonText,
   onSecondaryClick,
-  showCard=true
+  showCard = true,
 }) => {
   const content = (
     <Stack
@@ -74,8 +74,7 @@ const SuccessCard = ({
         variant="subtitle1"
         sx={{
           maxWidth: "md",
-          minHeight:"50px",
-         
+          minHeight: "50px",
         }}
       >
         {data && <strong>{data} </strong>}
@@ -136,7 +135,7 @@ const SuccessCard = ({
       </Stack>
     </Stack>
   );
-  if(!showCard){
+  if (!showCard) {
     return content;
   }
   return (
@@ -149,9 +148,9 @@ const SuccessCard = ({
           }}
           variant="outlined"
         >
-          <CardContent
-            sx={{ p: 3, display: "flex", justifyContent: "center" }}
-          >{content}</CardContent>
+          <CardContent sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+            {content}
+          </CardContent>
         </Card>
       </Container>
     </div>
