@@ -1,20 +1,21 @@
 import axiosInstance, { handleAxiosError } from "../axios";
 
-const PAYEES_URL = "/api/v1/payees";
+const PAYEE_URL = "/api/v1/payee";
 
-export async function getPayeesByUserId(userId) {
+export async function getPayees() {
   try {
-    const res = await axiosInstance.get(`${PAYEES_URL}/user/${userId}`);
+    const res = await axiosInstance.get(PAYEE_URL);
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
   }
 }
 
-export async function addPayee(userId, recipientEmail) {
+export async function addPayee(payeeName, recipientIdentifier) {
   try {
-    const res = await axiosInstance.post(`${PAYEES_URL}/user/${userId}`, {
-      recipientEmail,
+    const res = await axiosInstance.post(PAYEE_URL, {
+      payeeName,
+      recipientIdentifier,
     });
     return res.data;
   } catch (err) {

@@ -1,13 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
-
 import java.util.List;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 
 public interface PayeeService {
 
-    List<PayeeDTO> getPayeesByOwnerId(Long ownerId);
+    PayeeResponseDTO addPayee(Long ownerId, String payeeName, String recipientIdentifier);
 
-    PayeeDTO addPayee(Long ownerId, String recipientEmail);
+    List<PayeeResponseDTO> getPayeesForUser(Long ownerId);
 }

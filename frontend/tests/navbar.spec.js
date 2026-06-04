@@ -1,10 +1,7 @@
-import { test, expect } from "@playwright/test";
-import {
-  setupAPIMocks,
-  loginAndVerifyOtp,
-} from './helpers/auth.helpers.js';
+import {test, expect} from "@playwright/test";
+import {setupAPIMocks, loginAndVerifyOtp} from "./helpers/auth.helpers.js";
 
-test("Navbar works (logo, highlight, logout)", async ({ page }) => {
+test("Navbar works (logo, highlight, logout)", async ({page}) => {
   test.setTimeout(60_000);
 
   await setupAPIMocks(page);
@@ -13,13 +10,13 @@ test("Navbar works (logo, highlight, logout)", async ({ page }) => {
   const password = "Password8!";
 
   // Login and complete OTP to get to dashboard
-  await loginAndVerifyOtp(page, { email, password });
+  await loginAndVerifyOtp(page, {email, password});
 
-  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.setViewportSize({width: 1280, height: 720});
 
   // Navbar should be visible on the dashboard
-  await expect(page.getByLabel("home")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByLabel("logout")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByLabel("home")).toBeVisible({timeout: 15000});
+  await expect(page.getByLabel("logout")).toBeVisible({timeout: 15000});
 
   // Click Payment Methods -> /payment-methods
   await page.getByTestId("nav-payment-methods").click();
@@ -29,10 +26,9 @@ test("Navbar works (logo, highlight, logout)", async ({ page }) => {
   await page.getByTestId("nav-transactions").click();
   await expect(page).toHaveURL(/\/transactions/);
 
-  // Click My Cards -> /cards
-  await page.getByTestId("nav-my-cards").click();
-  await expect(page).toHaveURL(/\/cards/);
-
+  // Click Wallet -> /wallet
+  await page.getByTestId("nav-wallet").click();
+  await expect(page).toHaveURL(/\/wallet/);
   // Click Reports -> /reports
   await page.getByTestId("nav-reports").click();
   await expect(page).toHaveURL(/\/reports/);

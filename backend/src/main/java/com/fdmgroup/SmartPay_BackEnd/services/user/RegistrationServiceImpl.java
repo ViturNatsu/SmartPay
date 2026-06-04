@@ -11,6 +11,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.DuplicateEmailException;
+import com.fdmgroup.SmartPay_BackEnd.exception.user.DuplicatePhoneException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
@@ -21,20 +22,35 @@ import lombok.AllArgsConstructor;
 public class RegistrationServiceImpl implements RegistrationService {
     private final UserService userService;
     private final UserRepository userRepository;
-    private  final CustomerService customerService;
-    private  final CustomerRepository customerRepository;
+    private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
 
     @Override
-    public User register(SignUpDTO userDto) throws  DuplicateEmailException {
+    public User register(SignUpDTO userDto) throws DuplicateEmailException {
         String email = consistentEmail(userDto.getEmail());
-        CustomerDTO customerDto = userDto.getCustomer();
+       
 
         Optional<User> existingUser = userRepository.findByEmail(email);
+        
+
+        if(existingUser.isPresent() && existingUser.get().isEmailVerified()){
+            throw new DuplicateEmailException("Email already in use");
+        } 
+
+        CustomerDTO customerDto = userDto.getCustomer();
+        String normalizedPhone = normalizePhone(customerDto.getPhoneNumber());
+        Optional<Customer> existingPhoneNumber = customerRepository.findByPhoneNumber(normalizedPhone);
+
+        if (existingPhoneNumber.isPresent()) {
+            Customer existingCustomer = existingPhoneNumber.get();
+            if (existingUser.isEmpty() || !existingCustomer.getUser().getId().equals(existingUser.get().getId())) {
+                throw new DuplicatePhoneException("This phone number is already linked to a SmartPay Account");
+            }
+        }
+
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            if (user.isEmailVerified()) {
-                throw new DuplicateEmailException("Email already in use");
-            }
+            
             user.setFirstName(userDto.getFirstName());
             user.setLastName(userDto.getLastName());
             user.setPassword(userDto.getPassword());
@@ -56,14 +72,14 @@ public class RegistrationServiceImpl implements RegistrationService {
             customer.setProvince(customerDto.getProvince().trim());
             customer.setCountry("Canada");
             customer.setPostalCode(normalizePostalCode(customerDto.getPostalCode()));
-            customer.setPhoneNumber(normalizePhone(customerDto.getPhoneNumber()));
+            customer.setPhoneNumber(normalizedPhone);
             customer.setDob(customerDto.getDob().trim());
             customer.setSocialInsuranceNumber(normalizeSin(customerDto.getSocialInsuranceNumber()));
             customer.setGovernmentIdType(GovernmentIdType.valueOf(customerDto.getGovernmentIdType().trim()));
             customer.setGovernmentIdNumber(normalizeGovernmentIdNumber(customerDto.getGovernmentIdNumber()));
             customer.setOccupation(customerDto.getOccupation().trim());
             customerRepository.save(customer);
-                return userUpdated;
+            return userUpdated;
 
         }
 
@@ -74,7 +90,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .password(userDto.getPassword())
                 .role(Role.USER) // To be changed in future implementations
                 .build();
-        User savedUser=userService.signUpUser(newUser);
+        User savedUser = userService.signUpUser(newUser);
         Customer customer = Customer.builder()
                 .firstName(userDto.getFirstName())
                 .lastName(userDto.getLastName())
@@ -84,12 +100,11 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .province(customerDto.getProvince().trim())
                 .postalCode(normalizePostalCode(customerDto.getPostalCode()))
                 .country("Canada")
-                .phoneNumber(normalizePhone(customerDto.getPhoneNumber()))
+                .phoneNumber(normalizedPhone)
                 .dob(customerDto.getDob().trim())
                 .socialInsuranceNumber(normalizeSin(customerDto.getSocialInsuranceNumber()))
                 .governmentIdType(
-                        GovernmentIdType.valueOf(customerDto.getGovernmentIdType().trim())
-                )
+                        GovernmentIdType.valueOf(customerDto.getGovernmentIdType().trim()))
                 .governmentIdNumber(normalizeGovernmentIdNumber(customerDto.getGovernmentIdNumber()))
                 .occupation(customerDto.getOccupation().trim())
                 .user(savedUser)

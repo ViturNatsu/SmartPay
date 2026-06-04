@@ -1,20 +1,24 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.payee;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.AddPayeeRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
+import java.net.URI;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
+
 @RestController
-@RequestMapping("api/v1/payees")
+@RequestMapping("api/v1/payee")
 public class PayeeController {
 
     private final PayeeService payeeService;
@@ -23,31 +27,27 @@ public class PayeeController {
         this.payeeService = payeeService;
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PayeeDTO>> getPayees(
-            @PathVariable Long userId,
-            Authentication authentication) {
+    @PostMapping
+    public ResponseEntity<PayeeResponseDTO> addPayee(
+            @AuthenticationPrincipal User authenticatedUser,
+            @RequestBody PayeeRequestDTO payeeRequestDTO) {
 
-        User principal = (User) authentication.getPrincipal();
-        if (!principal.getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
+        PayeeResponseDTO payee = payeeService.addPayee(
+                authenticatedUser.getId(),
+                payeeRequestDTO.getPayeeName(),
+                payeeRequestDTO.getRecipientIdentifier());
 
-        return ResponseEntity.ok(payeeService.getPayeesByOwnerId(userId));
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(payee.getPayeeId())
+                .toUri();
+        return ResponseEntity.created(location).body(payee);
     }
 
-    @PostMapping("/user/{userId}")
-    public ResponseEntity<PayeeDTO> addPayee(
-            @PathVariable Long userId,
-            @Valid @RequestBody AddPayeeRequestDTO request,
-            Authentication authentication) {
+    @GetMapping
+    public ResponseEntity<List<PayeeResponseDTO>> getUserPayees(
+            @AuthenticationPrincipal User authenticatedUser) {
 
-        User principal = (User) authentication.getPrincipal();
-        if (!principal.getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        PayeeDTO created = payeeService.addPayee(userId, request.recipientEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUser.getId()));
     }
 }

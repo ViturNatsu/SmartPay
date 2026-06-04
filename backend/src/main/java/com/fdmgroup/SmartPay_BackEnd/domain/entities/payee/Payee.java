@@ -1,33 +1,43 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "payees")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Payee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payee_id")
-    private Long payeeId;
+    private long payeeId;
 
     @ManyToOne
-    @JoinColumn(name = "fk_owner_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnoreProperties({"accounts", "password", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled", "username"})
+    @JoinColumn(name = "owner_user_id", nullable = false)
     private User owner;
 
     @ManyToOne
-    @JoinColumn(name = "fk_recipient_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnoreProperties({"accounts", "password", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled", "username"})
+    @JoinColumn(name = "recipient_user_id", nullable = false)
     private User recipient;
+
+    @Column(name = "payee_name", nullable = false)
+    private String payeeName;
 }

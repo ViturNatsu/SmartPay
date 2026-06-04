@@ -11,6 +11,38 @@ export async function getWalletByUserId(userId) {
   }
 }
 
+export async function loadWallet(paymentMethodId, amount) {
+  try {
+    const res = await axiosInstance.post(`${WALLETS_URL}/load`, {
+      paymentMethodId,
+      amount,
+    });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function withdrawFromWallet(userId, payload) {
+  try {
+    const res = await axiosInstance.post(`${WALLETS_URL}/${userId}/withdraw`, payload);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function getWalletTransactions(userId, limit = 10) {
+  try {
+    const res = await axiosInstance.get(`${WALLETS_URL}/${userId}/transactions`, {
+      params: { limit },
+    });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
   try {
     await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
