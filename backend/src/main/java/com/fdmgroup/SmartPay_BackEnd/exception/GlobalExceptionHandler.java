@@ -21,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginInvalidCredentialsExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -247,6 +248,32 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity
                         .status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
+        @ExceptionHandler(InsufficientFundsException.class)
+        public ResponseEntity<Map<String, String>> handleInsufficientFunds(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "422");
+                errorBody.put(ERROR, "Insufficient Funds");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<Map<String, String>> handleIllegalArgument(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(errorBody);
         }

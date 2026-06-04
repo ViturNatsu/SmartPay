@@ -10,3 +10,15 @@ export async function getWalletByUserId(userId) {
     throw handleAxiosError(err);
   }
 }
+
+export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
+  try {
+    await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
+      recipientUserId,
+      amount,
+      memo: memo || null,
+    });
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}

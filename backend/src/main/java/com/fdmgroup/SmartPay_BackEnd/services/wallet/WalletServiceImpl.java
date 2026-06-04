@@ -3,8 +3,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
@@ -31,4 +33,21 @@ public class WalletServiceImpl implements WalletService {
         return wallet.get();
     }
 
+    @Override
+    @Transactional
+    public void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
+        Wallet senderWallet = getWalletByUserId(senderUserId);
+
+        if (senderWallet.getBalance() < amount) {
+            throw new InsufficientFundsException();
+        }
+
+        Wallet recipientWallet = getWalletByUserId(recipientUserId);
+
+        senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
+        walletRepository.save(senderWallet);
+
+        recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
+        walletRepository.save(recipientWallet);
+    }
 }

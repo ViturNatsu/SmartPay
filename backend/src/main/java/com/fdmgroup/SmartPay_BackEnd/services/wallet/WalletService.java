@@ -9,4 +9,5 @@ public interface WalletService {
 
     Wallet getWalletByUserId(long userId);
 
+    void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo);
 }
