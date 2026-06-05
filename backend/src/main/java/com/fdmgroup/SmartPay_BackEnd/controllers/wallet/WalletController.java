@@ -113,4 +113,5 @@ public class WalletController {
         walletService.transfer(userId, dto.recipientUserId(), dto.amount(), dto.memo());
         return ResponseEntity.noContent().build();
     }
+
 }
