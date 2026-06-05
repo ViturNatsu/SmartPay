@@ -24,6 +24,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailExceptio
 import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import org.springframework.web.server.ResponseStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 
@@ -225,6 +226,18 @@ public class GlobalExceptionHandler {
                 errorBody.put("error", "Service Unavailable");
                 errorBody.put("message", "Email service is currently unavailable.");
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        @ExceptionHandler(ResponseStatusException.class)
+        public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, String.valueOf(ex.getStatusCode().value()));
+                errorBody.put(ERROR, ex.getReason() != null ? ex.getReason() : "Error");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity
+                        .status(ex.getStatusCode())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
         }
 
         @ExceptionHandler(Exception.class)

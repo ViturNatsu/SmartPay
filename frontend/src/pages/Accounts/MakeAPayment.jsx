@@ -105,20 +105,6 @@ function PayeeRow({ payee, selected, onSelect }) {
           </Typography>
         </Box>
       </Stack>
-      <Box
-        sx={{
-          px: 1.25,
-          py: 0.5,
-          borderRadius: 999,
-          bgcolor: "#dcfce7",
-          border: "1px solid #86efac",
-          color: "#15803d",
-          fontSize: 11,
-          fontWeight: 700,
-        }}
-      >
-        Valid
-      </Box>
     </Box>
   );
 }
