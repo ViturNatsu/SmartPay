@@ -218,8 +218,13 @@ public class WalletServiceImpl implements WalletService {
 
     private WalletResponseDTO mapToDto(Wallet wallet){
         WalletResponseDTO walletResponseDTO = new WalletResponseDTO();
+        
         walletResponseDTO.setBalance(wallet.getBalance());
         walletResponseDTO.setWallet_id(wallet.getWalletId());
+
+        walletResponseDTO.setDailySpendingLimit(wallet.getDailySpendingLimit());
+        walletResponseDTO.setPerTransactionLimit(wallet.getPerTransactionLimit());
+        walletResponseDTO.setDailySpentAmount(wallet.getDailySpentAmount());
         return walletResponseDTO;
     }
 
@@ -227,14 +232,15 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public Wallet updateDailySpendingLimit(long userId,
+    public WalletResponseDTO updateDailySpendingLimit(long userId,
                                        WalletDailyLimitRequestDTO request) {
 
-        Wallet wallet = getWalletByUserId(userId);
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
 
         if (request.getDailySpendingLimit() == null) {
             wallet.setDailySpendingLimit(null);
-            return walletRepository.save(wallet);
+            Wallet savedWallet = walletRepository.save(wallet);
+            return mapToDto(savedWallet);
         }
 
         if (request.getDailySpendingLimit() <= 0) {
@@ -244,7 +250,8 @@ public class WalletServiceImpl implements WalletService {
 
         wallet.setDailySpendingLimit(request.getDailySpendingLimit());
 
-        return walletRepository.save(wallet);
+        Wallet savedWallet = walletRepository.save(wallet);
+        return mapToDto(savedWallet);
     }
 
     /**
@@ -259,14 +266,15 @@ public class WalletServiceImpl implements WalletService {
      */
     @Override
     @Transactional
-    public Wallet updatePerTransactionLimit(long userId,
+    public WalletResponseDTO  updatePerTransactionLimit(long userId,
                                         WalletPerTransactionLimitRequestDTO request) {
 
-        Wallet wallet = getWalletByUserId(userId);
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
 
         if (request.getPerTransactionLimit() == null) {
             wallet.setPerTransactionLimit(null);
-            return walletRepository.save(wallet);
+            Wallet savedWallet = walletRepository.save(wallet);
+            return mapToDto(savedWallet);
         }
 
         if (request.getPerTransactionLimit() <= 0) {
@@ -275,65 +283,8 @@ public class WalletServiceImpl implements WalletService {
         }
 
         wallet.setPerTransactionLimit(request.getPerTransactionLimit());
-
+        
         Wallet savedWallet = walletRepository.save(wallet);
-
-        recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
-        return mapToDto(wallet);
-    }
-
-    @Override
-    public List<WalletTransactionDTO> getTransactions(long userId, int limit) {
-        int pageSize = Math.min(Math.max(limit, 1), 50);
-        return walletTransactionRepository
-                .findByWallet_User_IdOrderByCreatedAtDesc(userId, PageRequest.of(0, pageSize))
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
-
-    private void recordTransaction(
-            Wallet wallet,
-            WalletTransactionType type,
-            double amount,
-            PaymentMethod paymentMethod) {
-        WalletTransaction transaction = new WalletTransaction();
-        transaction.setWallet(wallet);
-        transaction.setType(type);
-        transaction.setAmount(amount);
-        transaction.setPaymentMethodId(paymentMethod.getPaymentMethodId());
-        transaction.setBankDisplayName(paymentMethod.getBankDisplayName());
-        transaction.setStatus("COMPLETED");
-        walletTransactionRepository.save(transaction);
-    }
-
-    private WalletTransactionDTO toDto(WalletTransaction transaction) {
-        WalletTransactionDTO dto = new WalletTransactionDTO();
-        dto.setTransactionId(transaction.getTransactionId());
-        dto.setType(transaction.getType());
-        dto.setAmount(transaction.getAmount());
-        dto.setBankDisplayName(transaction.getBankDisplayName());
-        dto.setDescription(buildDescription(transaction));
-        dto.setStatus(transaction.getStatus());
-        dto.setCreatedAt(transaction.getCreatedAt());
-        return dto;
-    }
-
-    private String buildDescription(WalletTransaction transaction) {
-        String bank = transaction.getBankDisplayName() != null
-                ? transaction.getBankDisplayName()
-                : "linked bank account";
-
-        if (transaction.getType() == WalletTransactionType.LOAD) {
-            return "Wallet load from " + bank;
-        }
-        return "Withdraw to " + bank;
-    }
-
-    private WalletResponseDTO mapToDto(Wallet wallet){
-        WalletResponseDTO walletResponseDTO = new WalletResponseDTO();
-        walletResponseDTO.setBalance(wallet.getBalance());
-        walletResponseDTO.setWallet_id(wallet.getWalletId());
-        return walletResponseDTO;
+        return mapToDto(savedWallet);
     }
 }

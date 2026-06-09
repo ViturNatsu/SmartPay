@@ -47,9 +47,9 @@ public interface WalletService {
      *
      * @param userId the owner of the wallet
      * @param request DTO containing the new daily spending limit value
-     * @return the updated wallet
+     * @return the updated wallet RESPONSE
     */
-    Wallet updateDailySpendingLimit(long userId, WalletDailyLimitRequestDTO request);
+    WalletResponseDTO  updateDailySpendingLimit(long userId, WalletDailyLimitRequestDTO request);
 
     /**
      * Updates the wallet-level per-transaction spending limit for the specified user.
@@ -59,12 +59,7 @@ public interface WalletService {
      *
      * @param userId the owner of the wallet
      * @param request DTO containing the new per-transaction limit value
-     * @return the updated wallet
+     * @return the updated wallet  RESPONSE
      */
-    Wallet updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
-    
-
-    Wallet loadFunds(long userId, LoadWalletRequestDTO request);
-
-    List<WalletTransactionDTO> getTransactions(long userId, int limit);
+    WalletResponseDTO  updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
 }

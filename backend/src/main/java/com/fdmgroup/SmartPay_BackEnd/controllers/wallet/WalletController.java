@@ -77,7 +77,6 @@ public class WalletController {
         return ResponseEntity.ok(wallet);
     }
 
-<<<<<<< HEAD
     /**
      * Updates the wallet-level daily spending limit for the authenticated user.
      *
@@ -101,7 +100,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "400", description = "Invalid limit amount")
     })
-    public ResponseEntity<Wallet> updateDailySpendingLimit(
+    public ResponseEntity<WalletResponseDTO> updateDailySpendingLimit(
             @PathVariable long userId,
             @RequestBody WalletDailyLimitRequestDTO request,
             Authentication authentication) {
@@ -112,7 +111,7 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Wallet updatedWallet =
+        WalletResponseDTO updatedWallet =
                 walletService.updateDailySpendingLimit(userId, request);
 
         return ResponseEntity.ok(updatedWallet);
@@ -129,8 +128,6 @@ public class WalletController {
      * Returns 400 for invalid amounts (≤ 0).
      * Returns 422 for amounts exceeding the wallet balance.
      */
-=======
->>>>>>> origin/develop
     @PostMapping("/{userId}/withdraw")
     @Operation(summary = "Withdraw funds from wallet",
                description = "Deducts the specified amount from the user's wallet balance "
@@ -177,7 +174,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "400", description = "Invalid limit amount")
     })
-    public ResponseEntity<Wallet> updatePerTransactionLimit(
+    public ResponseEntity<WalletResponseDTO> updatePerTransactionLimit(
             @PathVariable long userId,
             @RequestBody WalletPerTransactionLimitRequestDTO request,
             Authentication authentication) {
@@ -188,7 +185,7 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Wallet updatedWallet =
+        WalletResponseDTO updatedWallet =
                 walletService.updatePerTransactionLimit(userId, request);
 
         return ResponseEntity.ok(updatedWallet);
