@@ -27,24 +27,24 @@ import lombok.Setter;
 @Builder
 public class Payee {
 
-@Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-@Column(name = "payee_id")
-private long payeeId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payee_id")
+    private long payeeId;
 
-@ManyToOne
-@JoinColumn(name= "owner_user_id", nullable = false)
-private User owner;
+    @ManyToOne
+    @JoinColumn(name= "owner_user_id", nullable = false)
+    private User owner;
 
-@ManyToOne
-@JoinColumn(name = "recipient_user_id", nullable = false)
-private User recipient;
+    @ManyToOne
+    @JoinColumn(name = "recipient_user_id", nullable = false)
+    private User recipient;
 
-@Column(name = "payee_name", nullable = false)
-private String payeeName;
+    @Column(name = "payee_name", nullable = false)
+    private String payeeName;
 
-
-
-
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 
 }
