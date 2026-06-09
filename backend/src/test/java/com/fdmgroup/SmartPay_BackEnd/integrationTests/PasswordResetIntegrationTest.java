@@ -10,6 +10,8 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.system.AuditLogRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,12 @@ public class PasswordResetIntegrationTest {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private WalletRepository walletRepository;
+
+    @Autowired
+    private WalletTransactionRepository walletTransactionRepository;
+
     @MockitoBean
     private JwtSessionService jwtSessionService;
 
@@ -76,10 +84,9 @@ public class PasswordResetIntegrationTest {
     @Autowired
     private IntegrationTestHelper helper;
 
-    @BeforeEach
-    void setUp() {
-
-        helper.clearDB();
+        @BeforeEach
+        void setUp() {
+                helper.clearDB();
 
         testUser = User.builder()
                         .firstName("Test")
