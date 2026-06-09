@@ -54,3 +54,6 @@ local.properties
 .sts4-cache/
 
 # End of https://www.toptal.com/developers/gitignore/api/eclipse
+
+# H2 local database files - each developer gets their own fresh DB on startup
+data/
