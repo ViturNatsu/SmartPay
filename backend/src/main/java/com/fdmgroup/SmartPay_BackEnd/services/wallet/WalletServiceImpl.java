@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,16 +55,22 @@ public class WalletServiceImpl implements WalletService {
         this.paymentMethodService = paymentMethodService;
     }
 
+    @Transactional
     @Override
-    public Wallet getWalletByUserId(long userId) {
-        Optional<Wallet> wallet = walletRepository.findByUserId(userId);
-        if (wallet.isEmpty()) {
-            Wallet newWallet = new Wallet();
-            newWallet.setUser(userService.getUserById(userId));
-            newWallet.setBalance(0.0);
-            return walletRepository.save(newWallet);
-        }
-        return wallet.get();
+    public Wallet createWallet(long userId) {
+        Wallet wallet = new Wallet();
+        wallet.setUser(userService.getUserById(userId));
+        wallet.setBalance(0.0);
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
+    @Override
+    public WalletResponseDTO getWalletByUserId(long userId) {
+        Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
+        Wallet wallet = optionalWallet.orElseThrow();
+        return mapToDto(wallet);
+
     }
 
     @Override
@@ -88,7 +95,8 @@ public class WalletServiceImpl implements WalletService {
         account.setBalance(accountBalance - amount);
         accountRepository.save(account);
 
-        Wallet wallet = getWalletByUserId(userId);
+
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
         double walletBalance = wallet.getBalance() != null ? wallet.getBalance() : 0.0;
         wallet.setBalance(walletBalance + amount);
         Wallet savedWallet = walletRepository.save(wallet);
@@ -99,19 +107,23 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public Wallet withdrawFunds(long userId, WithdrawRequestDTO request) {
+    public WalletResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
+        // Scenario 8: reject zero / negative / null amounts
         if (request.getAmount() == null || request.getAmount() <= 0) {
             throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
         }
 
-        Wallet wallet = getWalletByUserId(userId);
+        Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
+        Wallet wallet = optionalWallet.orElseThrow();
 
+        // Scenario 7: reject amounts that exceed available balance
         if (request.getAmount() > wallet.getBalance()) {
             throw new InsufficientFundsException(
                 "You cannot withdraw more than the Wallet balance of $"
                 + String.format("%.2f", wallet.getBalance()));
         }
 
+        // Verify the destination payment method is active and belongs to this user
         PaymentMethod paymentMethod = paymentMethodService.findPaymentMethodById(request.getPaymentMethodId());
         if (!paymentMethod.getUser().getId().equals(userId)) {
             throw new InvalidWithdrawAmountException("Payment method does not belong to this user");
@@ -120,11 +132,12 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidWithdrawAmountException("Selected payment method is not active");
         }
 
+        // Deduct the amount and persist
         wallet.setBalance(wallet.getBalance() - request.getAmount());
         Wallet savedWallet = walletRepository.save(wallet);
 
         recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
-        return savedWallet;
+        return mapToDto(wallet);
     }
 
     @Override
@@ -173,5 +186,12 @@ public class WalletServiceImpl implements WalletService {
             return "Wallet load from " + bank;
         }
         return "Withdraw to " + bank;
+    }
+
+    private WalletResponseDTO mapToDto(Wallet wallet){
+        WalletResponseDTO walletResponseDTO = new WalletResponseDTO();
+        walletResponseDTO.setBalance(wallet.getBalance());
+        walletResponseDTO.setWallet_id(wallet.getWalletId());
+        return walletResponseDTO;
     }
 }

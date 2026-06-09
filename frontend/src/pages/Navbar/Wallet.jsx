@@ -19,6 +19,9 @@ import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId, getWalletTransactions } from "@/api/wallets/walletApi";
 import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
+import {useWalletData} from "@/utils/useWalletData.js";
+import {formatString} from "@/utils/stringFormaters/formatString.js";
+import {formatDate} from "@/utils/stringFormaters/formatDate.js";
 
 /**
  * Wallet page — Scenario 1
@@ -39,10 +42,8 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
  * the WalletBalance component.
  */
 export function Wallet() {
-  const { tokenClaims, loading: authLoading } = useAuth();
+  const { user, tokenClaims, loading: authLoading } = useAuth();
 
-  const [balance, setBalance] = useState(0);
-  const [walletLoading, setWalletLoading] = useState(true);
 
   // Active linked bank accounts — only these may be selected as destinations (Scenario 2)
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -54,20 +55,6 @@ export function Wallet() {
   const [txLoading, setTxLoading] = useState(true);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
-
-  const fetchWallet = async () => {
-    if (!tokenClaims?.userId) return;
-    setWalletLoading(true);
-    try {
-      const wallet = await getWalletByUserId(Number(tokenClaims.userId));
-      setBalance(wallet.balance ?? 0);
-    } catch (err) {
-      console.error("Failed to fetch wallet:", err);
-    } finally {
-      setWalletLoading(false);
-    }
-  };
-
   const fetchPaymentMethods = async () => {
     if (!tokenClaims?.userId) return;
     setPmLoading(true);
@@ -83,6 +70,9 @@ export function Wallet() {
     }
   };
 
+  // Custom hook to fetch wallet and card data and manage related state
+  const {fetchWallet, fetchCard, wallet, card, walletLoading, cardLoading, balance, setBalance} = useWalletData(tokenClaims);
+
   const fetchTransactions = async () => {
     if (!tokenClaims?.userId) return;
     setTxLoading(true);
@@ -97,13 +87,32 @@ export function Wallet() {
     }
   };
 
+
+  // Fetch wallet and payment methods on initial load (after auth state is known)
   useEffect(() => {
-    if (!authLoading) {
-      fetchWallet();
-      fetchPaymentMethods();
-      fetchTransactions();
+    const fetchData = async () => {
+      await fetchWallet();
+      await fetchPaymentMethods();
+      await fetchTransactions();
     }
-  }, [authLoading, tokenClaims?.userId]);
+
+    // Only fetch data once we know whether the user is authenticated or not
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, tokenClaims?.userId]); // Or [] if effect doesn't need props or state
+
+  // Fetch card details once we have the wallet (to get the wallet ID)
+  useEffect(()=> {
+    const fetchData = async () => {
+      if(!wallet){
+        return;
+      }
+      await fetchCard();
+    }
+    fetchData();
+  }, [wallet])
+
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -153,7 +162,7 @@ export function Wallet() {
     maximumFractionDigits: 2,
   });
 
-  const isLoading = walletLoading || pmLoading;
+  const isLoading = walletLoading || pmLoading || cardLoading;
 
   return (
     <>
@@ -221,12 +230,21 @@ export function Wallet() {
                   </Box>
                 </Box>
                 <Typography sx={{ fontFamily: "monospace", fontSize: 15, letterSpacing: ".18em", opacity: 0.65 }}>
-                  •••• •••• •••• ••••
+                  {user.firstName + " " + user.lastName}
+                </Typography>
+                <Typography sx={{ fontFamily: "monospace", fontSize: 15, letterSpacing: ".18em", opacity: 0.65 }}>
+                  {formatString(card?.virtualCardNumber, 4, ' ')}
                 </Typography>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", fontSize: 10, opacity: 0.75 }}>
                   <Box>
                     <div>VALID THRU</div>
-                    <div style={{ opacity: 0.65 }}>••/••</div>
+                    <div style={{ opacity: 0.65 }}>{formatDate(card?.expiryDate)}</div>
+                  </Box>
+                  <Box>
+                    <div>CVV</div>
+                    <div style={{ opacity: 0.65 }}>
+                      {card?.CVV}
+                    </div>
                   </Box>
                   <Typography sx={{ fontSize: 20, fontWeight: 900, fontStyle: "italic" }}>
                     VISA
