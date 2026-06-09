@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
@@ -63,7 +64,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
     })
-    public ResponseEntity<Wallet> withdrawFunds(
+    public ResponseEntity<WithdrawResponseDTO> withdrawFunds(
             @PathVariable long userId,
             @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
@@ -74,7 +75,7 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Wallet updated = walletService.withdrawFunds(userId, request);
-        return ResponseEntity.ok(updated);
+        WithdrawResponseDTO response = walletService.withdrawFunds(userId, request);
+        return ResponseEntity.ok(response);
     }
 }

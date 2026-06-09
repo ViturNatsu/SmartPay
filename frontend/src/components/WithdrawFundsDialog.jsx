@@ -44,6 +44,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
   const [validationError, setValidationError] = useState(null);
   const [apiError, setApiError]             = useState(null);
   const [submitting, setSubmitting]         = useState(false);
+  const [transactionId, setTransactionId]   = useState(null);
 
   // Pre-select the first active payment method (Scenario 2)
   useEffect(() => {
@@ -60,6 +61,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
       setValidationError(null);
       setApiError(null);
       setSubmitting(false);
+      setTransactionId(null);
       if (paymentMethods.length > 0) setSelectedMethodId(paymentMethods[0].paymentMethodId);
     }
   }, [open]);
@@ -88,11 +90,12 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
     setSubmitting(true);
     setApiError(null);
     try {
-      const updated = await withdrawFromWallet(Number(tokenClaims.userId), {
+      const result = await withdrawFromWallet(Number(tokenClaims.userId), {
         paymentMethodId: selectedMethodId,
         amount: parsedAmount,
       });
-      onSuccess(updated);
+      onSuccess(result);
+      setTransactionId(result.transactionId);
       setStep(STEPS.SUCCESS);
     } catch (err) {
       // Surface the backend error message inline (Scenarios 7 & 8)
@@ -144,7 +147,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
       )}
 
       {step === STEPS.SUCCESS && (
-        <WithdrawSuccessStep {...sharedProps} onClose={handleClose} />
+        <WithdrawSuccessStep {...sharedProps} transactionId={transactionId} onClose={handleClose} />
       )}
     </Dialog>
   );

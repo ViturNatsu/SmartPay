@@ -1,16 +1,22 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
@@ -18,13 +24,16 @@ import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
 
     public WalletServiceImpl(WalletRepository walletRepository,
+                             WalletTransactionRepository walletTransactionRepository,
                              UserService userService,
                              PaymentMethodService paymentMethodService) {
         this.walletRepository = walletRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
         this.userService = userService;
         this.paymentMethodService = paymentMethodService;
     }
@@ -44,7 +53,8 @@ public class WalletServiceImpl implements WalletService {
 
     /**
      * Validates the requested amount, verifies the destination payment method
-     * belongs to the user, deducts the amount and persists the updated wallet.
+     * belongs to the user, deducts the amount, persists a WalletTransaction
+     * record with a unique UUID transaction ID, and returns a WithdrawResponseDTO.
      *
      * Validation order (matches Scenarios 7 & 8):
      *  1. amount must not be null or ≤ 0
@@ -53,7 +63,7 @@ public class WalletServiceImpl implements WalletService {
      */
     @Override
     @Transactional
-    public Wallet withdrawFunds(long userId, WithdrawRequestDTO request) {
+    public WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
         // Scenario 8: reject zero / negative / null amounts
         if (request.getAmount() == null || request.getAmount() <= 0) {
             throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
@@ -77,8 +87,24 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidWithdrawAmountException("Selected payment method is not active");
         }
 
-        // Deduct the amount and persist
+        // Deduct the amount and persist the updated wallet
         wallet.setBalance(wallet.getBalance() - request.getAmount());
-        return walletRepository.save(wallet);
+        walletRepository.save(wallet);
+
+        // Create a transaction record with a unique ID in wireframe format TXN-{8 hex chars}
+        WalletTransaction tx = new WalletTransaction();
+        tx.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
+        tx.setWallet(wallet);
+        tx.setType(WalletTransactionType.WITHDRAW);
+        tx.setAmount(request.getAmount());
+        tx.setCreatedAt(LocalDateTime.now());
+        walletTransactionRepository.save(tx);
+
+        WithdrawResponseDTO response = new WithdrawResponseDTO();
+        response.setTransactionId(tx.getTransactionId());
+        response.setNewBalance(wallet.getBalance());
+        response.setAmount(request.getAmount());
+        response.setCreatedAt(tx.getCreatedAt());
+        return response;
     }
 }

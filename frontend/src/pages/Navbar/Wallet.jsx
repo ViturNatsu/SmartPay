@@ -88,9 +88,9 @@ export function Wallet() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
-  const handleWithdrawSuccess = (updatedWallet) => {
-    setBalance(updatedWallet.balance ?? 0);
+  /** Called by WithdrawFundsDialog on success; refresh balance from withdraw response */
+  const handleWithdrawSuccess = (withdrawResponse) => {
+    setBalance(withdrawResponse.newBalance ?? 0);
   };
 
   // ── Formatting ────────────────────────────────────────────────────────────
