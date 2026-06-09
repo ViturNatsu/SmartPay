@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -242,6 +243,7 @@ public class GlobalExceptionHandler {
                                 .body(errorBody);
         }
         
+        // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InsufficientFundsException.class)
         public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException ex) {
                 Map<String, String> errorBody = new HashMap<>();
@@ -255,6 +257,21 @@ public class GlobalExceptionHandler {
                         .body(errorBody);
         }
 
+        // US-09-02-01 (Wallet ID not found)
+        @ExceptionHandler(WalletNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleWalletNotFound(RuntimeException ex) {
+
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put(STATUS, "404");
+            errorBody.put(ERROR, "Wallet id not found!");
+            errorBody.put(MESSAGE, ex.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorBody);
+        }
+        // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InvalidWithdrawAmountException.class)
         public ResponseEntity<Map<String, String>> handleInvalidWithdrawAmount(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.IntegrationTestHelper;
 import com.fdmgroup.SmartPay_BackEnd.services.user.RegistrationService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
@@ -59,7 +60,16 @@ class RegistrationTest {
     private UserRepository userRepository;
     @MockitoBean
     private RegistrationService registrationService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private IntegrationTestHelper helper;
+
+    @BeforeEach
+    void setUp() {
+        helper.clearDB();
+    }
 
     @Test
     void register() throws Exception {

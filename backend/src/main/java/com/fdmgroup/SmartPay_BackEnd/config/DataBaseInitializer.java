@@ -2,6 +2,8 @@ package com.fdmgroup.SmartPay_BackEnd.config;
 
 import java.time.LocalDateTime;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,14 +11,19 @@ import org.springframework.context.annotation.Configuration;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,8 +36,12 @@ public class DataBaseInitializer {
         this.encoderConfig = encoderConfig;
     }
 
+    @Autowired
+    private GenerateStringsHelper helper;
+
     @Bean
-    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository, PaymentRepository paymentRepository) {
+    CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository, PaymentRepository paymentRepository
+            , CardRepository cardRepository, WalletRepository walletRepository) {
         return args -> {
             if (userRepository.findByEmail("admin1@example.com").isEmpty()) {
                 User admin1 = User.builder()
@@ -44,8 +55,9 @@ public class DataBaseInitializer {
                         .build();
                 userRepository.save(admin1);
                 log.info("Database initialized with admin1 user: {}", admin1.getEmail());
-
             }
+
+
 
             if (userRepository.findByEmail("admin2@example.com").isEmpty()) {
                 User admin2 = User.builder()
@@ -59,7 +71,6 @@ public class DataBaseInitializer {
                         .build();
                 userRepository.save(admin2);
                 log.info("Database initialized with admin2 user: {}", admin2.getEmail());
-
             }
 
             if (userRepository.findByEmail("test@example.com").isEmpty()) {
@@ -74,6 +85,19 @@ public class DataBaseInitializer {
                         .build();
                 userRepository.save(testUser);
                 log.info("Database initialized with test user: {}", testUser.getEmail());
+
+                Wallet testUser_Wallet = new Wallet();
+                testUser_Wallet.setUser(testUser);
+                testUser_Wallet.setBalance(0.0);
+                walletRepository.save(testUser_Wallet);
+
+                Card testUser_Card = new Card();
+                testUser_Card.setCardNumber(helper.generateCardNumber());
+                testUser_Card.setCvv("123");
+                testUser_Card.setExpirationDate(LocalDateTime.now().plusYears(2));
+                testUser_Card.setStatus(CardStatus.ACTIVE);
+                testUser_Card.setWallet(testUser_Wallet);
+                cardRepository.save(testUser_Card);
 
                 Customer testCustomer = Customer.builder()
                         .user(testUser)
@@ -109,6 +133,19 @@ public class DataBaseInitializer {
                         .build();
                 userRepository.save(testUser2);
                 log.info("Database initialized with test user: {}", testUser2.getEmail());
+
+                Wallet testUser2_Wallet = new Wallet();
+                testUser2_Wallet.setUser(testUser2);
+                testUser2_Wallet.setBalance(0.0);
+                walletRepository.save(testUser2_Wallet);
+
+                Card testUser2_Card = new Card();
+                testUser2_Card.setCardNumber(helper.generateCardNumber());
+                testUser2_Card.setCvv("123");
+                testUser2_Card.setExpirationDate(LocalDateTime.now().plusYears(2));
+                testUser2_Card.setStatus(CardStatus.ACTIVE);
+                testUser2_Card.setWallet(testUser2_Wallet);
+                cardRepository.save(testUser2_Card);
 
 
                 Customer testCustomer2 = Customer.builder()

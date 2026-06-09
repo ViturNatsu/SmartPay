@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -69,8 +70,8 @@ public class WalletController {
         @ApiResponse(responseCode = "200", description = "Wallet retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User with specified ID not found")
     })
-    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable long userId) {
-        Wallet wallet = walletService.getWalletByUserId(userId);
+    public ResponseEntity<WalletResponseDTO> getWalletByUserId(@PathVariable long userId) {
+        WalletResponseDTO wallet = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(wallet);
     }
 
@@ -84,7 +85,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
     })
-    public ResponseEntity<Wallet> withdrawFunds(
+    public ResponseEntity<WalletResponseDTO> withdrawFunds(
             @PathVariable long userId,
             @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
@@ -94,7 +95,7 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Wallet updated = walletService.withdrawFunds(userId, request);
+        WalletResponseDTO updated = walletService.withdrawFunds(userId, request);
         return ResponseEntity.ok(updated);
     }
 }

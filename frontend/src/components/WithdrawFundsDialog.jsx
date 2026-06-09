@@ -92,6 +92,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
         paymentMethodId: selectedMethodId,
         amount: parsedAmount,
       });
+      console.log(updated);
       onSuccess(updated);
       setStep(STEPS.SUCCESS);
     } catch (err) {
