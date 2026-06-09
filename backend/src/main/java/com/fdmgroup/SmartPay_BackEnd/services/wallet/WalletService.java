@@ -1,7 +1,13 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
@@ -9,10 +15,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimi
 @Service
 public interface WalletService {
 
+    Wallet createWallet(long userId);
+
     /**
      * Returns the wallet for the given user, creating one if it does not yet exist.
      */
-    Wallet getWalletByUserId(long userId);
+    WalletResponseDTO getWalletByUserId(long userId);
 
     /**
      * Deducts the requested amount from the user's wallet and returns the
@@ -23,7 +31,12 @@ public interface WalletService {
      * @param userId  the owner of the wallet
      * @param request DTO containing the amount and destination payment method ID
      */
-    Wallet withdrawFunds(long userId, WithdrawRequestDTO request);
+    WalletResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request);
+
+    Wallet loadFunds(long userId, LoadWalletRequestDTO request);
+
+    List<WalletTransactionDTO> getTransactions(long userId, int limit);
+
 
     /**
      * Updates the wallet-level daily spending limit for the specified user.
@@ -50,4 +63,8 @@ public interface WalletService {
      */
     Wallet updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
     
+
+    Wallet loadFunds(long userId, LoadWalletRequestDTO request);
+
+    List<WalletTransactionDTO> getTransactions(long userId, int limit);
 }

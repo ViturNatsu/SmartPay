@@ -51,6 +51,11 @@ public class OtpServiceImpl implements OtpService {
 	}
 
 	@Override
+	public Optional<Otp> findBrequestOtpyEmailAndOtpType(String email, EventType otpType) {
+		return Optional.empty();
+	}
+
+	@Override
 	@Transactional
 	public Otp save(Otp otp) {
 		return otpRepository.save(otp);
@@ -92,12 +97,12 @@ public class OtpServiceImpl implements OtpService {
 					throw new AccountLockedException("Account is temporarily locked due to multiple attempts.");
 				}
 			}
-			;
+
 
 			String rawCode = generateCode();
 			String hashedCode = argonPasswordEncoder.encode(rawCode);
 
-			// if otp was just created, or its past the reset time, reset the otp
+			// if otp was just created, or it's past the reset time, reset the otp
 			if (otp.getFirstRequestAt() == null
 					|| now.isAfter(otp.getFirstRequestAt().plusHours(24))) {
 				otp.setFirstRequestAt(now);
@@ -139,7 +144,7 @@ public class OtpServiceImpl implements OtpService {
 						"The code has been invalidated due to multiple failed attempts. Please request a new code.");
 			}
 
-			// Check if account if locked
+			// Check if account is locked
 			if (otpRequest.isLocked()) {
 				eventData.put("reason", "Locked");
 				throw new AccountLockedException(

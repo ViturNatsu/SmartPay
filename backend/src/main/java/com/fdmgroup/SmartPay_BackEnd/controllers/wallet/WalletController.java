@@ -1,15 +1,21 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -20,6 +26,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimi
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/v1/wallets")
@@ -31,6 +38,32 @@ public class WalletController {
         this.walletService = walletService;
     }
 
+    @PostMapping("/load")
+    @Operation(summary = "Load funds into wallet", description = "Transfer funds from a linked payment method into the user's wallet.")
+    public ResponseEntity<Wallet> loadFunds(
+            @Valid @RequestBody LoadWalletRequestDTO request,
+            Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        Wallet wallet = walletService.loadFunds(user.getId(), request);
+        return ResponseEntity.ok(wallet);
+    }
+
+    @GetMapping("/{userId}/transactions")
+    @Operation(summary = "Get wallet transaction history",
+               description = "Returns recent wallet load and withdraw events for the authenticated user.")
+    public ResponseEntity<List<WalletTransactionDTO>> getWalletTransactions(
+            @PathVariable long userId,
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
+
+        User principalUser = (User) authentication.getPrincipal();
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(walletService.getTransactions(userId, limit));
+    }
+
     @GetMapping("/{userId}")
     @Operation(summary = "Get wallet by user ID",
                description = "Retrieve the wallet associated with a specific user ID. "
@@ -39,11 +72,12 @@ public class WalletController {
         @ApiResponse(responseCode = "200", description = "Wallet retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User with specified ID not found")
     })
-    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable long userId) {
-        Wallet wallet = walletService.getWalletByUserId(userId);
+    public ResponseEntity<WalletResponseDTO> getWalletByUserId(@PathVariable long userId) {
+        WalletResponseDTO wallet = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(wallet);
     }
 
+<<<<<<< HEAD
     /**
      * Updates the wallet-level daily spending limit for the authenticated user.
      *
@@ -95,6 +129,8 @@ public class WalletController {
      * Returns 400 for invalid amounts (≤ 0).
      * Returns 422 for amounts exceeding the wallet balance.
      */
+=======
+>>>>>>> origin/develop
     @PostMapping("/{userId}/withdraw")
     @Operation(summary = "Withdraw funds from wallet",
                description = "Deducts the specified amount from the user's wallet balance "
@@ -105,18 +141,17 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
     })
-    public ResponseEntity<Wallet> withdrawFunds(
+    public ResponseEntity<WalletResponseDTO> withdrawFunds(
             @PathVariable long userId,
             @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
 
-        // Verify the authenticated user is the owner of the wallet (DIP / security boundary)
         User principalUser = (User) authentication.getPrincipal();
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Wallet updated = walletService.withdrawFunds(userId, request);
+        WalletResponseDTO updated = walletService.withdrawFunds(userId, request);
         return ResponseEntity.ok(updated);
     }
 

@@ -15,18 +15,22 @@ import NorthEastIcon from "@mui/icons-material/NorthEast";
 import SouthWestIcon from "@mui/icons-material/SouthWest";
 
 import Navbar from "@/components/Navbar";
+import LoadWalletDialog from "@/components/LoadWalletDialog";
 import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
 import { useAuth } from "@/context/AuthContext";
-import { getWalletByUserId } from "@/api/wallets/walletApi";
+import { getWalletByUserId, getWalletTransactions } from "@/api/wallets/walletApi";
 import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
+import {useWalletData} from "@/utils/useWalletData.js";
+import {formatString} from "@/utils/stringFormaters/formatString.js";
+import {formatDate} from "@/utils/stringFormaters/formatDate.js";
 import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
 
 
 /**
  * Wallet page — Scenario 1
  *
- * Displays the user's wallet balance, a "Load Wallet" stub and a
- * "Withdraw Funds" button. Clicking Withdraw Funds opens the
+ * Displays the user's wallet balance, Load Wallet and Withdraw Funds
+ * actions. Clicking Withdraw Funds opens the
  * WithdrawFundsDialog which owns the multi-step withdrawal flow
  * (Details → Review → Success).
  *
@@ -41,7 +45,7 @@ import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
  * the WalletBalance component.
  */
 export function Wallet() {
-  const { tokenClaims, loading: authLoading } = useAuth();
+  const { user, tokenClaims, loading: authLoading } = useAuth();
 
   const [wallet, setWallet] = useState(null);
   const [balance, setBalance] = useState(0);
@@ -51,7 +55,10 @@ export function Wallet() {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [pmLoading, setPmLoading] = useState(true);
 
+  const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [txLoading, setTxLoading] = useState(true);
   const [walletLimitsOpen, setWalletLimitsOpen] = useState(false);
 
   // ── Data fetching ─────────────────────────────────────────────────────────
@@ -85,14 +92,60 @@ export function Wallet() {
     }
   };
 
-  useEffect(() => {
-    if (!authLoading) {
-      fetchWallet();
-      fetchPaymentMethods();
+  // Custom hook to fetch wallet and card data and manage related state
+  const {fetchWallet, fetchCard, wallet, card, walletLoading, cardLoading, balance, setBalance} = useWalletData(tokenClaims);
+
+  const fetchTransactions = async () => {
+    if (!tokenClaims?.userId) return;
+    setTxLoading(true);
+    try {
+      const data = await getWalletTransactions(tokenClaims.userId, 5);
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch wallet transactions:", err);
+      setTransactions([]);
+    } finally {
+      setTxLoading(false);
     }
-  }, [authLoading, tokenClaims?.userId]);
+  };
+
+
+  // Fetch wallet and payment methods on initial load (after auth state is known)
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchWallet();
+      await fetchPaymentMethods();
+      await fetchTransactions();
+    }
+
+    // Only fetch data once we know whether the user is authenticated or not
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, tokenClaims?.userId]); // Or [] if effect doesn't need props or state
+
+  // Fetch card details once we have the wallet (to get the wallet ID)
+  useEffect(()=> {
+    const fetchData = async () => {
+      if(!wallet){
+        return;
+      }
+      await fetchCard();
+    }
+    fetchData();
+  }, [wallet])
+
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleLoadSuccess = (newBalance) => {
+    if (newBalance != null) {
+      setBalance(newBalance);
+    } else {
+      fetchWallet();
+    }
+    fetchTransactions();
+  };
 
   /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
   const handleWithdrawSuccess = (updatedWallet) => {
@@ -103,6 +156,29 @@ export function Wallet() {
   const handleWalletLimitsSuccess = (updatedWallet) => {
   setWallet(updatedWallet);
   setBalance(updatedWallet.balance ?? 0);
+    fetchTransactions();
+  };
+
+  const formatTransactionDate = (isoDate) => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toLocaleString("en-CA", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const formatTransactionAmount = (type, amount) => {
+    const value = Number(amount ?? 0);
+    const formatted = value.toLocaleString("en-CA", {
+      style: "currency",
+      currency: "CAD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return type === "LOAD" ? `+${formatted}` : `-${formatted}`;
 };
 
   // ── Formatting ────────────────────────────────────────────────────────────
@@ -114,7 +190,7 @@ export function Wallet() {
     maximumFractionDigits: 2,
   });
 
-  const isLoading = walletLoading || pmLoading;
+  const isLoading = walletLoading || pmLoading || cardLoading;
 
   return (
     <>
@@ -182,12 +258,21 @@ export function Wallet() {
                   </Box>
                 </Box>
                 <Typography sx={{ fontFamily: "monospace", fontSize: 15, letterSpacing: ".18em", opacity: 0.65 }}>
-                  •••• •••• •••• ••••
+                  {user.firstName + " " + user.lastName}
+                </Typography>
+                <Typography sx={{ fontFamily: "monospace", fontSize: 15, letterSpacing: ".18em", opacity: 0.65 }}>
+                  {formatString(card?.virtualCardNumber, 4, ' ')}
                 </Typography>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", fontSize: 10, opacity: 0.75 }}>
                   <Box>
                     <div>VALID THRU</div>
-                    <div style={{ opacity: 0.65 }}>••/••</div>
+                    <div style={{ opacity: 0.65 }}>{formatDate(card?.expiryDate)}</div>
+                  </Box>
+                  <Box>
+                    <div>CVV</div>
+                    <div style={{ opacity: 0.65 }}>
+                      {card?.CVV}
+                    </div>
                   </Box>
                   <Typography sx={{ fontSize: 20, fontWeight: 900, fontStyle: "italic" }}>
                     VISA
@@ -215,11 +300,11 @@ export function Wallet() {
 
                 {/* Action buttons — Scenario 1: Withdraw Funds visible alongside Load Wallet */}
                 <Stack direction="row" spacing={1.5} sx={{ mb: 3.5 }}>
-                  {/* Load Wallet is a stub for a future story */}
                   <Button
                     variant="contained"
                     startIcon={<SouthWestIcon />}
-                    disabled
+                    onClick={() => setLoadWalletOpen(true)}
+                    disabled={paymentMethods.length === 0}
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
@@ -272,11 +357,11 @@ export function Wallet() {
                 {/* No linked accounts message when Withdraw is unavailable */}
                 {!pmLoading && paymentMethods.length === 0 && (
                   <Typography sx={{ fontSize: 13, color: "#64748B" }}>
-                    Link a bank account in Payment Methods to enable withdrawals.
+                    Link a bank account in Payment Methods to load funds and withdraw.
                   </Typography>
                 )}
 
-                {/* Recent wallet activity — static placeholder (transaction history is a separate story) */}
+                {/* Recent wallet activity */}
                 <Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
@@ -290,9 +375,54 @@ export function Wallet() {
                       View all transactions →
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
-                    Transaction history will be available in a future update.
-                  </Typography>
+
+                  {txLoading ? (
+                    <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+                      Loading activity...
+                    </Typography>
+                  ) : transactions.length === 0 ? (
+                    <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+                      No wallet activity yet. Load funds to see your first transaction.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.5}>
+                      {transactions.map((tx) => (
+                        <Box
+                          key={tx.transactionId}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            py: 1.25,
+                            borderBottom: "1px solid #EEF2F7",
+                          }}
+                        >
+                          <Box>
+                            <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+                              {tx.description}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#8DA0BC" }}>
+                              {formatTransactionDate(tx.createdAt)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: "right" }}>
+                            <Typography
+                              sx={{
+                                fontSize: 14,
+                                fontWeight: 800,
+                                color: tx.type === "LOAD" ? "#15803D" : "#DC2626",
+                              }}
+                            >
+                              {formatTransactionAmount(tx.type, tx.amount)}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: "#8DA0BC" }}>
+                              {tx.status ?? "Completed"}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               </Box>
             </Stack>
@@ -300,7 +430,12 @@ export function Wallet() {
         </Container>
       </Box>
 
-      {/* Withdrawal dialog — owns the 3-step flow (SRP) */}
+      <LoadWalletDialog
+        open={loadWalletOpen}
+        onClose={() => setLoadWalletOpen(false)}
+        onSuccess={handleLoadSuccess}
+      />
+
       <WithdrawFundsDialog
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}

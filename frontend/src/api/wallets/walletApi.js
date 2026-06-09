@@ -54,17 +54,73 @@ export async function updatePerTransactionLimit(userId, payload) {
 }
 
 /**
- * Submits a withdrawal from the user's wallet to a linked bank account.
+ * Updates the wallet-level daily spending limit.
  *
- * POST /api/v1/wallets/{userId}/withdraw
+ * POST /api/v1/wallets/{userId}/limits/daily
  *
- * @param {number} userId  - The ID of the wallet owner (must match the authenticated user)
- * @param {{ paymentMethodId: number, amount: number }} payload
- * @returns {Promise<{ wallet_id, balance, ... }>} Updated wallet object
+ * @param {number} userId
+ * @param {{ dailySpendingLimit: number | null }} payload
+ * @returns {Promise<Object>} Updated wallet object
  */
+export async function updateDailySpendingLimit(userId, payload) {
+  try {
+    const res = await axiosInstance.post(
+      `${WALLETS_URL}/${userId}/limits/daily`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+/**
+ * Updates the wallet-level per-transaction spending limit.
+ *
+ * POST /api/v1/wallets/{userId}/limits/per-transaction
+ *
+ * @param {number} userId
+ * @param {{ perTransactionLimit: number | null }} payload
+ * @returns {Promise<Object>} Updated wallet object
+ */
+export async function updatePerTransactionLimit(userId, payload) {
+  try {
+    const res = await axiosInstance.post(
+      `${WALLETS_URL}/${userId}/limits/per-transaction`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function loadWallet(paymentMethodId, amount) {
+  try {
+    const res = await axiosInstance.post(`${WALLETS_URL}/load`, {
+      paymentMethodId,
+      amount,
+    });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function withdrawFromWallet(userId, payload) {
   try {
     const res = await axiosInstance.post(`${WALLETS_URL}/${userId}/withdraw`, payload);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function getWalletTransactions(userId, limit = 10) {
+  try {
+    const res = await axiosInstance.get(`${WALLETS_URL}/${userId}/transactions`, {
+      params: { limit },
+    });
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);

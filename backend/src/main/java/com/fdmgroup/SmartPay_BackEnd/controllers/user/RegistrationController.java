@@ -2,8 +2,13 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.user;
 
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +36,10 @@ public class RegistrationController {
     private final RegistrationService registrationService;
     private final OtpService otpService;
 
+    // sequence for card generation
+    private final WalletService walletService;
+    private final CardService cardService;
+
     @PostMapping
     @Operation(summary = "Register and create new user")
     @ApiResponses(value = {
@@ -45,7 +54,9 @@ public class RegistrationController {
             throw new IllegalArgumentException("Password and confirm password do not match");
         }
         User user = registrationService.register(userDto);
+
         otpService.requestOtp(user.getEmail(), EventType.REGISTER, httpRequest);
+
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(

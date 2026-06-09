@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,8 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -23,6 +26,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -234,15 +238,14 @@ public class GlobalExceptionHandler {
                 errorBody.put("message", "Unable to retrieve customer information.");
 
                 return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(errorBody);
+                                .status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
         }
         
         // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InsufficientFundsException.class)
-        public ResponseEntity<Map<String, String>> handleInsufficientFunds(RuntimeException ex) {
-
+        public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException ex) {
                 Map<String, String> errorBody = new HashMap<>();
                 errorBody.put(STATUS, "422");
                 errorBody.put(ERROR, "Insufficient Funds");
@@ -254,10 +257,23 @@ public class GlobalExceptionHandler {
                         .body(errorBody);
         }
 
+        // US-09-02-01 (Wallet ID not found)
+        @ExceptionHandler(WalletNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleWalletNotFound(RuntimeException ex) {
+
+            Map<String, String> errorBody = new HashMap<>();
+            errorBody.put(STATUS, "404");
+            errorBody.put(ERROR, "Wallet id not found!");
+            errorBody.put(MESSAGE, ex.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(errorBody);
+        }
         // US-09-01-28 (Wallet Withdraw)
         @ExceptionHandler(InvalidWithdrawAmountException.class)
         public ResponseEntity<Map<String, String>> handleInvalidWithdrawAmount(RuntimeException ex) {
-
                 Map<String, String> errorBody = new HashMap<>();
                 errorBody.put(STATUS, "400");
                 errorBody.put(ERROR, "Invalid Withdrawal Amount");
@@ -265,6 +281,19 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(errorBody);
+        }
+
+        @ExceptionHandler(PaymentMethodNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handlePaymentMethodNotFound(PaymentMethodNotFoundException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Not Found");
+                errorBody.put(MESSAGE, ex.getMessage());
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(errorBody);
         }
@@ -278,9 +307,9 @@ public class GlobalExceptionHandler {
                 errorBody.put("message", "Email service is currently unavailable.");
 
                 return ResponseEntity
-                        .status(HttpStatus.SERVICE_UNAVAILABLE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(errorBody);
+                                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
         }
 
         @ExceptionHandler(Exception.class)
@@ -293,6 +322,30 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(PayeeAlreadyExistsException.class)
+        public ResponseEntity<Map<String, String>> handlePayeeAlreadyExists(PayeeAlreadyExistsException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "409");
+                errorBody.put(ERROR, "Conflict");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
+        }
+
+        @ExceptionHandler(InvalidPayeeException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidPayee(InvalidPayeeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(errorBody);
         }

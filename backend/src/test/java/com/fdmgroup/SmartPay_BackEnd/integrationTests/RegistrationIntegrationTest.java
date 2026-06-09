@@ -4,14 +4,25 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.SignUpDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.IntegrationTestHelper;
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.RegistrationHelper;
+import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
+import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +30,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
@@ -37,6 +51,29 @@ class RegistrationIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CardRepository cardRepository;
+
+    @Autowired
+    private WalletRepository walletRepository;
+
+    @Autowired
+    private OtpRepository otpRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private IntegrationTestHelper helper;
+
+    @BeforeEach
+    void setUp() {
+        helper.clearDB();
+    }
 
     // -------------------------------------------------------
     // 1️⃣ Successful Registration
@@ -95,6 +132,33 @@ class RegistrationIntegrationTest {
 
         mvc.perform(request)
                 .andExpect(status().is4xxClientError());
+    }
+
+
+    @Test
+    void shouldGenerateCardAfterRegistration() throws Exception {
+        String email = "email_1@test.com";
+
+        // First registration
+        mvc.perform(createValidRequest(email, "+1 780-111-1111"))
+                .andExpect(status().isCreated());
+
+
+        User user = userRepository.findByEmail(email).get();
+        assertThat(user).isNotNull();
+
+        // Verify
+        RegistrationHelper helper = new RegistrationHelper();
+        helper.registerOTP(passwordEncoder, email, otpRepository, mvc);
+
+        Wallet wallet = walletRepository.findByUserId(user.getId()).get();
+        assertThat(wallet).isNotNull();
+
+        Card card = cardRepository.findByWalletWalletId(wallet.getWalletId());
+        assertThat(card).isNotNull();
+        assertThat(card.getCardNumber()).isNotNull();
+        assertThat(card.getStatus()).isEqualTo(CardStatus.ACTIVE);
+        assertThat(card.getCvv()).isNotNull();
     }
 
     // -------------------------------------------------------

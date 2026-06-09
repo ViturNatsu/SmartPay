@@ -3,6 +3,10 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.auth;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +46,10 @@ public class OtpController {
     UserService userService;
     JwtSessionService jwtSessionService;
     SessionService sessionService;
+    TransactionExecutor transactionExecutor;
+    WalletService walletService;
+    CardService cardService;
+
 
     @Operation(summary = "Request password reset", description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists.")
     @ApiResponses(value = {
@@ -96,10 +104,21 @@ public class OtpController {
                 User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
                 user.setEmailVerified(true);
                 user.setEmailVerifiedAt(LocalDateTime.now());
-                userService.save(user);
 
-                otp.markAsUsed();
-                otpService.save(otp);
+                transactionExecutor.execute(() -> {
+
+                    //Update the user into a verified state
+                    userService.save(user);
+                    //Mark the OTP as used
+                    otp.markAsUsed();
+                    //Update the OTP in the DB
+                    otpService.save(otp);
+                    //Create Wallet associated to the account
+                    Wallet wallet = walletService.createWallet(user.getId());
+                    //Create Virtual Card associated to the wallet
+                    cardService.createCard(wallet);
+                });
+
                 return ResponseEntity.ok(Map.of("verified", true));
             }
             case FORGOT_PASSWORD -> {

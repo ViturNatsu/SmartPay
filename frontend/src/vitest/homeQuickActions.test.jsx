@@ -1,14 +1,13 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
 import { Login } from "@/pages/Login/Login";
 import { Home } from "@/pages/Navbar/Home";
-import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
-import { AddPayee } from "@/pages/Accounts/AddPayee";
+import AddPayee from "@/pages/Payee/AddPayee";
 import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
 import Forbidden from "@/pages/errors/Forbidden";
 
@@ -30,10 +29,31 @@ vi.mock("@/api/authApi", async () => {
       id: 1,
       email: "placeholder@smartpay.local",
       role: "fake role",
+      firstName: "Test",
+      lastName: "User",
     })),
     logout: vi.fn(async () => ({ ok: true })),
   };
 });
+
+vi.mock("@/api/wallets/walletApi", () => ({
+  getWalletByUserId: vi.fn(async () => ({ balance: 0 })),
+  loadWallet: vi.fn(async () => ({ balance: 100 })),
+}));
+
+vi.mock("@/api/paymentmethods/paymentmethodApi", () => ({
+  getPaymentMethodsForUserWithId: vi.fn(async () => ({
+    content: [
+      {
+        paymentMethodId: 1,
+        bankDisplayName: "TD",
+        accountIdentifierMasked: "**401",
+        accountName: "TD Test Checking 1",
+        active: true,
+      },
+    ],
+  })),
+}));
 
 function addValidRefreshToken(expSecondsFromNow = 3600) {
   const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }))
@@ -64,7 +84,6 @@ function AppHarness({ initialEntries = ["/app"] }) {
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<ProtectedPage />} />
-            <Route path="/payment-methods" element={<PaymentMethods />} />
             <Route path="/add-payee" element={<AddPayee />} />
             <Route path="/make-a-payment" element={<MakeAPayment />} />
           </Route>
@@ -75,7 +94,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
 }
 
 describe("Home Dashboard Quick Link Acceptance", () => {
-  it("Scenario 1: Load Wallet link navigates to payment methods", async () => {
+  it("Scenario 1: Load Wallet opens load wallet dialog", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -84,14 +103,13 @@ describe("Home Dashboard Quick Link Acceptance", () => {
 
     await screen.findByTestId("protected");
 
-    const loadWalletLink = await screen.findByRole("link", {
+    const loadWalletButton = await screen.findByRole("button", {
       name: /Load Wallet/i,
     });
-    await user.click(loadWalletLink);
+    await user.click(loadWalletButton);
 
-    expect(
-      screen.getByRole("heading", { name: /^Payment Methods$/i }),
-    ).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/^Load Wallet$/i)).toBeInTheDocument();
   });
 
   it("Scenario 2: Send Money link navigates to make a payment", async () => {
@@ -125,7 +143,7 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     });
     await user.click(addPayeeLink);
 
-    expect(screen.getByText("Add Payee")).toBeInTheDocument();
+    expect(screen.getByText("Add a Payee")).toBeInTheDocument();
   });
 
   it("Scenario 4: Admin route without privileges shows forbidden", async () => {
