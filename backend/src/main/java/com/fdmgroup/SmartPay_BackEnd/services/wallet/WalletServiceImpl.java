@@ -178,11 +178,25 @@ public class WalletServiceImpl implements WalletService {
                 .collect(Collectors.toList());
     }
 
-    private void recordTransaction(
-            Wallet wallet,
-            WalletTransactionType type,
-            double amount,
-            PaymentMethod paymentMethod) {
+    @Override
+    @Transactional
+    public void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
+        Wallet senderWallet = getWalletByUserId(senderUserId);
+
+        if (senderWallet.getBalance() < amount) {
+            throw new InsufficientFundsException("Insufficient wallet balance to complete this transfer.");
+        }
+
+        Wallet recipientWallet = getWalletByUserId(recipientUserId);
+
+        senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
+        walletRepository.save(senderWallet);
+
+        recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
+        walletRepository.save(recipientWallet);
+    }
+
+    private void recordTransaction(Wallet wallet, WalletTransactionType type, double amount, PaymentMethod paymentMethod) {
         WalletTransaction transaction = new WalletTransaction();
         transaction.setWallet(wallet);
         transaction.setType(type);
@@ -209,7 +223,6 @@ public class WalletServiceImpl implements WalletService {
         String bank = transaction.getBankDisplayName() != null
                 ? transaction.getBankDisplayName()
                 : "linked bank account";
-
         if (transaction.getType() == WalletTransactionType.LOAD) {
             return "Wallet load from " + bank;
         }

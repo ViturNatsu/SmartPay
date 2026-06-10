@@ -1,10 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import java.util.List;
+
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
@@ -62,4 +62,6 @@ public interface WalletService {
      * @return the updated wallet  RESPONSE
      */
     WalletResponseDTO  updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
+
+    void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo);
 }

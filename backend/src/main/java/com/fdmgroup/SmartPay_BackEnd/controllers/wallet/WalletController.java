@@ -1,11 +1,11 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
+import java.util.List;
+
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import java.util.List;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransferDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -38,32 +40,6 @@ public class WalletController {
         this.walletService = walletService;
     }
 
-    @PostMapping("/load")
-    @Operation(summary = "Load funds into wallet", description = "Transfer funds from a linked payment method into the user's wallet.")
-    public ResponseEntity<Wallet> loadFunds(
-            @Valid @RequestBody LoadWalletRequestDTO request,
-            Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        Wallet wallet = walletService.loadFunds(user.getId(), request);
-        return ResponseEntity.ok(wallet);
-    }
-
-    @GetMapping("/{userId}/transactions")
-    @Operation(summary = "Get wallet transaction history",
-               description = "Returns recent wallet load and withdraw events for the authenticated user.")
-    public ResponseEntity<List<WalletTransactionDTO>> getWalletTransactions(
-            @PathVariable long userId,
-            @RequestParam(defaultValue = "10") int limit,
-            Authentication authentication) {
-
-        User principalUser = (User) authentication.getPrincipal();
-        if (!principalUser.getId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        return ResponseEntity.ok(walletService.getTransactions(userId, limit));
-    }
-
     @GetMapping("/{userId}")
     @Operation(summary = "Get wallet by user ID",
                description = "Retrieve the wallet associated with a specific user ID. "
@@ -75,6 +51,16 @@ public class WalletController {
     public ResponseEntity<WalletResponseDTO> getWalletByUserId(@PathVariable long userId) {
         WalletResponseDTO wallet = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(wallet);
+    }
+
+    @PostMapping("/load")
+    @Operation(summary = "Load funds into wallet",
+               description = "Transfer funds from a linked payment method into the user's wallet.")
+    public ResponseEntity<WalletResponseDTO> loadFunds(
+            @Valid @RequestBody LoadWalletRequestDTO request,
+            Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(walletService.loadFunds(user.getId(), request));
     }
 
     /**
@@ -142,7 +128,20 @@ public class WalletController {
             @PathVariable long userId,
             @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
+        User principalUser = (User) authentication.getPrincipal();
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(walletService.withdrawFunds(userId, request));
+    }
 
+    @GetMapping("/{userId}/transactions")
+    @Operation(summary = "Get wallet transaction history",
+               description = "Returns recent wallet load and withdraw events for the authenticated user.")
+    public ResponseEntity<List<WalletTransactionDTO>> getWalletTransactions(
+            @PathVariable long userId,
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
         User principalUser = (User) authentication.getPrincipal();
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -150,6 +149,26 @@ public class WalletController {
 
         WalletResponseDTO updated = walletService.withdrawFunds(userId, request);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/{userId}/transfer")
+    @Operation(summary = "Transfer funds from wallet to another user's wallet")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Transfer completed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid transfer amount or memo"),
+        @ApiResponse(responseCode = "403", description = "Forbidden: cannot transfer from another user's wallet"),
+        @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
+    })
+    public ResponseEntity<Void> transfer(
+            @PathVariable Long userId,
+            @Valid @RequestBody WalletTransferDTO dto,
+            Authentication authentication) {
+        User principal = (User) authentication.getPrincipal();
+        if (!principal.getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        walletService.transfer(userId, dto.recipientUserId(), dto.amount(), dto.memo());
+        return ResponseEntity.noContent().build();
     }
 
     /**
