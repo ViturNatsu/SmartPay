@@ -63,7 +63,7 @@ public class OtpController {
         HttpStatus status;
 
         switch (dto.getType()) {
-            case LOGIN, REGISTER, FORGOT_PASSWORD ->
+            case LOGIN, REGISTER, FORGOT_PASSWORD, REVEAL_CARD ->
                 status = otpService.requestOtp(dto.getEmail(), dto.getType(), httpRequest);
             default -> {
                 log.error("Unknown OTP type encountered");
@@ -123,6 +123,12 @@ public class OtpController {
             }
             case FORGOT_PASSWORD -> {
                 // Do not mark as used here. The password reset endpoint consumes the code.
+                return ResponseEntity.ok(Map.of("verified", true));
+            }
+            case REVEAL_CARD -> {
+                // Mark as used immediately — the frontend unlocks the card UI on success.
+                otp.markAsUsed();
+                otpService.save(otp);
                 return ResponseEntity.ok(Map.of("verified", true));
             }
             default -> {

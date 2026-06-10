@@ -80,6 +80,8 @@ const apiType = (type) => {
       return "REGISTER";
     case "forgot-password":
       return "FORGOT_PASSWORD";
+    case "reveal-card":
+      return "REVEAL_CARD";
     default:
       return type;
   }

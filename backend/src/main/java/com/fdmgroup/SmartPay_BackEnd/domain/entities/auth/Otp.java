@@ -82,6 +82,7 @@ public class Otp {
             case FORGOT_PASSWORD -> 5;
             case REGISTER -> 3;
             case LOGIN -> 10;
+            case REVEAL_CARD -> 5;
             default -> throw new IllegalStateException("No OTP limit for type: " + this.otpType);
         };
     }
@@ -95,6 +96,7 @@ public class Otp {
             case FORGOT_PASSWORD -> 45;
             case REGISTER -> 15;
             case LOGIN -> 5;
+            case REVEAL_CARD -> 5;
             default -> throw new IllegalStateException("No OTP expiry for type: " + this.otpType);
         };
     }
@@ -110,6 +112,7 @@ public class Otp {
             case LOGIN -> "Your SmartPay sign-in code";
             case REGISTER -> "Verify your SmartPay account";
             case FORGOT_PASSWORD -> "Reset your SmartPay password";
+            case REVEAL_CARD -> "Verify your SmartPay card access";
             default -> throw new IllegalStateException("No email subject for type: " + this.otpType);
         });
         String template = """
@@ -124,6 +127,8 @@ public class Otp {
             case REGISTER -> template.formatted("Email Verification", frontendUrl, this.email, "register", code);
             case FORGOT_PASSWORD ->
                 template.formatted("Password Reset", frontendUrl, this.email, "forgot-password", code);
+            case REVEAL_CARD ->
+                template.formatted("Card Details Access", frontendUrl, this.email, "reveal-card", code);
             default -> throw new IllegalStateException("No email body for type: " + this.otpType);
         }
                 + "\nYour verification code is: " + code + "\n\n"
