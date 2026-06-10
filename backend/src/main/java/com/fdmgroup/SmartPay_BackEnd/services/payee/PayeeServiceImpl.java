@@ -65,26 +65,37 @@ public class PayeeServiceImpl implements PayeeService {
                 .build();
         payeeRepository.save(payee);
 
+        String phoneNumber = customerRepository.findByUser(payee.getRecipient())
+                .map(Customer::getPhoneNumber)
+                .orElse(null);
+
         return new PayeeResponseDTO(
                 payee.getPayeeId(),
                 payee.getPayeeName(),
                 payee.getRecipient().getId(),
                 payee.getRecipient().getFirstName(),
                 payee.getRecipient().getLastName(),
-                payee.getRecipient().getEmail());
+                payee.getRecipient().getEmail(),
+                phoneNumber);
     }
 
     @Override
     public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
         return payeeRepository.findByOwnerId(ownerId)
                 .stream()
-                .map(payee -> new PayeeResponseDTO(
-                        payee.getPayeeId(),
-                        payee.getPayeeName(),
-                        payee.getRecipient().getId(),
-                        payee.getRecipient().getFirstName(),
-                        payee.getRecipient().getLastName(),
-                        payee.getRecipient().getEmail()))
+                .map(payee -> {
+                    String phoneNumber = customerRepository.findByUser(payee.getRecipient())
+                            .map(Customer::getPhoneNumber)
+                            .orElse(null);
+                    return new PayeeResponseDTO(
+                            payee.getPayeeId(),
+                            payee.getPayeeName(),
+                            payee.getRecipient().getId(),
+                            payee.getRecipient().getFirstName(),
+                            payee.getRecipient().getLastName(),
+                            payee.getRecipient().getEmail(),
+                            phoneNumber);
+                })
                 .collect(Collectors.toList());
     }
 }

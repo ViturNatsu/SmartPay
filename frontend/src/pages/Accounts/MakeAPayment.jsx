@@ -61,7 +61,7 @@ function StepIndicator({ current }) {
 }
 
 function PayeeRow({ payee, selected, onSelect }) {
-  const initials = `${payee.firstName?.[0] ?? ""}${payee.lastName?.[0] ?? ""}`.toUpperCase();
+  const initials = (payee.payeeName?.[0] ?? "").toUpperCase();
 
   return (
     <Box
@@ -98,8 +98,13 @@ function PayeeRow({ payee, selected, onSelect }) {
         </Box>
         <Box>
           <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
-            {payee.firstName} {payee.lastName}
+            {payee.payeeName}
           </Typography>
+          {payee.phoneNumber && (
+            <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+              {payee.phoneNumber}
+            </Typography>
+          )}
           <Typography sx={{ color: "#64748b", fontSize: 12 }}>
             {payee.email}
           </Typography>
@@ -275,7 +280,7 @@ export function MakeAPayment() {
           {step === 1 && (
             <>
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-                Send to {selectedPayee.firstName} {selectedPayee.lastName}
+                Send to {selectedPayee.payeeName}
               </Typography>
               <Typography sx={{ color: "#64748b", fontSize: 14, mb: 3 }}>Enter the amount and an optional memo.</Typography>
               <StepIndicator current={1} />
@@ -283,7 +288,7 @@ export function MakeAPayment() {
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} mb={2.5}>
                 {[
                   { label: "Available Wallet Balance", value: walletBalance !== null ? `$${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—" },
-                  { label: "Selected Payee", value: `${selectedPayee.firstName} ${selectedPayee.lastName}` },
+                  { label: "Selected Payee", value: selectedPayee.payeeName },
                 ].map(({ label, value }) => (
                   <Box key={label} sx={{ flex: 1, borderRadius: "14px", p: "16px", background: "#F7FAFB", border: "1px solid #E2E8F0" }}>
                     <Typography sx={{ color: "#64748b", fontSize: 12, fontWeight: 700, mb: 0.75 }}>{label}</Typography>
@@ -324,7 +329,7 @@ export function MakeAPayment() {
 
               <Card elevation={0} sx={{ borderRadius: "18px", border: "1px solid #E2E8F0", overflow: "hidden" }}>
                 <ConfirmRow label="Send From" value="SmartPay Wallet" />
-                <ConfirmRow label="Send To" value={`${selectedPayee.firstName} ${selectedPayee.lastName} — ${selectedPayee.email}`} />
+                <ConfirmRow label="Send To" value={`${selectedPayee.payeeName} — ${selectedPayee.email}`} />
                 <ConfirmRow label="Transfer Amount" value={formattedAmount} />
                 <ConfirmRow label="Memo" value={memo.trim() || "—"} />
                 {remainingBalance !== null && (
@@ -357,7 +362,7 @@ export function MakeAPayment() {
               </Box>
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Money Sent</Typography>
               <Typography sx={{ color: "#64748b", fontSize: 14, mb: 3.5, lineHeight: 1.6 }}>
-                {formattedAmount} has been sent to {selectedPayee.firstName} {selectedPayee.lastName} from your SmartPay wallet.
+                {formattedAmount} has been sent to {selectedPayee.payeeName} from your SmartPay wallet.
               </Typography>
               <Button variant="contained" onClick={() => navigate("/home")}
                 sx={{ bgcolor: "#0f7490", "&:hover": { bgcolor: "#0a5a70" }, px: 3 }}>
