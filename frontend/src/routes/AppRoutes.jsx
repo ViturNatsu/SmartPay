@@ -15,6 +15,7 @@ import {Settings} from "@/pages/Navbar/Settings";
 import {Wallet} from "@/pages/Navbar/Wallet";
 import {CreateAccount} from "@/pages/Accounts/CreateAccount";
 import AddPayee from "@/pages/Payee/AddPayee";
+import PayeeList from "@/pages/Payee/PayeeList"
 import {MakeAPayment} from "@/pages/Accounts/MakeAPayment";
 import {ViewHistory} from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";
@@ -28,6 +29,7 @@ import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAut
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 import AddUser from "../pages/Admin/AddUser";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -56,6 +58,7 @@ export default function AppRoutes() {
         <Route path="/view-history" element={<ViewHistory />} />
         <Route path="/make-a-payment" element={<MakeAPayment />} />
         <Route path="/add-payee" element={<AddPayee />} />
+        <Route path="/payees" element={<PayeeList />} />
         <Route
           path="/simulatedbankauth/:selectedBank"
           element={<SimulatedBankAuthorization />}

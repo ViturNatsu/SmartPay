@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import {
   Box,
   Button,
@@ -9,21 +9,26 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import {Link as RouterLink} from "react-router-dom";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import SouthWestIcon from "@mui/icons-material/SouthWest";
 
 import Navbar from "@/components/Navbar";
+import LoadWalletDialog from "@/components/LoadWalletDialog";
 import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
-import { useAuth } from "@/context/AuthContext";
-import { getWalletByUserId } from "@/api/wallets/walletApi";
-import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
+import {VirtualCardDisplay} from "@/components/card/VirtualCardDisplay";
+import {RevealCardDialog} from "@/components/card/RevealCardDialog";
+import {useAuth} from "@/context/AuthContext";
+import {getWalletTransactions} from "@/api/wallets/walletApi";
+import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
+import {useWalletData} from "@/utils/useWalletData.js";
+import {useCardReveal} from "@/utils/useCardReveal.js";
 
 /**
  * Wallet page — Scenario 1
  *
- * Displays the user's wallet balance, a "Load Wallet" stub and a
- * "Withdraw Funds" button. Clicking Withdraw Funds opens the
+ * Displays the user's wallet balance, Load Wallet and Withdraw Funds
+ * actions. Clicking Withdraw Funds opens the
  * WithdrawFundsDialog which owns the multi-step withdrawal flow
  * (Details → Review → Success).
  *
@@ -38,39 +43,29 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
  * the WalletBalance component.
  */
 export function Wallet() {
-  const { tokenClaims, loading: authLoading } = useAuth();
-
-  const [balance, setBalance] = useState(0);
-  const [walletLoading, setWalletLoading] = useState(true);
+  const {user, tokenClaims, loading: authLoading} = useAuth();
 
   // Active linked bank accounts — only these may be selected as destinations (Scenario 2)
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [pmLoading, setPmLoading] = useState(true);
 
+  const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [revealDialogOpen, setRevealDialogOpen] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [txLoading, setTxLoading] = useState(true);
+
+  // Card reveal state — manages blur, 30 s inactivity timer, and navigation re-mask
+  const {isRevealed, reveal, mask} = useCardReveal();
 
   // ── Data fetching ─────────────────────────────────────────────────────────
-
-  const fetchWallet = async () => {
-    if (!tokenClaims?.userId) return;
-    setWalletLoading(true);
-    try {
-      const wallet = await getWalletByUserId(Number(tokenClaims.userId));
-      setBalance(wallet.balance ?? 0);
-    } catch (err) {
-      console.error("Failed to fetch wallet:", err);
-    } finally {
-      setWalletLoading(false);
-    }
-  };
-
   const fetchPaymentMethods = async () => {
     if (!tokenClaims?.userId) return;
     setPmLoading(true);
     try {
       // Page 0; active methods only — filter out inactive ones for the dropdown
       const res = await getPaymentMethodsForUserWithId(tokenClaims.userId, 0);
-      const active = (res.content ?? []).filter((m) => m.active);
+      const active = (res.content ?? []).filter(m => m.active);
       setPaymentMethods(active);
     } catch (err) {
       console.error("Failed to fetch payment methods:", err);
@@ -79,18 +74,94 @@ export function Wallet() {
     }
   };
 
-  useEffect(() => {
-    if (!authLoading) {
-      fetchWallet();
-      fetchPaymentMethods();
+  // Custom hook to fetch wallet and card data and manage related state
+  const {
+    fetchWallet,
+    fetchCard,
+    wallet,
+    card,
+    walletLoading,
+    cardLoading,
+    balance,
+    setBalance,
+  } = useWalletData(tokenClaims);
+
+  const fetchTransactions = async () => {
+    if (!tokenClaims?.userId) return;
+    setTxLoading(true);
+    try {
+      const data = await getWalletTransactions(tokenClaims.userId, 5);
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch wallet transactions:", err);
+      setTransactions([]);
+    } finally {
+      setTxLoading(false);
     }
-  }, [authLoading, tokenClaims?.userId]);
+  };
+
+  // Fetch wallet and payment methods on initial load (after auth state is known)
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchWallet();
+      await fetchPaymentMethods();
+      await fetchTransactions();
+    };
+
+    // Only fetch data once we know whether the user is authenticated or not
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [authLoading, tokenClaims?.userId]); // Or [] if effect doesn't need props or state
+
+  // Fetch card details once we have the wallet (to get the wallet ID)
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!wallet) {
+        return;
+      }
+      await fetchCard();
+    };
+    fetchData();
+  }, [wallet]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleLoadSuccess = newBalance => {
+    if (newBalance != null) {
+      setBalance(newBalance);
+    } else {
+      fetchWallet();
+    }
+    fetchTransactions();
+  };
 
   /** Called by WithdrawFundsDialog on success; refresh balance from withdraw response */
   const handleWithdrawSuccess = (withdrawResponse) => {
     setBalance(withdrawResponse.newBalance ?? 0);
+    fetchTransactions();
+  };
+
+  const formatTransactionDate = isoDate => {
+    if (!isoDate) return "";
+    return new Date(isoDate).toLocaleString("en-CA", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const formatTransactionAmount = (type, amount) => {
+    const value = Number(amount ?? 0);
+    const formatted = value.toLocaleString("en-CA", {
+      style: "currency",
+      currency: "CAD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return type === "LOAD" ? `+${formatted}` : `-${formatted}`;
   };
 
   // ── Formatting ────────────────────────────────────────────────────────────
@@ -102,25 +173,28 @@ export function Wallet() {
     maximumFractionDigits: 2,
   });
 
-  const isLoading = walletLoading || pmLoading;
+  const isLoading = walletLoading || pmLoading || cardLoading;
 
   return (
     <>
       <Navbar />
-      <Box sx={{ background: "#F8FAFC", minHeight: "100vh", py: 4 }}>
+      <Box sx={{background: "#F8FAFC", minHeight: "100vh", py: 4}}>
         <Container maxWidth="lg">
           {/* Page header */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.75, letterSpacing: "-0.04em" }}>
+          <Box sx={{mb: 3}}>
+            <Typography
+              variant="h4"
+              sx={{fontWeight: 800, mb: 0.75, letterSpacing: "-0.04em"}}
+            >
               Wallet
             </Typography>
-            <Typography sx={{ color: "#334155", fontSize: 15 }}>
-              Manage your SmartPay wallet, view your balance and load funds
-              to send money or make payments.
+            <Typography sx={{color: "#334155", fontSize: 15}}>
+              Manage your SmartPay wallet, view your balance and load funds to
+              send money or make payments.
             </Typography>
           </Box>
 
-          {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+          {isLoading && <LinearProgress sx={{mb: 2}} />}
 
           {/* Main wallet panel */}
           <Card
@@ -133,86 +207,70 @@ export function Wallet() {
             }}
           >
             <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={4}
-              alignItems={{ md: "flex-start" }}
+              direction={{xs: "column", md: "row"}}
+              spacing={16}
+              alignItems={{md: "flex-start"}}
             >
-              {/* Virtual card visual */}
-              <Box
-                sx={{
-                  width: 300,
-                  height: 180,
-                  flexShrink: 0,
-                  background: "linear-gradient(135deg, #062f3d 0%, #1a3a52 60%, #0f7490 100%)",
-                  borderRadius: "16px",
-                  p: "22px 24px",
-                  color: "#fff",
-                  boxShadow: "0 8px 32px rgba(15,36,54,.35)",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+              {/* Virtual card visual — sensitive fields blurred until OTP-verified */}
+              <VirtualCardDisplay
+                card={card}
+                user={user}
+                isRevealed={isRevealed}
+                onRevealClick={() => {
+                  if (isRevealed) {
+                    mask();
+                  } else {
+                    setRevealDialogOpen(true);
+                  }
                 }}
-              >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography sx={{ fontSize: 14, fontWeight: 800 }}>◉ SmartPay</Typography>
-                  <Box
-                    sx={{
-                      fontSize: 10,
-                      letterSpacing: ".12em",
-                      border: "1px solid rgba(255,255,255,.3)",
-                      borderRadius: "999px",
-                      px: 1.25,
-                      py: 0.5,
-                      opacity: 0.8,
-                    }}
-                  >
-                    VIRTUAL
-                  </Box>
-                </Box>
-                <Typography sx={{ fontFamily: "monospace", fontSize: 15, letterSpacing: ".18em", opacity: 0.65 }}>
-                  •••• •••• •••• ••••
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", fontSize: 10, opacity: 0.75 }}>
-                  <Box>
-                    <div>VALID THRU</div>
-                    <div style={{ opacity: 0.65 }}>••/••</div>
-                  </Box>
-                  <Typography sx={{ fontSize: 20, fontWeight: 900, fontStyle: "italic" }}>
-                    VISA
-                  </Typography>
-                </Box>
-              </Box>
+              />
 
               {/* Balance info + actions */}
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 800, color: "#8DA0BC", textTransform: "uppercase", letterSpacing: ".08em", mb: 0.75 }}>
+              <Box sx={{flex: 1}}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: "#8DA0BC",
+                    textTransform: "uppercase",
+                    letterSpacing: ".08em",
+                    mb: 0.75,
+                  }}
+                >
                   Wallet Balance
                 </Typography>
-                <Typography sx={{ fontSize: 44, fontWeight: 900, letterSpacing: "-0.05em", mb: 1.75 }}>
+                <Typography
+                  sx={{
+                    fontSize: 44,
+                    fontWeight: 900,
+                    letterSpacing: "-0.05em",
+                    mb: 1.75,
+                  }}
+                >
                   {formattedBalance}
                 </Typography>
 
-                <Divider sx={{ mb: 2.25 }} />
+                <Divider sx={{mb: 2.25}} />
 
-                <Typography sx={{ fontSize: 13, color: "#8DA0BC", mb: 0.5 }}>
+                <Typography sx={{fontSize: 13, color: "#8DA0BC", mb: 0.5}}>
                   Available Balance
                 </Typography>
-                <Typography sx={{ fontSize: 21, fontWeight: 800, mb: 3 }}>
+                <Typography sx={{fontSize: 21, fontWeight: 800, mb: 3}}>
                   {formattedBalance}
                 </Typography>
 
                 {/* Action buttons — Scenario 1: Withdraw Funds visible alongside Load Wallet */}
-                <Stack direction="row" spacing={1.5} sx={{ mb: 3.5 }}>
-                  {/* Load Wallet is a stub for a future story */}
+                <Stack direction="row" spacing={1.5} sx={{mb: 3.5}}>
                   <Button
                     variant="contained"
                     startIcon={<SouthWestIcon />}
-                    disabled
+                    onClick={() => setLoadWalletOpen(true)}
+                    disabled={paymentMethods.length === 0}
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
                       bgcolor: "#0F7490",
-                      "&:hover": { bgcolor: "#0A5A70" },
+                      "&:hover": {bgcolor: "#0A5A70"},
                       boxShadow: "0 6px 14px rgba(15,116,144,.3)",
                     }}
                   >
@@ -231,7 +289,7 @@ export function Wallet() {
                       borderColor: "#B2DDE8",
                       color: "#0A5A70",
                       bgcolor: "#E5F5FA",
-                      "&:hover": { bgcolor: "#CCE9F2", borderColor: "#0A5A70" },
+                      "&:hover": {bgcolor: "#CCE9F2", borderColor: "#0A5A70"},
                     }}
                   >
                     Withdraw Funds
@@ -240,28 +298,95 @@ export function Wallet() {
 
                 {/* No linked accounts message when Withdraw is unavailable */}
                 {!pmLoading && paymentMethods.length === 0 && (
-                  <Typography sx={{ fontSize: 13, color: "#64748B" }}>
-                    Link a bank account in Payment Methods to enable withdrawals.
+                  <Typography sx={{fontSize: 13, color: "#64748B"}}>
+                    Link a bank account in Payment Methods to load funds and
+                    withdraw.
                   </Typography>
                 )}
 
-                {/* Recent wallet activity — static placeholder (transaction history is a separate story) */}
+                {/* Recent wallet activity */}
                 <Box>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography sx={{fontSize: 16, fontWeight: 900}}>
                       Recent Wallet Activity
                     </Typography>
                     <Typography
                       component={RouterLink}
                       to="/transactions"
-                      sx={{ color: "#0F7490", fontSize: 13, fontWeight: 800, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                      sx={{
+                        color: "#0F7490",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        textDecoration: "none",
+                        "&:hover": {textDecoration: "underline"},
+                      }}
                     >
                       View all transactions →
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
-                    Transaction history will be available in a future update.
-                  </Typography>
+
+                  {txLoading ? (
+                    <Typography sx={{fontSize: 13, color: "#8DA0BC"}}>
+                      Loading activity...
+                    </Typography>
+                  ) : transactions.length === 0 ? (
+                    <Typography sx={{fontSize: 13, color: "#8DA0BC"}}>
+                      No wallet activity yet. Load funds to see your first
+                      transaction.
+                    </Typography>
+                  ) : (
+                    <Stack spacing={1.5}>
+                      {transactions.map(tx => (
+                        <Box
+                          key={tx.transactionId}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            py: 1.25,
+                            borderBottom: "1px solid #EEF2F7",
+                          }}
+                        >
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: 14,
+                                fontWeight: 700,
+                                color: "#0F172A",
+                              }}
+                            >
+                              {tx.description}
+                            </Typography>
+                            <Typography sx={{fontSize: 12, color: "#8DA0BC"}}>
+                              {formatTransactionDate(tx.createdAt)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{textAlign: "right"}}>
+                            <Typography
+                              sx={{
+                                fontSize: 14,
+                                fontWeight: 800,
+                                color:
+                                  tx.type === "LOAD" ? "#15803D" : "#DC2626",
+                              }}
+                            >
+                              {formatTransactionAmount(tx.type, tx.amount)}
+                            </Typography>
+                            <Typography sx={{fontSize: 12, color: "#8DA0BC"}}>
+                              {tx.status ?? "Completed"}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                 </Box>
               </Box>
             </Stack>
@@ -269,7 +394,22 @@ export function Wallet() {
         </Container>
       </Box>
 
-      {/* Withdrawal dialog — owns the 3-step flow (SRP) */}
+      <RevealCardDialog
+        open={revealDialogOpen}
+        email={tokenClaims?.email}
+        onSuccess={() => {
+          reveal();
+          setRevealDialogOpen(false);
+        }}
+        onClose={() => setRevealDialogOpen(false)}
+      />
+
+      <LoadWalletDialog
+        open={loadWalletOpen}
+        onClose={() => setLoadWalletOpen(false)}
+        onSuccess={handleLoadSuccess}
+      />
+
       <WithdrawFundsDialog
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}

@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,13 +30,30 @@ public class WalletTransaction {
     private String transactionId;
 
     @ManyToOne
-    @JoinColumn(name = "fk_wallet_id")
+    @JoinColumn(name = "fk_wallet_id", nullable = false)
     private Wallet wallet;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
     private WalletTransactionType type;
 
+    @Column(name = "amount", nullable = false)
     private Double amount;
 
+    @Column(name = "payment_method_id")
+    private Long paymentMethodId;
+
+    @Column(name = "bank_display_name")
+    private String bankDisplayName;
+
+    @Column(name = "status", nullable = false)
+    private String status = "COMPLETED";
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
 }

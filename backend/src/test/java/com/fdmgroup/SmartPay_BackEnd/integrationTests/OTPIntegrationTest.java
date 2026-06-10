@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.IntegrationTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +18,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.system.AuditLogRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
-
-import jakarta.persistence.EntityManager;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
@@ -39,6 +41,12 @@ public class OTPIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WalletService walletService;
+
+    @Autowired
+    private CardService cardService;
 
     @Autowired
     private OtpRepository otpRepository;
@@ -52,29 +60,15 @@ public class OTPIntegrationTest {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
-    @Autowired
-    private EntityManager entityManager;
-
     private User user;
 
     @Autowired
-    private PlatformTransactionManager transactionManager;
+    private IntegrationTestHelper helper;
 
     @BeforeEach
     void setUp() {
-        TransactionTemplate tx = new TransactionTemplate(transactionManager);
-        tx.execute(status -> {
-            entityManager.createNativeQuery("DELETE FROM sessions").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM chequing_accounts").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM user_account_table").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM payment_methods").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM accounts").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
-            return null;
-        });
+
+        helper.clearDB();
 
         user = User.builder()
                 .firstName("Test")
@@ -87,13 +81,15 @@ public class OTPIntegrationTest {
                 .build();
 
         userRepository.save(user);
-
     }
 
     @Test
     void shouldVerifyLoginOtpAndGenerateTokens() throws Exception {
         String rawCode = "1234567";
         String hashedCode = passwordEncoder.encode(rawCode);
+
+        Wallet wallet = walletService.createWallet(user.getId());
+        cardService.createCard(wallet);
 
         Otp otp = new Otp("test@test.com", EventType.LOGIN);
         otp.setOtpHash(hashedCode);

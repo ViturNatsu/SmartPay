@@ -2,7 +2,12 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.auth;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.LoginResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpRequestDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
@@ -42,6 +49,10 @@ public class OtpController {
     UserService userService;
     JwtSessionService jwtSessionService;
     SessionService sessionService;
+    TransactionExecutor transactionExecutor;
+    WalletService walletService;
+    CardService cardService;
+
 
     @Operation(summary = "Request password reset", description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists.")
     @ApiResponses(value = {
@@ -55,7 +66,7 @@ public class OtpController {
         HttpStatus status;
 
         switch (dto.getType()) {
-            case LOGIN, REGISTER, FORGOT_PASSWORD ->
+            case LOGIN, REGISTER, FORGOT_PASSWORD, REVEAL_CARD ->
                 status = otpService.requestOtp(dto.getEmail(), dto.getType(), httpRequest);
             default -> {
                 log.error("Unknown OTP type encountered");
@@ -82,6 +93,7 @@ public class OtpController {
         switch (payload.getType()) {
             case LOGIN -> {
                 User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
+
                 sessionService.deleteAllUserSessions(user);
                 String accessToken = jwtSessionService.createAccessToken(user);
                 String refreshToken = jwtSessionService.createRefreshToken(user);
@@ -89,21 +101,46 @@ public class OtpController {
                 sessionService.generateNewSession(user, refreshToken);
 
                 otp.markAsUsed();
-                otpService.save(otp);
+                WalletResponseDTO wallet = walletService.getWalletByUserId(user.getId());
+
+                transactionExecutor.execute(() -> {
+                    // Mark the OTP as used
+                    otpService.save(otp);
+                    // Check if the card linked to the wallet is expired, and renew if necessary
+                    cardService.renewIfExpired(wallet.getWallet_id());
+                });
+
                 return ResponseEntity.ok(new LoginResponseDTO(user.getId(), accessToken, refreshToken));
             }
             case REGISTER -> {
                 User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
                 user.setEmailVerified(true);
                 user.setEmailVerifiedAt(LocalDateTime.now());
-                userService.save(user);
 
-                otp.markAsUsed();
-                otpService.save(otp);
+                transactionExecutor.execute(() -> {
+
+                    //Update the user into a verified state
+                    userService.save(user);
+                    //Mark the OTP as used
+                    otp.markAsUsed();
+                    //Update the OTP in the DB
+                    otpService.save(otp);
+                    //Create Wallet associated to the account
+                    Wallet wallet = walletService.createWallet(user.getId());
+                    //Create Virtual Card associated to the wallet
+                    cardService.createCard(wallet);
+                });
+
                 return ResponseEntity.ok(Map.of("verified", true));
             }
             case FORGOT_PASSWORD -> {
                 // Do not mark as used here. The password reset endpoint consumes the code.
+                return ResponseEntity.ok(Map.of("verified", true));
+            }
+            case REVEAL_CARD -> {
+                // Mark as used immediately — the frontend unlocks the card UI on success.
+                otp.markAsUsed();
+                otpService.save(otp);
                 return ResponseEntity.ok(Map.of("verified", true));
             }
             default -> {

@@ -4,6 +4,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.IntegrationTestHelper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.annotation.DirtiesContext;
@@ -13,16 +15,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
-
-import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
@@ -44,28 +42,14 @@ public class AuthSessionIntegrationTest {
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
-	private PlatformTransactionManager transactionManager;
-
-	@Autowired
-	private EntityManager entityManager;
+	private IntegrationTestHelper helper;
 
 	private User testUser;
 
 	@BeforeEach
 	void setup() {
-		TransactionTemplate tx = new TransactionTemplate(transactionManager);
-		tx.execute(status -> {
-			entityManager.createNativeQuery("DELETE FROM sessions").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM audit_log").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM customer_information").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM otp").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM chequing_accounts").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM user_account_table").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM payment_methods").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM accounts").executeUpdate();
-			entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
-			return null;
-		});
+
+		helper.clearDB();
 
 		testUser = User.builder()
 				.firstName("Test")

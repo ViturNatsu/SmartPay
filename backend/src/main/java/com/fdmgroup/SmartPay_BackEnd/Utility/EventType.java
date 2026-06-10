@@ -5,5 +5,6 @@ public enum EventType {
     REGISTER,
     LOGIN,
     LOGOUT,
-    SESSION_EXPIRED
+    SESSION_EXPIRED,
+    REVEAL_CARD
 }

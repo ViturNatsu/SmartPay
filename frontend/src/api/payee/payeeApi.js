@@ -10,3 +10,21 @@ export async function addPayee(payload) {
     throw handleAxiosError(err);
   }
 }
+
+export async function getPayees() {
+  try {
+    const res = await axiosInstance.get(`${PAYEE_URL}`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function deletePayee(payeeId) {
+  try {
+    const res = await axiosInstance.delete(`${PAYEE_URL}/${payeeId}`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}

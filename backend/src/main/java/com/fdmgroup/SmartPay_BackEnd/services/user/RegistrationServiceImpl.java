@@ -2,6 +2,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.user;
 
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.user.CustomerDTO;
@@ -17,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
 import lombok.AllArgsConstructor;
 
+@Transactional
 @Service
 @AllArgsConstructor
 public class RegistrationServiceImpl implements RegistrationService {
@@ -24,6 +29,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
     private final CustomerService customerService;
     private final CustomerRepository customerRepository;
+
+    private final WalletService walletService;
+    private final CardService cardService;
+
 
     @Override
     public User register(SignUpDTO userDto) throws DuplicateEmailException {
@@ -111,6 +120,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .build();
 
         customerRepository.save(customer);
+
         return savedUser;
     }
 

@@ -189,6 +189,39 @@ export async function setupAPIMocks(page) {
         });
     });
 
+    // http://localhost:8080/api/v1/wallets
+    // ── Wallet details (getMyWallet) ── 
+    await page.route('**/api/v1/wallets/*', async (route) => {
+        if (route.request().method() === 'OPTIONS') {
+            await route.fulfill({ status: 204, headers: corsHeaders() });
+            return;
+        }
+        await route.fulfill({
+            contentType: 'application/json',
+            headers: corsHeaders(),
+            body: JSON.stringify({"wallet_id":1,"balance":0.0}),
+        });
+    }); 
+
+    // http://localhost:8080/api/v1/cards
+    // ── Card details (getMyCard) ──
+    await page.route('**/api/v1/cards/*', async (route) => {
+        if (route.request().method() === 'OPTIONS') {
+            await route.fulfill({ status: 204, headers: corsHeaders() });
+            return;
+        }
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            headers: corsHeaders(),
+            body: JSON.stringify({
+                "virtualCardNumber": "6400345678901234",
+                "expiryDate": "2028-06-04T00:00:00",
+                "CVV": "123"
+            }),
+        });
+    });
+
     // ── Accounts ──
     let createdAccounts = [];
     await page.route('**/api/v1/accounts**', async (route) => {

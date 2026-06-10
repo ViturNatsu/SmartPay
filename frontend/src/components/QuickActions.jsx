@@ -4,12 +4,18 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 const ACTIONS = [
   {
     text: "Add a Payee",
     icon: PersonAddAlt1OutlinedIcon,
     href: "/add-payee",
+  },
+  {
+    text: "Manage Payees",
+    icon: PeopleAltOutlinedIcon,
+    href: "/payees",
   },
   {
     text: "Send Money",
@@ -19,11 +25,11 @@ const ACTIONS = [
   {
     text: "Load Wallet",
     icon: AccountBalanceWalletOutlinedIcon,
-    href: "/payment-methods",
+    action: "loadWallet",
   },
 ];
 
-function QuickActions() {
+function QuickActions({ onLoadWallet }) {
   return (
     <Card
       elevation={0}
@@ -48,11 +54,12 @@ function QuickActions() {
         Quick Actions
       </Typography>
       <Stack spacing={1.25} sx={{ mt: 1.5 }}>
-        {ACTIONS.map(({ text, icon: Icon, href }) => (
+        {ACTIONS.map(({ text, icon: Icon, href, action }) => (
           <ButtonBase
             key={text}
-            component={RouterLink}
-            to={href}
+            component={action === "loadWallet" ? "button" : RouterLink}
+            to={action === "loadWallet" ? undefined : href}
+            onClick={action === "loadWallet" ? onLoadWallet : undefined}
             sx={{
               width: "100%",
               display: "flex",
