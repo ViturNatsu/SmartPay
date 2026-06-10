@@ -38,5 +38,15 @@ export const useWalletData = (tokenClaims) => {
         }
     }
 
-    return {fetchWallet, fetchCard, wallet, card, walletLoading, cardLoading, balance, setBalance};
+    return {
+        fetchWallet,
+        fetchCard,
+        wallet,
+        setWallet,
+        card,
+        walletLoading,
+        cardLoading,
+        balance,
+        setBalance
+    };
 }

@@ -136,19 +136,21 @@ public class WalletController {
     }
 
     @GetMapping("/{userId}/transactions")
-    @Operation(summary = "Get wallet transaction history",
-               description = "Returns recent wallet load and withdraw events for the authenticated user.")
-    public ResponseEntity<List<WalletTransactionDTO>> getWalletTransactions(
+    public ResponseEntity<List<WalletTransactionDTO>> getTransactions(
             @PathVariable long userId,
             @RequestParam(defaultValue = "10") int limit,
             Authentication authentication) {
+
         User principalUser = (User) authentication.getPrincipal();
+
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        WalletResponseDTO updated = walletService.withdrawFunds(userId, request);
-        return ResponseEntity.ok(updated);
+        List<WalletTransactionDTO> transactions =
+                walletService.getTransactions(userId, limit);
+
+        return ResponseEntity.ok(transactions);
     }
 
     @PostMapping("/{userId}/transfer")

@@ -47,9 +47,9 @@ import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
 export function Wallet() {
   const { user, tokenClaims, loading: authLoading } = useAuth();
 
-  const [wallet, setWallet] = useState(null);
-  const [balance, setBalance] = useState(0);
-  const [walletLoading, setWalletLoading] = useState(true);
+  // const [wallet, setWallet] = useState(null);
+  // const [balance, setBalance] = useState(0);
+  // const [walletLoading, setWalletLoading] = useState(true);
 
   // Active linked bank accounts — only these may be selected as destinations (Scenario 2)
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -63,19 +63,19 @@ export function Wallet() {
 
   // ── Data fetching ─────────────────────────────────────────────────────────
 
-  const fetchWallet = async () => {
-    if (!tokenClaims?.userId) return;
-    setWalletLoading(true);
-    try {
-      const wallet = await getWalletByUserId(Number(tokenClaims.userId));
-      setWallet(wallet);
-      setBalance(wallet.balance ?? 0);
-    } catch (err) {
-      console.error("Failed to fetch wallet:", err);
-    } finally {
-      setWalletLoading(false);
-    }
-  };
+  // const fetchWallet = async () => {
+  //   if (!tokenClaims?.userId) return;
+  //   setWalletLoading(true);
+  //   try {
+  //     const wallet = await getWalletByUserId(Number(tokenClaims.userId));
+  //     fetchWallet();
+  //     fetchTransactions();
+  //   } catch (err) {
+  //     console.error("Failed to fetch wallet:", err);
+  //   } finally {
+  //     setWalletLoading(false);
+  //   }
+  // };
 
   const fetchPaymentMethods = async () => {
     if (!tokenClaims?.userId) return;
@@ -93,7 +93,17 @@ export function Wallet() {
   };
 
   // Custom hook to fetch wallet and card data and manage related state
-  const {fetchWallet, fetchCard, wallet, card, walletLoading, cardLoading, balance, setBalance} = useWalletData(tokenClaims);
+  const {
+    fetchWallet,
+    fetchCard,
+    wallet,
+    card,
+    walletLoading,
+    cardLoading,
+    balance,
+    setBalance,
+    setWallet
+  } = useWalletData(tokenClaims);
 
   const fetchTransactions = async () => {
     if (!tokenClaims?.userId) return;

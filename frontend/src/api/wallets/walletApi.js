@@ -53,48 +53,6 @@ export async function updatePerTransactionLimit(userId, payload) {
   }
 }
 
-/**
- * Updates the wallet-level daily spending limit.
- *
- * POST /api/v1/wallets/{userId}/limits/daily
- *
- * @param {number} userId
- * @param {{ dailySpendingLimit: number | null }} payload
- * @returns {Promise<Object>} Updated wallet object
- */
-export async function updateDailySpendingLimit(userId, payload) {
-  try {
-    const res = await axiosInstance.post(
-      `${WALLETS_URL}/${userId}/limits/daily`,
-      payload
-    );
-    return res.data;
-  } catch (err) {
-    throw handleAxiosError(err);
-  }
-}
-
-/**
- * Updates the wallet-level per-transaction spending limit.
- *
- * POST /api/v1/wallets/{userId}/limits/per-transaction
- *
- * @param {number} userId
- * @param {{ perTransactionLimit: number | null }} payload
- * @returns {Promise<Object>} Updated wallet object
- */
-export async function updatePerTransactionLimit(userId, payload) {
-  try {
-    const res = await axiosInstance.post(
-      `${WALLETS_URL}/${userId}/limits/per-transaction`,
-      payload
-    );
-    return res.data;
-  } catch (err) {
-    throw handleAxiosError(err);
-  }
-}
-
 export async function loadWallet(paymentMethodId, amount) {
   try {
     const res = await axiosInstance.post(`${WALLETS_URL}/load`, {

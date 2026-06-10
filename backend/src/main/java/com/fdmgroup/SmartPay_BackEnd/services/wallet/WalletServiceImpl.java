@@ -79,7 +79,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public Wallet loadFunds(long userId, LoadWalletRequestDTO request) {
+    public WalletResponseDTO loadFunds(long userId, LoadWalletRequestDTO request) {
         PaymentMethod paymentMethod = paymentRepository
                 .findByPaymentMethodIdAndUser_Id(request.getPaymentMethodId(), userId)
                 .orElseThrow(() -> new PaymentMethodNotFoundException("Payment method not found"));
@@ -106,7 +106,7 @@ public class WalletServiceImpl implements WalletService {
         Wallet savedWallet = walletRepository.save(wallet);
 
         recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod);
-        return savedWallet;
+        return mapToDto(savedWallet);
     }
 
     @Override
@@ -181,15 +181,60 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
-        Wallet senderWallet = getWalletByUserId(senderUserId);
+        Wallet senderWallet = walletRepository.findByUserId(senderUserId)
+        .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
 
-        if (senderWallet.getBalance() < amount) {
-            throw new InsufficientFundsException("Insufficient wallet balance to complete this transfer.");
+        LocalDate today = LocalDate.now();
+
+        System.out.println("TRANSFER AMOUNT = " + amount);
+        System.out.println("PER TX LIMIT = " + senderWallet.getPerTransactionLimit());
+        System.out.println("DAILY LIMIT = " + senderWallet.getDailySpendingLimit());
+        System.out.println("DAILY SPENT = " + senderWallet.getDailySpentAmount());
+            
+        if (amount == null || amount <= 0) {
+            throw new InvalidWithdrawAmountException(
+                "Amount must be greater than $0.00"
+            );
         }
 
-        Wallet recipientWallet = getWalletByUserId(recipientUserId);
+        if (senderWallet.getBalance() < amount) {
+            throw new InsufficientFundsException(
+                "Insufficient wallet balance"
+            );
+        }
 
-        senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
+        if (senderWallet.getDailySpentDate() == null 
+                || !senderWallet.getDailySpentDate().equals(today)) {
+            senderWallet.setDailySpentDate(today);
+            senderWallet.setDailySpentAmount(0.0);
+        }
+
+        if (senderWallet.getPerTransactionLimit() != null
+                && amount > senderWallet.getPerTransactionLimit()) {
+            throw new InvalidWithdrawAmountException(
+                    "This transfer exceeds your wallet per-transaction limit of $"
+                            + String.format("%.2f", senderWallet.getPerTransactionLimit()));
+        }
+
+        if (senderWallet.getDailySpendingLimit() != null
+                && senderWallet.getDailySpentAmount() + amount > senderWallet.getDailySpendingLimit()) {
+            throw new InvalidWithdrawAmountException(
+                    "This transfer exceeds your wallet daily spending limit of $"
+                            + String.format("%.2f", senderWallet.getDailySpendingLimit()));
+        }
+
+        Wallet recipientWallet = walletRepository.findByUserId(recipientUserId)
+        .orElseGet(() -> createWallet(recipientUserId));
+
+        senderWallet.setBalance(
+            Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0
+        );
+
+        senderWallet.setDailySpentAmount(
+            senderWallet.getDailySpentAmount() + amount
+        );
+        senderWallet.setDailySpentDate(today);
+
         walletRepository.save(senderWallet);
 
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);

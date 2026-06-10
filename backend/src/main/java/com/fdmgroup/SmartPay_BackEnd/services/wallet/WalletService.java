@@ -33,7 +33,7 @@ public interface WalletService {
      */
     WalletResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request);
 
-    Wallet loadFunds(long userId, LoadWalletRequestDTO request);
+    WalletResponseDTO  loadFunds(long userId, LoadWalletRequestDTO request);
 
     List<WalletTransactionDTO> getTransactions(long userId, int limit);
 
