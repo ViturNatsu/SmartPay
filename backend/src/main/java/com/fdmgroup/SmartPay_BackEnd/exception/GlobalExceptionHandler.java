@@ -228,6 +228,15 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "message", "An unexpected error occurred"
+                ));
+        }
+
         @ExceptionHandler(InvalidPayeeException.class)
         public ResponseEntity<Map<String, String>> handleInvalidPayee(InvalidPayeeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
