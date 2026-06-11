@@ -19,8 +19,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransferDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
@@ -42,8 +42,7 @@ public class WalletController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "Get wallet by user ID",
-               description = "Retrieve the wallet associated with a specific user ID. "
-                           + "If the wallet does not exist, a new wallet will be created for the user.")
+               description = "Retrieve the wallet associated with a specific user ID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Wallet retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User with specified ID not found")
@@ -124,7 +123,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
     })
-    public ResponseEntity<WalletResponseDTO> withdrawFunds(
+    public ResponseEntity<WithdrawResponseDTO> withdrawFunds(
             @PathVariable long userId,
             @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
@@ -142,15 +141,10 @@ public class WalletController {
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
-
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        List<WalletTransactionDTO> transactions =
-                walletService.getTransactions(userId, limit);
-
-        return ResponseEntity.ok(transactions);
+        return ResponseEntity.ok(walletService.getTransactions(userId, limit));
     }
 
     @PostMapping("/{userId}/transfer")
@@ -173,20 +167,6 @@ public class WalletController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Updates the wallet-level per-transaction spending limit for the authenticated user.
-     *
-     * The per-transaction limit applies to any single outgoing wallet transaction,
-     * regardless of which linked funding source is used.
-     *
-     * Ownership is verified before updating the limit to ensure users can only
-     * modify limits on their own wallet.
-     *
-     * @param userId the owner of the wallet
-     * @param request DTO containing the new per-transaction limit
-     * @param authentication the authenticated user principal
-     * @return the updated wallet containing the new per-transaction limit
-     */
     @PostMapping("/{userId}/limits/per-transaction")
     @Operation(summary = "Update wallet per-transaction spending limit",
             description = "Updates the wallet-level per-transaction spending limit.")
@@ -201,14 +181,9 @@ public class WalletController {
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
-
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        WalletResponseDTO updatedWallet =
-                walletService.updatePerTransactionLimit(userId, request);
-
-        return ResponseEntity.ok(updatedWallet);
+        return ResponseEntity.ok(walletService.updatePerTransactionLimit(userId, request));
     }
 }

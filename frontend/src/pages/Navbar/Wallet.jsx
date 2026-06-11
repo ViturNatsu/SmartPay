@@ -142,16 +142,15 @@ export function Wallet() {
     fetchTransactions();
   };
 
-  /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
-  const handleWithdrawSuccess = (updatedWallet) => {
+  /** Called by WithdrawFundsDialog on success; refresh balance from withdraw response */
+  const handleWithdrawSuccess = (withdrawResponse) => {
+    setBalance(withdrawResponse.newBalance ?? 0);
+    fetchTransactions();
+  };
+
+  const handleWalletLimitsSuccess = (updatedWallet) => {
     setWallet(updatedWallet);
     setBalance(updatedWallet.balance ?? 0);
-  };
-  
-  const handleWalletLimitsSuccess = (updatedWallet) => {
-  setWallet(updatedWallet);
-  setBalance(updatedWallet.balance ?? 0);
-    fetchTransactions();
   };
 
   const formatTransactionDate = isoDate => {

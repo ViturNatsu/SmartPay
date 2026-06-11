@@ -24,8 +24,10 @@ public class WalletTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "transaction_id")
-    private Long transactionId;
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String transactionId;
 
     @ManyToOne
     @JoinColumn(name = "fk_wallet_id", nullable = false)
@@ -52,6 +54,6 @@ public class WalletTransaction {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now();
     }
 }

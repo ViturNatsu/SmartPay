@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class WalletTransactionDTO {
 
-    private Long transactionId;
+    private String transactionId;
     private WalletTransactionType type;
     private Double amount;
     private String bankDisplayName;

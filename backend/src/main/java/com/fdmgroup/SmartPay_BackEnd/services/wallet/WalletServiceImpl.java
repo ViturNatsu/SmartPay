@@ -1,9 +1,10 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.data.domain.PageRequest;
@@ -11,8 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -21,15 +25,13 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionTyp
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
-import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 
 @Service
 public class WalletServiceImpl implements WalletService {
@@ -71,10 +73,8 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     @Override
     public WalletResponseDTO getWalletByUserId(long userId) {
-        Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
-        Wallet wallet = optionalWallet.orElseThrow();
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
         return mapToDto(wallet);
-
     }
 
     @Override
@@ -99,7 +99,6 @@ public class WalletServiceImpl implements WalletService {
         account.setBalance(accountBalance - amount);
         accountRepository.save(account);
 
-
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
         double walletBalance = wallet.getBalance() != null ? wallet.getBalance() : 0.0;
         wallet.setBalance(walletBalance + amount);
@@ -109,19 +108,21 @@ public class WalletServiceImpl implements WalletService {
         return mapToDto(savedWallet);
     }
 
+    /**
+     * Validates amount, spending limits, payment method ownership, then deducts
+     * the balance and persists a WalletTransaction with a unique TXN-{UUID} ID.
+     * Returns a WithdrawResponseDTO containing the transaction ID and new balance.
+     */
     @Override
     @Transactional
-    public WalletResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
-        // Scenario 8: reject zero / negative / null amounts
+    public WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
         if (request.getAmount() == null || request.getAmount() <= 0) {
             throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
         }
 
-        Optional<Wallet> optionalWallet = walletRepository.findByUserId(userId);
-        Wallet wallet = optionalWallet.orElseThrow();
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
 
         LocalDate today = LocalDate.now();
-
         if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(today)) {
             wallet.setDailySpentDate(today);
             wallet.setDailySpentAmount(0.0);
@@ -141,14 +142,12 @@ public class WalletServiceImpl implements WalletService {
                             + String.format("%.2f", wallet.getDailySpendingLimit()));
         }
 
-        // Scenario 7: reject amounts that exceed available balance
         if (request.getAmount() > wallet.getBalance()) {
             throw new InsufficientFundsException(
                 "You cannot withdraw more than the Wallet balance of $"
                 + String.format("%.2f", wallet.getBalance()));
         }
 
-        // Verify the destination payment method is active and belongs to this user
         PaymentMethod paymentMethod = paymentMethodService.findPaymentMethodById(request.getPaymentMethodId());
         if (!paymentMethod.getUser().getId().equals(userId)) {
             throw new InvalidWithdrawAmountException("Payment method does not belong to this user");
@@ -157,15 +156,19 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidWithdrawAmountException("Selected payment method is not active");
         }
 
-        // Deduct the amount and persist
         wallet.setBalance(wallet.getBalance() - request.getAmount());
-        
         wallet.setDailySpentAmount(wallet.getDailySpentAmount() + request.getAmount());
         wallet.setDailySpentDate(today);
-
         Wallet savedWallet = walletRepository.save(wallet);
-        recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
-        return mapToDto(wallet);
+
+        WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
+
+        WithdrawResponseDTO response = new WithdrawResponseDTO();
+        response.setTransactionId(tx.getTransactionId());
+        response.setNewBalance(savedWallet.getBalance());
+        response.setAmount(request.getAmount());
+        response.setCreatedAt(tx.getCreatedAt());
+        return response;
     }
 
     @Override
@@ -182,28 +185,19 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
         Wallet senderWallet = walletRepository.findByUserId(senderUserId)
-        .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
+                .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
 
         LocalDate today = LocalDate.now();
 
-        System.out.println("TRANSFER AMOUNT = " + amount);
-        System.out.println("PER TX LIMIT = " + senderWallet.getPerTransactionLimit());
-        System.out.println("DAILY LIMIT = " + senderWallet.getDailySpendingLimit());
-        System.out.println("DAILY SPENT = " + senderWallet.getDailySpentAmount());
-            
         if (amount == null || amount <= 0) {
-            throw new InvalidWithdrawAmountException(
-                "Amount must be greater than $0.00"
-            );
+            throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
         }
 
         if (senderWallet.getBalance() < amount) {
-            throw new InsufficientFundsException(
-                "Insufficient wallet balance"
-            );
+            throw new InsufficientFundsException("Insufficient wallet balance");
         }
 
-        if (senderWallet.getDailySpentDate() == null 
+        if (senderWallet.getDailySpentDate() == null
                 || !senderWallet.getDailySpentDate().equals(today)) {
             senderWallet.setDailySpentDate(today);
             senderWallet.setDailySpentAmount(0.0);
@@ -224,32 +218,68 @@ public class WalletServiceImpl implements WalletService {
         }
 
         Wallet recipientWallet = walletRepository.findByUserId(recipientUserId)
-        .orElseGet(() -> createWallet(recipientUserId));
+                .orElseGet(() -> createWallet(recipientUserId));
 
-        senderWallet.setBalance(
-            Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0
-        );
-
-        senderWallet.setDailySpentAmount(
-            senderWallet.getDailySpentAmount() + amount
-        );
+        senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
+        senderWallet.setDailySpentAmount(senderWallet.getDailySpentAmount() + amount);
         senderWallet.setDailySpentDate(today);
-
         walletRepository.save(senderWallet);
 
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
         walletRepository.save(recipientWallet);
     }
 
-    private void recordTransaction(Wallet wallet, WalletTransactionType type, double amount, PaymentMethod paymentMethod) {
+    @Override
+    @Transactional
+    public WalletResponseDTO updateDailySpendingLimit(long userId, WalletDailyLimitRequestDTO request) {
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+
+        if (request.getDailySpendingLimit() == null) {
+            wallet.setDailySpendingLimit(null);
+            return mapToDto(walletRepository.save(wallet));
+        }
+
+        if (request.getDailySpendingLimit() <= 0) {
+            throw new InvalidWithdrawAmountException("Daily spending limit must be greater than $0.00");
+        }
+
+        wallet.setDailySpendingLimit(request.getDailySpendingLimit());
+        return mapToDto(walletRepository.save(wallet));
+    }
+
+    @Override
+    @Transactional
+    public WalletResponseDTO updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request) {
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+
+        if (request.getPerTransactionLimit() == null) {
+            wallet.setPerTransactionLimit(null);
+            return mapToDto(walletRepository.save(wallet));
+        }
+
+        if (request.getPerTransactionLimit() <= 0) {
+            throw new WalletLimitExceededException("Per-transaction limit must be greater than $0.00");
+        }
+
+        wallet.setPerTransactionLimit(request.getPerTransactionLimit());
+        return mapToDto(walletRepository.save(wallet));
+    }
+
+    private WalletTransaction recordTransaction(
+            Wallet wallet,
+            WalletTransactionType type,
+            double amount,
+            PaymentMethod paymentMethod) {
         WalletTransaction transaction = new WalletTransaction();
+        transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
         transaction.setWallet(wallet);
         transaction.setType(type);
         transaction.setAmount(amount);
         transaction.setPaymentMethodId(paymentMethod.getPaymentMethodId());
         transaction.setBankDisplayName(paymentMethod.getBankDisplayName());
         transaction.setStatus("COMPLETED");
-        walletTransactionRepository.save(transaction);
+        transaction.setCreatedAt(LocalDateTime.now());
+        return walletTransactionRepository.save(transaction);
     }
 
     private WalletTransactionDTO toDto(WalletTransaction transaction) {
@@ -274,75 +304,13 @@ public class WalletServiceImpl implements WalletService {
         return "Withdraw to " + bank;
     }
 
-    private WalletResponseDTO mapToDto(Wallet wallet){
-        WalletResponseDTO walletResponseDTO = new WalletResponseDTO();
-        
-        walletResponseDTO.setBalance(wallet.getBalance());
-        walletResponseDTO.setWallet_id(wallet.getWalletId());
-
-        walletResponseDTO.setDailySpendingLimit(wallet.getDailySpendingLimit());
-        walletResponseDTO.setPerTransactionLimit(wallet.getPerTransactionLimit());
-        walletResponseDTO.setDailySpentAmount(wallet.getDailySpentAmount());
-        return walletResponseDTO;
-    }
-
-    
-
-    @Override
-    @Transactional
-    public WalletResponseDTO updateDailySpendingLimit(long userId,
-                                       WalletDailyLimitRequestDTO request) {
-
-        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
-
-        if (request.getDailySpendingLimit() == null) {
-            wallet.setDailySpendingLimit(null);
-            Wallet savedWallet = walletRepository.save(wallet);
-            return mapToDto(savedWallet);
-        }
-
-        if (request.getDailySpendingLimit() <= 0) {
-            throw new InvalidWithdrawAmountException(
-                    "Daily spending limit must be greater than $0.00");
-        }
-
-        wallet.setDailySpendingLimit(request.getDailySpendingLimit());
-
-        Wallet savedWallet = walletRepository.save(wallet);
-        return mapToDto(savedWallet);
-    }
-
-    /**
-     * Updates the wallet-level per-transaction spending limit.
-     *
-     * Validation rules:
-     * 1. Limit must not be null
-     * 2. Limit must be greater than $0.00
-     *
-     * The limit applies to any single outgoing wallet transaction,
-     * regardless of which linked funding source is used.
-     */
-    @Override
-    @Transactional
-    public WalletResponseDTO  updatePerTransactionLimit(long userId,
-                                        WalletPerTransactionLimitRequestDTO request) {
-
-        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
-
-        if (request.getPerTransactionLimit() == null) {
-            wallet.setPerTransactionLimit(null);
-            Wallet savedWallet = walletRepository.save(wallet);
-            return mapToDto(savedWallet);
-        }
-
-        if (request.getPerTransactionLimit() <= 0) {
-            throw new WalletLimitExceededException(
-                    "Per-transaction limit must be greater than $0.00");
-        }
-
-        wallet.setPerTransactionLimit(request.getPerTransactionLimit());
-        
-        Wallet savedWallet = walletRepository.save(wallet);
-        return mapToDto(savedWallet);
+    private WalletResponseDTO mapToDto(Wallet wallet) {
+        WalletResponseDTO dto = new WalletResponseDTO();
+        dto.setBalance(wallet.getBalance());
+        dto.setWallet_id(wallet.getWalletId());
+        dto.setDailySpendingLimit(wallet.getDailySpendingLimit());
+        dto.setPerTransactionLimit(wallet.getPerTransactionLimit());
+        dto.setDailySpentAmount(wallet.getDailySpentAmount());
+        return dto;
     }
 }

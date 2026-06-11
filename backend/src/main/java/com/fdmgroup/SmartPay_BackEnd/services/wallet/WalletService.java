@@ -3,12 +3,12 @@ package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 import java.util.List;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
@@ -23,15 +23,12 @@ public interface WalletService {
     WalletResponseDTO getWalletByUserId(long userId);
 
     /**
-     * Deducts the requested amount from the user's wallet and returns the
-     * updated Wallet. Throws {@code InvalidWithdrawAmountException} when the
-     * amount is ≤ 0, and {@code InsufficientFundsException} when the amount
-     * exceeds the current balance.
-     *
-     * @param userId  the owner of the wallet
-     * @param request DTO containing the amount and destination payment method ID
+     * Deducts the requested amount from the user's wallet, persists a
+     * {@code WalletTransaction} record with a unique UUID transaction ID, and
+     * returns a {@code WithdrawResponseDTO} containing the transaction ID and
+     * updated balance.
      */
-    WalletResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request);
+    WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request);
 
     WalletResponseDTO  loadFunds(long userId, LoadWalletRequestDTO request);
 
