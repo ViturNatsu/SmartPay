@@ -23,9 +23,9 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 @Service
 public class PayeeServiceImpl implements PayeeService {
 
-    private PayeeRepository payeeRepository;
-    private UserRepository userRepository;
-    private CustomerRepository customerRepository;
+    private final PayeeRepository payeeRepository;
+    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
 
     public PayeeServiceImpl(PayeeRepository payeeRepository, UserRepository userRepository,
             CustomerRepository customerRepository) {
@@ -41,17 +41,18 @@ public class PayeeServiceImpl implements PayeeService {
 
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
+
         User recipient;
         if (recipientIdentifier.contains("@")) {
             recipient = userRepository.findByEmail(recipientIdentifier)
                     .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
         } else {
             Customer customer = customerRepository.findByPhoneNumber(recipientIdentifier)
-                    .orElseThrow(
-                            () -> new UserNotFoundException("SmartPay user not found"));
+                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
             recipient = customer.getUser();
         }
-        if(recipient.getRole().equals(Role.ADMIN)){
+
+        if (recipient.getRole().equals(Role.ADMIN)) {
             throw new InvalidPayeeException("SmartPay user not found");
         }
 

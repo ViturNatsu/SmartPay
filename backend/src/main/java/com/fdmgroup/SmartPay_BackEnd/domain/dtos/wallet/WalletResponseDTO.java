@@ -23,4 +23,10 @@ public class WalletResponseDTO {
 
     @NotBlank
     private Double balance;
+
+    private Double dailySpendingLimit;
+
+    private Double perTransactionLimit;
+
+    private Double dailySpentAmount;
 }

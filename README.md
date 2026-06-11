@@ -7,7 +7,7 @@ SmartPay is a full-stack banking application that features OTP (one-time passwor
 Make sure you have the following installed:
 
 - [Git](https://git-scm.com/install/)
-- [Java 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+- [Java 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
 - [MailHog](https://github.com/mailhog/MailHog)
 - [Node.js](https://nodejs.org/en/download)
 - Code editor of your choice
