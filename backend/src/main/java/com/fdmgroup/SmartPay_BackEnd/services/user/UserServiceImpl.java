@@ -21,12 +21,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.*;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 
 @Service
-//@AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
+    private final UserRepository userRepository;
     private final EncoderConfig encoderConfig;
     
     public UserServiceImpl(UserRepository userRepository, EncoderConfig encoderConfig) {
@@ -127,7 +124,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(
+                .orElseThrow(() -> new UserNotFoundException(
                         "User not found with id: " + userId));
     }
 

@@ -66,6 +66,17 @@ export async function sendVerifyCode(payload) {
       code: payload.code,
       type: apiType(payload.type),
     });
+
+    const { accessToken, refreshToken } = res.data || {};
+
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+
+    if (refreshToken) {
+      sessionStorage.setItem("refresh_token", refreshToken);
+    }
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
