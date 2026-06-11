@@ -23,10 +23,14 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.system.AuditLogRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 
 @SpringBootTest(classes = com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication.class)
 @AutoConfigureMockMvc
@@ -37,6 +41,12 @@ public class OTPIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WalletService walletService;
+
+    @Autowired
+    private CardService cardService;
 
     @Autowired
     private OtpRepository otpRepository;
@@ -71,13 +81,15 @@ public class OTPIntegrationTest {
                 .build();
 
         userRepository.save(user);
-
     }
 
     @Test
     void shouldVerifyLoginOtpAndGenerateTokens() throws Exception {
         String rawCode = "1234567";
         String hashedCode = passwordEncoder.encode(rawCode);
+
+        Wallet wallet = walletService.createWallet(user.getId());
+        cardService.createCard(wallet);
 
         Otp otp = new Otp("test@test.com", EventType.LOGIN);
         otp.setOtpHash(hashedCode);

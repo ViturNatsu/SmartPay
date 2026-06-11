@@ -31,7 +31,7 @@ public class Payee {
     private long payeeId;
 
     @ManyToOne
-    @JoinColumn(name = "owner_user_id", nullable = false)
+    @JoinColumn(name= "owner_user_id", nullable = false)
     private User owner;
 
     @ManyToOne
@@ -40,4 +40,9 @@ public class Payee {
 
     @Column(name = "payee_name", nullable = false)
     private String payeeName;
+
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
 }

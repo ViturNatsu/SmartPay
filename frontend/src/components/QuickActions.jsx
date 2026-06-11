@@ -4,12 +4,18 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 const ACTIONS = [
   {
     text: "Add a Payee",
     icon: PersonAddAlt1OutlinedIcon,
     href: "/add-payee",
+  },
+  {
+    text: "Manage Payees",
+    icon: PeopleAltOutlinedIcon,
+    href: "/payees",
   },
   {
     text: "Send Money",

@@ -1,10 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
@@ -12,6 +14,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
@@ -32,7 +35,10 @@ public class PayeeServiceImpl implements PayeeService {
     }
 
     @Override
-    public PayeeResponseDTO addPayee(Long ownerId, String payeeName, String recipientIdentifier) {
+    public PayeeResponseDTO addPayee(Long ownerId, PayeeRequestDTO payeeRequestDTO) {
+        String payeeName = payeeRequestDTO.getPayeeName();
+        String recipientIdentifier = payeeRequestDTO.getRecipientIdentifier();
+
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
 
@@ -54,8 +60,16 @@ public class PayeeServiceImpl implements PayeeService {
             throw new InvalidPayeeException("Cannot add yourself as a payee");
         }
 
-        if (payeeRepository.existsByOwnerIdAndRecipientId(ownerId, recipient.getId())) {
-            throw new PayeeAlreadyExistsException("Payee already exists");
+        Optional<Payee> existingPayee = payeeRepository.findByOwnerIdAndRecipientId(ownerId, recipient.getId());
+        if (existingPayee.isPresent()) {
+            Payee payee = existingPayee.get();
+            if (payee.isActive()) {
+                throw new PayeeAlreadyExistsException("Payee already exists");
+            }
+            payee.setActive(true);
+            payee.setPayeeName(payeeName);
+            payeeRepository.save(payee);
+            return toResponseDTO(payee);
         }
 
         Payee payee = Payee.builder()
@@ -64,38 +78,30 @@ public class PayeeServiceImpl implements PayeeService {
                 .payeeName(payeeName)
                 .build();
         payeeRepository.save(payee);
+        return toResponseDTO(payee);
+    }
 
-        String phoneNumber = customerRepository.findByUser(payee.getRecipient())
-                .map(Customer::getPhoneNumber)
-                .orElse(null);
+    @Override
+    public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
+        List<Payee> payees = payeeRepository.findByOwnerIdAndActiveTrue(ownerId);
+        return payees.stream().map(this::toResponseDTO).collect(Collectors.toList());
+    }
 
+    @Override
+    public void deletePayee(Long ownerId, Long payeeId) {
+        Payee payee = payeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+                .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+        payee.setActive(false);
+        payeeRepository.save(payee);
+    }
+
+    private PayeeResponseDTO toResponseDTO(Payee payee) {
         return new PayeeResponseDTO(
                 payee.getPayeeId(),
                 payee.getPayeeName(),
                 payee.getRecipient().getId(),
                 payee.getRecipient().getFirstName(),
                 payee.getRecipient().getLastName(),
-                payee.getRecipient().getEmail(),
-                phoneNumber);
-    }
-
-    @Override
-    public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
-        return payeeRepository.findByOwnerId(ownerId)
-                .stream()
-                .map(payee -> {
-                    String phoneNumber = customerRepository.findByUser(payee.getRecipient())
-                            .map(Customer::getPhoneNumber)
-                            .orElse(null);
-                    return new PayeeResponseDTO(
-                            payee.getPayeeId(),
-                            payee.getPayeeName(),
-                            payee.getRecipient().getId(),
-                            payee.getRecipient().getFirstName(),
-                            payee.getRecipient().getLastName(),
-                            payee.getRecipient().getEmail(),
-                            phoneNumber);
-                })
-                .collect(Collectors.toList());
+                payee.getRecipient().getEmail());
     }
 }

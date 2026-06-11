@@ -17,6 +17,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -257,12 +258,16 @@ public class GlobalExceptionHandler {
                         .body(errorBody);
         }
 
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
+        @ExceptionHandler(PayeeNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "500");
-                errorBody.put(ERROR, "Internal Server Error");
-                errorBody.put(MESSAGE, ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Not Found");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(errorBody);
         }
+
 }

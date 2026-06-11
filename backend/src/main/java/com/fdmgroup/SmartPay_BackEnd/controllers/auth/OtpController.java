@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.auth;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.LoginResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpRequestDto;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
@@ -63,7 +66,7 @@ public class OtpController {
         HttpStatus status;
 
         switch (dto.getType()) {
-            case LOGIN, REGISTER, FORGOT_PASSWORD ->
+            case LOGIN, REGISTER, FORGOT_PASSWORD, REVEAL_CARD ->
                 status = otpService.requestOtp(dto.getEmail(), dto.getType(), httpRequest);
             default -> {
                 log.error("Unknown OTP type encountered");
@@ -90,6 +93,7 @@ public class OtpController {
         switch (payload.getType()) {
             case LOGIN -> {
                 User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
+
                 sessionService.deleteAllUserSessions(user);
                 String accessToken = jwtSessionService.createAccessToken(user);
                 String refreshToken = jwtSessionService.createRefreshToken(user);
@@ -97,7 +101,15 @@ public class OtpController {
                 sessionService.generateNewSession(user, refreshToken);
 
                 otp.markAsUsed();
-                otpService.save(otp);
+                WalletResponseDTO wallet = walletService.getWalletByUserId(user.getId());
+
+                transactionExecutor.execute(() -> {
+                    // Mark the OTP as used
+                    otpService.save(otp);
+                    // Check if the card linked to the wallet is expired, and renew if necessary
+                    cardService.renewIfExpired(wallet.getWallet_id());
+                });
+
                 return ResponseEntity.ok(new LoginResponseDTO(user.getId(), accessToken, refreshToken));
             }
             case REGISTER -> {
@@ -123,6 +135,12 @@ public class OtpController {
             }
             case FORGOT_PASSWORD -> {
                 // Do not mark as used here. The password reset endpoint consumes the code.
+                return ResponseEntity.ok(Map.of("verified", true));
+            }
+            case REVEAL_CARD -> {
+                // Mark as used immediately — the frontend unlocks the card UI on success.
+                otp.markAsUsed();
+                otpService.save(otp);
                 return ResponseEntity.ok(Map.of("verified", true));
             }
             default -> {
