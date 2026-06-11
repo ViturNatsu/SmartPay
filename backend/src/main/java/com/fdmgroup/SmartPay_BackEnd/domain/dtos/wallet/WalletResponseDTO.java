@@ -9,6 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
+
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -27,6 +30,7 @@ public class WalletResponseDTO {
     private Double dailySpendingLimit;
 
     private Double perTransactionLimit;
+    private LocalDate dailySpentDate;
 
     private Double dailySpentAmount;
 }

@@ -311,6 +311,7 @@ public class WalletServiceImpl implements WalletService {
         dto.setDailySpendingLimit(wallet.getDailySpendingLimit());
         dto.setPerTransactionLimit(wallet.getPerTransactionLimit());
         dto.setDailySpentAmount(wallet.getDailySpentAmount());
+        dto.setDailySpentDate(wallet.getDailySpentDate());
         return dto;
     }
 }
