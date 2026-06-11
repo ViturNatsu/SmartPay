@@ -52,7 +52,13 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
   });
 
   const walletBalance = wallet?.balance ?? 0;
-  const dailyUsage = wallet?.dailySpentAmount ?? 0;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const dailyUsage =
+    wallet?.dailySpentDate === today
+        ? (wallet?.dailySpentAmount ?? 0)
+        : 0;
   const fundingSourceCount = paymentMethods.length;
 
   const [dailyLimitEnabled, setDailyLimitEnabled] = useState(false);

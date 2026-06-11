@@ -222,7 +222,13 @@ export function MakeAPayment() {
       ? Math.round((walletBalance - parseFloat(amount || 0)) * 100) / 100
       : null;
 
-  const dailySpent = wallet?.dailySpentAmount ?? 0;
+  const today = new Date().toISOString().split("T")[0];
+
+  const dailySpent =
+    wallet?.dailySpentDate === today
+      ? (wallet?.dailySpentAmount ?? 0)
+      : 0;    
+      
   const dailyLimit = wallet?.dailySpendingLimit ?? null;
 
   const projectedDailySpent =
