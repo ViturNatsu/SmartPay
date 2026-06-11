@@ -1,4 +1,5 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import SettingsIcon from "@mui/icons-material/Settings";
 import {
   Box,
   Button,
@@ -23,6 +24,10 @@ import {getWalletTransactions} from "@/api/wallets/walletApi";
 import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
 import {useWalletData} from "@/utils/useWalletData.js";
 import {useCardReveal} from "@/utils/useCardReveal.js";
+import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
+import {formatString} from "@/utils/stringFormaters/formatString.js";
+import {formatDate} from "@/utils/stringFormaters/formatDate.js";
+
 
 /**
  * Wallet page — Scenario 1
@@ -54,11 +59,11 @@ export function Wallet() {
   const [revealDialogOpen, setRevealDialogOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [txLoading, setTxLoading] = useState(true);
+  const [walletLimitsOpen, setWalletLimitsOpen] = useState(false);
 
   // Card reveal state — manages blur, 30 s inactivity timer, and navigation re-mask
   const {isRevealed, reveal, mask} = useCardReveal();
 
-  // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchPaymentMethods = async () => {
     if (!tokenClaims?.userId) return;
     setPmLoading(true);
@@ -84,6 +89,7 @@ export function Wallet() {
     cardLoading,
     balance,
     setBalance,
+    setWallet
   } = useWalletData(tokenClaims);
 
   const fetchTransactions = async () => {
@@ -137,8 +143,14 @@ export function Wallet() {
   };
 
   /** Called by WithdrawFundsDialog on success; refresh balance from updated wallet */
-  const handleWithdrawSuccess = updatedWallet => {
+  const handleWithdrawSuccess = (updatedWallet) => {
+    setWallet(updatedWallet);
     setBalance(updatedWallet.balance ?? 0);
+  };
+  
+  const handleWalletLimitsSuccess = (updatedWallet) => {
+  setWallet(updatedWallet);
+  setBalance(updatedWallet.balance ?? 0);
     fetchTransactions();
   };
 
@@ -162,7 +174,7 @@ export function Wallet() {
       maximumFractionDigits: 2,
     });
     return type === "LOAD" ? `+${formatted}` : `-${formatted}`;
-  };
+};
 
   // ── Formatting ────────────────────────────────────────────────────────────
 
@@ -294,6 +306,25 @@ export function Wallet() {
                   >
                     Withdraw Funds
                   </Button>
+
+                  <Button
+                    variant="outlined"
+                    startIcon={<SettingsIcon />}
+                    onClick={() => setWalletLimitsOpen(true)}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 800,
+                      borderColor: "#B2DDE8",
+                      color: "#0F7490",
+                      bgcolor: "#FFFFFF",
+                      "&:hover": {
+                        bgcolor: "#F8FAFC",
+                        borderColor: "#0A5A70",
+                      },
+                    }}
+                  >
+                    Wallet Limits
+                  </Button>
                 </Stack>
 
                 {/* No linked accounts message when Withdraw is unavailable */}
@@ -414,7 +445,17 @@ export function Wallet() {
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         onSuccess={handleWithdrawSuccess}
+        wallet={wallet}
         walletBalance={balance}
+        paymentMethods={paymentMethods}
+      />
+
+      <WalletLimitsDialog
+        open={walletLimitsOpen}
+        onClose={() => setWalletLimitsOpen(false)}
+        onSuccess={handleWalletLimitsSuccess}
+        wallet={wallet}
+        userId={Number(tokenClaims?.userId)}
         paymentMethods={paymentMethods}
       />
     </>

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,7 +24,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
 @RequestMapping("api/v1/payee")
 public class PayeeController {
 
-    private PayeeService payeeService;
+    private final PayeeService payeeService;
 
     public PayeeController(PayeeService payeeService) {
         this.payeeService = payeeService;
@@ -44,10 +43,10 @@ public class PayeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PayeeResponseDTO>> getUserPayees(@AuthenticationPrincipal User authenticatedUser) {
-        
-        return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUser.getId()));
+    public ResponseEntity<List<PayeeResponseDTO>> getUserPayees(
+            @AuthenticationPrincipal User authenticatedUser) {
 
+        return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUser.getId()));
     }
 
     @DeleteMapping("/{payeeId}")

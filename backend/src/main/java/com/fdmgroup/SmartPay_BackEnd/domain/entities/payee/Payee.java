@@ -1,9 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
