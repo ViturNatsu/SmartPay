@@ -13,7 +13,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 @Repository
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, Long> {
 
-    @Query("SELECT wt FROM WalletTransaction wt WHERE wt.wallet.wallet_id = :walletId")
+    @Query("SELECT wt FROM WalletTransaction wt WHERE wt.wallet.walletId = :walletId")
     List<WalletTransaction> findByWalletId(@Param("walletId") Long walletId);
 
     List<WalletTransaction> findByWallet_User_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
