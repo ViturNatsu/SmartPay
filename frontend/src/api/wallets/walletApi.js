@@ -87,11 +87,12 @@ export async function getWalletTransactions(userId, limit = 10) {
 
 export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
   try {
-    await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
+    const res = await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
       recipientUserId,
       amount,
       memo: memo || null,
     });
+    return res.data;
   } catch (err) {
     throw handleAxiosError(err);
   }

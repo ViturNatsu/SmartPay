@@ -147,6 +147,7 @@ export function MakeAPayment() {
   const [memoError, setMemoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
     if (authLoading || !tokenClaims?.userId) return;
@@ -202,12 +203,13 @@ export function MakeAPayment() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      await sendMoney(
+      const result = await sendMoney(
         Number(tokenClaims.userId),
         selectedPayee.recipientId,
         parseFloat(parseFloat(amount).toFixed(2)),
         memo.trim() || null
       );
+      setTransactionId(result?.transactionId ?? null);
       setWalletBalance((prev) => Math.round((prev - parseFloat(amount)) * 100) / 100);
       setStep(3);
     } catch (err) {
@@ -458,9 +460,14 @@ export function MakeAPayment() {
                 <CheckCircleOutlineIcon sx={{ fontSize: 44 }} />
               </Box>
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Money Sent</Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 14, mb: 3.5, lineHeight: 1.6 }}>
+              <Typography sx={{ color: "#64748b", fontSize: 14, mb: transactionId ? 1.5 : 3.5, lineHeight: 1.6 }}>
                 {formattedAmount} has been sent to {selectedPayee.payeeName} from your SmartPay wallet.
               </Typography>
+              {transactionId && (
+                <Typography sx={{ color: "#94A3B8", fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
+                  Transaction ID: {transactionId}
+                </Typography>
+              )}
               <Button variant="contained" onClick={() => navigate("/home")}
                 sx={{ bgcolor: "#0f7490", "&:hover": { bgcolor: "#0a5a70" }, px: 3 }}>
                 Return to Dashboard

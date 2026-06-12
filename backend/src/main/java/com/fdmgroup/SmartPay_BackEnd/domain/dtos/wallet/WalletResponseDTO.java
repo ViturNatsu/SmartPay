@@ -29,4 +29,6 @@ public class WalletResponseDTO {
     private Double perTransactionLimit;
 
     private Double dailySpentAmount;
+
+    private String transactionId;
 }

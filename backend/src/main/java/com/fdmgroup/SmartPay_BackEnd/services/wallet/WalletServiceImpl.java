@@ -104,8 +104,10 @@ public class WalletServiceImpl implements WalletService {
         wallet.setBalance(walletBalance + amount);
         Wallet savedWallet = walletRepository.save(wallet);
 
-        recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod);
-        return mapToDto(savedWallet);
+        WalletTransaction loadTx = recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod);
+        WalletResponseDTO dto = mapToDto(savedWallet);
+        dto.setTransactionId(loadTx.getTransactionId());
+        return dto;
     }
 
     /**
@@ -183,7 +185,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
+    public WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
         Wallet senderWallet = walletRepository.findByUserId(senderUserId)
                 .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
 
@@ -223,10 +225,15 @@ public class WalletServiceImpl implements WalletService {
         senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
         senderWallet.setDailySpentAmount(senderWallet.getDailySpentAmount() + amount);
         senderWallet.setDailySpentDate(today);
-        walletRepository.save(senderWallet);
+        Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
         walletRepository.save(recipientWallet);
+
+        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount);
+        WalletResponseDTO dto = mapToDto(savedSenderWallet);
+        dto.setTransactionId(transferTx.getTransactionId());
+        return dto;
     }
 
     @Override
@@ -263,6 +270,17 @@ public class WalletServiceImpl implements WalletService {
 
         wallet.setPerTransactionLimit(request.getPerTransactionLimit());
         return mapToDto(walletRepository.save(wallet));
+    }
+
+    private WalletTransaction recordTransaction(Wallet wallet, WalletTransactionType type, double amount) {
+        WalletTransaction transaction = new WalletTransaction();
+        transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
+        transaction.setWallet(wallet);
+        transaction.setType(type);
+        transaction.setAmount(amount);
+        transaction.setStatus("COMPLETED");
+        transaction.setCreatedAt(LocalDateTime.now());
+        return walletTransactionRepository.save(transaction);
     }
 
     private WalletTransaction recordTransaction(
