@@ -292,7 +292,10 @@ export function Wallet() {
                   <Button
                     variant="outlined"
                     startIcon={<NorthEastIcon />}
-                    onClick={() => setWithdrawOpen(true)}
+                    onClick={async () => {
+                      await fetchWallet();
+                      setWithdrawOpen(true);
+                    }}
                     disabled={balance <= 0 || paymentMethods.length === 0}
                     sx={{
                       textTransform: "none",
@@ -444,6 +447,7 @@ export function Wallet() {
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         onSuccess={handleWithdrawSuccess}
+        onRefreshWallet={fetchWallet}
         wallet={wallet}
         walletBalance={balance}
         paymentMethods={paymentMethods}
