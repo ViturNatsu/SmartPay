@@ -21,6 +21,7 @@ const SuccessCard = ({
   data,
   title,
   message,
+  transactionId,
   primaryButtonText,
   onPrimaryClick,
   secondaryButtonText,
@@ -80,6 +81,12 @@ const SuccessCard = ({
         {data && <strong>{data} </strong>}
         {message}
       </Typography>
+
+      {transactionId && (
+        <Typography sx={{ color: "#94A3B8", fontSize: 12, fontFamily: "monospace" }}>
+          Transaction ID: {transactionId}
+        </Typography>
+      )}
 
       {/* Buttons */}
       <Stack direction="row" spacing={2}>

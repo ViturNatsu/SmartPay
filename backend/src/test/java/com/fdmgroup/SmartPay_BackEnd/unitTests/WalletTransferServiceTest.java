@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
@@ -66,6 +67,10 @@ class WalletTransferServiceTest {
         lenient().when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(senderWallet));
         lenient().when(walletRepository.findByUserId(2L)).thenReturn(Optional.of(recipientWallet));
         lenient().when(walletRepository.save(any(Wallet.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        WalletTransaction stubTx = new WalletTransaction();
+        stubTx.setTransactionId("TXN-test1234");
+        lenient().when(walletTransactionRepository.save(any(WalletTransaction.class))).thenReturn(stubTx);
     }
 
     @Test

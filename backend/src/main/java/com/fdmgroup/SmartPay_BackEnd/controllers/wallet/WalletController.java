@@ -155,7 +155,7 @@ public class WalletController {
         @ApiResponse(responseCode = "403", description = "Forbidden: cannot transfer from another user's wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")
     })
-    public ResponseEntity<Void> transfer(
+    public ResponseEntity<WalletResponseDTO> transfer(
             @PathVariable Long userId,
             @Valid @RequestBody WalletTransferDTO dto,
             Authentication authentication) {
@@ -163,8 +163,7 @@ public class WalletController {
         if (!principal.getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        walletService.transfer(userId, dto.recipientUserId(), dto.amount(), dto.memo());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(walletService.transfer(userId, dto.recipientUserId(), dto.amount(), dto.memo()));
     }
 
     @PostMapping("/{userId}/limits/per-transaction")
