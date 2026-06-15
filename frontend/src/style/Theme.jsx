@@ -13,12 +13,18 @@ export const tokens = {
     background: {
       app: "#F5F7FA",
       surface: "#FFFFFF",
+      stack: "#F9FAFB"
     },
     text: {
       primary: "#0D1B2A",
       secondary: "#475569",
       muted: "#94A3B8",
       white: "#FFFFFF",
+      number: {
+        positive: "#16A34A",
+        negative: "#DC2626",
+        neutral: "#6B7280",
+      }
     },
     border: {
       light: "#E2E8F0",
@@ -61,6 +67,9 @@ export const tokens = {
       virtualCard: "linear-gradient(135deg, #0F2336 0%, #1A3A52 60%, #0F7490 100%)",
       walletBalance: "linear-gradient(135deg, #062F3D, #0097A7)",
     },
+    underline: {
+      dark: "#000000",
+    }
   },
   borderRadius: {
     small: 4,
@@ -83,6 +92,10 @@ export const tokens = {
       bold: 700,
       extrabold: 800,
     },
+    fontSize: {
+      extraSmall: 13,
+      small: 15,
+    }
   },
   shadow: {
     card: "0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
