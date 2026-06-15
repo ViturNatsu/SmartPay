@@ -4,12 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,8 +72,9 @@ class WalletTransferControllerTest {
     }
 
     @Test
-    void transfer_returns204_whenTransferIsValid() throws Exception {
-        doNothing().when(walletService).transfer(anyLong(), anyLong(), anyDouble(), any());
+    void transfer_returns200_whenTransferIsValid() throws Exception {
+        when(walletService.transfer(anyLong(), anyLong(), anyDouble(), any()))
+                .thenReturn(new WalletResponseDTO());
 
         mockMvc.perform(post("/api/v1/wallets/1/transfer")
                 .principal(auth)
@@ -83,7 +86,7 @@ class WalletTransferControllerTest {
                           "memo": "Dinner split"
                         }
                         """))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         verify(walletService).transfer(1L, 2L, 75.00, "Dinner split");
     }
@@ -180,8 +183,9 @@ class WalletTransferControllerTest {
     }
 
     @Test
-    void transfer_returns204_whenMemoIsAbsent() throws Exception {
-        doNothing().when(walletService).transfer(anyLong(), anyLong(), anyDouble(), isNull());
+    void transfer_returns200_whenMemoIsAbsent() throws Exception {
+        when(walletService.transfer(anyLong(), anyLong(), anyDouble(), isNull()))
+                .thenReturn(new WalletResponseDTO());
 
         mockMvc.perform(post("/api/v1/wallets/1/transfer")
                 .principal(auth)
@@ -192,6 +196,6 @@ class WalletTransferControllerTest {
                           "amount": 50.00
                         }
                         """))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 }

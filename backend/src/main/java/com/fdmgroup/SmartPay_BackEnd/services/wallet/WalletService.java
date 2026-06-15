@@ -60,5 +60,5 @@ public interface WalletService {
      */
     WalletResponseDTO  updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
 
-    void transfer(Long senderUserId, Long recipientUserId, Double amount, String memo);
+    WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, Double amount, String memo);
 }

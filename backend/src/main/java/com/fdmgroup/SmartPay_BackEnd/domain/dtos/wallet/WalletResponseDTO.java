@@ -33,4 +33,6 @@ public class WalletResponseDTO {
     private LocalDate dailySpentDate;
 
     private Double dailySpentAmount;
+
+    private String transactionId;
 }
