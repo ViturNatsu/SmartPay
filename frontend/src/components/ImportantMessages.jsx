@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, Typography, Link, Stack, Box } from "@mui/material";
+import {tokens} from "../style/Theme.jsx"
 
 const MESSAGES = [
   {
@@ -24,9 +25,9 @@ function ImportantMessages() {
       elevation={0}
       sx={{
         width: "100%",
-        bgcolor: "#fff",
+        bgcolor: tokens.color.background.surface,
         borderRadius: "18px",
-        border: "1px solid #E5E7EB",
+        border: "1px solid", borderColor: tokens.color.border.light,
         boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
         p: "22px",
         minHeight: expanded ? "auto" : 92,
@@ -50,8 +51,8 @@ function ImportantMessages() {
         {!expanded && (
           <Typography
             sx={{
-              color: "#6B7280",
-              fontSize: 13,
+              color: tokens.color.text.secondary,
+              fontSize: tokens.typography.fontSize.extraSmall,
               lineHeight: 1.45,
             }}
           >
@@ -65,14 +66,18 @@ function ImportantMessages() {
                 key={message.title}
                 sx={{
                   pb: 2,
-                  borderBottom: "1px solid #E5E7EB",
+                  borderBottom: "1px solid",
+                  borderBottomColor: tokens.color.underline.dark,
                   "&:last-child": { borderBottom: "none", pb: 0 },
                 }}
               >
                 <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.5 }}>
                   {message.title}
                 </Typography>
-                <Typography sx={{ color: "#6B7280", fontSize: 13, lineHeight: 1.45 }}>
+                <Typography sx={{
+                    color: tokens.color.text.secondary,
+                    fontSize: tokens.typography.fontSize.extraSmall,
+                    lineHeight: 1.45 }}>
                   {message.body}
                 </Typography>
               </Box>
@@ -85,7 +90,7 @@ function ImportantMessages() {
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
         sx={{
-          color: "#008C99",
+          color: tokens.color.button.secondaryText,
           fontSize: 13,
           fontWeight: 650,
           textDecoration: "none",
