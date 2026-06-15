@@ -36,7 +36,7 @@ const STEP_TITLES = {
  *  paymentMethods {Array}    - Active linked bank accounts for the dropdown
  */
 
-function WithdrawFundsDialog({ open, onClose, onSuccess, wallet, walletBalance, paymentMethods }) {
+function WithdrawFundsDialog({ open, onClose, onSuccess, onRefreshWallet, wallet, walletBalance, paymentMethods }) {
   const { tokenClaims } = useAuth();
 
   const [step, setStep]                     = useState(STEPS.DETAILS);
@@ -73,7 +73,12 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, wallet, walletBalance, 
   const selectedMethod  = paymentMethods.find((m) => m.paymentMethodId === selectedMethodId);
   const dailyLimit = wallet?.dailySpendingLimit;
   const perTransactionLimit = wallet?.perTransactionLimit;
-  const dailySpentToday = wallet?.dailySpentAmount ?? 0;
+  const today = new Date().toLocaleDateString("en-CA");
+
+  const dailySpentToday =
+    wallet?.dailySpentDate === today
+      ? wallet?.dailySpentAmount ?? 0
+      : 0;
 
   const dailyRemaining =
     dailyLimit == null
@@ -103,9 +108,12 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, wallet, walletBalance, 
         paymentMethodId: selectedMethodId,
         amount: parsedAmount,
       });
-      onSuccess(result);
+
       setTransactionId(result.transactionId);
+      await onRefreshWallet?.();
+      onSuccess?.(result);
       setStep(STEPS.SUCCESS);
+
     } catch (err) {
       // Surface the backend error message inline (Scenarios 7 & 8)
       setApiError(err?.message || "An error occurred. Please try again.");
