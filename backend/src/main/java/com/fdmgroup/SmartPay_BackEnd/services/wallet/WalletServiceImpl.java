@@ -1,7 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -279,7 +280,7 @@ public class WalletServiceImpl implements WalletService {
         transaction.setType(type);
         transaction.setAmount(amount);
         transaction.setStatus("COMPLETED");
-        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setCreatedAt(Instant.now());
         return walletTransactionRepository.save(transaction);
     }
 
@@ -296,7 +297,7 @@ public class WalletServiceImpl implements WalletService {
         transaction.setPaymentMethodId(paymentMethod.getPaymentMethodId());
         transaction.setBankDisplayName(paymentMethod.getBankDisplayName());
         transaction.setStatus("COMPLETED");
-        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setCreatedAt(Instant.now());
         return walletTransactionRepository.save(transaction);
     }
 

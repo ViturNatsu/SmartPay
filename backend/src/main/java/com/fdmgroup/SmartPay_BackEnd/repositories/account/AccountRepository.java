@@ -23,8 +23,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             @Param("userId") Long userId,
             @Param("clazz") Class<? extends Account> clazz
     );
-
-    @Query(value = "SELECT NEXT VALUE FOR ACCOUNT_NUMBER_SEQ", nativeQuery = true)
+    @Query(value = "SELECT NEXTVAL(ACCOUNT_NUMBER_SEQ)", nativeQuery = true)
     Long getNextAccountNumberSequence();
 
     @Query("SELECT a FROM Account a JOIN a.users u WHERE u.id = :userId")
