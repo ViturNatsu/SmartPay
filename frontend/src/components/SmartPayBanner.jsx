@@ -40,7 +40,7 @@ const bulletBoxHeadingSx = {
     /* identical to box height, or 150% */
     display: "flex",
     alignItems: "center",
-    color: "#111827",
+    color: "#f00",
 };
 
 const bulletBoxInfoSx = {
@@ -51,7 +51,7 @@ const bulletBoxInfoSx = {
     fontSize: "14px",
     lineHeight: "20px",
     display: "flex",
-    color: "#4B5563",
+    color: "#f00",
     textAlign: "left",
 };
 
@@ -128,7 +128,7 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
                         <Avatar
                             variant="rounded"
                             sx={{
-                                backgroundColor: "#DBEAFE",
+                                backgroundColor: "#f00",
                                 borderRadius: 2,
                             }}
                         >

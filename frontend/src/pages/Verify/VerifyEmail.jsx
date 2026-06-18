@@ -5,6 +5,7 @@ import { requestResetCode } from "@/api/authApi";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
+import {tokens} from "../../style/Theme.jsx";
 
 export const VerifyEmail = () => {
   const [error, setError] = useState("");
@@ -47,7 +48,7 @@ export const VerifyEmail = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        bgcolor: "#F8FAFC",
+        bgcolor: tokens.color.brand.primaryBackground,
         fontFamily: "'Inter', sans-serif"
       }}
     >
@@ -65,23 +66,23 @@ export const VerifyEmail = () => {
         }}>
         <Paper elevation={6} sx={{ width: "100%", maxWidth: { xs: "320px", md: "480px" }, borderRadius: 3, p: { xs: 3, md: 4 }, textAlign: "center", display: "flex", flexDirection: "column", gap: 2 }}>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <Box sx={{ bgcolor: "#EEF2FF", borderRadius: "50%", width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <MailOutlineIcon sx={{ color: "#2563EB", fontSize: 36 }} />
+            <Box sx={{ bgcolor: tokens.color.brand.primaryLight, borderRadius: "50%", width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MailOutlineIcon sx={{ color: tokens.color.brand.primary, fontSize: 36 }} />
             </Box>
           </Box>
 
-          <Typography sx={{ fontSize: 20, fontWeight: 600, color: "#374151" }}>Verify Your Email</Typography>
+          <Typography sx={{ fontSize: 20, fontWeight: 600, color: tokens.color.text.primary }}>Verify Your Email</Typography>
           <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Your email address isn't verified yet. Please verify your email to continue.</Typography>
 
-          <Box sx={{ bgcolor: "#F3F4F6", borderRadius: 2, p: 2, mt: 1 }}>
+          <Box sx={{ bgcolor: tokens.color.button.disabledBg, borderRadius: 2, p: 2, mt: 1 }}>
             <Typography sx={{ fontSize: 13, color: "text.secondary" }}>Email:</Typography>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>{emailParam}</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: tokens.color.text.primary, mt: 1 }}>{emailParam}</Typography>
           </Box>
 
           {error && <Typography sx={{ color: "error.main", fontSize: 13 }}>{error}</Typography>}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
-            <Button type="submit" variant="contained" disabled={loading} sx={{ height: 52, borderRadius: 2, textTransform: "none", fontSize: 16, fontWeight: 600, bgcolor: "#2563EB", "&:hover": { bgcolor: "#1D4ED8" } }}>
+            <Button type="submit" variant="contained" disabled={loading} sx={{ height: 52, borderRadius: 2, textTransform: "none", fontSize: 16, fontWeight: 600, bgcolor: tokens.color.button.primaryBg, "&:hover": { bgcolor: tokens.color.button.primaryHover } }}>
               {loading ? "Resending Verification Email..." : "Resend Verification Email"}
             </Button>
           </Box>
@@ -90,7 +91,7 @@ export const VerifyEmail = () => {
 
           <Divider sx={{ my: 1 }} />
 
-          <Button component={RouterLink} to="/login" startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 18 }} />} sx={{ alignSelf: "center", textTransform: "none", color: "#2563EB" }}>
+          <Button component={RouterLink} to="/login" startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 18 }} />} sx={{ alignSelf: "center", textTransform: "none", color: tokens.color.nav.activeText }}>
             Back to Sign In
           </Button>
         </Paper>
