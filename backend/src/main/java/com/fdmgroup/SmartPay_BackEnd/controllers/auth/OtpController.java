@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
@@ -100,14 +101,17 @@ public class OtpController {
 
                 sessionService.generateNewSession(user, refreshToken);
 
-                otp.markAsUsed();
-                WalletResponseDTO wallet = walletService.getWalletByUserId(user.getId());
+                // Wallet logic for non admins
+                if(user.getRole().equals(Role.USER)){
+                    WalletResponseDTO wallet = walletService.getWalletByUserId(user.getId());
+                    cardService.renewIfExpired(wallet.getWallet_id());
+                }
 
+                otp.markAsUsed();
                 transactionExecutor.execute(() -> {
                     // Mark the OTP as used
                     otpService.save(otp);
                     // Check if the card linked to the wallet is expired, and renew if necessary
-                    cardService.renewIfExpired(wallet.getWallet_id());
                 });
 
                 return ResponseEntity.ok(new LoginResponseDTO(user.getId(), accessToken, refreshToken));
@@ -118,17 +122,20 @@ public class OtpController {
                 user.setEmailVerifiedAt(LocalDateTime.now());
 
                 transactionExecutor.execute(() -> {
-
                     //Update the user into a verified state
                     userService.save(user);
                     //Mark the OTP as used
                     otp.markAsUsed();
                     //Update the OTP in the DB
                     otpService.save(otp);
-                    //Create Wallet associated to the account
-                    Wallet wallet = walletService.createWallet(user.getId());
-                    //Create Virtual Card associated to the wallet
-                    cardService.createCard(wallet);
+
+                    if(user.getRole().equals(Role.USER)){
+                        //Create Wallet associated to the account
+                        Wallet wallet = walletService.createWallet(user.getId());
+                        //Create Virtual Card associated to the wallet
+                        cardService.createCard(wallet);
+                    }
+
                 });
 
                 return ResponseEntity.ok(Map.of("verified", true));
