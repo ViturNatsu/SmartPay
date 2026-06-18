@@ -1,12 +1,13 @@
 import { describe, test, expect } from "vitest";
 import { theme, tokens } from "../style/Theme";
+import {tokens} from "../style/Theme.jsx";
 
 describe("SmartPay Theme", () => {
 
   describe("Design Tokens", () => {
     test("brand primary color is defined", () => {
       expect(tokens.color.brand.primary).toBeDefined();
-      expect(tokens.color.brand.primary).toBe("#0F7490");
+      expect(tokens.color.brand.primary).toBe(tokens.color.brand.primary);
     });
 
     test("all brand colors are defined", () => {

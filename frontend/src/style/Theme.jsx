@@ -6,9 +6,14 @@ export const tokens = {
       primary: "#0F7490",
       primaryHover: "#0A5A70",
       primaryLight: "#E5F5FA",
+      primaryBackground: "#F8FAFC",
       primaryMid: "#B2DDE8",
       navy: "#0D1B2A",
       cardNavy: "#0F2336",
+    },
+    icon: {
+      successBg: "#25A18E",
+      successCheck: "rgba(37, 161, 142, 0.49)",
     },
     background: {
       app: "#F5F7FA",
@@ -48,6 +53,7 @@ export const tokens = {
       neutralBg: "#FFFFFF",
       neutralText: "#475569",
       neutralBorder: "#CBD5E1",
+      disabledBg:"#F3F4F6",
     },
     nav: {
       text: "#475569",
@@ -83,7 +89,7 @@ export const tokens = {
   typography: {
     fontFamily: [
       "Inter", "system-ui", "-apple-system",
-      '"Segoe UI"', "Roboto", "Arial", "sans-serif",
+      "Segoe UI", "Roboto", "Arial", "sans-serif",
     ].join(","),
     fontWeight: {
       regular: 400,

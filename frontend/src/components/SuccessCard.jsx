@@ -16,7 +16,7 @@ import {
 import CheckIcon from "@mui/icons-material/CheckOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleIcon from "@mui/icons-material/Circle";
-
+import {tokens} from "../style/Theme.jsx"
 const SuccessCard = ({
   data,
   title,
@@ -51,12 +51,12 @@ const SuccessCard = ({
           sx={{
             height: "95px",
             width: "95px",
-            color: "rgba(37, 161, 142, 0.49)",
+            color: tokens.color.icon.successCheck,
             opacity: "1",
           }}
         ></CircleIcon>
         <CheckIcon
-          sx={{ color: "#25A18E", position: "absolute", fontSize: 40 }}
+          sx={{ color:tokens.color.icon.successBg, position: "absolute", fontSize: 40 }}
         />
       </Box>
 
@@ -83,7 +83,7 @@ const SuccessCard = ({
       </Typography>
 
       {transactionId && (
-        <Typography sx={{ color: "#94A3B8", fontSize: 12, fontFamily: "monospace" }}>
+        <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, fontFamily: "monospace" }}>
           Transaction ID: {transactionId}
         </Typography>
       )}
@@ -104,7 +104,8 @@ const SuccessCard = ({
                 boxShadow: "0 10px 20px rgba(149, 145, 145, 0.3)",
               },
               borderRadius: "12px",
-              border: "1px solid #d1d5db",
+              border: "1px solid",
+                borderColor: " #d1d5db",
             }}
           >
             <Typography
