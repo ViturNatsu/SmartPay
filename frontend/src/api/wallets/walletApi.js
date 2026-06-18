@@ -11,6 +11,48 @@ export async function getWalletByUserId(userId) {
   }
 }
 
+/**
+ * Updates the wallet-level daily spending limit.
+ *
+ * POST /api/v1/wallets/{userId}/limits/daily
+ *
+ * @param {number} userId
+ * @param {{ dailySpendingLimit: number | null }} payload
+ * @returns {Promise<Object>} Updated wallet object
+ */
+export async function updateDailySpendingLimit(userId, payload) {
+  try {
+    const res = await axiosInstance.post(
+      `${WALLETS_URL}/${userId}/limits/daily`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+/**
+ * Updates the wallet-level per-transaction spending limit.
+ *
+ * POST /api/v1/wallets/{userId}/limits/per-transaction
+ *
+ * @param {number} userId
+ * @param {{ perTransactionLimit: number | null }} payload
+ * @returns {Promise<Object>} Updated wallet object
+ */
+export async function updatePerTransactionLimit(userId, payload) {
+  try {
+    const res = await axiosInstance.post(
+      `${WALLETS_URL}/${userId}/limits/per-transaction`,
+      payload
+    );
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function loadWallet(paymentMethodId, amount) {
   try {
     const res = await axiosInstance.post(`${WALLETS_URL}/load`, {
@@ -45,11 +87,12 @@ export async function getWalletTransactions(userId, limit = 10) {
 
 export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
   try {
-    await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
+    const res = await axiosInstance.post(`${WALLETS_URL}/${senderUserId}/transfer`, {
       recipientUserId,
       amount,
       memo: memo || null,
     });
+    return res.data;
   } catch (err) {
     throw handleAxiosError(err);
   }

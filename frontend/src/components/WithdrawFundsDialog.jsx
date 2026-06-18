@@ -35,7 +35,8 @@ const STEP_TITLES = {
  *  walletBalance  {number}   - Current wallet balance for display + validation
  *  paymentMethods {Array}    - Active linked bank accounts for the dropdown
  */
-function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentMethods }) {
+
+function WithdrawFundsDialog({ open, onClose, onSuccess, onRefreshWallet, wallet, walletBalance, paymentMethods }) {
   const { tokenClaims } = useAuth();
 
   const [step, setStep]                     = useState(STEPS.DETAILS);
@@ -44,6 +45,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
   const [validationError, setValidationError] = useState(null);
   const [apiError, setApiError]             = useState(null);
   const [submitting, setSubmitting]         = useState(false);
+  const [transactionId, setTransactionId]   = useState(null);
 
   // Pre-select the first active payment method (Scenario 2)
   useEffect(() => {
@@ -60,6 +62,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
       setValidationError(null);
       setApiError(null);
       setSubmitting(false);
+      setTransactionId(null);
       if (paymentMethods.length > 0) setSelectedMethodId(paymentMethods[0].paymentMethodId);
     }
   }, [open]);
@@ -68,6 +71,19 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
   const parsedAmount    = parseFloat(amountInput.replace(/^\$/, "")) || 0;
   const remainingBalance = walletBalance - parsedAmount;
   const selectedMethod  = paymentMethods.find((m) => m.paymentMethodId === selectedMethodId);
+  const dailyLimit = wallet?.dailySpendingLimit;
+  const perTransactionLimit = wallet?.perTransactionLimit;
+  const today = new Date().toLocaleDateString("en-CA");
+
+  const dailySpentToday =
+    wallet?.dailySpentDate === today
+      ? wallet?.dailySpentAmount ?? 0
+      : 0;
+
+  const dailyRemaining =
+    dailyLimit == null
+      ? null
+      : dailyLimit - dailySpentToday;
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -88,12 +104,16 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
     setSubmitting(true);
     setApiError(null);
     try {
-      const updated = await withdrawFromWallet(Number(tokenClaims.userId), {
+      const result = await withdrawFromWallet(Number(tokenClaims.userId), {
         paymentMethodId: selectedMethodId,
         amount: parsedAmount,
       });
-      onSuccess(updated);
+
+      setTransactionId(result.transactionId);
+      await onRefreshWallet?.();
+      onSuccess?.(result);
       setStep(STEPS.SUCCESS);
+
     } catch (err) {
       // Surface the backend error message inline (Scenarios 7 & 8)
       setApiError(err?.message || "An error occurred. Please try again.");
@@ -137,6 +157,10 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
         <WithdrawReviewStep
           {...sharedProps}
           remainingBalance={remainingBalance}
+          dailyLimit={dailyLimit}
+          perTransactionLimit={perTransactionLimit}
+          dailySpentToday={dailySpentToday}
+          dailyRemaining={dailyRemaining}
           submitting={submitting}
           onBack={() => setStep(STEPS.DETAILS)}
           onConfirm={handleConfirm}
@@ -144,7 +168,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, walletBalance, paymentM
       )}
 
       {step === STEPS.SUCCESS && (
-        <WithdrawSuccessStep {...sharedProps} onClose={handleClose} />
+        <WithdrawSuccessStep {...sharedProps} transactionId={transactionId} onClose={handleClose} />
       )}
     </Dialog>
   );

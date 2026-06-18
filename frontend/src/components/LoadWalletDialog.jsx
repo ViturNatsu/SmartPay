@@ -74,6 +74,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
     if (!open || !tokenClaims?.userId) return;
@@ -101,6 +102,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
       setError("");
       setSuccessMessage("");
       setSubmitting(false);
+      setTransactionId(null);
     }
   }, [open]);
 
@@ -137,12 +139,13 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
     setError("");
     setSubmitting(true);
     try {
-      const wallet = await loadWallet(selectedMethod.paymentMethodId, numericAmount);
+      const result = await loadWallet(selectedMethod.paymentMethodId, numericAmount);
       setSuccessMessage(
         `has been successfully transferred from ${paymentMethodLabel(selectedMethod)} into your SmartPay wallet.`,
       );
+      setTransactionId(result.transactionId ?? null);
       setStep("success");
-      onSuccess?.(wallet.balance);
+      onSuccess?.(result.balance);
     } catch (err) {
       setError(
         err.message ||
@@ -363,9 +366,10 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
               title="Wallet Loaded"
               data={formatMoney(numericAmount)}
               message={successMessage}
+              transactionId={transactionId}
               primaryButtonText="Close"
               onPrimaryClick={handleClose}
-              showCard = {false}
+              showCard={false}
             />
           </Box>
         )}

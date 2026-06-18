@@ -14,6 +14,8 @@ public interface OtpService {
 
 	Optional<Otp> findByEmailAndOtpType(String email, EventType otpType);
 
+	Optional<Otp> findBrequestOtpyEmailAndOtpType(String email, EventType otpType);
+
 	Otp save(Otp otp);
 
 	HttpStatus requestOtp(String email, EventType type, HttpServletRequest httpRequest);

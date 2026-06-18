@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,11 +34,7 @@ public class PayeeController {
             @AuthenticationPrincipal User authenticatedUser,
             @RequestBody PayeeRequestDTO payeeRequestDTO) {
 
-        PayeeResponseDTO payee = payeeService.addPayee(
-                authenticatedUser.getId(),
-                payeeRequestDTO.getPayeeName(),
-                payeeRequestDTO.getRecipientIdentifier());
-
+        PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(), payeeRequestDTO);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(payee.getPayeeId())
@@ -49,5 +47,14 @@ public class PayeeController {
             @AuthenticationPrincipal User authenticatedUser) {
 
         return ResponseEntity.ok(payeeService.getPayeesForUser(authenticatedUser.getId()));
+    }
+
+    @DeleteMapping("/{payeeId}")
+    public ResponseEntity<Void> deletePayee(
+            @AuthenticationPrincipal User authenticatedUser,
+            @PathVariable Long payeeId) {
+
+        payeeService.deletePayee(authenticatedUser.getId(), payeeId);
+        return ResponseEntity.noContent().build();
     }
 }

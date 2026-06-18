@@ -139,6 +139,7 @@ export function MakeAPayment() {
   const [payees, setPayees] = useState([]);
   const [payeesLoading, setPayeesLoading] = useState(true);
   const [walletBalance, setWalletBalance] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const [selectedPayee, setSelectedPayee] = useState(null);
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
@@ -146,6 +147,7 @@ export function MakeAPayment() {
   const [memoError, setMemoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
     if (authLoading || !tokenClaims?.userId) return;
@@ -153,6 +155,7 @@ export function MakeAPayment() {
     Promise.all([getPayees(), getWalletByUserId(Number(tokenClaims.userId))])
       .then(([payeeList, wallet]) => {
         setPayees(payeeList);
+        setWallet(wallet);
         setWalletBalance(wallet.balance);
       })
       .catch(() => {})
@@ -179,11 +182,13 @@ export function MakeAPayment() {
   const handleAmountChange = (e) => {
     setAmount(e.target.value);
     setAmountError(validateAmount(e.target.value));
+    setSubmitError("");
   };
 
   const handleMemoChange = (e) => {
     setMemo(e.target.value);
     setMemoError(validateMemo(e.target.value));
+    setSubmitError("");
   };
 
   const handleStep2Continue = () => {
@@ -198,12 +203,13 @@ export function MakeAPayment() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      await sendMoney(
+      const result = await sendMoney(
         Number(tokenClaims.userId),
         selectedPayee.recipientId,
         parseFloat(parseFloat(amount).toFixed(2)),
         memo.trim() || null
       );
+      setTransactionId(result?.transactionId ?? null);
       setWalletBalance((prev) => Math.round((prev - parseFloat(amount)) * 100) / 100);
       setStep(3);
     } catch (err) {
@@ -217,6 +223,31 @@ export function MakeAPayment() {
     walletBalance !== null && amount
       ? Math.round((walletBalance - parseFloat(amount || 0)) * 100) / 100
       : null;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const dailySpent =
+    wallet?.dailySpentDate === today
+      ? (wallet?.dailySpentAmount ?? 0)
+      : 0;
+
+  const dailyLimit = wallet?.dailySpendingLimit ?? null;
+
+  const projectedDailySpent =
+    dailySpent + Number(parseFloat(amount || 0));
+
+  const dailyUsagePercent =
+    dailyLimit && dailyLimit > 0
+      ? Math.min((projectedDailySpent / dailyLimit) * 100, 100)
+      : 0;
+
+  const exceedsDailyLimit =
+    dailyLimit &&
+    projectedDailySpent > dailyLimit;
+
+  const exceedsPerTransactionLimit =
+    wallet?.perTransactionLimit &&
+    Number(amount || 0) > wallet.perTransactionLimit;
 
   const formattedAmount = amount
     ? `$${parseFloat(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -333,8 +364,47 @@ export function MakeAPayment() {
                 <ConfirmRow label="Transfer Amount" value={formattedAmount} />
                 <ConfirmRow label="Memo" value={memo.trim() || "—"} />
                 {remainingBalance !== null && (
-                  <ConfirmRow label="Remaining Wallet Balance"
-                    value={`$${remainingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                  <>
+                    <ConfirmRow
+                      label="Remaining Wallet Balance"
+                      value={`$${remainingBalance.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`}
+                    />
+
+                    {dailyLimit && (
+                      <Box sx={{ p: "20px 18px" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                          <Typography sx={{ fontWeight: 700 }}>Daily Usage After Transfer</Typography>
+                          <Typography sx={{ fontWeight: 700 }}>
+                            ${projectedDailySpent.toFixed(2)} / ${dailyLimit.toFixed(2)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ height: 12, borderRadius: 999, bgcolor: "#E2E8F0", overflow: "hidden" }}>
+                          <Box
+                            sx={{
+                              width: `${dailyUsagePercent}%`,
+                              height: "100%",
+                              bgcolor: dailyUsagePercent >= 90 ? "#DC2626" : dailyUsagePercent >= 75 ? "#F59E0B" : "#0F7490",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                  </>
+                )}
+
+                {exceedsDailyLimit && (
+                  <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: "1px solid #fca5a5", bgcolor: "#fee2e2", color: "#b91c1c", fontSize: 13 }}>
+                    This transfer exceeds your wallet daily spending limit of ${dailyLimit.toFixed(2)}.
+                  </Box>
+                )}
+
+                {exceedsPerTransactionLimit && (
+                  <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: "1px solid #fca5a5", bgcolor: "#fee2e2", color: "#b91c1c", fontSize: 13 }}>
+                    This transfer exceeds your wallet per-transaction limit of ${wallet.perTransactionLimit.toFixed(2)}.
+                  </Box>
                 )}
 
                 {submitError && (
@@ -343,9 +413,18 @@ export function MakeAPayment() {
                   </Box>
                 )}
 
+
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: "1px solid #EEF2F3" }}>
-                  <Button variant="outlined" onClick={() => setStep(1)} disabled={submitting} sx={{ borderColor: "#CBD5E1", color: "#374151" }}>Back</Button>
-                  <Button variant="contained" onClick={handleTransfer} disabled={submitting}
+                  <Button
+                    variant="outlined"
+                    onClick={() => { setSubmitError(""); setStep(1); }}
+                    disabled={submitting}
+                    sx={{ borderColor: "#CBD5E1", color: "#374151" }}
+                  >
+                    Back
+                  </Button>
+                  <Button variant="contained" onClick={handleTransfer}
+                    disabled={submitting || Boolean(submitError) || exceedsDailyLimit || exceedsPerTransactionLimit}
                     sx={{ bgcolor: "#0f7490", "&:hover": { bgcolor: "#0a5a70" } }}>
                     {submitting ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : "Complete Transfer"}
                   </Button>
@@ -361,9 +440,14 @@ export function MakeAPayment() {
                 <CheckCircleOutlineIcon sx={{ fontSize: 44 }} />
               </Box>
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Money Sent</Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 14, mb: 3.5, lineHeight: 1.6 }}>
+              <Typography sx={{ color: "#64748b", fontSize: 14, mb: transactionId ? 1.5 : 3.5, lineHeight: 1.6 }}>
                 {formattedAmount} has been sent to {selectedPayee.payeeName} from your SmartPay wallet.
               </Typography>
+              {transactionId && (
+                <Typography sx={{ color: "#94A3B8", fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
+                  Transaction ID: {transactionId}
+                </Typography>
+              )}
               <Button variant="contained" onClick={() => navigate("/home")}
                 sx={{ bgcolor: "#0f7490", "&:hover": { bgcolor: "#0a5a70" }, px: 3 }}>
                 Return to Dashboard

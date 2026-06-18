@@ -66,6 +66,17 @@ export async function sendVerifyCode(payload) {
       code: payload.code,
       type: apiType(payload.type),
     });
+
+    const { accessToken, refreshToken } = res.data || {};
+
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+
+    if (refreshToken) {
+      sessionStorage.setItem("refresh_token", refreshToken);
+    }
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -80,6 +91,8 @@ const apiType = (type) => {
       return "REGISTER";
     case "forgot-password":
       return "FORGOT_PASSWORD";
+    case "reveal-card":
+      return "REVEAL_CARD";
     default:
       return type;
   }

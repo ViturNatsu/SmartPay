@@ -40,4 +40,8 @@ public class Payee {
 
     @Column(name = "payee_name", nullable = false)
     private String payeeName;
+
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 }

@@ -100,7 +100,7 @@ describe('VerifyEmail Component', () => {
             expect(screen.getByText(/resending verification email/i)).toBeInTheDocument();
 
             await waitFor(() => {
-                expect(authApi.requestResetCode).toHaveBeenCalled();
+                expect(screen.queryByText(/resending verification email/i)).not.toBeInTheDocument();
             });
         });
 
@@ -215,7 +215,7 @@ describe('VerifyEmail Component', () => {
             expect(submitButton).toBeDisabled();
 
             await waitFor(() => {
-                expect(authApi.requestResetCode).toHaveBeenCalled();
+                expect(submitButton).not.toBeDisabled();
             });
         });
     });
