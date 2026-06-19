@@ -1,5 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -257,5 +259,55 @@ public class GlobalExceptionHandler {
                 errorBody.put(ERROR, "Internal Server Error");
                 errorBody.put(MESSAGE, ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        // A different declaration of errors that avoids multiple re-writes of the same text. Implemented using a DTO and a helper method.
+        @ExceptionHandler(CardStatusOperationNotAllowedException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardStatusOperationNotAllowed(CardStatusOperationNotAllowedException ex) {
+                return errorResponseBuilder(HttpStatus.CONFLICT, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardUnauthorizedAccessException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardUnauthorizedAccess(CardUnauthorizedAccessException ex) {
+                return errorResponseBuilder(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardNotFoundException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardNotFound(CardNotFoundException ex) {
+                return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardLockRequestInvalidType.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardLockRequestInvalidType(CardLockRequestInvalidType ex) {
+                return errorResponseBuilder(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
+        @ExceptionHandler
+        public ResponseEntity<ExceptionShapeDTO> handleCardLockActionsRequiresUserRole(CardLockActionsRequiresUserRoleException ex) {
+                return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
+        }
+
+        /**
+         * Creates a standardized error response body for the supplied HTTP status
+         * and error message.
+         *
+         * @param status the HTTP status associated with the error
+         * @param message the error message to include in the response body
+         * @return a {@link ResponseEntity} containing an {@link ExceptionShapeDTO}
+         *         with the status code, reason phrase, and error message
+         */
+        private ResponseEntity<ExceptionShapeDTO> errorResponseBuilder(HttpStatus status, String message) {
+                // This is meant to be used for simple error shapes.
+                // For more complex error shapes, either update this to handle them or manually create error shapes instead (how it was done before).
+
+                ExceptionShapeDTO body = new ExceptionShapeDTO(
+                        status.value(),
+                        status.getReasonPhrase(),
+                        message
+                );
+
+                return ResponseEntity
+                        .status(status)
+                        .body(body);
         }
 }

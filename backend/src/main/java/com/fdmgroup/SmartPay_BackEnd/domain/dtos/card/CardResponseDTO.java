@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.card;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -25,4 +26,6 @@ public class CardResponseDTO {
     @NotBlank
     @Pattern(regexp = "\\d{3}", message = "CVV must be 3 digits")
     private String CVV;
+
+    private CardStatus cardStatus;
 }

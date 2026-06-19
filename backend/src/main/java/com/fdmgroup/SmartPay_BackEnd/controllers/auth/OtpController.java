@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
@@ -149,6 +150,14 @@ public class OtpController {
                 otp.markAsUsed();
                 otpService.save(otp);
                 return ResponseEntity.ok(Map.of("verified", true));
+            }
+            case CARD_LOCK, CARD_UNLOCK -> {
+                User user = userService.findByEmail(payload.getEmail().trim().toLowerCase());
+
+                transactionExecutor.execute(() -> {
+                    cardService.changeCardStatusByUserId(user.getId(), otp.getOtpType());
+                });
+                return ResponseEntity.ok(Map.of("message", otp.getOtpType().toString() + "operation OK"));
             }
             default -> {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)

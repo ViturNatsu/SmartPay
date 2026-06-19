@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
+  Alert,
   Box,
   Button,
   Card,
-  Container,
+  Container, DialogTitle,
   Divider,
-  LinearProgress,
+  LinearProgress, Snackbar,
   Stack,
-  Typography,
+  Typography, useTheme,
 } from "@mui/material";
 import {Link as RouterLink} from "react-router-dom";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
@@ -17,17 +18,25 @@ import SouthWestIcon from "@mui/icons-material/SouthWest";
 import Navbar from "@/components/Navbar";
 import LoadWalletDialog from "@/components/LoadWalletDialog";
 import WithdrawFundsDialog from "@/components/WithdrawFundsDialog";
+
 import {VirtualCardDisplay} from "@/components/card/VirtualCardDisplay";
 import {RevealCardDialog} from "@/components/card/RevealCardDialog";
 import {useAuth} from "@/context/AuthContext";
 import {getWalletTransactions} from "@/api/wallets/walletApi";
 import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
-import {useWalletData} from "@/utils/useWalletData.js";
+import {useWalletData} from "@/hooks/useWalletData.js";
 import {useCardReveal} from "@/utils/useCardReveal.js";
 import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
 import {formatString} from "@/utils/stringFormaters/formatString.js";
 import {formatDate} from "@/utils/stringFormaters/formatDate.js";
-
+import {theme} from "@/style/Theme.jsx";
+import {LockOpen, LockOutlined} from "@mui/icons-material";
+import LockIcon from "@mui/icons-material/Lock";
+import {CustomButton} from "@/components/customComponents/CustomButton.jsx";
+import {LockCardOtpDialog} from "@/components/customComponents/dialogs/LockCardOtpDialog.jsx";
+import {AlertSnackbar} from "@/components/customComponents/snackbar/AlertSnackbar.jsx";
+import {LockCardRedirectDialog} from "@/components/customComponents/dialogs/LockCardRedirectDialog.jsx";
+import {LockButton} from "@/components/customComponents/buttons/LockButton.jsx";
 
 /**
  * Wallet page — Scenario 1
@@ -48,11 +57,18 @@ import {formatDate} from "@/utils/stringFormaters/formatDate.js";
  * the WalletBalance component.
  */
 export function Wallet() {
-  const {user, tokenClaims, loading: authLoading} = useAuth();
+
+  const theme = useTheme();
+
+
+  const { user, tokenClaims, loading: authLoading } = useAuth();
 
   // Active linked bank accounts — only these may be selected as destinations (Scenario 2)
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [pmLoading, setPmLoading] = useState(true);
+
+  const [lockCardDialogOpen, setLockCardDialogOpen] = useState(false);
+  const [lockCardRedirectDialogOpen, setLockCardRedirectDialogOpen] = useState(false);
 
   const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -91,6 +107,11 @@ export function Wallet() {
     setBalance,
     setWallet
   } = useWalletData(tokenClaims);
+
+  // Snackbar states
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
 
   const fetchTransactions = async () => {
     if (!tokenClaims?.userId) return;
@@ -222,19 +243,35 @@ export function Wallet() {
               spacing={16}
               alignItems={{md: "flex-start"}}
             >
-              {/* Virtual card visual — sensitive fields blurred until OTP-verified */}
-              <VirtualCardDisplay
-                card={card}
-                user={user}
-                isRevealed={isRevealed}
-                onRevealClick={() => {
-                  if (isRevealed) {
-                    mask();
-                  } else {
-                    setRevealDialogOpen(true);
-                  }
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 2,
+                  padding: "24px",
                 }}
-              />
+              >
+                <VirtualCardDisplay
+                  card={card}
+                  user={user}
+                  isRevealed={isRevealed}
+                  onRevealClick={() => {
+                    if (isRevealed) {
+                      mask();
+                    } else {
+                      setRevealDialogOpen(true);
+                    }
+                  }}
+                />
+
+                <LockButton
+                  onClick={() => setLockCardDialogOpen(true)}
+                  status={card?.cardStatus === "ACTIVE"}
+                />
+              </Box>
 
               {/* Balance info + actions */}
               <Box sx={{flex: 1}}>
@@ -437,6 +474,38 @@ export function Wallet() {
         onClose={() => setRevealDialogOpen(false)}
       />
 
+      <LockCardOtpDialog
+        cardStatus={card?.cardStatus}
+        open={lockCardDialogOpen}
+        onClose={async ()=>{
+          setLockCardDialogOpen(false);
+        }}
+        onSuccess={async (message) => {
+          setLockCardDialogOpen(false);
+          setSnackbarOpen(true);
+          setSnackbarMessage(message);
+          await fetchWallet();
+        }}
+      ></LockCardOtpDialog>
+
+      <LockCardRedirectDialog
+        cardStatus={card?.cardStatus}
+        open={lockCardRedirectDialogOpen}
+        onOpen={setLockCardRedirectDialogOpen}
+        onClose={()=>{
+          setLockCardRedirectDialogOpen(false);
+          }
+        }
+        onSuccess={async (message) => {
+          setLockCardRedirectDialogOpen(false);
+          setSnackbarOpen(true);
+          setSnackbarMessage(message);
+          await fetchWallet();
+        }}
+      >
+      </LockCardRedirectDialog>
+
+
       <LoadWalletDialog
         open={loadWalletOpen}
         onClose={() => setLoadWalletOpen(false)}
@@ -460,6 +529,12 @@ export function Wallet() {
         wallet={wallet}
         userId={Number(tokenClaims?.userId)}
         paymentMethods={paymentMethods}
+      />
+
+      <AlertSnackbar
+        open={snackbarOpen}
+        onClose={()=>{setSnackbarOpen(false)}}
+        message={snackbarMessage}
       />
     </>
   );
