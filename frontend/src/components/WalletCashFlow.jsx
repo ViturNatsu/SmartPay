@@ -5,6 +5,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
+import { tokens } from "@/style/Theme";
 
 const INFLOW_TYPES = ["LOAD", "DEPOSIT"];
 
@@ -47,20 +48,20 @@ function CashFlowRow({ tx }) {
   const inflow = isInflow(tx.type);
 
   const rowSx = inflow
-    ? { background: "#EEFAF2", border: "1px solid #D7F0DF" }
-    : { background: "#FFF0F0", border: "1px solid #FFDADA" };
+    ? { background: tokens.color.status.successBg, border: `1px solid ${tokens.color.status.success}22` }
+    : { background: tokens.color.status.errorBg, border: `1px solid ${tokens.color.status.error}22` };
 
   const iconSx = inflow
-    ? { background: "#D9F3E2", color: "#14833B" }
-    : { background: "#FFE1E1", color: "#C62828" };
+    ? { background: `${tokens.color.status.success}22`, color: tokens.color.status.success }
+    : { background: `${tokens.color.status.error}22`, color: tokens.color.status.error };
 
-  const amountColor = inflow ? "#15803D" : "#B91C1C";
+  const amountColor = inflow ? tokens.color.status.success : tokens.color.status.error;
 
   return (
     <Box
       sx={{
         ...rowSx,
-        borderRadius: "14px",
+        borderRadius: `${tokens.borderRadius.large}px`,
         p: "16px 18px",
         display: "grid",
         gridTemplateColumns: "44px 1fr auto",
@@ -74,7 +75,7 @@ function CashFlowRow({ tx }) {
           ...iconSx,
           width: 40,
           height: 40,
-          borderRadius: "50%",
+          borderRadius: tokens.borderRadius.circle,
           display: "grid",
           placeItems: "center",
         }}
@@ -88,20 +89,20 @@ function CashFlowRow({ tx }) {
 
       {/* Description */}
       <Box>
-        <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.5 }}>
+        <Typography sx={{ fontWeight: tokens.typography.fontWeight.bold, fontSize: 15, mb: 0.5 }}>
           {getDisplayName(tx.type)}
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+        <Typography sx={{ fontSize: 13, color: tokens.color.text.secondary }}>
           {tx.description ?? tx.transactionId} · {formatDate(tx.createdAt)}
         </Typography>
       </Box>
 
       {/* Amount + direction */}
       <Box sx={{ textAlign: "right" }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 17, color: amountColor }}>
+        <Typography sx={{ fontWeight: tokens.typography.fontWeight.extrabold, fontSize: 17, color: amountColor }}>
           {formatAmount(tx.type, tx.amount)}
         </Typography>
-        <Typography sx={{ fontSize: 12, color: "#6B7280", fontWeight: 600, mt: 0.5 }}>
+        <Typography sx={{ fontSize: 12, color: tokens.color.text.muted, fontWeight: tokens.typography.fontWeight.semibold, mt: 0.5 }}>
           {inflow ? "Inflow" : "Outflow"}
         </Typography>
       </Box>
@@ -137,11 +138,11 @@ function WalletCashFlow() {
       elevation={0}
       sx={{
         width: "100%",
-        bgcolor: "#fff",
-        borderRadius: "18px",
-        border: "1px solid #E5E7EB",
+        bgcolor: tokens.color.background.surface,
+        borderRadius: `${tokens.borderRadius.xl}px`,
+        border: `1px solid ${tokens.color.border.light}`,
         p: "22px",
-        boxShadow: "0 8px 20px rgba(15,23,42,.04)",
+        boxShadow: tokens.shadow.card,
         boxSizing: "border-box",
       }}
     >
@@ -154,16 +155,16 @@ function WalletCashFlow() {
           mb: "18px",
         }}
       >
-        <Typography sx={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em" }}>
+        <Typography sx={{ fontSize: 18, fontWeight: tokens.typography.fontWeight.bold, letterSpacing: "-0.02em" }}>
           Wallet Activity
         </Typography>
         <Typography
           component={RouterLink}
           to="/transactions"
           sx={{
-            color: "#008C99",
+            color: tokens.color.brand.primary,
             fontSize: 13,
-            fontWeight: 650,
+            fontWeight: tokens.typography.fontWeight.semibold,
             textDecoration: "none",
             "&:hover": { textDecoration: "underline" },
           }}
@@ -174,11 +175,11 @@ function WalletCashFlow() {
 
       {/* Rows */}
       {loading ? (
-        <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+        <Typography sx={{ fontSize: 13, color: tokens.color.text.muted }}>
           Loading activity...
         </Typography>
       ) : transactions.length === 0 ? (
-        <Typography sx={{ fontSize: 13, color: "#8DA0BC" }}>
+        <Typography sx={{ fontSize: 13, color: tokens.color.text.muted }}>
           No wallet activity yet. Load funds to see your first transaction.
         </Typography>
       ) : (
