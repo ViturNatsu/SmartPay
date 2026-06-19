@@ -96,13 +96,16 @@ public class PayeeServiceImpl implements PayeeService {
     }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
+        String phoneNumber = customerRepository.findByUser(payee.getRecipient())
+                .map(Customer::getPhoneNumber)
+                .orElse(null);
         return new PayeeResponseDTO(
                 payee.getPayeeId(),
                 payee.getPayeeName(),
                 payee.getRecipient().getId(),
                 payee.getRecipient().getFirstName(),
                 payee.getRecipient().getLastName(),
-                payee.getRecipient().getEmail());
+                payee.getRecipient().getEmail(),
+                phoneNumber);
     }
-
 }

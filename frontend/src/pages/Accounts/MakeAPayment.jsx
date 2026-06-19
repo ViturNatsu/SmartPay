@@ -229,8 +229,8 @@ export function MakeAPayment() {
   const dailySpent =
     wallet?.dailySpentDate === today
       ? (wallet?.dailySpentAmount ?? 0)
-      : 0;    
-      
+      : 0;
+
   const dailyLimit = wallet?.dailySpendingLimit ?? null;
 
   const projectedDailySpent =
@@ -239,8 +239,8 @@ export function MakeAPayment() {
   const dailyUsagePercent =
     dailyLimit && dailyLimit > 0
       ? Math.min((projectedDailySpent / dailyLimit) * 100, 100)
-      : 0;    
-  
+      : 0;
+
   const exceedsDailyLimit =
     dailyLimit &&
     projectedDailySpent > dailyLimit;
@@ -375,40 +375,18 @@ export function MakeAPayment() {
 
                     {dailyLimit && (
                       <Box sx={{ p: "20px 18px" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            mb: 1,
-                          }}
-                        >
-                          <Typography sx={{ fontWeight: 700 }}>
-                            Daily Usage After Transfer
-                          </Typography>
-
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                          <Typography sx={{ fontWeight: 700 }}>Daily Usage After Transfer</Typography>
                           <Typography sx={{ fontWeight: 700 }}>
                             ${projectedDailySpent.toFixed(2)} / ${dailyLimit.toFixed(2)}
                           </Typography>
                         </Box>
-
-                        <Box
-                          sx={{
-                            height: 12,
-                            borderRadius: 999,
-                            bgcolor: "#E2E8F0",
-                            overflow: "hidden",
-                          }}
-                        >
+                        <Box sx={{ height: 12, borderRadius: 999, bgcolor: "#E2E8F0", overflow: "hidden" }}>
                           <Box
                             sx={{
                               width: `${dailyUsagePercent}%`,
                               height: "100%",
-                              bgcolor:
-                                dailyUsagePercent >= 90
-                                  ? "#DC2626"
-                                  : dailyUsagePercent >= 75
-                                  ? "#F59E0B"
-                                  : "#0F7490",
+                              bgcolor: dailyUsagePercent >= 90 ? "#DC2626" : dailyUsagePercent >= 75 ? "#F59E0B" : "#0F7490",
                             }}
                           />
                         </Box>
@@ -439,18 +417,14 @@ export function MakeAPayment() {
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: "1px solid #EEF2F3" }}>
                   <Button
                     variant="outlined"
-                    onClick={() => {
-                      setSubmitError("");
-                      setStep(1);
-                    }}
+                    onClick={() => { setSubmitError(""); setStep(1); }}
                     disabled={submitting}
+                    sx={{ borderColor: "#CBD5E1", color: "#374151" }}
                   >
                     Back
                   </Button>
-                  <Button variant="contained" onClick={handleTransfer} disabled={submitting ||
-                      Boolean(submitError) ||
-                      exceedsDailyLimit ||
-                      exceedsPerTransactionLimit}
+                  <Button variant="contained" onClick={handleTransfer}
+                    disabled={submitting || Boolean(submitError) || exceedsDailyLimit || exceedsPerTransactionLimit}
                     sx={{ bgcolor: "#0f7490", "&:hover": { bgcolor: "#0a5a70" } }}>
                     {submitting ? <CircularProgress size={20} sx={{ color: "#fff" }} /> : "Complete Transfer"}
                   </Button>

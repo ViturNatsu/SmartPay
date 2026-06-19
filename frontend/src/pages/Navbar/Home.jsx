@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import { Stack } from "@mui/material";
 import QuickActions from "@/components/QuickActions";
 import ImportantMessages from "@/components/ImportantMessages";
-import AccountOverview from "@/components/AccountOverview";
+import WalletCashFlow from "@/components/WalletCashFlow";
 import TransactionHistory from "@/components/TransactionHistory";
 import LoadWalletDialog from "@/components/LoadWalletDialog";
 import { useAuth } from "@/context/AuthContext";
@@ -47,7 +47,7 @@ export const Home = () => {
           >
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
-              <AccountOverview />
+              <WalletCashFlow />
               <TransactionHistory />
             </Stack>
           </div>
