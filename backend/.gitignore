@@ -57,3 +57,6 @@ local.properties
 
 # H2 local database files - each developer gets their own fresh DB on startup
 data/
+
+# JVM crash logs
+hs_err_pid*.log
