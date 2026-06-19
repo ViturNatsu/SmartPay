@@ -1,4 +1,4 @@
-import axiosInstance, { handleAxiosError } from "../axios";
+import axiosInstance, {handleAxiosError} from "../axios";
 
 const CARDS_URL = "/api/v1/cards";
 
@@ -10,7 +10,7 @@ const CARDS_URL = "/api/v1/cards";
  * @param {number} walletId  - The ID of the wallet
  * @returns {Promise<{ virtualCardNumber, expiryDate, CVV }>}
  */
-export async function getCardByWalletId(walletId) {
+export const getCardByWalletId = async (walletId) => {
     try {
         const res = await axiosInstance.get(`${CARDS_URL}/${walletId}`);
         return res.data;
@@ -18,3 +18,14 @@ export async function getCardByWalletId(walletId) {
         throw handleAxiosError(err);
     }
 }
+
+export const createCardLockRequestOTP = async (payload) => {
+    try {
+        return await axiosInstance.post(
+          `${CARDS_URL}/user/lock-requests`,
+          payload
+        );
+    } catch (err) {
+        throw handleAxiosError(err);
+    }
+};

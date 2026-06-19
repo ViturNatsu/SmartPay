@@ -1,4 +1,4 @@
-import { getWalletByUserId } from "@/api/wallets/walletApi";
+import { getWalletByUserId } from "@/api/wallets/walletApi.js";
 import {getCardByWalletId} from "@/api/cards/cardsApi.js";
 import {useState} from "react";
 
