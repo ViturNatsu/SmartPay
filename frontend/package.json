@@ -22,6 +22,7 @@
     "@mui/x-data-grid": "^8.27.5",
     "axios": "^1.13.2",
     "cors": "^2.8.6",
+    "mui-one-time-password-input": "^7.0.0",
     "node": "^25.5.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

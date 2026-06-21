@@ -229,8 +229,9 @@ public class WalletServiceImpl implements WalletService {
         Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
-        walletRepository.save(recipientWallet);
+        Wallet savedRecipientWallet = walletRepository.save(recipientWallet);
 
+        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount);
         WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount);
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());

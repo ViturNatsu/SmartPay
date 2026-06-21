@@ -1,5 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,9 +28,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginUnverifiedEmailExceptio
 import com.fdmgroup.SmartPay_BackEnd.exception.user.PasswordResetDoNotMatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
-import org.springframework.web.server.ResponseStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,22 +43,15 @@ public class GlobalExceptionHandler {
         private static final String MESSAGE = "message";
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        public ResponseEntity<Map<String, String>> handleValidationErrors(
-                        MethodArgumentNotValidException exception) {
+        public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException exception) {
                 Map<String, String> errors = new HashMap<>();
-
-                exception.getBindingResult()
-                                .getFieldErrors()
+                exception.getBindingResult().getFieldErrors()
                                 .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
-                exception.getBindingResult()
-                                .getGlobalErrors()
+                exception.getBindingResult().getGlobalErrors()
                                 .forEach(err -> errors.put(
                                                 err.getCode() != null ? err.getCode() : err.getObjectName(),
                                                 err.getDefaultMessage()));
-
-                return ResponseEntity
-                                .status(HttpStatus.UNPROCESSABLE_CONTENT)
-                                .body(errors);
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(errors);
         }
 
         @ExceptionHandler(PasswordResetDoNotMatchException.class)
@@ -143,40 +138,39 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(LoginInvalidCredentialsException.class)
         public ResponseEntity<Map<String, String>> handleLoginInvalidCredentials(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put("status", "401");
-                errorBody.put("error", "Unauthorized");
-                errorBody.put("message", "Incorrect email or password. Please try again.");
+                errorBody.put(STATUS, "401");
+                errorBody.put(ERROR, "Unauthorized");
+                errorBody.put(MESSAGE, "Incorrect email or password. Please try again.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         @ExceptionHandler(LoginUnverifiedEmailException.class)
         public ResponseEntity<Map<String, String>> handleLoginUnverified(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put("status", "403");
-                errorBody.put("error", "Forbidden");
-                errorBody.put("message", "Your email address is not verified. Please check your inbox and verify your email to continue.");
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "Your email address is not verified. Please check your inbox and verify your email to continue.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         @ExceptionHandler(LoginAccountDisabledException.class)
         public ResponseEntity<Map<String, String>> handleLoginDisabled(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put("status", "403");
-                errorBody.put("error", "Forbidden");
-                errorBody.put("message", "We can't sign you in right now. Please contact support.");
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "We can't sign you in right now. Please contact support.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         @ExceptionHandler(CustomerInfoNotFoundException.class)
         public ResponseEntity<Map<String, String>> handleCustomerNotFoundInDatabase(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put("status", "404");
-                errorBody.put("error", "Not Found");
-                errorBody.put("message", "Unable to retrieve customer information.");
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Not Found");
+                errorBody.put(MESSAGE, "Unable to retrieve customer information.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
-        
-        // US-09-01-28 (Wallet Withdraw)
+
         @ExceptionHandler(InsufficientFundsException.class)
         public ResponseEntity<Map<String, String>> handleInsufficientFunds(InsufficientFundsException ex) {
                 Map<String, String> errorBody = new HashMap<>();
@@ -186,21 +180,15 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
-        // US-09-02-01 (Wallet ID not found)
         @ExceptionHandler(WalletNotFoundException.class)
         public ResponseEntity<Map<String, String>> handleWalletNotFound(RuntimeException ex) {
-
-            Map<String, String> errorBody = new HashMap<>();
-            errorBody.put(STATUS, "404");
-            errorBody.put(ERROR, "Wallet id not found!");
-            errorBody.put(MESSAGE, ex.getMessage());
-
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorBody);
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Wallet id not found!");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
-        // US-09-01-28 (Wallet Withdraw)
+
         @ExceptionHandler(InvalidWithdrawAmountException.class)
         public ResponseEntity<Map<String, String>> handleInvalidWithdrawAmount(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
@@ -228,15 +216,6 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "message", "An unexpected error occurred"
-                ));
-        }
-
         @ExceptionHandler(InvalidPayeeException.class)
         public ResponseEntity<Map<String, String>> handleInvalidPayee(InvalidPayeeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
@@ -246,12 +225,21 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        @ExceptionHandler(PayeeNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Not Found");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
         @ExceptionHandler(MailSendException.class)
         public ResponseEntity<Map<String, String>> handleMailSendException(RuntimeException ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put("status", "503");
-                errorBody.put("error", "Service Unavailable");
-                errorBody.put("message", "Email service is currently unavailable.");
+                errorBody.put(STATUS, "503");
+                errorBody.put(ERROR, "Service Unavailable");
+                errorBody.put(MESSAGE, "Email service is currently unavailable.");
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
@@ -261,22 +249,65 @@ public class GlobalExceptionHandler {
                 errorBody.put(STATUS, String.valueOf(ex.getStatusCode().value()));
                 errorBody.put(ERROR, ex.getReason() != null ? ex.getReason() : "Error");
                 errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity
-                        .status(ex.getStatusCode())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(errorBody);
+                return ResponseEntity.status(ex.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
-        @ExceptionHandler(PayeeNotFoundException.class)
-        public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
                 Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "404");
-                errorBody.put(ERROR, "Not Found");
-                errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity
-                                .status(HttpStatus.NOT_FOUND)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .body(errorBody);
+                errorBody.put(STATUS, "500");
+                errorBody.put(ERROR, "Internal Server Error");
+                errorBody.put(MESSAGE, ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        // A different declaration of errors that avoids multiple re-writes of the same text. Implemented using a DTO and a helper method.
+        @ExceptionHandler(CardStatusOperationNotAllowedException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardStatusOperationNotAllowed(CardStatusOperationNotAllowedException ex) {
+                return errorResponseBuilder(HttpStatus.CONFLICT, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardUnauthorizedAccessException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardUnauthorizedAccess(CardUnauthorizedAccessException ex) {
+                return errorResponseBuilder(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardNotFoundException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardNotFound(CardNotFoundException ex) {
+                return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+
+        @ExceptionHandler(CardLockRequestInvalidType.class)
+        public ResponseEntity<ExceptionShapeDTO> handleCardLockRequestInvalidType(CardLockRequestInvalidType ex) {
+                return errorResponseBuilder(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
+        @ExceptionHandler
+        public ResponseEntity<ExceptionShapeDTO> handleCardLockActionsRequiresUserRole(CardLockActionsRequiresUserRoleException ex) {
+                return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
+        }
+
+        /**
+         * Creates a standardized error response body for the supplied HTTP status
+         * and error message.
+         *
+         * @param status the HTTP status associated with the error
+         * @param message the error message to include in the response body
+         * @return a {@link ResponseEntity} containing an {@link ExceptionShapeDTO}
+         *         with the status code, reason phrase, and error message
+         */
+        private ResponseEntity<ExceptionShapeDTO> errorResponseBuilder(HttpStatus status, String message) {
+                // This is meant to be used for simple error shapes.
+                // For more complex error shapes, either update this to handle them or manually create error shapes instead (how it was done before).
+
+                ExceptionShapeDTO body = new ExceptionShapeDTO(
+                        status.value(),
+                        status.getReasonPhrase(),
+                        message
+                );
+
+                return ResponseEntity
+                        .status(status)
+                        .body(body);
+        }
 }

@@ -1,10 +1,14 @@
 package com.fdmgroup.SmartPay_BackEnd.services.card;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.integration.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,7 +56,6 @@ public class CardServiceImpl implements CardService {
         return mapToDto(card);
     }
 
-
     /**
      * Fetches the card in the database using the associated wallet id.
      * @param id the wallet id linked with the card.
@@ -82,7 +85,7 @@ public class CardServiceImpl implements CardService {
         if (card == null) {
             throw new WalletNotFoundException("Wallet with specified ID not found");
         }
-        if (!isExpired(card)){  
+        if (!isExpired(card)){
             return false;
         }
 
@@ -95,9 +98,9 @@ public class CardServiceImpl implements CardService {
         details.setRecipient(card.getWallet().getUser().getEmail());
         details.setSubject("Your Card Has Been Renewed");
 
-        details.setMsgBody("Dear " + card.getWallet().getUser().getFirstName() + 
-        ",\n\nYour card ending with " + card.getCardNumber().substring(card.getCardNumber().length() - 4) + 
-        " has been renewed successfully. Your new expiration date is " + newExpiry.toLocalDate() + 
+        details.setMsgBody("Dear " + card.getWallet().getUser().getFirstName() +
+        ",\n\nYour card ending with " + card.getCardNumber().substring(card.getCardNumber().length() - 4) +
+        " has been renewed successfully. Your new expiration date is " + newExpiry.toLocalDate() +
         ".\n\nThank you for using SmartPay!");
 
         emailService.sendSimpleMail(details);
@@ -125,7 +128,177 @@ public class CardServiceImpl implements CardService {
         } while (card.getCvv().equals(newCvv));
         card.setCvv(newCvv);
     }
+    /**
+     * Retrieves a card associated with the specified user ID.
+     *
+     * @param userId the ID of the user whose card is being retrieved
+     * @return a {@link CardResponseDTO} containing the card details
+     * @throws CardNotFoundException if no card is associated with the specified user
+     */
+    @Override
+    public CardResponseDTO getCardByUserId(Long userId) {
+        Card card = cardRepository.findCardByUserId(userId).orElseThrow(CardNotFoundException::new);
+        return  mapToDto(card);
+    }
 
+    /**
+     * Changes the status of a card associated with the specified user ID
+     * based on the provided card-related event.
+     * <p>
+     * Supported events:
+     * <ul>
+     *     <li>{@link EventType#CARD_LOCK} - Locks the card</li>
+     *     <li>{@link EventType#CARD_UNLOCK} - Unlocks the card</li>
+     * </ul>
+     *
+     * @param userId the ID of the user whose card status is to be changed
+     * @param eventType the card status change event
+     * @throws CardStatusOperationNotAllowedException if the event type is unsupported
+     *                                                or the operation is not permitted
+     * @throws CardNotFoundException if no card is associated with the specified user
+     */
+    @Override
+    public void changeCardStatusByUserId(Long userId, EventType eventType) {
+        if(EventType.CARD_LOCK ==  eventType) {
+            lockCardByUserId(userId);
+        }
+        else if(EventType.CARD_UNLOCK ==  eventType) {
+            unlockCardByUserId(userId);
+        }
+        else{
+            //This is typically unreachable. To ensure it doesn't silently break, an error is thrown.
+            throw new CardStatusOperationNotAllowedException("Card Status Operation Not Allowed");
+        }
+    }
+
+    /**
+     * Performs validation before attempting a card lock or unlock operation.
+     * <p>
+     * Validation rules:
+     * <ul>
+     *     <li>A card can only be locked when its status is {@link CardStatus#ACTIVE}</li>
+     *     <li>A card can only be unlocked when its status is {@link CardStatus#LOCKED}</li>
+     * </ul>
+     *
+     * @param userId the ID of the user whose card status is being validated
+     * @param eventType the intended card status change event
+     * @throws CardNotFoundException if no card is associated with the specified user
+     * @throws CardStatusOperationNotAllowedException if the current card status
+     *                                                does not allow the requested operation
+     */
+    @Override
+    public void lockSanityCheck(Long userId, EventType eventType) {
+        Card card = cardRepository.findCardByUserId(userId).orElseThrow(CardNotFoundException::new);
+        if(eventType == EventType.CARD_LOCK) {
+            if(card.getStatus() != CardStatus.ACTIVE) {
+                throw new  CardStatusOperationNotAllowedException("Card status is not ACTIVE");
+            }
+        }
+        if(eventType == EventType.CARD_UNLOCK) {
+            if(card.getStatus() != CardStatus.LOCKED) {
+                throw new  CardStatusOperationNotAllowedException("Card status is not LOCKED");
+            }
+        }
+    }
+
+
+
+    // Helper methods for locking and unlocking a card through the associated User id. This operation requires multiple SQL JOINs.
+    /**
+     * Locks the card associated with the specified user ID.
+     *
+     * @param userId the ID of the user whose card is to be locked
+     * @throws CardNotFoundException if no card is associated with the specified user
+     * @throws CardStatusOperationNotAllowedException if the card is not in an ACTIVE state
+     */
+    private void lockCardByUserId(Long userId) {
+        Card card = cardRepository.findCardByUserId(userId).orElseThrow(CardNotFoundException::new);
+        performLock(card);
+    }
+
+    /**
+     * Unlocks the card associated with the specified user ID.
+     *
+     * @param userId the ID of the user whose card is to be unlocked
+     * @throws CardNotFoundException if no card is associated with the specified user
+     * @throws CardStatusOperationNotAllowedException if the card is not in a LOCKED state
+     */
+    private void unlockCardByUserId(Long userId) {
+        Card card = cardRepository.findCardByUserId(userId).orElseThrow(CardNotFoundException::new);
+        performUnlock(card);
+    }
+
+    // Helper methods for locking and unlocking a card through its Card id.
+    // Might be useful in the future.
+    // Currently not used.
+
+    /**
+     * Locks the card identified by the specified card ID.
+     * <p>
+     * Currently unused, but retained for potential future functionality.
+     *
+     * @param cardId the ID of the card to lock
+     * @throws CardNotFoundException if the card does not exist
+     * @throws CardStatusOperationNotAllowedException if the card is not in an ACTIVE state
+     */
+    private void lockCardByCardId(Long cardId){
+        Card card = cardRepository.findById(cardId).orElseThrow(CardNotFoundException::new);
+        performLock(card);
+    }
+
+    /**
+     * Unlocks the card identified by the specified card ID.
+     * <p>
+     * Currently unused, but retained for potential future functionality.
+     *
+     * @param cardId the ID of the card to unlock
+     * @throws CardNotFoundException if the card does not exist
+     * @throws CardStatusOperationNotAllowedException if the card is not in a LOCKED state
+     */
+    private void unlockCardByCardId(Long cardId){
+        Card card = cardRepository.findById(cardId).orElseThrow(CardNotFoundException::new);
+        performUnlock(card);
+    }
+
+    /**
+     * Performs the card locking operation.
+     * <p>
+     * A card may only be locked if its current status is {@link CardStatus#ACTIVE}.
+     *
+     * @param card the card to lock
+     * @throws CardStatusOperationNotAllowedException if the card is not ACTIVE
+     */
+    // The actual process of locking/unlocing a card.
+    private void performLock(Card card) {
+        // A card must first be active to be locked
+        if(card.getStatus() == CardStatus.ACTIVE){
+            card.setStatus(CardStatus.LOCKED);
+        }else{
+            throw new CardStatusOperationNotAllowedException("Lock not allowed. The card's status must first be ACTIVE.");
+        }
+        cardRepository.save(card);
+    }
+
+    /**
+     * Performs the card unlocking operation.
+     * <p>
+     * Unlocking returns a card to the {@link CardStatus#ACTIVE} state.
+     * Only cards currently in the {@link CardStatus#LOCKED} state may be unlocked.
+     *
+     * @param card the card to unlock
+     * @throws CardStatusOperationNotAllowedException if the card is not LOCKED
+     */
+    private void performUnlock(Card card) {
+        // "Unlocking" a card returns it to the active state.
+        // However, we only allow unlocking a "LOCKED" card. Inactive cards are, for now, considered as no longer in-use.
+        // The CardStatus will have to be refined further to allow handling of more complex statuses.
+        if(card.getStatus().equals(CardStatus.LOCKED)){
+            card.setStatus(CardStatus.ACTIVE);
+        }else{
+            throw new CardStatusOperationNotAllowedException("Unlock not allowed. The card's status must first be LOCKED.");
+        }
+        cardRepository.save(card);
+    }
     /**
      * Maps a Card object into its respective CardResponseDTO
      * @param card The card object that the CardResponseDTO is based on.
@@ -137,7 +310,7 @@ public class CardServiceImpl implements CardService {
         response.setCVV(card.getCvv());
         response.setVirtualCardNumber(card.getCardNumber());
         response.setExpiryDate(card.getExpirationDate());
-
+        response.setCardStatus(card.getStatus());
         return response;
     }
 }

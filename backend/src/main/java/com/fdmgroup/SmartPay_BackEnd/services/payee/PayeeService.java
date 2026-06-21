@@ -7,10 +7,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 
 public interface PayeeService {
 
-   public PayeeResponseDTO addPayee(Long ownerId, PayeeRequestDTO payeeRequestDTO);
+    PayeeResponseDTO addPayee(Long ownerId, PayeeRequestDTO payeeRequestDTO);
 
-    public List<PayeeResponseDTO> getPayeesForUser(Long ownerId);
+    List<PayeeResponseDTO> getPayeesForUser(Long ownerId);
 
-    public void deletePayee(Long ownerId, Long payeeId);
-
+    void deletePayee(Long ownerId, Long payeeId);
 }

@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,15 +30,16 @@ public class PayeeController {
     }
 
     @PostMapping
-    public ResponseEntity<PayeeResponseDTO> addPayee(@AuthenticationPrincipal User authenticatedUser,
-    @RequestBody PayeeRequestDTO payeeRequestDTO) {
-    System.out.println("authenticated user ID "+authenticatedUser.getId());
-    
-   
-    PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(), payeeRequestDTO);
-    URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-    .buildAndExpand(payee.getPayeeId()).toUri();
-    return ResponseEntity.created(location).body(payee);
+    public ResponseEntity<PayeeResponseDTO> addPayee(
+            @AuthenticationPrincipal User authenticatedUser,
+            @RequestBody PayeeRequestDTO payeeRequestDTO) {
+
+        PayeeResponseDTO payee = payeeService.addPayee(authenticatedUser.getId(), payeeRequestDTO);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(payee.getPayeeId())
+                .toUri();
+        return ResponseEntity.created(location).body(payee);
     }
 
     @GetMapping
@@ -50,10 +50,11 @@ public class PayeeController {
     }
 
     @DeleteMapping("/{payeeId}")
-    public ResponseEntity<Void> deletePayee(@AuthenticationPrincipal User authenticatedUser,
+    public ResponseEntity<Void> deletePayee(
+            @AuthenticationPrincipal User authenticatedUser,
             @PathVariable Long payeeId) {
+
         payeeService.deletePayee(authenticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
-
 }
