@@ -1,6 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
 
@@ -17,5 +17,5 @@ public class WalletTransactionDTO {
     private String bankDisplayName;
     private String description;
     private String status;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
