@@ -2,6 +2,7 @@ import { Box, Typography, Avatar } from "@mui/material";
 import logo from "@/style/logo.png";
 import SecurityIcon from "@mui/icons-material/Security";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
+import { tokens } from "@/style/Theme";
 
 /**
  * SmartPayBanner - Common header/banner for SmartPay auth pages.
@@ -40,7 +41,7 @@ const bulletBoxHeadingSx = {
     /* identical to box height, or 150% */
     display: "flex",
     alignItems: "center",
-    color: "#f00",
+    color: tokens.color.text.primary,
 };
 
 const bulletBoxInfoSx = {
@@ -51,7 +52,7 @@ const bulletBoxInfoSx = {
     fontSize: "14px",
     lineHeight: "20px",
     display: "flex",
-    color: "#f00",
+    color: tokens.color.text.primary,
     textAlign: "left",
 };
 
@@ -91,7 +92,7 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
                 sx={{
                     fontWeight: 800,
                     letterSpacing: "-0.02em",
-                    color: "#1E40AF",
+                    color: tokens.color.brand.primary,
                     mb: 1,
                 }}
             >
@@ -100,7 +101,7 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
             {/* Sets up brief description. */}
             <Typography
                 sx={{
-                    color: "text.secondary",
+                    color: tokens.color.text.secondary,
                     maxWidth: 360,
                     mx: "auto",
                     lineHeight: 1.6,
@@ -128,11 +129,11 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
                         <Avatar
                             variant="rounded"
                             sx={{
-                                backgroundColor: "#f00",
+                                backgroundColor: tokens.color.brand.primaryLight,
                                 borderRadius: 2,
                             }}
                         >
-                            <SecurityIcon sx={{ color: "#2563EB" }}></SecurityIcon>
+                            <SecurityIcon sx={{ color: tokens.color.brand.primary }}></SecurityIcon>
                         </Avatar>
                         <Box sx={bulletBoxSx}>
                             <Typography sx={bulletBoxHeadingSx}>
@@ -148,11 +149,11 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
                         <Avatar
                             variant="rounded"
                             sx={{
-                                backgroundColor: "#d4fafe",
+                                backgroundColor: tokens.color.brand.primaryLight,
                                 borderRadius: 2,
                             }}
                         >
-                            <FlashOnIcon sx={{ color: "#0891B2" }}></FlashOnIcon>
+                            <FlashOnIcon sx={{ color: tokens.color.brand.primary }}></FlashOnIcon>
                         </Avatar>
                         <Box sx={bulletBoxSx}>
                             <Typography sx={bulletBoxHeadingSx}> Instant Setup</Typography>

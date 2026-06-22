@@ -5,6 +5,7 @@ import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import { tokens } from "../style/Theme";
 
 const ACTIONS = [
   {
@@ -35,9 +36,9 @@ function QuickActions({ onLoadWallet }) {
       elevation={0}
       sx={{
         width: "100%",
-        bgcolor: "#fff",
+        bgcolor: tokens.color.background.card,
         borderRadius: "18px",
-        border: "1px solid #E5E7EB",
+        border: `1px solid ${tokens.color.border.light}`,
         boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
         p: "22px",
       }}
@@ -67,8 +68,8 @@ function QuickActions({ onLoadWallet }) {
               justifyContent: "space-between",
               p: "15px",
               borderRadius: "14px",
-              border: "1px solid #E5E7EB",
-              bgcolor: "#fff",
+              border: `1px solid ${tokens.color.border.light}`,
+              bgcolor: tokens.color.background.card,
               textAlign: "left",
             }}
           >
@@ -78,19 +79,19 @@ function QuickActions({ onLoadWallet }) {
                   width: 34,
                   height: 34,
                   borderRadius: "50%",
-                  bgcolor: "#F2EFFF",
-                  color: "#5B35D5",
+                  bgcolor: tokens.color.background.quickAction,
+                  color: tokens.color.icon.quickAction,
                   display: "grid",
                   placeItems: "center",
                 }}
               >
                 <Icon sx={{ fontSize: 18 }} />
               </Box>
-              <Typography sx={{ fontSize: 14, fontWeight: 650, color: "#111827" }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 650, color: tokens.color.text.primary }}>
                 {text}
               </Typography>
             </Box>
-            <ChevronRightIcon sx={{ fontSize: 18, color: "#9CA3AF" }} />
+            <ChevronRightIcon sx={{ fontSize: 18, color: tokens.color.text.muted }} />
           </ButtonBase>
         ))}
       </Stack>

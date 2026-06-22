@@ -14,11 +14,13 @@ export const tokens = {
     icon: {
       successBg: "#25A18E",
       successCheck: "rgba(37, 161, 142, 0.49)",
+      quickAction: "#5B35D5"
     },
     background: {
       app: "#F5F7FA",
       surface: "#FFFFFF",
-      stack: "#F9FAFB"
+      stack: "#F9FAFB",
+      quickAction: "#F2EFFF"
     },
     text: {
       primary: "#0D1B2A",
@@ -54,6 +56,7 @@ export const tokens = {
       neutralBg: "#FFFFFF",
       neutralText: "#475569",
       neutralBorder: "#CBD5E1",
+      gradientBg: "linear-gradient(135deg, #008c99, #00a8b5)",
       disabledBg:"#F3F4F6",
     },
     action: {

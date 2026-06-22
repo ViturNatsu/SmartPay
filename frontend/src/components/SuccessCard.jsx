@@ -105,14 +105,14 @@ const SuccessCard = ({
               },
               borderRadius: "12px",
               border: "1px solid",
-                borderColor: " #d1d5db",
+                borderColor: tokens.color.button.neutralBorder,
             }}
           >
             <Typography
               variant="subtitle"
               sx={{
                 fontWeight: 700,
-                color: "black",
+                color: tokens.color.text.primary,
                 textTransform: "none",
               }}
             >
@@ -128,7 +128,7 @@ const SuccessCard = ({
             py: 1.5,
             height: 44,
             minWidth: "111px",
-            background: "linear-gradient(135deg, #008c99, #00a8b5)",
+            background: tokens.color.button.gradientBg,
             boxShadow: "0 10px 20px rgba(0, 151, 167, .16)",
             borderRadius: "12px",
           }}
