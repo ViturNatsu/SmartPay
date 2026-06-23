@@ -9,6 +9,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import {Home} from "@/pages/Navbar/Home";
 import {Accounts} from "@/pages/Accounts/Accounts";
 import {Transactions} from "@/pages/Navbar/Transactions";
+import {TransactionDetails} from "@/pages/Navbar/TransactionDetails";
 import {Cards} from "@/pages/Navbar/Cards";
 import {Reports} from "@/pages/Navbar/Reports";
 import {Settings} from "@/pages/Navbar/Settings";
@@ -51,6 +52,7 @@ export default function AppRoutes() {
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/accounts/:accountId" element={<AccountDetails />} />
         <Route path="/transactions" element={<Transactions />} />
+        <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/payment-methods" element={<PaymentMethods />} />

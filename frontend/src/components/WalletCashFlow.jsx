@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Box, Card, Stack, Typography } from "@mui/material";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -44,7 +44,7 @@ function formatDate(isoDate) {
   });
 }
 
-function CashFlowRow({ tx }) {
+function CashFlowRow({ tx, onClick }) {
   const inflow = isInflow(tx.type);
 
   const rowSx = inflow
@@ -59,6 +59,12 @@ function CashFlowRow({ tx }) {
 
   return (
     <Box
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onClick?.();
+      }}
       sx={{
         ...rowSx,
         borderRadius: `${tokens.borderRadius.large}px`,
@@ -67,6 +73,9 @@ function CashFlowRow({ tx }) {
         gridTemplateColumns: "44px 1fr auto",
         gap: "14px",
         alignItems: "center",
+        cursor: "pointer",
+        transition: "opacity 0.15s",
+        "&:hover": { opacity: 0.92 },
       }}
     >
       {/* Icon */}
@@ -112,6 +121,7 @@ function CashFlowRow({ tx }) {
 
 function WalletCashFlow() {
   const { tokenClaims, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -185,7 +195,11 @@ function WalletCashFlow() {
       ) : (
         <Stack spacing={1.5}>
           {transactions.map((tx) => (
-            <CashFlowRow key={tx.transactionId} tx={tx} />
+            <CashFlowRow
+              key={tx.transactionId}
+              tx={tx}
+              onClick={() => navigate(`/transactions/${tx.transactionId}`)}
+            />
           ))}
         </Stack>
       )}
