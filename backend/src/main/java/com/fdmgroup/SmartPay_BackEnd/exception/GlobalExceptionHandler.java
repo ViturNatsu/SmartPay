@@ -1,9 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
 
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.CardRequestLimitExceededException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.CardRequestNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
 

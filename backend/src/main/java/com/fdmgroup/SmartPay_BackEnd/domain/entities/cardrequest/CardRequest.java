@@ -1,7 +1,6 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;

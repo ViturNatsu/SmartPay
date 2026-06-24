@@ -1,12 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
-import com.fdmgroup.SmartPay_BackEnd.controllers.cardrequest.CardRequestController;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest.CardRequestResponseDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.controllers.cardRequest.CardRequestController;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CardRequestResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
-import com.fdmgroup.SmartPay_BackEnd.services.cardrequest.CardRequestService;
+import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

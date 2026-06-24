@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod;
+package com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentMethod;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;

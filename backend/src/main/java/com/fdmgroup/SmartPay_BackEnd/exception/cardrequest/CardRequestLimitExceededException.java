@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.exception.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.exception.cardRequest;
 
 public class CardRequestLimitExceededException extends RuntimeException {
     public CardRequestLimitExceededException(String message) {

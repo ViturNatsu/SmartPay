@@ -1,6 +1,6 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
