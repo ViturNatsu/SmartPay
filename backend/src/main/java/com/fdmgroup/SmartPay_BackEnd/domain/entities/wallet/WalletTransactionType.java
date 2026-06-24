@@ -4,5 +4,6 @@ public enum WalletTransactionType {
     LOAD,
     WITHDRAW,
     DEPOSIT,
-    TRANSFER
+    TRANSFER,
+    PURCHASES,
 }

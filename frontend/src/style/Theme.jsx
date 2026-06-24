@@ -282,5 +282,65 @@ export const theme = createTheme({
         },
       },
     },
+    MuiToggleButtonGroup: {
+      styleOverrides: {
+        root: {
+          gap: 8,
+        },
+        grouped: {
+          // Remove MUI's default "connected/joined" border behaviour so each
+          // pill looks standalone, matching the wireframe
+          '&:not(:first-of-type)': {
+            marginLeft: 0,
+            borderLeft: `1px solid ${tokens.color.border.medium}`,
+            borderRadius: `${tokens.borderRadius.pill}px`,
+          },
+          '&:first-of-type': {
+            borderRadius: `${tokens.borderRadius.pill}px`,
+          },
+        },
+      },
+    },
+    MuiToggleButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: tokens.typography.fontWeight.medium,
+          borderRadius: `${tokens.borderRadius.pill}px`,
+          border: `1px solid ${tokens.color.border.medium}`,
+          color: tokens.color.text.secondary,
+          padding: '6px 16px',
+    
+          // Inactive hover — subtle teal tint, matches primaryLight token
+          '&:hover': {
+            backgroundColor: tokens.color.brand.primaryLight,
+            borderColor: tokens.color.brand.primaryMid,
+            color: tokens.color.brand.primaryHover,
+          },
+    
+          // Active/selected — filled teal pill
+          '&.Mui-selected': {
+            backgroundColor: tokens.color.brand.primary,
+            borderColor: tokens.color.brand.primary,
+            color: tokens.color.text.white,
+            fontWeight: tokens.typography.fontWeight.semibold,
+    
+            // Selected hover — slightly darker teal
+            '&:hover': {
+              backgroundColor: tokens.color.brand.primaryHover,
+              borderColor: tokens.color.brand.primaryHover,
+              color: tokens.color.text.white,
+            },
+          },
+        },
+      },
+    },
+    MuiDataGrid: {
+      styleOverrides: {
+        columnHeaderTitle: {
+          fontWeight: tokens.typography.fontWeight.bold,
+        },
+      },
+    },
   },
 });
