@@ -29,6 +29,8 @@ import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAut
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 import AddUser from "../pages/Admin/AddUser";
+import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
+
 
 export default function AppRoutes() {
   return (
@@ -81,6 +83,10 @@ export default function AppRoutes() {
         <Route
           path="/admin/accounts/:accountId/add-user"
           element={<AddUser />}
+        />
+        <Route
+            path="/admin/requestManagement"
+            element={<RequestManagement />}
         />
       </Route>
     </Routes>

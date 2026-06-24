@@ -53,6 +53,11 @@ const adminNavItems = [
     path: "/admin/mock-accounts",
     icon: <AccountBalanceIcon />,
   },
+  {
+      label: "Requests",
+      path: "/admin/requestManagement",
+      icon: <CreditCardRoundedIcon />,
+  },
   {label: "Users", path: "/admin/users", icon: <GroupIcon />},
   {label: "Reports", path: "/admin/reports", icon: <InsightsRoundedIcon />},
   {label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon />},
