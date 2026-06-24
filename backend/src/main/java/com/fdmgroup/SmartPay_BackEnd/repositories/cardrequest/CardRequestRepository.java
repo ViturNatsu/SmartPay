@@ -1,8 +1,8 @@
-package com.fdmgroup.SmartPay_BackEnd.repositories.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.CardRequest;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

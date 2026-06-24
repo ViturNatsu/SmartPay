@@ -1,8 +1,8 @@
-package com.fdmgroup.SmartPay_BackEnd.controllers.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.controllers.cardRequest;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest.CardRequestResponseDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest.DenyCardRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.services.cardrequest.CardRequestService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CardRequestResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.DenyCardRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

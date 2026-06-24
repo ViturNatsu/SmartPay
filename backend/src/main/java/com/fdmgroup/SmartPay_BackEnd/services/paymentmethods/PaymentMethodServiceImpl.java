@@ -1,11 +1,11 @@
-package com.fdmgroup.SmartPay_BackEnd.services.paymentmethods;
+package com.fdmgroup.SmartPay_BackEnd.services.paymentMethods;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod.PaymentMethodDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentMethod.PaymentMethodDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.exception.account.AccountNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

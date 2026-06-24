@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest;
+package com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest;
 
 
 import jakarta.validation.constraints.Size;

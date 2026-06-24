@@ -1,18 +1,18 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardrequest.CardRequestResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CardRequestResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.CardRequest;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardrequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.CardRequestLimitExceededException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.CardRequestNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardrequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.cardrequest.CardRequestRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.cardrequest.CardRequestServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
