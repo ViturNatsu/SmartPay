@@ -131,7 +131,7 @@ export function Transactions() {
               </Box>
             ) : !error && rows.length === 0 ? (
               <Typography sx={{ fontSize: 14, color: tokens.color.text.muted }}>
-                No wallet activity yet. Load funds to see your first transaction.
+                No transactions found
               </Typography>
             ) : (
               !error && (
