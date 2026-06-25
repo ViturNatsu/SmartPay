@@ -340,6 +340,16 @@ export const theme = createTheme({
         columnHeaderTitle: {
           fontWeight: tokens.typography.fontWeight.bold,
         },
+        cell: {
+          display: 'flex',
+          alignItems: 'center',
+        },
+        'cell--textRight': {
+          justifyContent: 'flex-end',
+          '& .MuiTypography-root': {
+            textAlign: 'right',
+          },
+        },
       },
     },
   },

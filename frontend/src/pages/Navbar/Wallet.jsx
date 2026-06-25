@@ -193,7 +193,7 @@ export function Wallet() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    return type === "LOAD" ? `+${formatted}` : `-${formatted}`;
+    return ( type === "LOAD" || type === "DEPOSIT") ? `+${formatted}` : `-${formatted}`;
 };
 
   // ── Formatting ────────────────────────────────────────────────────────────
@@ -444,7 +444,7 @@ export function Wallet() {
                                 fontSize: 14,
                                 fontWeight: 800,
                                 color:
-                                  tx.type === "LOAD" ? "#15803D" : "#DC2626",
+                                  ( tx.type === "LOAD" || tx.type === "DEPOSIT") ? "#15803D" : "#DC2626",
                               }}
                             >
                               {formatTransactionAmount(tx.type, tx.amount)}
