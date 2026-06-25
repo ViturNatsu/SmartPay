@@ -16,4 +16,6 @@ public interface PayeeRepository extends JpaRepository<Payee, Long> {
     List<Payee> findByOwnerIdAndActiveTrue(Long ownerId);
 
     Optional<Payee> findByPayeeIdAndOwnerIdAndActiveTrue(Long payeeId, Long ownerId);
+
+    Optional<Payee> findByOwnerIdAndRecipientIdAndActiveTrue(Long ownerId, Long recipientId);
 }
