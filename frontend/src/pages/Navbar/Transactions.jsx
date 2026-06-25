@@ -7,10 +7,13 @@
  */
 import Navbar from "@/components/Navbar"
 import { useMemo, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   Paper, 
-  Typography, 
+  Typography,
+  LinearProgress, 
   Alert, 
+  Card,
   CircularProgress, 
   Box, 
   Container,
@@ -19,16 +22,22 @@ import {
 } from '@mui/material';
 
 import TransactionFilterBar from '../../components/table/TransactionFilterBar';
-import { normalizeTransactions, filterTransactions } from '../../utils/transactionUtils';
+import { WalletActivityTable } from "@/components/transactions/WalletActivityTable";
+import { filterTransactions } from '../../utils/transactionUtils';
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { TransactionTable } from "../../components/table/TransactionTable";
 import { useTheme } from "@mui/material/styles";
+import { tokens } from "@/style/Theme";
 
 const TRANSACTION_LIMIT = 25;
 
 export function Transactions() {
   const { tokenClaims, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedId = searchParams.get("selected");
+
 
   const [rawTransactions, setRawTransactions] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -70,15 +79,14 @@ export function Transactions() {
     };
   }, [authLoading, tokenClaims?.userId, retryCount]);
 
-  const transactions = useMemo(
-    () => normalizeTransactions(rawTransactions),
-    [rawTransactions]
+  const rows = useMemo(
+    () => filterTransactions(rawTransactions, activeFilter),
+    [rawTransactions, activeFilter]
   );
 
-  const rows = useMemo(
-    () => filterTransactions(transactions, activeFilter),
-    [transactions, activeFilter]
-  );
+  const handleSelect = (tx) => {
+    navigate(`/transactions/${tx.transactionId}`);
+  };
 
   return (
     <>
@@ -117,13 +125,22 @@ export function Transactions() {
             </Alert>
           )}
 
-            {/* Transaction table */}
             {dataLoading || authLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                 <CircularProgress size={28} />
               </Box>
+            ) : !error && rows.length === 0 ? (
+              <Typography sx={{ fontSize: 14, color: tokens.color.text.muted }}>
+                No transactions found
+              </Typography>
             ) : (
-              !error && ( <TransactionTable rows={rows} /> )
+              !error && (
+                <WalletActivityTable
+                  transactions={rows}
+                  selectedId={selectedId}
+                  onSelect={handleSelect}
+                />
+              )
             )}
 
           </Paper>

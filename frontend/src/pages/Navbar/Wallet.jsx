@@ -11,7 +11,7 @@ import {
   Stack,
   Typography, useTheme,
 } from "@mui/material";
-import {Link as RouterLink} from "react-router-dom";
+import {Link as RouterLink, useNavigate} from "react-router-dom";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import SouthWestIcon from "@mui/icons-material/SouthWest";
 
@@ -62,6 +62,7 @@ export function Wallet() {
 
 
   const { user, tokenClaims, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   // Active linked bank accounts — only these may be selected as destinations (Scenario 2)
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -416,12 +417,23 @@ export function Wallet() {
                       {transactions.map(tx => (
                         <Box
                           key={tx.transactionId}
+                          onClick={() => navigate(`/transactions/${tx.transactionId}`)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              navigate(`/transactions/${tx.transactionId}`);
+                            }
+                          }}
                           sx={{
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
                             py: 1.25,
                             borderBottom: "1px solid #EEF2F7",
+                            cursor: "pointer",
+                            borderRadius: 1,
+                            "&:hover": { background: "#f1f5f9" },
                           }}
                         >
                           <Box>
