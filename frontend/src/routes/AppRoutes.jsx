@@ -46,7 +46,7 @@ export default function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/forbidden" element={<Forbidden />} />
 
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute requiredRole="USER"/>}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         {/* US-09-01-28: Wallet page with withdraw funds flow */}
@@ -80,6 +80,7 @@ export default function AppRoutes() {
 
       {/* admin-only area */}
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+        <Route path="/admin" element={<AdminDash/>}/>
         <Route path="/admin/dashboard" element={<AdminDash />} />
         <Route path="/admin/mock-accounts" element={<MockAccounts />} />
         <Route
@@ -90,6 +91,7 @@ export default function AppRoutes() {
             path="/admin/requestManagement"
             element={<RequestManagement />}
         />
+        <Route path="/admin/accounts/:accountId" element={<AccountDetails/>}/>
       </Route>
     </Routes>
   );

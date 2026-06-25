@@ -43,12 +43,13 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
 
   const navigate = useNavigate();
 
-  const getMyUser = useCallback(async () => {
+  const getMyUser = useCallback(async (claimsOverride = null) => {
     // In the normal flow we call the customer endpoint.  For admins there is
     // no customer record, so avoid the 404 by only hitting the API when the
     // token claims indicate a non‑admin role.  The caller should have already
     // stored tokenClaims via setTokenClaims.
-    if (tokenClaims?.role === "ADMIN") {
+    const claims = claimsOverride ?? tokenClaims;
+    if (claims?.role.toUpperCase() === "ADMIN") {
       // use the minimal info we know from the JWT
       setUser({
         id: tokenClaims.userId || null,
@@ -62,9 +63,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
       const userData = await authApi.getMyUser();
       if (userData) {
         setUser({
-          id: userData.id ?? null,
-          email: userData.email ?? null,
-          role: userData.role ?? null,
+          id: claims.userId ?? null,
+          email: claims.email ?? null,
+          role: claims.role ?? null,
           firstName: userData.firstName ?? null,
           lastName: userData.lastName ?? null,
           addressLine1: userData.addressLine1 ?? null,
@@ -139,7 +140,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
           });
         } else {
           try {
-            await getMyUser();
+            await getMyUser(extracted);
           } catch (error) {
             console.error("Failed to get user data:", error);
           }
@@ -230,7 +231,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
                 role: extracted.role,
               });
             } else {
-              await getMyUser();
+              await getMyUser(extracted);
             }
           } else {
             setTokenClaims(null);
@@ -298,7 +299,7 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
                       role: extracted.role,
                     });
                   } else {
-                    await getMyUser();
+                    await getMyUser(extracted);
                   }
 
                   startSessionMonitoringRef.current();
