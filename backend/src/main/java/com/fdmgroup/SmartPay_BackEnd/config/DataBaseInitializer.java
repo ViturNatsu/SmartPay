@@ -13,6 +13,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
@@ -24,6 +26,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +44,7 @@ public class DataBaseInitializer {
 
     @Bean
     CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository, PaymentRepository paymentRepository
-            , CardRepository cardRepository, WalletRepository walletRepository) {
+            , CardRepository cardRepository, WalletRepository walletRepository, CardRequestRepository cardRequestRepository) {
         return args -> {
             if (userRepository.findByEmail("admin1@example.com").isEmpty()) {
                 User admin1 = User.builder()
@@ -246,6 +249,14 @@ public class DataBaseInitializer {
                 // Removed: testTD1 already linked to testUser1 via @OneToOne — can't link same account to testUser2
 
             }
+
+            CardRequest cardRequest = new CardRequest();
+            cardRequest.setCard(cardRepository.getById(1l));
+            cardRequest.setUser(userRepository.getById(3L));
+            cardRequest.setRequestCreatedAt(LocalDateTime.now());
+            cardRequest.setRequestReason("Mock Request");
+            cardRequest.setRequestStatus(RequestStatus.PENDING);
+            cardRequestRepository.save(cardRequest);
         };
     }
 }
