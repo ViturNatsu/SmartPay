@@ -7,6 +7,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
@@ -27,13 +31,18 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
+import lombok.AllArgsConstructor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
+
 @Service
+@AllArgsConstructor
 public class WalletServiceImpl implements WalletService {
 
     private static final String INSUFFICIENT_BANK_FUNDS_MESSAGE =
@@ -42,24 +51,12 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
+    private final PayeeRepository payeeRepository;
     private final WalletTransactionRepository walletTransactionRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
 
-    public WalletServiceImpl(
-            WalletRepository walletRepository,
-            PaymentRepository paymentRepository,
-            AccountRepository accountRepository,
-            WalletTransactionRepository walletTransactionRepository,
-            UserService userService,
-            PaymentMethodService paymentMethodService) {
-        this.walletRepository = walletRepository;
-        this.paymentRepository = paymentRepository;
-        this.accountRepository = accountRepository;
-        this.walletTransactionRepository = walletTransactionRepository;
-        this.userService = userService;
-        this.paymentMethodService = paymentMethodService;
-    }
+    private StringHelper helper;
 
     @Transactional
     @Override
@@ -230,8 +227,26 @@ public class WalletServiceImpl implements WalletService {
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
         Wallet savedRecipientWallet = walletRepository.save(recipientWallet);
 
-        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount);
-        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount);
+        User senderUser = senderWallet.getUser();
+        User recipientUser = recipientWallet.getUser();
+
+        // Sender's TRANSFER row: prefer sender's payee nickname for the recipient
+        String transferCounterparty = payeeRepository
+                .findByOwnerIdAndRecipientIdAndActiveTrue(senderUserId, recipientUserId)
+                .map(Payee::getPayeeName)
+                .orElse(helper.fullName(recipientUser));
+
+        // Recipient's DEPOSIT row: the sender's name (optionally recipient's payee for sender)
+        String depositCounterparty = payeeRepository
+                .findByOwnerIdAndRecipientIdAndActiveTrue(recipientUserId, senderUserId)
+                .map(Payee::getPayeeName)
+                .orElse(helper.fullName(senderUser));
+
+
+        
+
+        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty);
+        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty);
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
         return dto;
@@ -273,12 +288,13 @@ public class WalletServiceImpl implements WalletService {
         return mapToDto(walletRepository.save(wallet));
     }
 
-    private WalletTransaction recordTransaction(Wallet wallet, WalletTransactionType type, double amount) {
+    private WalletTransaction recordTransaction(Wallet wallet, WalletTransactionType type, double amount, String name) {
         WalletTransaction transaction = new WalletTransaction();
         transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
         transaction.setWallet(wallet);
         transaction.setType(type);
         transaction.setAmount(amount);
+        transaction.setCounterpartyName(name);
         transaction.setStatus("COMPLETED");
         transaction.setCreatedAt(Instant.now());
         return walletTransactionRepository.save(transaction);
@@ -314,18 +330,20 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private String buildDescription(WalletTransaction transaction) {
-        String bank = transaction.getBankDisplayName() != null
-                ? transaction.getBankDisplayName()
-                : "linked bank account";
-        switch (transaction.getType()) {
+    String bank = transaction.getBankDisplayName() != null
+            ? transaction.getBankDisplayName()
+            : "linked bank account";
+    String name = transaction.getCounterpartyName();
+
+    switch (transaction.getType()) {
         case LOAD:
             return "Wallet load from " + bank;
         case WITHDRAW:
             return "Withdraw to " + bank;
         case DEPOSIT:
-            return "Received transfer";
+            return name != null ? "Received transfer from " + name : "Received transfer";
         case TRANSFER:
-            return "Transfer out";
+            return name != null ? "Transfer to " + name : "Transfer out";
         case PURCHASES:
             return "Purchase";
         default:
