@@ -2,7 +2,6 @@ package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,7 +18,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
@@ -28,10 +27,10 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
+import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
 @Service
@@ -318,10 +317,20 @@ public class WalletServiceImpl implements WalletService {
         String bank = transaction.getBankDisplayName() != null
                 ? transaction.getBankDisplayName()
                 : "linked bank account";
-        if (transaction.getType() == WalletTransactionType.LOAD) {
+        switch (transaction.getType()) {
+        case LOAD:
             return "Wallet load from " + bank;
+        case WITHDRAW:
+            return "Withdraw to " + bank;
+        case DEPOSIT:
+            return "Received transfer";
+        case TRANSFER:
+            return "Transfer out";
+        case PURCHASES:
+            return "Purchase";
+        default:
+            return "Transaction";
         }
-        return "Withdraw to " + bank;
     }
 
     private WalletResponseDTO mapToDto(Wallet wallet) {

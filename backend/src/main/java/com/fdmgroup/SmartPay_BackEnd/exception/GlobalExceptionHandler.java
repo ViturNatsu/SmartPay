@@ -1,7 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
+
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
+
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -275,6 +280,28 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(CardNotFoundException.class)
         public ResponseEntity<ExceptionShapeDTO> handleCardNotFound(CardNotFoundException ex) {
                 return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+
+
+        //US 09-02-18
+        @ExceptionHandler(CardRequestNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleCardRequestNotFound(CardRequestNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", ex.getMessage()));
+        }
+
+        //US 09-02-18
+        @ExceptionHandler(InvalidCardRequestStatusException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidCardRequestStatus(InvalidCardRequestStatusException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", ex.getMessage()));
+        }
+
+        //US 09-02-18
+        @ExceptionHandler(CardRequestLimitExceededException.class)
+        public ResponseEntity<Map<String, String>> handleCardRequestLimitExceeded(CardRequestLimitExceededException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", ex.getMessage()));
         }
 
         @ExceptionHandler(CardLockRequestInvalidType.class)

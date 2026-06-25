@@ -1,8 +1,8 @@
-package com.fdmgroup.SmartPay_BackEnd.controllers.paymentmethod;
+package com.fdmgroup.SmartPay_BackEnd.controllers.paymentMethod;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentmethod.PaymentMethodDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
-import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.paymentMethod.PaymentMethodDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

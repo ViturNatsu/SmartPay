@@ -1,6 +1,6 @@
-package com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods;
+package com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

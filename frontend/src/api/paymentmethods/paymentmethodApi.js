@@ -39,7 +39,6 @@ export async function updatePaymentMethodStatus(paymentMethodId, activeStatus) {
     const res = await axiosInstance.put(`${PAYMENT_METHODS_URL}/${paymentMethodId}/status`, {
       active: activeStatus
     });
-    console.log(res);
     return res.data;
   } catch (err) {
     throw new Error(

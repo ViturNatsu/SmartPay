@@ -1,27 +1,14 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.AccountFactory;
 import com.fdmgroup.SmartPay_BackEnd.config.EncoderConfig;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.AccountType;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.SavingsAccount;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.account.AccountService;
-import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
