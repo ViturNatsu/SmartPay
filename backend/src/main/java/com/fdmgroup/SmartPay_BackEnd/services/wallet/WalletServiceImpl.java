@@ -317,10 +317,20 @@ public class WalletServiceImpl implements WalletService {
         String bank = transaction.getBankDisplayName() != null
                 ? transaction.getBankDisplayName()
                 : "linked bank account";
-        if (transaction.getType() == WalletTransactionType.LOAD) {
+        switch (transaction.getType()) {
+        case LOAD:
             return "Wallet load from " + bank;
+        case WITHDRAW:
+            return "Withdraw to " + bank;
+        case DEPOSIT:
+            return "Received transfer";
+        case TRANSFER:
+            return "Transfer out";
+        case PURCHASES:
+            return "Purchase";
+        default:
+            return "Transaction";
         }
-        return "Withdraw to " + bank;
     }
 
     private WalletResponseDTO mapToDto(Wallet wallet) {
