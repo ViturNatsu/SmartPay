@@ -14,17 +14,17 @@ function DetailItem({ label, value, valueColor }) {
     <Box
       sx={{
         background: "#f9fafb",
-        p: 2,
+        p: 2.5,
         borderRadius: `${tokens.borderRadius.large}px`,
         border: `1px solid ${tokens.color.border.light}`,
       }}
     >
-      <Typography sx={{ fontSize: 12, color: tokens.color.text.muted, mb: 0.75 }}>
+      <Typography sx={{ fontSize: 13, fontWeight: 700, color: tokens.color.text.muted, mb: 0.75 }}>
         {label}
       </Typography>
       <Typography
         sx={{
-          fontSize: 16,
+          fontSize: 17,
           fontWeight: tokens.typography.fontWeight.bold,
           color: valueColor ?? tokens.color.text.primary,
           wordBreak: "break-word",
@@ -64,7 +64,7 @@ export function TransactionDetailGrid({ transaction }) {
       sx={{
         display: "grid",
         gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-        gap: 2.5,
+        gap: 3,
         mt: 2.5,
       }}
     >

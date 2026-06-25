@@ -66,15 +66,24 @@ export function TransactionDetails() {
             sx={{
               border: `1px solid ${tokens.color.border.light}`,
               borderRadius: `${tokens.borderRadius.xxl}px`,
-              p: "22px",
+              p: "28px",
               boxShadow: tokens.shadow.card,
             }}
           >
             <Typography
               variant="h4"
-              sx={{ fontWeight: tokens.typography.fontWeight.bold, letterSpacing: "-0.02em" }}
+              sx={{
+                fontWeight: 800,
+                fontSize: 34,
+                letterSpacing: "-0.04em",
+                mb: 0.75,
+              }}
             >
               Transaction Details
+            </Typography>
+
+            <Typography sx={{ color: tokens.color.text.muted, fontSize: 15, mb: 2.5 }}>
+              Review the details of this wallet transaction.
             </Typography>
 
             {loading && <LinearProgress sx={{ mt: 2 }} />}

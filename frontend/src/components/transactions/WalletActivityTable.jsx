@@ -58,16 +58,20 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
               }}
             >
               <TableCell>
-                <Typography sx={{ fontSize: 14 }}>{getMerchantPayee(tx)}</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.color.text.primary }}>
+                  {getMerchantPayee(tx)}
+                </Typography>
               </TableCell>
               <TableCell>
-                <Typography sx={{ fontSize: 14 }}>{formatTransactionDate(tx.createdAt)}</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 500, color: tokens.color.text.primary }}>
+                  {formatTransactionDate(tx.createdAt)}
+                </Typography>
               </TableCell>
               <TableCell>
                 <Typography
                   sx={{
-                    fontSize: 14,
-                    fontWeight: 700,
+                    fontSize: 15,
+                    fontWeight: 800,
                     color: inflow ? tokens.color.status.success : tokens.color.status.error,
                   }}
                 >
