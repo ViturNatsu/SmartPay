@@ -330,10 +330,13 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private String buildDescription(WalletTransaction transaction) {
-    String bank = transaction.getBankDisplayName() != null
+    String bank = transaction.getBankDisplayName() != null && !transaction.getBankDisplayName().isBlank()
             ? transaction.getBankDisplayName()
             : "linked bank account";
     String name = transaction.getCounterpartyName();
+    // Treat blank (null or whitespace-only) counterparty names as missing so the
+    // UI never renders an incomplete label like "Transfer to " with no name.
+    boolean hasName = name != null && !name.isBlank();
 
     switch (transaction.getType()) {
         case LOAD:
@@ -341,9 +344,9 @@ public class WalletServiceImpl implements WalletService {
         case WITHDRAW:
             return "Withdraw to " + bank;
         case DEPOSIT:
-            return name != null ? "Received transfer from " + name : "Received transfer";
+            return hasName ? "Received transfer from " + name : "Received transfer";
         case TRANSFER:
-            return name != null ? "Transfer to " + name : "Transfer out";
+            return hasName ? "Transfer to " + name : "Transfer out";
         case PURCHASES:
             return "Purchase";
         default:
