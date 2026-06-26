@@ -13,7 +13,7 @@ function DetailItem({ label, value, valueColor }) {
   return (
     <Box
       sx={{
-        background: "#f9fafb",
+        background: tokens.color.background.app,
         p: 2.5,
         borderRadius: `${tokens.borderRadius.large}px`,
         border: `1px solid ${tokens.color.border.light}`,

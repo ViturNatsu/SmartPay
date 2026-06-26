@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Box, Button, Card, Container, LinearProgress, Stack, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -16,7 +16,11 @@ import { tokens } from "@/style/Theme";
 export function TransactionDetails() {
   const { transactionId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { tokenClaims, loading: authLoading } = useAuth();
+
+  // Filter the user came from, so Back returns them to the same filtered view
+  const originFilter = searchParams.get("filter") || "all";
 
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +53,11 @@ export function TransactionDetails() {
   }, [authLoading, tokenClaims?.userId, transactionId]);
 
   const handleBack = () => {
-    navigate(`/transactions?selected=${encodeURIComponent(transactionId)}`);
+    // Restore both the selected row highlight and the originating filter (Scenario 5)
+    const params = new URLSearchParams();
+    params.set("selected", transactionId);
+    params.set("filter", originFilter);
+    navigate(`/transactions?${params.toString()}`);
   };
 
   return (
@@ -94,10 +102,10 @@ export function TransactionDetails() {
                   Transaction not found or no longer available.
                 </Typography>
                 <Button
-                  component={RouterLink}
-                  to="/transactions"
+                  onClick={() => navigate(`/transactions?filter=${encodeURIComponent(originFilter)}`)}
                   variant="outlined"
                   startIcon={<ArrowBackIcon />}
+                  sx={{ textTransform: "none", fontWeight: 600 }}
                 >
                   Back to Activity
                 </Button>
