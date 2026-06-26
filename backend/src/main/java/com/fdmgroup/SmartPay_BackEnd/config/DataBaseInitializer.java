@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,13 +251,15 @@ public class DataBaseInitializer {
 
             }
 
-            CardRequest cardRequest = new CardRequest();
-            cardRequest.setCard(cardRepository.getById(1l));
-            cardRequest.setUser(userRepository.getById(3L));
-            cardRequest.setRequestCreatedAt(LocalDateTime.now());
-            cardRequest.setRequestReason("Mock Request");
-            cardRequest.setRequestStatus(RequestStatus.PENDING);
-            cardRequestRepository.save(cardRequest);
+            if(cardRequestRepository.findById(1L).orElse(null) == null) {
+                CardRequest cardRequest = new CardRequest();
+                cardRequest.setCard(cardRepository.findById(1l).orElse(null));
+                cardRequest.setUser(userRepository.findById(3L).orElse(null));
+                cardRequest.setRequestCreatedAt(LocalDateTime.now(ZoneId.systemDefault()));
+                cardRequest.setRequestReason("Mock Request");
+                cardRequest.setRequestStatus(RequestStatus.PENDING);
+                cardRequestRepository.save(cardRequest);
+            }
         };
     }
 }
