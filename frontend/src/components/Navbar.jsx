@@ -412,6 +412,7 @@ export default function Navbar({isAdmin = false}) {
                 component={RouterLink}
                 to={item.path}
                 onClick={() => setMenuOpen(false)}
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                 sx={{
                   borderRadius: 2,
                   color: tokens.color.text.secondary,
