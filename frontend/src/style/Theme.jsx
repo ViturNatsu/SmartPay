@@ -43,6 +43,13 @@ export const tokens = {
       neutralText: "#475569",
       neutralBorder: "#CBD5E1",
     },
+    action: {
+      hover: "rgba(0, 0, 0, 0.06)",
+      selected: "rgba(15, 116, 144, 0.10)",
+      selectedHover: "rgba(15, 116, 144, 0.14)",
+      danger: "rgba(185, 28, 28, 0.08)",
+      dangerHover: "rgba(185, 28, 28, 0.12)",
+    },
     nav: {
       text: "#475569",
       activeText: "#0F7490",
