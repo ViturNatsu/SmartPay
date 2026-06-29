@@ -64,21 +64,22 @@ const adminNavItems = [
       icon: <CreditCardRoundedIcon />,
   },
   {label: "Users", path: "/admin/users", icon: <GroupIcon />},
-  {label: "Reports", path: "/admin/reports", icon: <InsightsRoundedIcon />},
-  {label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon />},
 ];
 
 const sideMenuItems = [
   {
     label: "Recurring Payments",
+    path: "/recurring-payments",
     icon: <SwapHorizRoundedIcon />,
   },
   {
     label: "Reports",
+    path: "/reports",
     icon: <InsightsRoundedIcon />,
   },
   {
     label: "Settings",
+    path: "/settings",
     icon: <SettingsRoundedIcon />,
   },
 ];
@@ -391,6 +392,9 @@ export default function Navbar({isAdmin = false}) {
             {sideMenuItems.map(item => (
               <ListItemButton
                 key={item.label}
+                component={RouterLink}
+                to={item.path}
+                onClick={() => setMenuOpen(false)}
                 sx={{
                   borderRadius: 2,
                   color: tokens.color.text.secondary,
