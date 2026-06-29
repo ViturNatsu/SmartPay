@@ -25,6 +25,13 @@ import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneR
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import GroupIcon from "@mui/icons-material/Group";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import { tokens } from "@/style/Theme";
 
 import logo from "@/style/logo.png";
 
@@ -42,8 +49,6 @@ const userNavItems = [
     icon: <SwapHorizRoundedIcon />,
   },
   {label: "Wallet", path: "/wallet", icon: <CreditCardRoundedIcon />},
-  {label: "Reports", path: "/reports", icon: <InsightsRoundedIcon />},
-  {label: "Settings", path: "/settings", icon: <SettingsRoundedIcon />},
 ];
 
 const adminNavItems = [
@@ -63,6 +68,21 @@ const adminNavItems = [
   {label: "Settings", path: "/admin/settings", icon: <SettingsRoundedIcon />},
 ];
 
+const sideMenuItems = [
+  {
+    label: "Recurring Payments",
+    icon: <SwapHorizRoundedIcon />,
+  },
+  {
+    label: "Reports",
+    icon: <InsightsRoundedIcon />,
+  },
+  {
+    label: "Settings",
+    icon: <SettingsRoundedIcon />,
+  },
+];
+
 function isPathActive(currentPath, targetPath) {
   if (targetPath === "/") return currentPath === "/";
   return currentPath === targetPath || currentPath.startsWith(targetPath + "/");
@@ -74,6 +94,7 @@ export default function Navbar({isAdmin = false}) {
   const location = useLocation();
   const navigate = useNavigate();
   const {logout} = useAuth();
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   const items = isAdmin ? adminNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : "/";
@@ -176,146 +197,224 @@ export default function Navbar({isAdmin = false}) {
   // - center nav scrolls horizontally if tight
   // -------------------------
   return (
-    <AppBar
-      position="sticky"
-      color="default"
-      sx={{
-        backgroundColor: "#fff",
-        color: "#111",
-        boxShadow: "none",
-        borderBottom: "1px solid #eaeaea",
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar
-          disableGutters
-          sx={{
-            minHeight: 72,
-            px: {xs: 2, md: 0},
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          <Box
-            component={RouterLink}
-            to={homePath}
-            aria-label="home"
+    <>
+      <AppBar
+        position="sticky"
+        color="default"
+        sx={{
+          backgroundColor: "#fff",
+          color: "#111",
+          boxShadow: "none",
+          borderBottom: "1px solid #eaeaea",
+        }}
+      >
+        <Container maxWidth="xl">
+          <Toolbar
+            disableGutters
             sx={{
+              minHeight: 72,
+              px: {xs: 2, md: 0},
               display: "flex",
               alignItems: "center",
-              gap: 1.5,
-              textDecoration: "none",
-              color: "inherit",
-              flexShrink: 0,
-              pr: 1,
+              gap: 2,
             }}
           >
             <Box
-              component="img"
-              src={logo}
-              alt="SmartPay Logo"
-              sx={{height: 42, width: "auto"}}
-            />
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{fontWeight: 700, letterSpacing: "0.02em"}}
-            >
-              SmartPay
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              flexGrow: 1,
-              minWidth: 0,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <Box
+              component={RouterLink}
+              to={homePath}
+              aria-label="home"
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
-                overflowX: "auto",
-                whiteSpace: "nowrap",
-                px: 1,
-                maxWidth: "100%",
-                "&::-webkit-scrollbar": {display: "none"},
-                msOverflowStyle: "none",
-                scrollbarWidth: "none",
+                gap: 1.5,
+                textDecoration: "none",
+                color: "inherit",
+                flexShrink: 0,
+                pr: 1,
               }}
             >
-              {items.map(item => {
-                const active = isPathActive(location.pathname, item.path);
-                return (
-                  <Button
-                    key={item.path}
-                    component={RouterLink}
-                    to={item.path}
-                    startIcon={item.icon}
-                    aria-current={active ? "page" : undefined}
-                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    sx={{
-                      flexShrink: 0,
-                      textTransform: "none",
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      px: 2,
-                      py: 1,
-                      backgroundColor: active
-                        ? "rgba(25, 118, 210, 0.10)"
-                        : "transparent",
-                      color: active ? "#1976d2" : "rgba(0,0,0,0.65)",
-                      "&:hover": {
-                        backgroundColor: active
-                          ? "rgba(25, 118, 210, 0.14)"
-                          : "rgba(0,0,0,0.06)",
-                      },
-                      "& .MuiButton-startIcon": {color: "inherit"},
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
+              <Box
+                component="img"
+                src={logo}
+                alt="SmartPay Logo"
+                sx={{height: 42, width: "auto"}}
+              />
+              <Typography
+                variant="h6"
+                noWrap
+                sx={{fontWeight: 700, letterSpacing: "0.02em"}}
+              >
+                SmartPay
+              </Typography>
             </Box>
-          </Box>
 
-          {/* RIGHT: bell + divider + profile + logout. */}
-          <Box
-            sx={{display: "flex", alignItems: "center", gap: 2, flexShrink: 0}}
-          >
-            <IconButton
-              aria-label="notifications"
-              sx={{color: "rgba(0,0,0,0.65)"}}
-            >
-              <NotificationsNoneRoundedIcon />
-            </IconButton>
-
-            <Divider orientation="vertical" flexItem sx={{mx: 0.5}} />
-
-            {/* Paceholder for user's name and premium member status.
-              TODO: Grab user's name and status from the backend display it here. */}
-            <Box sx={{display: "flex", alignItems: "center", gap: 1.25}}></Box>
-
-            <IconButton
-              aria-label="logout"
-              onClick={logout}
+            <Box
               sx={{
-                borderRadius: 2,
-                backgroundColor: "rgba(244, 67, 54, 0.08)",
-                color: "#f44336",
-                "&:hover": {backgroundColor: "rgba(244, 67, 54, 0.12)"},
+                flexGrow: 1,
+                minWidth: 0,
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              <LogoutRoundedIcon />
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  overflowX: "auto",
+                  whiteSpace: "nowrap",
+                  px: 1,
+                  maxWidth: "100%",
+                  "&::-webkit-scrollbar": {display: "none"},
+                  msOverflowStyle: "none",
+                  scrollbarWidth: "none",
+                }}
+              >
+                {items.map(item => {
+                  const active = isPathActive(location.pathname, item.path);
+                  return (
+                    <Button
+                      key={item.path}
+                      component={RouterLink}
+                      to={item.path}
+                      startIcon={item.icon}
+                      aria-current={active ? "page" : undefined}
+                      data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                      sx={{
+                        flexShrink: 0,
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderRadius: 2,
+                        px: 2,
+                        py: 1,
+                        backgroundColor: active
+                          ? "rgba(25, 118, 210, 0.10)"
+                          : "transparent",
+                        color: active ? "#1976d2" : "rgba(0,0,0,0.65)",
+                        "&:hover": {
+                          backgroundColor: active
+                            ? "rgba(25, 118, 210, 0.14)"
+                            : "rgba(0,0,0,0.06)",
+                        },
+                        "& .MuiButton-startIcon": {color: "inherit"},
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
+              </Box>
+            </Box>
+
+            <IconButton
+              aria-label="menu"
+              onClick={() => setMenuOpen(prev => !prev)}
+              sx={{
+                color: "rgba(0,0,0,0.65)",
+                flexShrink: 0,
+              }}
+            >
+              <MenuRoundedIcon />
             </IconButton>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+
+            {/* RIGHT: bell + divider + profile + logout. */}
+            <Box
+              sx={{display: "flex", alignItems: "center", gap: 2, flexShrink: 0}}
+            >
+              <IconButton
+                aria-label="notifications"
+                sx={{color: "rgba(0,0,0,0.65)"}}
+              >
+                <NotificationsNoneRoundedIcon />
+              </IconButton>
+
+              <Divider orientation="vertical" flexItem sx={{mx: 0.5}} />
+
+              {/* Paceholder for user's name and premium member status.
+                TODO: Grab user's name and status from the backend display it here. */}
+              <Box sx={{display: "flex", alignItems: "center", gap: 1.25}}></Box>
+
+              <IconButton
+                aria-label="logout"
+                onClick={logout}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor: "rgba(244, 67, 54, 0.08)",
+                  color: "#f44336",
+                  "&:hover": {backgroundColor: "rgba(244, 67, 54, 0.12)"},
+                }}
+              >
+                <LogoutRoundedIcon />
+              </IconButton>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      <Drawer
+        anchor="right"
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 300,
+            bgcolor: tokens.color.background.surface,
+            borderLeft: `1px solid ${tokens.color.border.light}`,
+            boxShadow: tokens.shadow.elevated,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 300,
+            p: 3,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 3,
+              fontWeight: 700,
+              color: tokens.color.text.primary,
+            }}
+          >
+            Menu
+          </Typography>
+
+          <List
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+            }}
+          >
+            {sideMenuItems.map(item => (
+              <ListItemButton
+                key={item.label}
+                sx={{
+                  borderRadius: 2,
+                  color: tokens.color.text.secondary,
+                  "&:hover": {
+                    color: tokens.color.brand.primary,
+                    backgroundColor: tokens.color.brand.primaryLight,
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+    </>
   );
 }
