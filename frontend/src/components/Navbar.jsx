@@ -66,7 +66,7 @@ const adminNavItems = [
   {label: "Users", path: "/admin/users", icon: <GroupIcon />},
 ];
 
-const sideMenuItems = [
+const userSideMenuItems  = [
   {
     label: "Recurring Payments",
     path: "/recurring-payments",
@@ -80,6 +80,19 @@ const sideMenuItems = [
   {
     label: "Settings",
     path: "/settings",
+    icon: <SettingsRoundedIcon />,
+  },
+];
+
+const adminSideMenuItems = [
+  {
+    label: "Reports",
+    path: "/admin/reports",
+    icon: <InsightsRoundedIcon />,
+  },
+  {
+    label: "Settings",
+    path: "/admin/settings",
     icon: <SettingsRoundedIcon />,
   },
 ];
@@ -99,6 +112,10 @@ export default function Navbar({isAdmin = false}) {
 
   const items = isAdmin ? adminNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : "/";
+
+  const sideMenuItems = isAdmin
+  ? adminSideMenuItems
+  : userSideMenuItems;
 
   const activeIndex = React.useMemo(() => {
     const idx = items.findIndex(i => isPathActive(location.pathname, i.path));
