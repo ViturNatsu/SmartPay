@@ -132,10 +132,10 @@ export default function Navbar({isAdmin = false}) {
           position="sticky"
           color="default"
           sx={{
-            backgroundColor: "#fff",
-            color: "#111",
+            backgroundColor: tokens.color.nav.background,
+            color: tokens.color.text.primary,
             boxShadow: "none",
-            borderBottom: "1px solid #eaeaea",
+            borderBottom: `1px solid ${tokens.color.nav.border}`,
           }}
         >
           <Container maxWidth="xl">
@@ -170,7 +170,7 @@ export default function Navbar({isAdmin = false}) {
 
               <IconButton
                 aria-label="notifications"
-                sx={{color: "rgba(0,0,0,0.65)"}}
+                sx={{color: tokens.color.text.secondary,}}
               >
                 <NotificationsNoneRoundedIcon />
               </IconButton>
@@ -186,8 +186,8 @@ export default function Navbar({isAdmin = false}) {
             left: 0,
             right: 0,
             bottom: 0,
-            borderTop: "1px solid #eaeaea",
-            backgroundColor: "#fff",
+            borderTop: `1px solid ${tokens.color.nav.border}`,
+            backgroundColor: tokens.color.nav.background,
             zIndex: theme.zIndex.appBar,
           }}
         >
@@ -220,10 +220,10 @@ export default function Navbar({isAdmin = false}) {
         position="sticky"
         color="default"
         sx={{
-          backgroundColor: "#fff",
-          color: "#111",
+          backgroundColor: tokens.color.nav.background,
+          color: tokens.color.text.primary,
           boxShadow: "none",
-          borderBottom: "1px solid #eaeaea",
+          borderBottom: `1px solid ${tokens.color.nav.border}`,
         }}
       >
         <Container maxWidth="xl">
@@ -306,13 +306,15 @@ export default function Navbar({isAdmin = false}) {
                         px: 2,
                         py: 1,
                         backgroundColor: active
-                          ? "rgba(25, 118, 210, 0.10)"
+                          ? tokens.color.brand.selected
                           : "transparent",
-                        color: active ? "#1976d2" : "rgba(0,0,0,0.65)",
+                        color: active
+                          ? tokens.color.brand.primary
+                          : tokens.color.text.secondary,
                         "&:hover": {
                           backgroundColor: active
-                            ? "rgba(25, 118, 210, 0.14)"
-                            : "rgba(0,0,0,0.06)",
+                            ? tokens.color.action.selectedHover
+                            : tokens.color.action.hover,
                         },
                         "& .MuiButton-startIcon": {color: "inherit"},
                       }}
@@ -328,7 +330,7 @@ export default function Navbar({isAdmin = false}) {
               aria-label="menu"
               onClick={() => setMenuOpen(prev => !prev)}
               sx={{
-                color: "rgba(0,0,0,0.65)",
+                color: tokens.color.text.secondary,
                 flexShrink: 0,
               }}
             >
@@ -341,7 +343,7 @@ export default function Navbar({isAdmin = false}) {
             >
               <IconButton
                 aria-label="notifications"
-                sx={{color: "rgba(0,0,0,0.65)"}}
+                sx={{color: tokens.color.text.secondary,}}
               >
                 <NotificationsNoneRoundedIcon />
               </IconButton>
@@ -357,9 +359,11 @@ export default function Navbar({isAdmin = false}) {
                 onClick={logout}
                 sx={{
                   borderRadius: 2,
-                  backgroundColor: "rgba(244, 67, 54, 0.08)",
-                  color: "#f44336",
-                  "&:hover": {backgroundColor: "rgba(244, 67, 54, 0.12)"},
+                  backgroundColor: tokens.color.action.danger,
+                  color: tokens.color.status.error,
+                  "&:hover": {
+                    backgroundColor: tokens.color.action.dangerHover,
+                  },
                 }}
               >
                 <LogoutRoundedIcon />
