@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
@@ -17,19 +19,22 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
 @Service
-public class PayeeServiceImpl implements PayeeService {
+public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
     private final PayeeRepository payeeRepository;
+    private final RecurringPayeeRepository recurringPayeeRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
 
-    public PayeeServiceImpl(PayeeRepository payeeRepository, UserRepository userRepository,
-            CustomerRepository customerRepository) {
+    public PayeeServiceImpl(PayeeRepository payeeRepository, RecurringPayeeRepository recurringPayeeRepository, 
+        UserRepository userRepository, CustomerRepository customerRepository) {
         this.payeeRepository = payeeRepository;
+        this.recurringPayeeRepository = recurringPayeeRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
     }
@@ -93,6 +98,20 @@ public class PayeeServiceImpl implements PayeeService {
                 .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
         payee.setActive(false);
         payeeRepository.save(payee);
+    }
+    @Override
+    public RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO payeeRequestDTO) {
+        // Implementation for adding a recurring payee
+        return null; // Placeholder return statement
+    }
+    @Override
+    public List<RecurringPayeeResponseDTO> getRecurringPayeesForUser(Long ownerId){
+        //Add implementation
+        return null;
+    }
+    @Override
+    public void deleteRecurringPayee(Long ownerId, Long payeeId){
+        //Add implementation
     }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {

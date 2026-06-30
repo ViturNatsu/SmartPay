@@ -28,12 +28,6 @@ public class RecurringPayee extends Payee{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "recurring_payee_id")
     private long recurringpayeeId;
-    
-    @Column(name = "payee_name", nullable=false)
-    private String name;
-
-    @Column(name = "payee_account_number", nullable=false)
-    private String payeeAccountNumber;
 
     @Column(name = "amount", nullable=false)
     @Positive
