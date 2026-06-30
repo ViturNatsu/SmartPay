@@ -6,10 +6,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -81,6 +80,10 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<CardRequest> cardRequests = new ArrayList<>();
 
     public User(String email, String password) {
         this.email = email;

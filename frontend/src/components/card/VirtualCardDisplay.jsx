@@ -29,7 +29,9 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
   };
 
   return (
-    <Box sx={{position: "relative", flexShrink: 0, width: 300}}>
+    // Note: The width had to change to 344 from 300 because the inner card uses 22L and 24R padding. These padding values is getting added to the width instead of shifting inner
+    // content, totaling to 344px in width.
+    <Box sx={{position: "relative", flexShrink: 0, width: 344}}>
       {/* Card graphic */}
       <Box
         sx={{
@@ -176,7 +178,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
         sx={{
           position: "absolute",
           bottom: -14,
-          left: "57%",
+          left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
           alignItems: "center",

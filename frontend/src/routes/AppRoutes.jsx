@@ -9,6 +9,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import {Home} from "@/pages/Navbar/Home";
 import {Accounts} from "@/pages/Accounts/Accounts";
 import {Transactions} from "@/pages/Navbar/Transactions";
+import {TransactionDetails} from "@/pages/Navbar/TransactionDetails";
 import {Cards} from "@/pages/Navbar/Cards";
 import {Reports} from "@/pages/Navbar/Reports";
 import {Settings} from "@/pages/Navbar/Settings";
@@ -29,6 +30,8 @@ import SimulatedBankAuthorization from "../pages/PaymentMethods/SimulatedBankAut
 import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 import AddUser from "../pages/Admin/AddUser";
+import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
+
 
 export default function AppRoutes() {
   return (
@@ -43,7 +46,7 @@ export default function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/forbidden" element={<Forbidden />} />
 
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute requiredRole="USER"/>}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         {/* US-09-01-28: Wallet page with withdraw funds flow */}
@@ -51,6 +54,7 @@ export default function AppRoutes() {
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/accounts/:accountId" element={<AccountDetails />} />
         <Route path="/transactions" element={<Transactions />} />
+        <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/payment-methods" element={<PaymentMethods />} />
@@ -76,12 +80,18 @@ export default function AppRoutes() {
 
       {/* admin-only area */}
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+        <Route path="/admin" element={<AdminDash/>}/>
         <Route path="/admin/dashboard" element={<AdminDash />} />
         <Route path="/admin/mock-accounts" element={<MockAccounts />} />
         <Route
           path="/admin/accounts/:accountId/add-user"
           element={<AddUser />}
         />
+        <Route
+            path="/admin/requestManagement"
+            element={<RequestManagement />}
+        />
+        <Route path="/admin/accounts/:accountId" element={<AccountDetails/>}/>
       </Route>
     </Routes>
   );

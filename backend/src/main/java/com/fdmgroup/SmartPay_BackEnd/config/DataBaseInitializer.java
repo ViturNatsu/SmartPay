@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.config;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentmethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.GovernmentIdType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
@@ -22,8 +25,9 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +45,7 @@ public class DataBaseInitializer {
 
     @Bean
     CommandLineRunner initDatabase(UserRepository userRepository, CustomerRepository customerRepository, AccountRepository accountRepository, PaymentRepository paymentRepository
-            , CardRepository cardRepository, WalletRepository walletRepository) {
+            , CardRepository cardRepository, WalletRepository walletRepository, CardRequestRepository cardRequestRepository) {
         return args -> {
             if (userRepository.findByEmail("admin1@example.com").isEmpty()) {
                 User admin1 = User.builder()
@@ -245,6 +249,16 @@ public class DataBaseInitializer {
                 }
                 // Removed: testTD1 already linked to testUser1 via @OneToOne — can't link same account to testUser2
 
+            }
+
+            if(cardRequestRepository.findById(1L).orElse(null) == null) {
+                CardRequest cardRequest = new CardRequest();
+                cardRequest.setCard(cardRepository.findById(1l).orElse(null));
+                cardRequest.setUser(userRepository.findById(3L).orElse(null));
+                cardRequest.setRequestCreatedAt(LocalDateTime.now(ZoneId.systemDefault()));
+                cardRequest.setRequestReason("Mock Request");
+                cardRequest.setRequestStatus(RequestStatus.PENDING);
+                cardRequestRepository.save(cardRequest);
             }
         };
     }

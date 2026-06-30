@@ -6,15 +6,7 @@ import java.util.List;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -43,6 +35,7 @@ public class Card {
     private LocalDateTime expirationDate;
 
     @NotNull
+    @Enumerated(EnumType.STRING) // Stores the Enum Strings as identifier instead of the integer value
     private CardStatus status;
 
     @NotNull

@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
@@ -12,15 +13,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.paymentmethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
-import com.fdmgroup.SmartPay_BackEnd.services.paymentmethods.PaymentMethodService;
+import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletServiceImpl;
 
@@ -37,6 +40,9 @@ class WalletTransferServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
+    private PayeeRepository payeeRepository;
+
+    @Mock
     private WalletTransactionRepository walletTransactionRepository;
 
     @Mock
@@ -44,6 +50,9 @@ class WalletTransferServiceTest {
 
     @Mock
     private PaymentMethodService paymentMethodService;
+
+    @Mock
+    private StringHelper helper;
 
     @InjectMocks
     private WalletServiceImpl walletService;
@@ -71,6 +80,13 @@ class WalletTransferServiceTest {
         WalletTransaction stubTx = new WalletTransaction();
         stubTx.setTransactionId("TXN-test1234");
         lenient().when(walletTransactionRepository.save(any(WalletTransaction.class))).thenReturn(stubTx);
+        lenient().when(payeeRepository.findByOwnerIdAndRecipientId(anyLong(), anyLong()))
+        .thenReturn(Optional.empty());
+        lenient().when(helper.fullName(any(User.class)))
+        .thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            return u.getFirstName() + " " + u.getLastName();
+        });
     }
 
     @Test

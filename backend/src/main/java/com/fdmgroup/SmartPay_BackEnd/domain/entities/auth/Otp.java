@@ -79,10 +79,9 @@ public class Otp {
 
     public int getLimit() {
         return switch (this.otpType) {
-            case FORGOT_PASSWORD -> 5;
+            case FORGOT_PASSWORD, CARD_LOCK, CARD_UNLOCK, REVEAL_CARD -> 5;
             case REGISTER -> 3;
             case LOGIN -> 10;
-            case REVEAL_CARD -> 5;
             default -> throw new IllegalStateException("No OTP limit for type: " + this.otpType);
         };
     }
@@ -97,6 +96,7 @@ public class Otp {
             case REGISTER -> 15;
             case LOGIN -> 5;
             case REVEAL_CARD -> 5;
+            case CARD_LOCK, CARD_UNLOCK -> 10;
             default -> throw new IllegalStateException("No OTP expiry for type: " + this.otpType);
         };
     }
@@ -113,6 +113,8 @@ public class Otp {
             case REGISTER -> "Verify your SmartPay account";
             case FORGOT_PASSWORD -> "Reset your SmartPay password";
             case REVEAL_CARD -> "Verify your SmartPay card access";
+            case CARD_LOCK -> "Lock your card";
+            case CARD_UNLOCK -> "Unlock your card";
             default -> throw new IllegalStateException("No email subject for type: " + this.otpType);
         });
         String template = """
@@ -129,6 +131,8 @@ public class Otp {
                 template.formatted("Password Reset", frontendUrl, this.email, "forgot-password", code);
             case REVEAL_CARD ->
                 template.formatted("Card Details Access", frontendUrl, this.email, "reveal-card", code);
+            case CARD_LOCK -> getCardLockTemplate().formatted("Card Lock", frontendUrl, code, this.otpType);
+            case CARD_UNLOCK -> getCardLockTemplate().formatted("Card Unlock", frontendUrl, code, this.otpType);
             default -> throw new IllegalStateException("No email body for type: " + this.otpType);
         }
                 + "\nYour verification code is: " + code + "\n\n"
@@ -138,6 +142,18 @@ public class Otp {
                 + "The SmartPay Support Team");
 
         return emailDetails;
+    }
+
+    private String getCardLockTemplate() {
+        // hacky workaround. Should probably have a template builder if the OTP object remains unified for both authentication and action.
+        return  """
+                We received a request on your SmartPay account for %s.
+                
+                If this was you, click the link below to verify your action:
+
+                %s/wallet?code=%s&type=%s
+              
+                """;
     }
 
     public EmailDetails getAccountLockedEmailTemplate() {

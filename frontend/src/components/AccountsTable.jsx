@@ -142,7 +142,7 @@ const AccountsTable = () => {
             }}
             pageSizeOptions={[5]}
             showToolbar={true}
-            onRowClick={(params) => navigate(`/accounts/${params.row.id}`)}
+            onRowClick={(params) => navigate(`/admin/accounts/${params.row.id}`)}
           />
         </Box>
       )}

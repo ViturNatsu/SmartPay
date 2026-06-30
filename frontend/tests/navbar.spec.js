@@ -29,9 +29,15 @@ test("Navbar works (logo, highlight, logout)", async ({page}) => {
   // Click Wallet -> /wallet
   await page.getByTestId("nav-wallet").click();
   await expect(page).toHaveURL(/\/wallet/);
+  // Open hamburger menu
+  await page.getByLabel("menu").click();
+
   // Click Reports -> /reports
   await page.getByTestId("nav-reports").click();
   await expect(page).toHaveURL(/\/reports/);
+
+  // Open hamburger menu again
+  await page.getByLabel("menu").click();
 
   // Click Settings -> /settings
   await page.getByTestId("nav-settings").click();

@@ -62,21 +62,6 @@ public class WalletController {
         return ResponseEntity.ok(walletService.loadFunds(user.getId(), request));
     }
 
-    /**
-     * Updates the wallet-level daily spending limit for the authenticated user.
-     *
-     * The daily spending limit applies across the entire wallet and all linked
-     * funding sources. Any outgoing wallet transaction contributes toward this
-     * daily limit regardless of which funding source is used.
-     *
-     * Ownership is verified before updating the limit to ensure users can only
-     * modify limits on their own wallet.
-     *
-     * @param userId the owner of the wallet
-     * @param request DTO containing the new daily spending limit
-     * @param authentication the authenticated user principal
-     * @return the updated wallet containing the new daily spending limit
-     */
     @PostMapping("/{userId}/limits/daily")
     @Operation(summary = "Update wallet daily spending limit",
             description = "Updates the wallet-level daily spending limit.")
@@ -96,23 +81,10 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        WalletResponseDTO updatedWallet =
-                walletService.updateDailySpendingLimit(userId, request);
-
+        WalletResponseDTO updatedWallet = walletService.updateDailySpendingLimit(userId, request);
         return ResponseEntity.ok(updatedWallet);
     }
 
-    /**
-     * Withdraws funds from the authenticated user's wallet to a linked bank account.
-     *
-     * The caller must be the owner of the wallet (userId path variable must match
-     * the authenticated principal). Ownership is verified here before delegating to
-     * the service layer, following the same pattern as PaymentMethodController.
-     *
-     * Returns 403 if the authenticated user tries to withdraw from another user's wallet.
-     * Returns 400 for invalid amounts (≤ 0).
-     * Returns 422 for amounts exceeding the wallet balance.
-     */
     @PostMapping("/{userId}/withdraw")
     @Operation(summary = "Withdraw funds from wallet",
                description = "Deducts the specified amount from the user's wallet balance "
@@ -135,6 +107,8 @@ public class WalletController {
     }
 
     @GetMapping("/{userId}/transactions")
+    @Operation(summary = "Get wallet transaction history",
+               description = "Returns recent wallet load and withdraw events for the authenticated user.")
     public ResponseEntity<List<WalletTransactionDTO>> getTransactions(
             @PathVariable long userId,
             @RequestParam(defaultValue = "10") int limit,
@@ -150,7 +124,7 @@ public class WalletController {
     @PostMapping("/{userId}/transfer")
     @Operation(summary = "Transfer funds from wallet to another user's wallet")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Transfer completed successfully"),
+        @ApiResponse(responseCode = "200", description = "Transfer completed successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid transfer amount or memo"),
         @ApiResponse(responseCode = "403", description = "Forbidden: cannot transfer from another user's wallet"),
         @ApiResponse(responseCode = "422", description = "Insufficient wallet balance")

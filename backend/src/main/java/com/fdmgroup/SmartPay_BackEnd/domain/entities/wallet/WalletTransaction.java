@@ -1,6 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,10 +50,13 @@ public class WalletTransaction {
     private String status = "COMPLETED";
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
+
+    @Column(name = "counterparty_name")
+    private String counterpartyName;
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = Instant.now();
     }
 }

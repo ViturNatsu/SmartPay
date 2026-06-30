@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.integration.EmailDetails;
@@ -8,6 +9,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.card.CardServiceImpl;
@@ -20,10 +23,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,12 +37,14 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
+@ActiveProfiles("test")
 class CardServiceTest {
 
     @Mock
     private CardRepository cardRepository;
     @Mock
     private GenerateStringsHelper generateStringsHelper;
+
     @InjectMocks
     private CardServiceImpl cardService;
     @Mock
@@ -139,6 +147,107 @@ class CardServiceTest {
         verify(cardRepository, times(1)).save(any(Card.class));
     }
 
+    @Test
+    void shouldLockCard_whenEventIsCardLock() {
+        Long userId = 1L;
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.of(card));
+
+        cardService.changeCardStatusByUserId(userId, EventType.CARD_LOCK);
+
+        assertEquals(CardStatus.LOCKED, card.getStatus());
+        verify(cardRepository).save(card);
+    }
+
+    @Test
+    void shouldUnlockCard_whenEventIsCardUnlock() {
+        Long userId = 2L;
+
+        Card card = new Card();
+        card.setStatus(CardStatus.LOCKED);
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.of(card));
+
+        cardService.changeCardStatusByUserId(userId, EventType.CARD_UNLOCK);
+
+        assertEquals(CardStatus.ACTIVE, card.getStatus());
+        verify(cardRepository).save(card);
+    }
+
+
+    @Test
+    void shouldThrowException_whenEventTypeIsNull() {
+        Long userId = 3L;
+
+        assertThrows(CardStatusOperationNotAllowedException.class, () ->
+                cardService.changeCardStatusByUserId(userId, null)
+        );
+
+        verify(cardRepository, never()).findCardByUserId(anyLong());
+        verify(cardRepository, never()).save(any());
+    }
+
+    @Test
+    void lockSanityCheck_shouldThrowException_whenCardNotFound() {
+        Long userId = 1L;
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(CardNotFoundException.class, () ->
+                cardService.lockSanityCheck(userId, EventType.CARD_LOCK)
+        );
+    }
+
+    @Test
+    void lockSanityCheck_shouldPass_whenCardIsActiveAndLockEvent() {
+        Long userId = 1L;
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.of(card));
+
+        assertDoesNotThrow(() ->
+                cardService.lockSanityCheck(userId, EventType.CARD_LOCK)
+        );
+    }
+
+    @Test
+    void lockSanityCheck_shouldThrowException_whenCardNotActiveForLock() {
+        Long userId = 1L;
+
+        Card card = new Card();
+        card.setStatus(CardStatus.LOCKED); // invalid for lock
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.of(card));
+
+        assertThrows(CardStatusOperationNotAllowedException.class, () ->
+                cardService.lockSanityCheck(userId, EventType.CARD_LOCK)
+        );
+    }
+
+    @Test
+    void lockSanityCheck_shouldThrowException_whenCardNotLockedForUnlock() {
+        Long userId = 1L;
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE); // invalid for unlock
+
+        when(cardRepository.findCardByUserId(userId))
+                .thenReturn(Optional.of(card));
+
+        assertThrows(CardStatusOperationNotAllowedException.class, () ->
+                cardService.lockSanityCheck(userId, EventType.CARD_UNLOCK)
+        );
+    }
     @Test
     @DisplayName("Should renew card when expired")
     void renewIfExpired_whenCardIsExpired_shouldRenewAndReturnTrue() {

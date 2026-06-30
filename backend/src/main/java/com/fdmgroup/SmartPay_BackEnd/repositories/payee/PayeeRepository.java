@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 
 @Repository
-public interface PayeeRepository extends JpaRepository<Payee,Long>{
+public interface PayeeRepository extends JpaRepository<Payee, Long> {
 
     Optional<Payee> findByOwnerIdAndRecipientId(Long ownerId, Long recipientId);
 
@@ -17,4 +17,5 @@ public interface PayeeRepository extends JpaRepository<Payee,Long>{
 
     Optional<Payee> findByPayeeIdAndOwnerIdAndActiveTrue(Long payeeId, Long ownerId);
 
+    Optional<Payee> findByOwnerIdAndRecipientIdAndActiveTrue(Long ownerId, Long recipientId);
 }
