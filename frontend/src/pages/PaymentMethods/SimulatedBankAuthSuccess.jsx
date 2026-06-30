@@ -10,6 +10,7 @@ import Button from "@mui/material/Button";
 import {blueGrey} from "@mui/material/colors";
 
 
+import { tokens } from "@/style/Theme.jsx";
 function SimulatedBankAuthSuccess() {
   const {tokenClaims} = useAuth();
   const navigate = useNavigate();
@@ -113,8 +114,8 @@ function SimulatedBankAuthSuccess() {
           justifyContent="space-between"
           alignItems="center"
           sx={{ bgcolor: disabled
-                  ? "#caccce"
-                  : selectedAccounts.includes(account.accountNumberDigest) ? "#DFF6F8" : "#F9FAFB" ,
+                  ? tokens.color.background.disabled
+                  : selectedAccounts.includes(account.accountNumberDigest) ? tokens.color.background.selected : tokens.color.background.stack ,
               borderRadius: "12px",
               p: 2,
               margin:2,
@@ -126,10 +127,10 @@ function SimulatedBankAuthSuccess() {
 
       >
       <Stack>
-          <Typography sx={{ color: "#4B5563" }}>
+          <Typography sx={{ color: tokens.color.text.secondary }}>
               {account.accountName}
           </Typography>
-          <Typography sx={{ color: "#6B7280" , textAlign: "left"}}>
+          <Typography sx={{ color: tokens.color.text.number.neutral , textAlign: "left"}}>
               {account.accountNumber.substring(2)}
           </Typography>
       </Stack>
@@ -207,9 +208,9 @@ function SimulatedBankAuthSuccess() {
             elevation={0}
             sx={{
                 width: "100%",
-                bgcolor: "#fff",
+                bgcolor: tokens.color.background.surface,
                 borderRadius: "16px",
-                border: "1px solid #E5E7EB",
+                border: `1px solid ${tokens.color.border.gray}`,
                 p: 3,
                 boxSizing: "border-box",
                 overflow: "hidden",

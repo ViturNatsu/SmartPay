@@ -38,6 +38,7 @@ import {AlertSnackbar} from "@/components/customComponents/snackbar/AlertSnackba
 import {LockCardRedirectDialog} from "@/components/customComponents/dialogs/LockCardRedirectDialog.jsx";
 import {LockButton} from "@/components/customComponents/buttons/LockButton.jsx";
 
+import { tokens } from "@/style/Theme.jsx";
 /**
  * Wallet page — Scenario 1
  *
@@ -211,7 +212,7 @@ export function Wallet() {
   return (
     <>
       <Navbar />
-      <Box sx={{background: "#F8FAFC", minHeight: "100vh", py: 4}}>
+      <Box sx={{background: tokens.color.brand.primaryBackground, minHeight: "100vh", py: 4}}>
         <Container maxWidth="lg">
           {/* Page header */}
           <Box sx={{mb: 3}}>
@@ -221,7 +222,7 @@ export function Wallet() {
             >
               Wallet
             </Typography>
-            <Typography sx={{color: "#334155", fontSize: 15}}>
+            <Typography sx={{color: tokens.color.text.heading, fontSize: 15}}>
               Manage your SmartPay wallet, view your balance and load funds to
               send money or make payments.
             </Typography>
@@ -233,7 +234,7 @@ export function Wallet() {
           <Card
             elevation={0}
             sx={{
-              border: "1px solid #DCE4EC",
+              border: `1px solid ${tokens.color.border.blueTint}`,
               borderRadius: "22px",
               p: "28px",
               boxShadow: "0 1px 3px rgba(0,0,0,.08)",
@@ -280,7 +281,7 @@ export function Wallet() {
                   sx={{
                     fontSize: 12,
                     fontWeight: 800,
-                    color: "#8DA0BC",
+                    color: tokens.color.text.mutedBlue,
                     textTransform: "uppercase",
                     letterSpacing: ".08em",
                     mb: 0.75,
@@ -301,7 +302,7 @@ export function Wallet() {
 
                 <Divider sx={{mb: 2.25}} />
 
-                <Typography sx={{fontSize: 13, color: "#8DA0BC", mb: 0.5}}>
+                <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue, mb: 0.5}}>
                   Available Balance
                 </Typography>
                 <Typography sx={{fontSize: 21, fontWeight: 800, mb: 3}}>
@@ -318,8 +319,8 @@ export function Wallet() {
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
-                      bgcolor: "#0F7490",
-                      "&:hover": {bgcolor: "#0A5A70"},
+                      bgcolor: tokens.color.brand.primary,
+                      "&:hover": {bgcolor: tokens.color.brand.primaryHover},
                       boxShadow: "0 6px 14px rgba(15,116,144,.3)",
                     }}
                   >
@@ -338,10 +339,10 @@ export function Wallet() {
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
-                      borderColor: "#B2DDE8",
-                      color: "#0A5A70",
-                      bgcolor: "#E5F5FA",
-                      "&:hover": {bgcolor: "#CCE9F2", borderColor: "#0A5A70"},
+                      borderColor: tokens.color.brand.primaryMid,
+                      color: tokens.color.brand.primaryHover,
+                      bgcolor: tokens.color.brand.primaryLight,
+                      "&:hover": {bgcolor: tokens.color.brand.primaryLighter, borderColor: tokens.color.brand.primaryHover},
                     }}
                   >
                     Withdraw Funds
@@ -354,12 +355,12 @@ export function Wallet() {
                     sx={{
                       textTransform: "none",
                       fontWeight: 800,
-                      borderColor: "#B2DDE8",
-                      color: "#0F7490",
-                      bgcolor: "#FFFFFF",
+                      borderColor: tokens.color.brand.primaryMid,
+                      color: tokens.color.brand.primary,
+                      bgcolor: tokens.color.background.surface,
                       "&:hover": {
-                        bgcolor: "#F8FAFC",
-                        borderColor: "#0A5A70",
+                        bgcolor: tokens.color.brand.primaryBackground,
+                        borderColor: tokens.color.brand.primaryHover,
                       },
                     }}
                   >
@@ -369,7 +370,7 @@ export function Wallet() {
 
                 {/* No linked accounts message when Withdraw is unavailable */}
                 {!pmLoading && paymentMethods.length === 0 && (
-                  <Typography sx={{fontSize: 13, color: "#64748B"}}>
+                  <Typography sx={{fontSize: 13, color: tokens.color.text.subdued}}>
                     Link a bank account in Payment Methods to load funds and
                     withdraw.
                   </Typography>
@@ -392,7 +393,7 @@ export function Wallet() {
                       component={RouterLink}
                       to="/transactions"
                       sx={{
-                        color: "#0F7490",
+                        color: tokens.color.brand.primary,
                         fontSize: 13,
                         fontWeight: 800,
                         textDecoration: "none",
@@ -404,11 +405,11 @@ export function Wallet() {
                   </Box>
 
                   {txLoading ? (
-                    <Typography sx={{fontSize: 13, color: "#8DA0BC"}}>
+                    <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
                       Loading activity...
                     </Typography>
                   ) : transactions.length === 0 ? (
-                    <Typography sx={{fontSize: 13, color: "#8DA0BC"}}>
+                    <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
                       No wallet activity yet. Load funds to see your first
                       transaction.
                     </Typography>
@@ -430,7 +431,7 @@ export function Wallet() {
                             justifyContent: "space-between",
                             alignItems: "center",
                             py: 1.25,
-                            borderBottom: "1px solid #EEF2F7",
+                            borderBottom: `1px solid ${tokens.color.border.divider}`,
                             cursor: "pointer",
                             borderRadius: 1,
                             "&:hover": { background: "#f1f5f9" },
@@ -441,12 +442,12 @@ export function Wallet() {
                               sx={{
                                 fontSize: 14,
                                 fontWeight: 700,
-                                color: "#0F172A",
+                                color: tokens.color.text.title,
                               }}
                             >
                               {tx.description}
                             </Typography>
-                            <Typography sx={{fontSize: 12, color: "#8DA0BC"}}>
+                            <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
                               {formatTransactionDate(tx.createdAt)}
                             </Typography>
                           </Box>
@@ -456,12 +457,12 @@ export function Wallet() {
                                 fontSize: 14,
                                 fontWeight: 800,
                                 color:
-                                  ( tx.type === "LOAD" || tx.type === "DEPOSIT") ? "#15803D" : "#DC2626",
+                                  ( tx.type === "LOAD" || tx.type === "DEPOSIT") ? tokens.color.status.success : tokens.color.text.number.negative,
                               }}
                             >
                               {formatTransactionAmount(tx.type, tx.amount)}
                             </Typography>
-                            <Typography sx={{fontSize: 12, color: "#8DA0BC"}}>
+                            <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
                               {tx.status ?? "Completed"}
                             </Typography>
                           </Box>
