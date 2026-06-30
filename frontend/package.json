@@ -23,6 +23,7 @@
     "axios": "^1.13.2",
     "cors": "^2.8.6",
     "mui-one-time-password-input": "^7.0.0",
+    "jspdf": "^4.2.1",
     "node": "^25.5.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
