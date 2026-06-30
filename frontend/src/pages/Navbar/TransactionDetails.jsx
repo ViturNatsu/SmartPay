@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Box, Button, Card, Container, LinearProgress, Stack, Typography } from "@mui/material";
+import { Box, Button, Card, Container, LinearProgress, Stack, Typography, Alert } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DownloadIcon from "@mui/icons-material/Download";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,7 @@ import { TransactionDetailGrid } from "@/components/transactions/TransactionDeta
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { tokens } from "@/style/Theme";
+import { generateTransactionReceipt } from "@/utils/generateTransactionReceipt";
 
 /**
  * Transaction Details page — displays core fields for a single wallet transaction.
@@ -25,6 +26,22 @@ export function TransactionDetails() {
   const [transaction, setTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloadError(false);
+    setDownloading(true);
+    try {
+      await Promise.resolve(generateTransactionReceipt(transaction));
+    } catch (err) {
+      console.error("Receipt download failed:", err);
+      setDownloadError(true);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTransaction = async () => {
@@ -115,13 +132,23 @@ export function TransactionDetails() {
             {!loading && transaction && (
               <>
                 <TransactionDetailGrid transaction={transaction} />
+                {downloadError && (
+                  <Alert
+                    severity="error"
+                    sx={{ mt: 2.5 }}
+                  >
+                    We couldn't generate your receipt. Please try again.
+                  </Alert>
+                )}
                 <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
                   <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}
+                    onClick={handleDownload}
+                    disabled={downloading}
                     sx={{ textTransform: "none", fontWeight: 600 }}
                   >
-                    Download Receipt
+                    {downloading ? "Generating…" : "Download Receipt"}
                   </Button>
                   <Button
                     variant="outlined"
