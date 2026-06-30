@@ -1,17 +1,18 @@
+import { tokens } from "@/style/Theme.jsx";
 export const WALLET_COLORS = {
-  primary: "#0f7490",
-  primaryDark: "#0a5a70",
-  muted: "#64748b",
-  border: "#e2e8f0",
-  successBg: "#dcfce7",
-  successBorder: "#86efac",
-  successText: "#15803d",
-  errorBg: "#fee2e2",
-  errorBorder: "#fca5a5",
-  errorText: "#b91c1c",
-  warningBg: "#fff7ed",
-  warningBorder: "#fdba74",
-  warningText: "#c2410c",
+  primary: tokens.color.brand.primary,
+  primaryDark: tokens.color.brand.primaryHover,
+  muted: tokens.color.text.subdued,
+  border: tokens.color.border.light,
+  successBg: tokens.color.status.successBg,
+  successBorder: tokens.color.status.successBorder,
+  successText: tokens.color.status.success,
+  errorBg: tokens.color.status.errorBg,
+  errorBorder: tokens.color.status.errorBorder,
+  errorText: tokens.color.status.error,
+  warningBg: tokens.color.status.warningBg,
+  warningBorder: tokens.color.status.warningBorder,
+  warningText: tokens.color.status.warningText,
 };
 
 export const MIN_LOAD_AMOUNT = 5;
@@ -41,10 +42,10 @@ export const primaryButtonSx = {
   fontSize: 14,
   textTransform: "none",
   bgcolor: WALLET_COLORS.primary,
-  color: "#fff",
+  color: tokens.color.text.white,
   boxShadow: "0 10px 20px rgba(15,116,144,0.18)",
   "&:hover": { bgcolor: WALLET_COLORS.primaryDark },
-  "&:disabled": { bgcolor: "#94a3b8", color: "#fff" },
+  "&:disabled": { bgcolor: tokens.color.text.muted, color: tokens.color.text.white },
 };
 
 export const secondaryButtonSx = {
@@ -54,7 +55,7 @@ export const secondaryButtonSx = {
   fontWeight: 800,
   fontSize: 14,
   textTransform: "none",
-  border: "1px solid #cbd5e1",
-  bgcolor: "#fff",
-  color: "#0d1b2a",
+  border: `1px solid ${tokens.color.border.medium}`,
+  bgcolor: tokens.color.background.surface,
+  color: tokens.color.text.primary,
 };
