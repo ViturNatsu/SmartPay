@@ -55,6 +55,9 @@ public class WalletTransaction {
     @Column(name = "counterparty_name")
     private String counterpartyName;
 
+    @Column(name ="is_favourite", nullable = false)
+    private boolean isFavourite=false;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) createdAt = Instant.now();

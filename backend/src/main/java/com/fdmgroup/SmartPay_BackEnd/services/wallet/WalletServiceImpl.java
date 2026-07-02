@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
@@ -326,6 +329,7 @@ public class WalletServiceImpl implements WalletService {
         dto.setDescription(buildDescription(transaction));
         dto.setStatus(transaction.getStatus());
         dto.setCreatedAt(transaction.getCreatedAt());
+        dto.setFavourite(transaction.isFavourite());
         return dto;
     }
 
@@ -363,5 +367,25 @@ public class WalletServiceImpl implements WalletService {
         dto.setDailySpentAmount(wallet.getDailySpentAmount());
         dto.setDailySpentDate(wallet.getDailySpentDate());
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public WalletTransactionDTO changeWalletTransactionFavouriteStatus(long userId,
+            String transactionId, 
+            boolean isFavourite){
+        
+        WalletTransaction foundWalletTransaction = 
+            walletTransactionRepository.findByTransactionId(transactionId)
+            .orElseThrow(()-> new WalletTransactionNotFoundException("Wallet Transaction id not found!"));
+        
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+
+        if(!foundWalletTransaction.getWallet().getWalletId().equals(wallet.getWalletId())){
+            throw new WalletTransactionForbiddenAccessException("Wallet Transaction does not belong to user's wallet!");
+        }
+        foundWalletTransaction.setFavourite(isFavourite);
+        WalletTransaction updatedWalletTransaction = walletTransactionRepository.save(foundWalletTransaction);
+        return toDto(updatedWalletTransaction);
     }
 }

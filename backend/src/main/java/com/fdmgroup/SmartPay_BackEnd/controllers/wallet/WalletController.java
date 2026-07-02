@@ -2,11 +2,11 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
 import java.util.List;
 
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,14 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransferDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -158,5 +159,26 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(walletService.updatePerTransactionLimit(userId, request));
+    }
+
+    @PatchMapping("/{userId}/transactions/favourite/{transactionId}")
+    @Operation(summary = "Update Favourite status of wallet transaction",
+               description = "Change boolean favourite status of wallet transaction found in User's wallet.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Favourite status updated successfully"),
+        @ApiResponse(responseCode = "403", description = "User does not own this wallet"),
+        @ApiResponse(responseCode = "404", description = "User Wallet or Wallet Transaction Not Found")
+    })
+    public ResponseEntity<WalletTransactionDTO> updateTransactionIsFavourite(@PathVariable long userId,
+        @PathVariable String transactionId, 
+        @RequestParam(defaultValue="false") boolean isFavourite,
+        Authentication authentication){
+
+        User principalUser = (User) authentication.getPrincipal();
+        if (!principalUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        return ResponseEntity.ok(walletService.changeWalletTransactionFavouriteStatus(userId, transactionId,isFavourite));
     }
 }

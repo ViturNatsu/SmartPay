@@ -1,13 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
 
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +11,23 @@ import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeExpiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeInvalidatedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockActionsRequiresUserRoleException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockRequestInvalidType;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
@@ -35,10 +41,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -312,6 +317,26 @@ public class GlobalExceptionHandler {
         @ExceptionHandler
         public ResponseEntity<ExceptionShapeDTO> handleCardLockActionsRequiresUserRole(CardLockActionsRequiresUserRoleException ex) {
                 return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
+        }
+
+        //US 11-01-16
+        @ExceptionHandler(WalletTransactionNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleWalletTransactionNotFound(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Wallet Transaction id not found!");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        //US 11-01-16
+        @ExceptionHandler(WalletTransactionForbiddenAccessException.class)
+        public ResponseEntity<Map<String, String>> WalletTransactionForbiddenAccessException(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "Wallet Transaction does not belong to User's Wallet.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         /**
