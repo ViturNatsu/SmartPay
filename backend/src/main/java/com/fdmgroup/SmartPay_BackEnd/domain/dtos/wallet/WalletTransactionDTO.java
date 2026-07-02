@@ -18,4 +18,5 @@ public class WalletTransactionDTO {
     private String description;
     private String status;
     private Instant createdAt;
+    private boolean isFavourite;
 }
