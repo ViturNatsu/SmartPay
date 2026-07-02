@@ -169,15 +169,13 @@ export default function RecurringPayments() {
           py: tokens.layout.sectionGap,
         }}
       >
-        <Container maxWidth="xl">
-          <Box
-            sx={{
-              backgroundColor: tokens.color.background.surface,
-              border: `1px solid ${tokens.color.border.light}`,
-              borderRadius: tokens.borderRadius.xl,
-              p: 4,
-            }}
-          >
+        <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 } }}>
+            <Card
+              sx={{
+                minHeight: "calc(100vh - 120px)",
+                p: { xs: 3, md: 5 },
+              }}
+            >
             <Typography variant="h4" sx={{ mb: 2 }}>
               Recurring Payments
             </Typography>
@@ -272,7 +270,7 @@ export default function RecurringPayments() {
                 formatSchedule={formatSchedule}
               />
             ))}
-          </Box>
+          </Card>
         </Container>
       </Box>
     </>

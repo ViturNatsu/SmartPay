@@ -69,6 +69,11 @@ export const tokens = {
       virtualCard: "linear-gradient(135deg, #0F2336 0%, #1A3A52 60%, #0F7490 100%)",
       walletBalance: "linear-gradient(135deg, #062F3D, #0097A7)",
     },
+    pdf: {
+      headerFill: [220, 220, 220],
+      borderColor: [180, 180, 180],
+      titleText: [0, 0, 0],
+    },
   },
   borderRadius: {
     small: 4,
