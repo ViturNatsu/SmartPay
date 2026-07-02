@@ -32,6 +32,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 
+import { tokens } from "@/style/Theme.jsx";
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("en-US", {
     style: "currency",
@@ -188,7 +189,7 @@ export default function PaymentMethods() {
   return (
     <>
       <Navbar />
-      <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
         <Container maxWidth="lg">
           <Stack spacing={3}>
             <Box>
@@ -254,7 +255,7 @@ export default function PaymentMethods() {
                 ) : activeMethods.length === 0 ? (
                   <Box
                     sx={{
-                      border: "1px dashed #CBD5E1",
+                      border: `1px dashed ${tokens.color.border.medium}`,
                       borderRadius: 2,
                       p: 3,
                       textAlign: "center",
@@ -282,7 +283,7 @@ export default function PaymentMethods() {
                       <Box
                         key={method.id}
                         sx={{
-                          border: "1px solid #E2E8F0",
+                          border: `1px solid ${tokens.color.border.light}`,
                           borderRadius: 2,
                           p: 2.5,
                         }}
@@ -338,10 +339,10 @@ export default function PaymentMethods() {
                 startIcon={<ArrowBackIosNewIcon />}
                 sx={{
                   textTransform: "none",
-                  borderColor: "#7C3AED",
-                  color: "#7C3AED",
+                  borderColor: tokens.color.brand.purple,
+                  color: tokens.color.brand.purple,
                   "&:hover": {
-                    borderColor: "#6D28D9",
+                    borderColor: tokens.color.brand.purpleHover,
                     backgroundColor: "rgba(124,58,237,0.04)",
                   },
                   mr: 1.5,
@@ -357,10 +358,10 @@ export default function PaymentMethods() {
                 endIcon={<ArrowForwardIosIcon />}
                 sx={{
                   textTransform: "none",
-                  borderColor: "#7C3AED",
-                  color: "#7C3AED",
+                  borderColor: tokens.color.brand.purple,
+                  color: tokens.color.brand.purple,
                   "&:hover": {
-                    borderColor: "#6D28D9",
+                    borderColor: tokens.color.brand.purpleHover,
                     backgroundColor: "rgba(124,58,237,0.04)",
                   },
                 }}

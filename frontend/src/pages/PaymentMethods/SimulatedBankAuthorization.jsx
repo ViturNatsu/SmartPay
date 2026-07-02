@@ -7,6 +7,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import { useAuth } from "@/context/AuthContext";
 
 
+import { tokens } from "@/style/Theme.jsx";
 function SimulatedBankAuthorization() {
     const { user, tokenClaims, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -69,7 +70,7 @@ function SimulatedBankAuthorization() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#f0f4f8",
+            backgroundColor: tokens.color.background.appBlue,
             p: 2,
           }}
         >
@@ -84,7 +85,7 @@ function SimulatedBankAuthorization() {
                     flexDirection: "column",
                     alignItems: "center",
                     gap: 2,
-                    backgroundColor: "#ffffff",
+                    backgroundColor: tokens.color.background.surface,
                 }}            
             >
                 <Box
@@ -92,15 +93,15 @@ function SimulatedBankAuthorization() {
                         width: 64,
                         height: 64,
                         borderRadius: "50%",
-                        border: "3px solid #c8a84b",
-                        backgroundColor: "#f5f5f5",
+                        border: `3px solid ${tokens.color.status.gold}`,
+                        backgroundColor: tokens.color.background.lightGray,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         mb: 1,
                     }}
                 >
-                    <LockIcon sx={{ fontSize: 30, color: "#c8a84b" }} />
+                    <LockIcon sx={{ fontSize: 30, color: tokens.color.status.gold }} />
                 </Box>
 
                 <Typography
@@ -127,7 +128,7 @@ function SimulatedBankAuthorization() {
                         width: "100%",
                         borderRadius: 3,
                         overflow: "hidden",
-                        border: "1px solid #e0e0e0",
+                        border: `1px solid ${tokens.color.border.mediumGray}`,
                         mt: 1,
                     }}
                 >
@@ -160,7 +161,7 @@ function SimulatedBankAuthorization() {
                         </TextField>
                     </Box>
 
-                    <Divider sx={{ borderColor: "#e0e0e0" }}></Divider>
+                    <Divider sx={{ borderColor: tokens.color.border.mediumGray }}></Divider>
 
                     <Box
                         sx={{
@@ -215,18 +216,18 @@ function SimulatedBankAuthorization() {
                         mt: 1,
                         py: 1.6,
                         borderRadius: 3,
-                        backgroundColor: "#7dd6e8",
-                        color: "#1a1a2e",
+                        backgroundColor: tokens.color.brand.cyanLight,
+                        color: tokens.color.text.primary,
                         fontWeight: 700,
                         fontSize: "1rem",
                         textTransform: "none",
                         boxShadow: "none",
                         "&:hover": {
-                        backgroundColor: "#5ec8de",
+                        backgroundColor: tokens.color.brand.cyan,
                         boxShadow: "none",
                         },
                         "&:active": {
-                        backgroundColor: "#43bbd5",
+                        backgroundColor: tokens.color.brand.cyanDark,
                         },
                     }}
                     disabled={emptyFields}
@@ -246,7 +247,7 @@ function SimulatedBankAuthorization() {
                         fontSize: "0.95rem",
                         textTransform: "none",
                         "&:hover": {
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: tokens.color.background.lightGray,
                         color: "text.primary",
                         },
                     }}

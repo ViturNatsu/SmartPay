@@ -23,6 +23,7 @@ import {
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import { useAuth } from "@/context/AuthContext";
 
+import { tokens } from "@/style/Theme.jsx";
 const steps = ["Account Details", "Terms & Conditions", "Review & Submit"];
 
 const provinces = [
@@ -341,7 +342,7 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
 
             <Box
               sx={{
-                bgcolor: "#f5f5f5",
+                bgcolor: tokens.color.background.lightGray,
                 borderRadius: 1,
                 p: 3,
                 maxHeight: 300,
@@ -399,12 +400,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       Account Type
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {formData.accountType}
                     </TableCell>
                   </TableRow>
@@ -412,12 +413,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       Account Name
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {formData.accountName}
                     </TableCell>
                   </TableRow>
@@ -425,12 +426,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       Legal Name
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {`${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim()}
                     </TableCell>
                   </TableRow>
@@ -438,12 +439,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       Address
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {`${formData.addressLine1}, ${formData.addressLine2}, ${formData.city} ${formData.province}, Canada`.replace(
                         ", ,",
                         ",",
@@ -454,12 +455,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       Phone Number
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {formData.phoneNumber}
                     </TableCell>
                   </TableRow>
@@ -467,12 +468,12 @@ export const OpenMockAccountForm = ({ open, onClose, onSubmit }) => {
                     <TableCell
                       sx={{
                         fontWeight: 600,
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: `1px solid ${tokens.color.border.mediumGray}`,
                       }}
                     >
                       SIN
                     </TableCell>
-                    <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    <TableCell sx={{ borderBottom: `1px solid ${tokens.color.border.mediumGray}` }}>
                       {formData.sin.replace(/./g, "*").slice(0, -3) +
                         formData.sin.slice(-3)}
                     </TableCell>
