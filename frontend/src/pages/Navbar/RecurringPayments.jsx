@@ -17,6 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCard";
+import RecurringPayeeForm from "@/components/recurringPayments/RecurringPayeeForm";
 import Navbar from "@/components/Navbar";
 import { tokens } from "@/style/Theme";
 
@@ -228,106 +229,24 @@ export default function RecurringPayments() {
 
             {tab === "bills" && showForm && (
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Card
-                    sx={{
-                    p: tokens.layout.pagePadding,
-                    mb: 3,
-                    }}
-                >
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                    Add New Payee
-                    </Typography>
-
-                    <Stack spacing={2}>
-                    <TextField
-                    label="Name *"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    error={!!errors.name}
-                    helperText={errors.name}
-                    fullWidth
-                    />
-
-                    <TextField
-                    label="Account Number *"
-                    name="accountNumber"
-                    value={formData.accountNumber}
-                    onChange={handleInputChange}
-                    error={!!errors.accountNumber}
-                    helperText={errors.accountNumber}
-                    fullWidth
-                    />
-
-                    <TextField
-                        label="Amount *"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleInputChange}
-                        error={!!errors.amount}
-                        helperText={errors.amount}
-                        fullWidth
-                        type="number"
-                        inputProps={{
-                            min: 0,
-                            step: "0.01",
-                        }}
-                    />
-
-                    <TextField
-                    select
-                    label="Recurring Schedule *"
-                    name="schedule"
-                    value={formData.schedule}
-                    onChange={handleInputChange}
-                    error={!!errors.schedule}
-                    helperText={errors.schedule}
-                    fullWidth
-                    >
-                    <MenuItem value="monthly">Monthly</MenuItem>
-                    <MenuItem value="yearly">Yearly</MenuItem>
-                    </TextField>
-
-                    <TextField
-                    label="Date *"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    error={!!errors.date}
-                    helperText={errors.date}
-                    fullWidth
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    />
-
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="contained"
-                          onClick={handleConfirm}
-                          disabled={!isFormComplete}
-                        >
-                          Confirm
-                        </Button>
-
-                        <Button
-                          variant="outlined"
-                          onClick={() => {
-                            setShowForm(false);
-                            setErrors({});
-                            setFormData({
-                              name: "",
-                              accountNumber: "",
-                              amount: "",
-                              schedule: "",
-                              date: "",
-                            });
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </Stack>
-                    </Stack>
-                </Card>
+                <RecurringPayeeForm
+                  formData={formData}
+                  errors={errors}
+                  isFormComplete={isFormComplete}
+                  onInputChange={handleInputChange}
+                  onConfirm={handleConfirm}
+                  onCancel={() => {
+                    setShowForm(false);
+                    setErrors({});
+                    setFormData({
+                      name: "",
+                      accountNumber: "",
+                      amount: "",
+                      schedule: "",
+                      date: "",
+                    });
+                  }}
+                />
               </LocalizationProvider>
             )}
 
