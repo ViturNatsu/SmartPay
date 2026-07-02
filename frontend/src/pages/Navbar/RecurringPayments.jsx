@@ -16,6 +16,7 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCard";
 import Navbar from "@/components/Navbar";
 import { tokens } from "@/style/Theme";
 
@@ -330,7 +331,7 @@ export default function RecurringPayments() {
               </LocalizationProvider>
             )}
 
-            {/* ✅ Success message goes HERE */}
+            {/* Success message  */}
             {successMessage && (
             <Alert
                 severity="success"
@@ -344,31 +345,13 @@ export default function RecurringPayments() {
             
             {tab === "bills" &&
             payees.map((payee) => (
-                <Card key={payee.id} sx={{ p: tokens.card.padding, mb: 2 }}>
-                <Typography fontWeight={tokens.typography.fontWeight.bold}>
-                    {payee.name}
-                </Typography>
-
-                <Typography variant="body2">
-                  ${formatAmount(payee.amount)}
-                </Typography>
-
-                <Typography variant="body2">
-                    Due {formatDueDate(payee.date)} • {formatSchedule(payee.schedule)}
-                </Typography>
-
-                <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
-                    <Button variant="contained" size="small">
-                    View
-                    </Button>
-                    <Button variant="outlined" size="small">
-                    Edit
-                    </Button>
-                    <Button variant="outlined" size="small">
-                    Cancel
-                    </Button>
-                </Stack>
-                </Card>
+              <RecurringPayeeCard
+                key={payee.id}
+                payee={payee}
+                formatAmount={formatAmount}
+                formatDueDate={formatDueDate}
+                formatSchedule={formatSchedule}
+              />
             ))}
           </Box>
         </Container>
