@@ -31,6 +31,7 @@ export const tokens = {
       errorBg: "#FEE2E2",
       warning: "#B45309",
       warningBg: "#FEF3C7",
+      successBorder: "#BBF7D0",
     },
     button: {
       primaryBg: "#0F7490",
@@ -99,6 +100,24 @@ export const tokens = {
   shadow: {
     card: "0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
     elevated: "0 4px 16px rgba(0, 0, 0, 0.08)",
+  },
+    spacing: {
+    xs: 0.5,
+    sm: 1,
+    md: 2,
+    lg: 3,
+    xl: 4,
+  },
+
+  layout: {
+    pagePadding: 3,
+    sectionGap: 3,
+    cardGap: 2,
+  },
+
+  card: {
+    padding: 2,
+    actionGap: 1,
   },
 };
 
