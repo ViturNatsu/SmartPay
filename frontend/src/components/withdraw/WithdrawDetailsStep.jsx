@@ -1,3 +1,4 @@
+import { tokens } from "@/style/Theme.jsx";
 import {
   Alert,
   Box,
@@ -38,7 +39,7 @@ function WithdrawDetailsStep({
   return (
     <>
       <DialogContent dividers>
-        <Typography variant="body2" sx={{color: "#64748B", mb: 2.5}}>
+        <Typography variant="body2" sx={{color: tokens.color.text.subdued, mb: 2.5}}>
           Move money from your SmartPay wallet balance to one of your linked
           bank accounts.
         </Typography>
@@ -56,12 +57,12 @@ function WithdrawDetailsStep({
             sx={{
               borderRadius: "14px",
               p: 2,
-              bgcolor: "#F7FAFB",
-              border: "1px solid #E2E8F0",
+              bgcolor: tokens.color.background.panel,
+              border: `1px solid ${tokens.color.border.light}`,
             }}
           >
             <Typography
-              sx={{color: "#64748B", fontSize: 12, fontWeight: 700, mb: 0.75}}
+              sx={{color: tokens.color.text.subdued, fontSize: 12, fontWeight: 700, mb: 0.75}}
             >
               Available Wallet Balance
             </Typography>
@@ -73,12 +74,12 @@ function WithdrawDetailsStep({
             sx={{
               borderRadius: "14px",
               p: 2,
-              bgcolor: "#F7FAFB",
-              border: "1px solid #E2E8F0",
+              bgcolor: tokens.color.background.panel,
+              border: `1px solid ${tokens.color.border.light}`,
             }}
           >
             <Typography
-              sx={{color: "#64748B", fontSize: 12, fontWeight: 700, mb: 0.75}}
+              sx={{color: tokens.color.text.subdued, fontSize: 12, fontWeight: 700, mb: 0.75}}
             >
               Selected Destination
             </Typography>
@@ -107,7 +108,7 @@ function WithdrawDetailsStep({
                 </MenuItem>
               ))}
             </Select>
-            <Typography sx={{mt: 0.75, fontSize: 12, color: "#64748B"}}>
+            <Typography sx={{mt: 0.75, fontSize: 12, color: tokens.color.text.subdued}}>
               Only verified linked bank accounts appear here.
             </Typography>
           </FormControl>
@@ -123,7 +124,7 @@ function WithdrawDetailsStep({
               onChange={onAmountChange}
               error={Boolean(validationError)}
             />
-            <Typography sx={{mt: 0.75, fontSize: 12, color: "#64748B"}}>
+            <Typography sx={{mt: 0.75, fontSize: 12, color: tokens.color.text.subdued}}>
               Amount must be greater than $0.00 and cannot exceed the wallet
               balance.
             </Typography>
@@ -176,8 +177,8 @@ function WithdrawDetailsStep({
           }
           sx={{
             textTransform: "none",
-            bgcolor: "#0F7490",
-            "&:hover": {bgcolor: "#0A5A70"},
+            bgcolor: tokens.color.brand.primary,
+            "&:hover": {bgcolor: tokens.color.brand.primaryHover},
           }}
         >
           Continue

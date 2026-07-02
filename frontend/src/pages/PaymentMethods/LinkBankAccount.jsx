@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { Box, Select, MenuItem, FormControl, Button, Typography, Dialog, DialogContent } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { tokens } from "@/style/Theme.jsx";
 //import { getInstitutionById } from "../../api/financialinstitution/financialinstitutionApi";
 
 function LinkBankAccount({open, onClose}) {
@@ -80,7 +81,7 @@ function LinkBankAccount({open, onClose}) {
                                     borderColor: "grey.400",
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "#0d6a8c",
+                                    borderColor: tokens.color.brand.primary,
                                     borderWidth: "1px",
                                 },
                                 "& .MuiSelect-select": {
@@ -109,9 +110,9 @@ function LinkBankAccount({open, onClose}) {
                                               py: 2,
                                               px: 2.5,
                                               "&.Mui-selected": {
-                                                  bgcolor: "#eaf8fc",
-                                                  color: "#0d6a8c",
-                                                  "&:hover": {bgcolor: "#d9f3fa"},
+                                                  bgcolor: tokens.color.brand.primaryLight,
+                                                  color: tokens.color.brand.primary,
+                                                  "&:hover": {bgcolor: tokens.color.brand.primaryLighter},
                                               },
                                               "&:hover": {bgcolor: "grey.50"},
                                           }}
@@ -131,16 +132,16 @@ function LinkBankAccount({open, onClose}) {
                             sx={{
                                 py: 2,
                                 borderRadius: 3,
-                                bgcolor: "#a8e6f0",
-                                color: "#0d2a40",
+                                bgcolor: tokens.color.brand.primaryMid,
+                                color: tokens.color.text.primary,
                                 fontWeight: 500,
                                 fontSize: 16,
                                 textTransform: "none",
                                 letterSpacing: 0.2,
                                 boxShadow: "none",
-                                "&:hover": {bgcolor: "#89dced", boxShadow: "none"},
+                                "&:hover": {bgcolor: tokens.color.brand.primaryMid, boxShadow: "none"},
                                 "&:active": {transform: "scale(0.98)"},
-                                "&.Mui-disabled": {bgcolor: "#eaf5f8", color: "#8ba4ae"},
+                                "&.Mui-disabled": {bgcolor: tokens.color.brand.primaryLight, color: tokens.color.text.muted},
                             }}
                     >
                         Continue with {selectedBank}

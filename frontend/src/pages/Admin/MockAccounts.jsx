@@ -26,6 +26,7 @@ import Navbar from "@/components/Navbar";
 import OpenAccountForm from "./OpenMockAccountForm";
 import CreateMockAccount from "./CreateMockAccount";
 import { useAuth } from "@/context/AuthContext";
+import { tokens } from "@/style/Theme.jsx";
 import {
   getUserAccounts,
   createAccount,
@@ -187,7 +188,7 @@ export const MockAccounts = () => {
   return (
     <>
       <Navbar isAdmin />
-      <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", pb: 6 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.background.lightGray, pb: 6 }}>
         <Container
           maxWidth="lg"
           sx={{
@@ -281,7 +282,7 @@ export const MockAccounts = () => {
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    bgcolor: "#fff",
+                    bgcolor: tokens.color.background.surface,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                     textAlign: "center",
                   }}
