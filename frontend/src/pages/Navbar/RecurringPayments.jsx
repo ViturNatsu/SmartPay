@@ -12,6 +12,10 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import Navbar from "@/components/Navbar";
 import { tokens } from "@/style/Theme";
 
@@ -87,6 +91,16 @@ export default function RecurringPayments() {
         newErrors.date = "Please select a date.";
     }
 
+    const normalizedName = formData.name.trim().toLowerCase();
+
+    const duplicatePayee = payees.some(
+      (payee) => payee.name.trim().toLowerCase() === normalizedName
+    );
+
+    if (duplicatePayee) {
+      newErrors.name = "A payee with this name already exists.";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -129,6 +143,18 @@ export default function RecurringPayments() {
         day: "numeric",
     });
   };
+
+  const formatAmount = (amount) => {
+    return Number(amount).toFixed(2);
+  };
+
+  const isFormComplete =
+    formData.name.trim() &&
+    formData.accountNumber.trim() &&
+    formData.amount &&
+    Number(formData.amount) > 0 &&
+    formData.schedule &&
+    formData.date;
 
   return (
     <>
@@ -200,6 +226,7 @@ export default function RecurringPayments() {
             )}
 
             {tab === "bills" && showForm && (
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Card
                     sx={{
                     p: tokens.layout.pagePadding,
@@ -272,15 +299,35 @@ export default function RecurringPayments() {
                     InputLabelProps={{ shrink: true }}
                     />
 
-                    <Button
-                    variant="contained"
-                    sx={{ width: "fit-content" }}
-                    onClick={handleConfirm}
-                    >
-                        Confirm
-                    </Button>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          onClick={handleConfirm}
+                          disabled={!isFormComplete}
+                        >
+                          Confirm
+                        </Button>
+
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            setShowForm(false);
+                            setErrors({});
+                            setFormData({
+                              name: "",
+                              accountNumber: "",
+                              amount: "",
+                              schedule: "",
+                              date: "",
+                            });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </Stack>
                     </Stack>
                 </Card>
+              </LocalizationProvider>
             )}
 
             {/* ✅ Success message goes HERE */}
@@ -302,7 +349,9 @@ export default function RecurringPayments() {
                     {payee.name}
                 </Typography>
 
-                <Typography variant="body2">${payee.amount}</Typography>
+                <Typography variant="body2">
+                  ${formatAmount(payee.amount)}
+                </Typography>
 
                 <Typography variant="body2">
                     Due {formatDueDate(payee.date)} • {formatSchedule(payee.schedule)}
