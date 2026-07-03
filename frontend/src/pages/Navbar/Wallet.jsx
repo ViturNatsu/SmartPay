@@ -434,7 +434,7 @@ export function Wallet() {
                             borderBottom: `1px solid ${tokens.color.border.divider}`,
                             cursor: "pointer",
                             borderRadius: 1,
-                            "&:hover": { background: "#f1f5f9" },
+                            "&:hover": { background: tokens.color.background.hover },
                           }}
                         >
                           <Box>

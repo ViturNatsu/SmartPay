@@ -6,7 +6,7 @@
 .forbidden-page h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #d32f2f;
+  color: var(--sp-status-error);
 }
 
 .forbidden-page p {
@@ -26,14 +26,14 @@
   border: none;
   cursor: pointer;
   text-decoration: none;
-  color: #fff;
+  color: var(--sp-text-white);
   border-radius: 4px;
 }
 
 .btn-primary {
-  background-color: #007bff;
+  background-color: var(--sp-link-primary);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
+  background-color: var(--sp-text-neutral);
 }
