@@ -30,6 +30,7 @@ export const tokens = {
       appBlue: "#F0F4F8",
       appLight: "#F3F4F6",
       lightGray: "#F5F5F5",
+      hover: "#F1F5F9",
       selected: "#DFF6F8",
       panel: "#F7FAFB",
       disabled: "#CACCCD",
@@ -74,6 +75,7 @@ export const tokens = {
       warningBg: "#FEF3C7",
       warningBorder: "#FDBA74",
       warningText: "#C2410C",
+      warningBright: "#F59E0B",
       gold: "#C8A84B",
     },
     button: {
