@@ -33,6 +33,7 @@ export function normalizeTransaction(raw) {
     amount: isOutflow ? -Math.abs(raw.amount) : Math.abs(raw.amount),
     status: raw.status,
     type: raw.type,
+    railType: raw.railType,
   };
 }
  

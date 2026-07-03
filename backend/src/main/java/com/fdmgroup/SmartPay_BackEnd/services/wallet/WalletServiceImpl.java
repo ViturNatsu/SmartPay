@@ -24,6 +24,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.RailType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
@@ -104,7 +105,7 @@ public class WalletServiceImpl implements WalletService {
         wallet.setBalance(walletBalance + amount);
         Wallet savedWallet = walletRepository.save(wallet);
 
-        WalletTransaction loadTx = recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod);
+        WalletTransaction loadTx = recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod, RailType.BANK_TRANSFER);
         WalletResponseDTO dto = mapToDto(savedWallet);
         dto.setTransactionId(loadTx.getTransactionId());
         return dto;
@@ -163,7 +164,7 @@ public class WalletServiceImpl implements WalletService {
         wallet.setDailySpentDate(today);
         Wallet savedWallet = walletRepository.save(wallet);
 
-        WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod);
+        WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod, RailType.BANK_TRANSFER);
 
         WithdrawResponseDTO response = new WithdrawResponseDTO();
         response.setTransactionId(tx.getTransactionId());
@@ -248,8 +249,8 @@ public class WalletServiceImpl implements WalletService {
 
         
 
-        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty);
-        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty);
+        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty, RailType.WALLET_TRANSFER);
+        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty, RailType.WALLET_TRANSFER);
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
         return dto;
@@ -291,13 +292,14 @@ public class WalletServiceImpl implements WalletService {
         return mapToDto(walletRepository.save(wallet));
     }
 
-    private WalletTransaction recordTransaction(Wallet wallet, WalletTransactionType type, double amount, String name) {
+    private WalletTransaction recordTransaction(Wallet wallet, WalletTransactionType type, double amount, String name, RailType railType) {
         WalletTransaction transaction = new WalletTransaction();
         transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
         transaction.setWallet(wallet);
         transaction.setType(type);
         transaction.setAmount(amount);
         transaction.setCounterpartyName(name);
+        transaction.setRailType(railType);
         transaction.setStatus("COMPLETED");
         transaction.setCreatedAt(Instant.now());
         return walletTransactionRepository.save(transaction);
@@ -307,7 +309,8 @@ public class WalletServiceImpl implements WalletService {
             Wallet wallet,
             WalletTransactionType type,
             double amount,
-            PaymentMethod paymentMethod) {
+            PaymentMethod paymentMethod,
+            RailType railType) {
         WalletTransaction transaction = new WalletTransaction();
         transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
         transaction.setWallet(wallet);
@@ -315,6 +318,7 @@ public class WalletServiceImpl implements WalletService {
         transaction.setAmount(amount);
         transaction.setPaymentMethodId(paymentMethod.getPaymentMethodId());
         transaction.setBankDisplayName(paymentMethod.getBankDisplayName());
+        transaction.setRailType(railType);
         transaction.setStatus("COMPLETED");
         transaction.setCreatedAt(Instant.now());
         return walletTransactionRepository.save(transaction);
@@ -325,6 +329,7 @@ public class WalletServiceImpl implements WalletService {
         dto.setTransactionId(transaction.getTransactionId());
         dto.setType(transaction.getType());
         dto.setAmount(transaction.getAmount());
+        dto.setRailType(transaction.getRailType());
         dto.setBankDisplayName(transaction.getBankDisplayName());
         dto.setDescription(buildDescription(transaction));
         dto.setStatus(transaction.getStatus());

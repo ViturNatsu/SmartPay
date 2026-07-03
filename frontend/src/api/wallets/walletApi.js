@@ -1,4 +1,5 @@
 import axiosInstance, { handleAxiosError } from "../axios";
+import { getRailLabel } from "../../utils/transactionRailUtils";
 
 const WALLETS_URL = "/api/v1/wallets";
 
