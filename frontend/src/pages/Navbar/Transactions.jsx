@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 
 import TransactionFilterBar from "../../components/table/TransactionFilterBar";
+import CustomNoRowsOverlay from "../../components/table/CustomNoRowOverlay";
 import { WalletActivityTable } from "@/components/transactions/WalletActivityTable";
 import { filterTransactions } from "../../utils/transactionUtils";
 import { useAuth } from "@/context/AuthContext";
@@ -144,9 +145,9 @@ export function Transactions() {
                 <CircularProgress size={28} />
               </Box>
             ) : !error && rows.length === 0 ? (
-              <Typography sx={{ fontSize: 14, color: tokens.color.text.muted }}>
-                No transactions found
-              </Typography>
+              <Box sx={{ height: 160 }}>
+                <CustomNoRowsOverlay />
+              </Box>
             ) : (
               !error && (
                 <WalletActivityTable

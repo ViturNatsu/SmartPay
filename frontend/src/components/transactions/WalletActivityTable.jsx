@@ -5,6 +5,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Chip,
 } from "@mui/material";
 import { tokens } from "@/style/Theme";
 import {
@@ -13,12 +14,19 @@ import {
   getMerchantPayee,
   isInflow,
 } from "@/utils/walletTransactionFormatters";
+import { getRailLabel } from "@/utils/transactionRailUtils";
 
 const headerCellSx = {
   fontSize: 13,
   color: tokens.color.text.muted,
   fontWeight: 600,
   borderBottom: `1px solid ${tokens.color.border.light}`,
+};
+
+const STATUS_COLOR = {
+  COMPLETED: "success",
+  PENDING: "warning",
+  FAILED: "error",
 };
 
 /**
@@ -36,7 +44,9 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
         <TableRow>
           <TableCell scope="col" sx={headerCellSx}>Merchant</TableCell>
           <TableCell scope="col" sx={headerCellSx}>Date</TableCell>
-          <TableCell scope="col" sx={headerCellSx}>Amount</TableCell>
+          <TableCell scope="col" sx={headerCellSx}>Payment Type</TableCell>
+          <TableCell scope="col" sx={headerCellSx}>Status</TableCell>
+          <TableCell scope="col" sx={headerCellSx} align="right">Amount</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -89,6 +99,25 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
                 </Typography>
               </TableCell>
               <TableCell>
+                <Typography sx={{ fontSize: 15, fontWeight: 500, color: tokens.color.text.primary }}>
+                  {tx.railType ? getRailLabel(tx.railType) : "N/A"}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                {tx.status ? (
+                  <Chip
+                    label={tx.status}
+                    size="small"
+                    color={STATUS_COLOR[tx.status] ?? "default"}
+                    variant="outlined"
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.disabled">
+                    N/A
+                  </Typography>
+                )}
+              </TableCell>
+              <TableCell align="right">
                 <Typography
                   sx={{
                     fontSize: 15,

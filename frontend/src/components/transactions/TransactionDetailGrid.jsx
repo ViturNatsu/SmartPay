@@ -8,6 +8,7 @@ import {
   getPaymentMethodLabel,
   isInflow,
 } from "@/utils/walletTransactionFormatters";
+import {getRailLabel} from "@/utils/transactionRailUtils";
 
 function DetailItem({ label, value, valueColor }) {
   return (
@@ -57,6 +58,7 @@ export function TransactionDetailGrid({ transaction }) {
     { label: "Merchant / Payee", value: getMerchantPayee(transaction) },
     { label: "Transaction ID", value: displayValue(transaction?.transactionId) },
     { label: "Payment Method", value: getPaymentMethodLabel(transaction) },
+    { label: "Payment Type", value: getRailLabel(transaction?.railType)}
   ];
 
   return (
