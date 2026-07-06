@@ -7,23 +7,23 @@ import {
 } from "@/utils/recurringPaymentFormatters";
 
 /**
- * Displays a single bill recurring payment.
+ * Displays a single subscription recurring payment.
  *
- * @param {{ id: number, name: string, amount: string, schedule: string, date: string }} payee
+ * @param {{ id: number, name: string, amount: string, schedule: string, nextPaymentDate: string }} subscription
  */
-export default function RecurringPayeeCard({ payee }) {
+export default function RecurringSubscriptionCard({ subscription }) {
   return (
     <Card sx={{ p: tokens.card.padding, mb: 2 }}>
       <Typography fontWeight={tokens.typography.fontWeight.bold}>
-        {payee.name}
+        {subscription.name}
       </Typography>
 
       <Typography variant="body2">
-        ${formatRecurringAmount(payee.amount)}
+        ${formatRecurringAmount(subscription.amount)} • {formatRecurringSchedule(subscription.schedule)}
       </Typography>
 
       <Typography variant="body2">
-        Due {formatRecurringDate(payee.date)} • {formatRecurringSchedule(payee.schedule)}
+        Next payment: {formatRecurringDate(subscription.nextPaymentDate)}
       </Typography>
 
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
