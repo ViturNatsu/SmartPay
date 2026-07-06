@@ -1,7 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
-import com.fdmgroup.SmartPay_BackEnd.controllers.cardRequest.CardRequestController;
+import com.fdmgroup.SmartPay_BackEnd.controllers.cardRequest.AdminCardRequestController;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CardRequestResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
@@ -26,9 +26,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(CardRequestController.class)
+@WebMvcTest(AdminCardRequestController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class CardRequestControllerTest {
+class AdminCardRequestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
