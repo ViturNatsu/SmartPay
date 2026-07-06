@@ -98,3 +98,32 @@ export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
     throw handleAxiosError(err);
   }
 }
+
+
+/**
+ * Updates the favourite status of a wallet transaction.
+ *
+ * PATCH /api/v1/wallets/{userId}/transactions/favourite/{transactionId}
+ *
+ * @param {number} userId
+ * @param {string} transactionId
+ * @param {boolean} isFavourite
+ * @returns {Promise<Object>} Updated WalletTransactionDTO
+ */
+export async function updateTransactionFavourite(userId, transactionId, isFavourite) {
+  try {
+    const res = await axiosInstance.patch(
+      `${WALLETS_URL}/${userId}/transactions/favourite/${transactionId}`,
+      null,
+      {
+        params: {
+          isFavourite,
+        },
+      }
+    );
+
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
