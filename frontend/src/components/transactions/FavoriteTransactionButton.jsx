@@ -23,7 +23,7 @@ export function FavouriteButton({ isFavourite, onToggle }) {
                 }
             >
                 {isFavourite ? (
-                    <StarIcon color="warning" />
+                    <StarIcon sx={{ color: "#ffbf00" }} />
                 ) : (
                     <StarBorderIcon />
                 )}
