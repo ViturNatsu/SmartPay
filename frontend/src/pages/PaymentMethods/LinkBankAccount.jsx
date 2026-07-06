@@ -78,7 +78,7 @@ function LinkBankAccount({open, onClose}) {
                                     borderWidth: "0.5px",
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "grey.400",
+                                    borderColor: tokens.color.border.grayLight,
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                                     borderColor: tokens.color.brand.primary,
@@ -95,7 +95,7 @@ function LinkBankAccount({open, onClose}) {
                                     sx: {
                                         borderRadius: 3,
                                         border: `0.5px solid ${theme.palette.divider}`,
-                                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                                        boxShadow: tokens.shadow.elevated,
                                         mt: 0.5,
                                     },
                                 },
@@ -114,7 +114,7 @@ function LinkBankAccount({open, onClose}) {
                                                   color: tokens.color.brand.primary,
                                                   "&:hover": {bgcolor: tokens.color.brand.primaryLighter},
                                               },
-                                              "&:hover": {bgcolor: "grey.50"},
+                                              "&:hover": {bgcolor: tokens.color.background.stack},
                                           }}
                                 >{bank}</MenuItem>
                             ))}

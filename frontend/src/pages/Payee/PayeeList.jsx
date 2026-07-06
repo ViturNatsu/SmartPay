@@ -97,7 +97,7 @@ export default function PayeeList() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -133,7 +133,7 @@ export default function PayeeList() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>

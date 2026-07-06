@@ -102,7 +102,7 @@ const AddPayee = () => {
               <Card
                 sx={{
                   borderRadius: 2,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  boxShadow: tokens.shadow.smallDark,
                 }}
               >
                 <CardContent
@@ -215,10 +215,9 @@ const AddPayee = () => {
                             minWidth: "111px",
                            
 
-                            boxShadow:
-                              "0px 10px 20px rgba(149, 145, 145, 0.13)",
+                            boxShadow: tokens.shadow.grey,
                             "&:hover": {
-                              boxShadow: "0 10px 20px rgba(149, 145, 145, 0.3)",
+                              boxShadow: tokens.shadow.greyHover,
                             },
                             borderRadius: "12px",
                             border: `1px solid ${tokens.color.border.grayLight}`,
@@ -228,7 +227,7 @@ const AddPayee = () => {
                             variant="subtitle"
                             sx={{
                               fontWeight: 750,
-                              color: "black",
+                              color: tokens.color.text.black,
                               textTransform: "none",
                             }}
                           >
@@ -244,7 +243,7 @@ const AddPayee = () => {
                             background:
                               tokens.color.button.gradientBg,
 
-                            boxShadow: "0 10px 20px rgba(0, 151, 167, .16)",
+                            boxShadow: tokens.shadow.cyan,
                             borderRadius: "12px",
                           }}
                         >

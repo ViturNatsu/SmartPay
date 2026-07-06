@@ -43,7 +43,7 @@ export const primaryButtonSx = {
   textTransform: "none",
   bgcolor: WALLET_COLORS.primary,
   color: tokens.color.text.white,
-  boxShadow: "0 10px 20px rgba(15,116,144,0.18)",
+  boxShadow: tokens.shadow.primarySoft,
   "&:hover": { bgcolor: WALLET_COLORS.primaryDark },
   "&:disabled": { bgcolor: tokens.color.text.muted, color: tokens.color.text.white },
 };

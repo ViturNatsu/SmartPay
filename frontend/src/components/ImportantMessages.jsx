@@ -28,7 +28,7 @@ function ImportantMessages() {
         bgcolor: tokens.color.background.surface,
         borderRadius: "18px",
         border: "1px solid", borderColor: tokens.color.border.light,
-        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+        boxShadow: tokens.shadow.large,
         p: "22px",
         minHeight: expanded ? "auto" : 92,
         display: "flex",

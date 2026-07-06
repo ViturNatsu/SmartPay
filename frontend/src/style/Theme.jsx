@@ -34,6 +34,10 @@ export const tokens = {
       selected: "#DFF6F8",
       panel: "#F7FAFB",
       disabled: "#CACCCD",
+      card: "#FFFFFF",
+      glass: "rgba(255, 255, 255, 0.04)",
+      primaryTranslucent: "rgba(15, 116, 144, 0.18)",
+      purpleTint: "rgba(124, 58, 237, 0.04)",
     },
     text: {
       primary: "#0D1B2A",
@@ -46,6 +50,8 @@ export const tokens = {
       title: "#0F172A",
       primaryDark: "#111827",
       black: "#111111",
+      titleMuted: "rgba(15, 23, 42, 0.45)",
+      whiteMuted: "rgba(255, 255, 255, 0.4)",
       number: {
         positive: "#16A34A",
         negative: "#DC2626",
@@ -62,6 +68,7 @@ export const tokens = {
       grayLight: "#D1D5DB",
       mediumGray: "#E0E0E0",
       lightGray: "#EAEAEA",
+      glassWhite: "rgba(255, 255, 255, 0.25)",
     },
     status: {
       success: "#15803D",
@@ -120,6 +127,7 @@ export const tokens = {
     gradient: {
       virtualCard: "linear-gradient(135deg, #0F2336 0%, #1A3A52 60%, #0F7490 100%)",
       walletBalance: "linear-gradient(135deg, #062F3D, #0097A7)",
+      banner: `radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%), radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)`,
     },
     underline: {
       dark: "#000000",
@@ -159,6 +167,18 @@ export const tokens = {
   shadow: {
     card: "0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
     elevated: "0 4px 16px rgba(0, 0, 0, 0.08)",
+    small: "0 1px 3px rgba(0, 0, 0, 0.08)",
+    smallDark: "0 1px 3px rgba(0, 0, 0, 0.2)",
+    medium: "0 4px 12px rgba(0, 0, 0, 0.12)",
+    large: "0 8px 20px rgba(15, 23, 42, 0.04)",
+    primary: "0 6px 14px rgba(15, 116, 144, 0.3)",
+    primarySoft: "0 10px 20px rgba(15, 116, 144, 0.18)",
+    linkButton: "0 10px 24px rgba(37, 99, 235, 0.25)",
+    grey: "0 10px 20px rgba(149, 145, 145, 0.13)",
+    greyHover: "0 10px 20px rgba(149, 145, 145, 0.3)",
+    cyan: "0 10px 20px rgba(0, 151, 167, 0.16)",
+    cardDark: "0 8px 32px rgba(15, 36, 54, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2)",
+    cardLight: "0 2px 8px rgba(0, 0, 0, 0.10)",
   },
     spacing: {
     xs: 0.5,

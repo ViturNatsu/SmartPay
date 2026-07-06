@@ -237,7 +237,7 @@ export function Wallet() {
               border: `1px solid ${tokens.color.border.blueTint}`,
               borderRadius: "22px",
               p: "28px",
-              boxShadow: "0 1px 3px rgba(0,0,0,.08)",
+              boxShadow: tokens.shadow.small,
             }}
           >
             <Stack
@@ -321,7 +321,7 @@ export function Wallet() {
                       fontWeight: 800,
                       bgcolor: tokens.color.brand.primary,
                       "&:hover": {bgcolor: tokens.color.brand.primaryHover},
-                      boxShadow: "0 6px 14px rgba(15,116,144,.3)",
+                      boxShadow: tokens.shadow.primary,
                     }}
                   >
                     Load Wallet

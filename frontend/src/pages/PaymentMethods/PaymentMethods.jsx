@@ -206,7 +206,7 @@ export default function PaymentMethods() {
               ref={topOfDisplayRef}
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -240,7 +240,7 @@ export default function PaymentMethods() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -343,7 +343,7 @@ export default function PaymentMethods() {
                   color: tokens.color.brand.purple,
                   "&:hover": {
                     borderColor: tokens.color.brand.purpleHover,
-                    backgroundColor: "rgba(124,58,237,0.04)",
+                    backgroundColor: tokens.color.background.purpleTint,
                   },
                   mr: 1.5,
                 }}
@@ -362,7 +362,7 @@ export default function PaymentMethods() {
                   color: tokens.color.brand.purple,
                   "&:hover": {
                     borderColor: tokens.color.brand.purpleHover,
-                    backgroundColor: "rgba(124,58,237,0.04)",
+                    backgroundColor: tokens.color.background.purpleTint,
                   },
                 }}
               >
