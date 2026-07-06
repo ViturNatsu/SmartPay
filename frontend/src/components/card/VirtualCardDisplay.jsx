@@ -41,7 +41,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
           borderRadius: "16px",
           p: "22px 24px",
           color: tokens.color.background.surface,
-          boxShadow: "0 8px 32px rgba(15,36,54,.35), 0 2px 8px rgba(0,0,0,.2)",
+          boxShadow: tokens.shadow.cardDark,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -58,7 +58,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             width: 180,
             height: 180,
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.04)",
+            background: tokens.color.background.glass,
           }}
         />
         <Box
@@ -69,7 +69,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             width: 140,
             height: 140,
             borderRadius: "50%",
-            background: "rgba(15,116,144,0.18)",
+            background: tokens.color.background.primaryTranslucent,
           }}
         />
 
@@ -87,7 +87,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             sx={{
               fontSize: 10,
               letterSpacing: ".12em",
-              border: "1px solid rgba(255,255,255,.25)",
+              border: `1px solid ${tokens.color.border.glassWhite}`,
               borderRadius: "999px",
               px: 1.25,
               py: 0.5,
@@ -120,7 +120,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             <Typography
               sx={{
                 fontSize: 9,
-                color: "rgba(255,255,255,.4)",
+                color: tokens.color.text.whiteMuted,
                 textTransform: "uppercase",
                 letterSpacing: ".1em",
                 mb: "2px",
@@ -138,7 +138,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             <Typography
               sx={{
                 fontSize: 9,
-                color: "rgba(255,255,255,.4)",
+                color: tokens.color.text.whiteMuted,
                 textTransform: "uppercase",
                 letterSpacing: ".1em",
                 mb: "2px",
@@ -154,7 +154,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             <Typography
               sx={{
                 fontSize: 9,
-                color: "rgba(255,255,255,.4)",
+                color: tokens.color.text.whiteMuted,
                 textTransform: "uppercase",
                 letterSpacing: ".1em",
                 mb: "2px",
@@ -196,7 +196,7 @@ export function VirtualCardDisplay({card, user, isRevealed, onRevealClick}) {
             : tokens.color.text.secondary,
           cursor: "pointer",
           whiteSpace: "nowrap",
-          boxShadow: "0 2px 8px rgba(0,0,0,.10)",
+          boxShadow: tokens.shadow.cardLight,
           transition: "background 0.15s, color 0.15s, border-color 0.15s",
           zIndex: 2,
           "&:hover": {

@@ -99,9 +99,9 @@ const SuccessCard = ({
               height: 44,
               minWidth: "111px",
 
-              boxShadow: "0 10px 20px rgba(149, 145, 145, 0.13)",
+              boxShadow: tokens.shadow.grey,
               "&:hover": {
-                boxShadow: "0 10px 20px rgba(149, 145, 145, 0.3)",
+                boxShadow: tokens.shadow.greyHover,
               },
               borderRadius: "12px",
               border: "1px solid",
@@ -129,7 +129,7 @@ const SuccessCard = ({
             height: 44,
             minWidth: "111px",
             background: tokens.color.button.gradientBg,
-            boxShadow: "0 10px 20px rgba(0, 151, 167, .16)",
+            boxShadow: tokens.shadow.cyan,
             borderRadius: "12px",
           }}
         >
@@ -152,7 +152,7 @@ const SuccessCard = ({
         <Card
           sx={{
             borderRadius: 2,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            boxShadow: tokens.shadow.smallDark,
           }}
           variant="outlined"
         >

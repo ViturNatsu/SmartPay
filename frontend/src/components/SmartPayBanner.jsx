@@ -67,10 +67,7 @@ export const SmartPayBanner = ({ showBulletPoints = false, onRegisterPage = fals
             py: { xs: 6, md: 0 },
             position: "relative",
             overflow: "hidden",
-            backgroundImage: `
-                radial-gradient(600px 600px at 85% 10%, rgba(193, 232, 255, 0.55), rgba(255,255,255,0) 60%),
-                radial-gradient(700px 700px at 15% 95%, rgba(193, 255, 245, 0.55), rgba(255,255,255,0) 60%)
-                `,
+            backgroundImage: tokens.color.gradient.banner,
         }}
     >
         {/* Sets up the logo */}

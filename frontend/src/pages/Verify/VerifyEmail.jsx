@@ -62,7 +62,7 @@ export const VerifyEmail = () => {
           alignItems: "center",
           justifyContent: "center",
           px: { xs: 3, md: 8 }, py: { xs: 6, md: 0 },
-          bgcolor: "white"
+          bgcolor: tokens.color.background.surface
         }}>
         <Paper elevation={6} sx={{ width: "100%", maxWidth: { xs: "320px", md: "480px" }, borderRadius: 3, p: { xs: 3, md: 4 }, textAlign: "center", display: "flex", flexDirection: "column", gap: 2 }}>
           <Box sx={{ display: "flex", justifyContent: "center" }}>

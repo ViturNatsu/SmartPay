@@ -283,7 +283,7 @@ export const MockAccounts = () => {
                     p: 3,
                     borderRadius: 2,
                     bgcolor: tokens.color.background.surface,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    boxShadow: tokens.shadow.small,
                     textAlign: "center",
                   }}
                 >
@@ -362,9 +362,9 @@ export const MockAccounts = () => {
                         key={account.id}
                         sx={{
                           borderRadius: 2,
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                          boxShadow: tokens.shadow.small,
                           "&:hover": {
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                            boxShadow: tokens.shadow.medium,
                           },
                         }}
                       >

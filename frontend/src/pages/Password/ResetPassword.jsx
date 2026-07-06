@@ -77,7 +77,7 @@ export const ResetPassword = () => {
           justifyContent: "center",
           px: { xs: 3, md: 8 },
           py: { xs: 6, md: 0 },
-          bgcolor: "white",
+          bgcolor: tokens.color.background.surface,
         }}
       >
         <Box sx={{ width: "100%", maxWidth: { xs: "290px", md: "448px" } }}>
@@ -201,7 +201,7 @@ export const ResetPassword = () => {
                     xs: tokens.color.button.forgotGradient,
                     md: tokens.color.link.primary,
                   },
-                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                  boxShadow: tokens.shadow.linkButton,
                   "&:hover": { bgcolor: tokens.color.link.primaryHover },
                 }}
               >

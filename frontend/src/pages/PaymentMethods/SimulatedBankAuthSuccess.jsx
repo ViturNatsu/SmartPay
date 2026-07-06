@@ -7,9 +7,6 @@ import {handleAxiosError} from "@/api/axios.js";
 import {Alert, Box, Card, CardContent, Snackbar, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
-import {blueGrey} from "@mui/material/colors";
-
-
 import { tokens } from "@/style/Theme.jsx";
 function SimulatedBankAuthSuccess() {
   const {tokenClaims} = useAuth();
@@ -148,7 +145,7 @@ function SimulatedBankAuthSuccess() {
             //ref={topOfDisplayRef}
             sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
             }}
         >
             <CardContent sx={{ p: 3 }}>
@@ -185,7 +182,7 @@ function SimulatedBankAuthSuccess() {
                                 variant="contained"
                                 onClick={() => {navigate("/payment-methods")}}
                                 sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" },
-                                    bgcolor: blueGrey[400] }}
+                                    bgcolor: tokens.color.text.muted }}
                             >
                                 Cancel
                             </Button>

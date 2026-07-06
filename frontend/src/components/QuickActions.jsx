@@ -39,7 +39,7 @@ function QuickActions({ onLoadWallet }) {
         bgcolor: tokens.color.background.card,
         borderRadius: "18px",
         border: `1px solid ${tokens.color.border.light}`,
-        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+        boxShadow: tokens.shadow.large,
         p: "22px",
       }}
     >

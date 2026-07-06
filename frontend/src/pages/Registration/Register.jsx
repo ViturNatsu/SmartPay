@@ -20,6 +20,7 @@ import Alert from "@mui/material/Alert";
 import { register } from "@/api/authApi";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
 import GovtIDIcon from '@mui/icons-material/AccountBox';
+import { tokens } from "@/style/Theme";
 
 const CANADA_POSTAL_CODE_REGEX =
   /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
@@ -519,7 +520,7 @@ export const Register = () => {
                           startAdornment: (
                             <InputAdornment position="start">
                               <PersonIcon
-                                sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                                sx={{ color: tokens.color.text.titleMuted }}
                               />
                             </InputAdornment>
                           ),
@@ -551,7 +552,7 @@ export const Register = () => {
                           startAdornment: (
                             <InputAdornment position="start">
                               <PersonIcon
-                                sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                                sx={{ color: tokens.color.text.titleMuted }}
                               />
                             </InputAdornment>
                           ),
@@ -587,7 +588,7 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <MailIcon sx={{ color: tokens.color.text.titleMuted }} />
                         </InputAdornment>
                       ),
                       "data-testid": "email-input"
@@ -620,7 +621,7 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <PasswordIcon sx={{ color: tokens.color.text.titleMuted }} />
                         </InputAdornment>
                       ),
                       endAdornment: (
@@ -632,7 +633,7 @@ export const Register = () => {
                             aria-label={
                               showPassword ? "Hide password" : "Show password"
                             }
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                            sx={{ color: tokens.color.text.titleMuted }}
                           >
                             {showPassword ? (
                               <VisibilityOffIcon />
@@ -668,7 +669,7 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PasswordIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <PasswordIcon sx={{ color: tokens.color.text.titleMuted }} />
                         </InputAdornment>
                       ),
                       endAdornment: (
@@ -682,7 +683,7 @@ export const Register = () => {
                                 ? "Hide password"
                                 : "Show password"
                             }
-                            sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                            sx={{ color: tokens.color.text.titleMuted }}
                           >
                             {showConfirmPassword ? (
                               <VisibilityOffIcon />
@@ -708,7 +709,7 @@ export const Register = () => {
                     textTransform: "none",
                     fontWeight: 700,
                     mb: 2,
-                    boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                    boxShadow: tokens.shadow.linkButton,
                   }}
                 >
                   Continue →
@@ -783,7 +784,7 @@ export const Register = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <GovtIDIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                          <GovtIDIcon sx={{ color: tokens.color.text.titleMuted }} />
                         </InputAdornment>
                       ),
                       "data-testid": "governmentIDType-input"
@@ -1063,7 +1064,7 @@ export const Register = () => {
                     textTransform: "none",
                     fontWeight: 700,
                     mb: 2,
-                    boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                    boxShadow: tokens.shadow.linkButton,
                   }}
                 >
                   {isLoading ? "Creating Account..." : "Create Account"}
