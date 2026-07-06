@@ -16,6 +16,8 @@ import {
 } from "@/utils/walletTransactionFormatters";
 import { getRailLabel } from "@/utils/transactionRailUtils";
 
+import { FavouriteButton } from "@/components/transactions/FavoriteTransactionButton";
+
 const headerCellSx = {
   fontSize: 13,
   color: tokens.color.text.muted,
@@ -36,8 +38,9 @@ const STATUS_COLOR = {
  * @param {Array}  transactions
  * @param {string} selectedId   - transactionId to highlight as active
  * @param {function} onSelect   - called with the full transaction object on row activation
+ * @param {function} onFavouriteToggle - called with the full transaction object on favourite button click
  */
-export function WalletActivityTable({ transactions, selectedId, onSelect }) {
+export function WalletActivityTable({ transactions, selectedId, onSelect, onFavouriteToggle}) {
   return (
     <Table sx={{ width: "100%" }} aria-label="Wallet activity transactions">
       <TableHead>
@@ -47,6 +50,9 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
           <TableCell scope="col" sx={headerCellSx}>Payment Type</TableCell>
           <TableCell scope="col" sx={headerCellSx}>Status</TableCell>
           <TableCell scope="col" sx={headerCellSx} align="right">Amount</TableCell>
+          {/* <TableCell scope="col" sx={headerCellSx}>Amount</TableCell> */}
+          <TableCell scope="col" sx={headerCellSx} align="center" >Favorite</TableCell>
+          
         </TableRow>
       </TableHead>
       <TableBody>
@@ -127,6 +133,12 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
                 >
                   {formatTransactionAmount(tx.type, tx.amount)}
                 </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <FavouriteButton
+                  isFavourite={tx.favourite}
+                  onToggle={() => onFavouriteToggle(tx.transactionId)}
+                />
               </TableCell>
             </TableRow>
           );

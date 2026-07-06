@@ -26,6 +26,7 @@ import { filterTransactions } from "../../utils/transactionUtils";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { tokens } from "@/style/Theme";
+import { updateTransactionFavourite } from "@/api/wallets/walletApi";
 
 const TRANSACTION_LIMIT = 25;
 
@@ -69,6 +70,7 @@ export function Transactions() {
 
     loadTransactions();
 
+
     return () => {
       cancelled = true;
     };
@@ -92,6 +94,41 @@ export function Transactions() {
     navigate(`/transactions/${tx.transactionId}?filter=${encodeURIComponent(activeFilter)}`);
   };
 
+
+const handleFavouriteToggle = async (transactionId) => {
+  // Find the current transaction
+  const transaction = rawTransactions.find((tx) => tx.transactionId === transactionId);
+
+  if (!transaction) {
+    return;
+  }
+
+  const newFavourite = !transaction.favourite;
+  setRawTransactions((prev) =>
+    prev.map((tx) =>
+      tx.transactionId === transactionId ? { ...tx, favourite: newFavourite } : tx
+    )
+  );
+
+  try {
+    const updatedTransaction = await updateTransactionFavourite(tokenClaims.userId, transactionId, newFavourite);
+
+    // Replace optimistic transaction with backend response
+    setRawTransactions((prev) =>
+      prev.map((tx) =>
+        tx.transactionId === updatedTransaction.transactionId ? updatedTransaction : tx
+      )
+    );
+  } catch (err) {
+    setRawTransactions((prev) =>
+      prev.map((tx) =>
+        tx.transactionId === transactionId ? { ...tx, favourite: transaction.favourite } : tx
+      )
+    );
+
+    console.error("Failed to update favourite:", err);
+  }
+};
   return (
     <>
       <Navbar />
@@ -154,6 +191,7 @@ export function Transactions() {
                   transactions={rows}
                   selectedId={selectedId}
                   onSelect={handleSelect}
+                  onFavouriteToggle={handleFavouriteToggle}
                 />
               )
             )}
