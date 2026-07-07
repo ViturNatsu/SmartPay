@@ -1,6 +1,5 @@
 import { describe, test, expect } from "vitest";
 import { theme, tokens } from "../style/Theme";
-import {tokens} from "../style/Theme.jsx";
 
 describe("SmartPay Theme", () => {
 
