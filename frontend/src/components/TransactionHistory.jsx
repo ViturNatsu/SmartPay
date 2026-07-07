@@ -3,6 +3,7 @@ import { Card, Stack, Typography, ButtonBase, Avatar } from "@mui/material";
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
 
+import { tokens } from "@/style/Theme.jsx";
 function TransactionHistory() {
   const history = [
     {
@@ -25,17 +26,17 @@ function TransactionHistory() {
     },
   ];
   return (
-    <Card elevation={0} sx={{ width: "100%", bgcolor: "#fff", borderRadius: "16px", border: "1px solid #E5E7EB", p: 3, boxSizing: 'border-box', overflow: 'hidden' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb="20px" sx={{ borderBottom: "1px solid #000000", pb: 2 }}>
+    <Card elevation={0} sx={{ width: "100%", bgcolor: tokens.color.background.surface, borderRadius: "16px", border: `1px solid ${tokens.color.border.gray}`, p: 3, boxSizing: 'border-box', overflow: 'hidden' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb="20px" sx={{ borderBottom: `1px solid ${tokens.color.underline.dark}`, pb: 2 }}>
         <Typography variant="h6">
           Transaction History
         </Typography>
         <RouterLink to="/view-history" style={{ textDecoration: 'none', color: 'inherit' }}>
           <Stack direction="row" alignItems="center" gap={0.5}>
-            <Typography sx={{ cursor: 'pointer', color: '#2563EB', fontWeight: 500 }}>
+            <Typography sx={{ cursor: 'pointer', color: tokens.color.link.primary, fontWeight: 500 }}>
               View All
             </Typography>
-            <EastOutlinedIcon sx={{ color: "#2563EB", fontSize: 'inherit' }} />
+            <EastOutlinedIcon sx={{ color: tokens.color.link.primary, fontSize: 'inherit' }} />
           </Stack>
         </RouterLink>
       </Stack>
@@ -51,14 +52,14 @@ function TransactionHistory() {
                 {/* LEFT SIDE */}
                 <Stack>
                   <Typography sx={{ fontWeight: 500 }}>{transaction.info}</Typography>
-                  <Typography sx={{ color: "#6B7280"}}>{transaction.date}</Typography>
+                  <Typography sx={{ color: tokens.color.text.number.neutral}}>{transaction.date}</Typography>
                 </Stack>
 
                 {/* RIGHT SIDE */}
                 <Stack>
                   <Typography
                     sx={{
-                      color: transaction.amount < 0 ? '#DC2626' : '#16A34A',
+                      color: transaction.amount < 0 ? tokens.color.text.number.negative : tokens.color.text.number.positive,
                       fontWeight: 600,
                     }}
                   >
@@ -67,7 +68,7 @@ function TransactionHistory() {
                       maximumFractionDigits: 2,
                     })}
                   </Typography>
-                  <Typography sx={{ color: "#6B7280"}}>{transaction.process}</Typography>
+                  <Typography sx={{ color: tokens.color.text.number.neutral}}>{transaction.process}</Typography>
                 </Stack>
             </Stack>
             

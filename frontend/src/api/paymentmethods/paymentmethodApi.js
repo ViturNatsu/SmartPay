@@ -27,7 +27,6 @@ export async function getPaymentMethodsForUserWithId(id, page) {
 
     try {
         const res = await axiosInstance.get(`${PAYMENT_METHODS_URL}/user/${id}/${page}`);
-        console.log(res);
         return res.data;
     } catch (err) {
         throw handleAxiosError(err);

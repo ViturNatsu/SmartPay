@@ -1,4 +1,5 @@
 import axiosInstance, { handleAxiosError } from "../axios";
+import { getRailLabel } from "../../utils/transactionRailUtils";
 
 const WALLETS_URL = "/api/v1/wallets";
 
@@ -74,11 +75,18 @@ export async function withdrawFromWallet(userId, payload) {
   }
 }
 
-export async function getWalletTransactions(userId, limit = 10) {
+export async function getWalletTransactions(userId, limit = 10, favourite = null) {
   try {
+    const params = { limit };
+
+    if (favourite !== null) {
+      params.favourite = favourite;
+    }
+
     const res = await axiosInstance.get(`${WALLETS_URL}/${userId}/transactions`, {
-      params: { limit },
+      params,
     });
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
@@ -92,6 +100,35 @@ export async function sendMoney(senderUserId, recipientUserId, amount, memo) {
       amount,
       memo: memo || null,
     });
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+
+/**
+ * Updates the favourite status of a wallet transaction.
+ *
+ * PATCH /api/v1/wallets/{userId}/transactions/favourite/{transactionId}
+ *
+ * @param {number} userId
+ * @param {string} transactionId
+ * @param {boolean} isFavourite
+ * @returns {Promise<Object>} Updated WalletTransactionDTO
+ */
+export async function updateTransactionFavourite(userId, transactionId, isFavourite) {
+  try {
+    const res = await axiosInstance.patch(
+      `${WALLETS_URL}/${userId}/transactions/favourite/${transactionId}`,
+      null,
+      {
+        params: {
+          isFavourite,
+        },
+      }
+    );
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);

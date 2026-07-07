@@ -6,6 +6,7 @@ import { Chip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { DataGrid } from '@mui/x-data-grid';
 import CustomNoRowsOverlay from './CustomNoRowOverlay';
+import {getRailLabel} from "@/utils/transactionRailUtils";
 
 const STATUS_COLOR = {
   COMPLETED: 'success',
@@ -46,9 +47,32 @@ const amountColumn = {
   renderCell: (params) => <AmountCell value={params.value} />,
 };
 
+const paymentTypeColumn = {
+  field: 'railType',
+  headerName: 'Payment Type',
+  flex: 1,
+  valueFormatter: (value) => getRailLabel(value),
+};
+
+const statusColumn = {
+  field: 'status',
+  headerName: 'Status',
+  flex: 1,
+  renderCell: (params) => (
+    <Chip
+      label={params.value}
+      size="small"
+      color={STATUS_COLOR[params.value] ?? 'default'}
+      variant="outlined"
+    />
+  ),
+};
+
 const transactionColumns = [
   { field: 'label', headerName: 'Name', flex: 1.5 },
   dateColumn,
+  paymentTypeColumn,
+  statusColumn,
   amountColumn,
 ];
 

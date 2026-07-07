@@ -20,11 +20,13 @@ import {
 } from "@mui/material";
 
 import TransactionFilterBar from "../../components/table/TransactionFilterBar";
+import CustomNoRowsOverlay from "../../components/table/CustomNoRowOverlay";
 import { WalletActivityTable } from "@/components/transactions/WalletActivityTable";
 import { filterTransactions } from "../../utils/transactionUtils";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { tokens } from "@/style/Theme";
+import { updateTransactionFavourite } from "@/api/wallets/walletApi";
 
 const TRANSACTION_LIMIT = 25;
 
@@ -57,7 +59,7 @@ export function Transactions() {
       setDataLoading(true);
       setError(null);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT);
+        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
         if (!cancelled) setRawTransactions(data);
       } catch (err) {
         if (!cancelled) setError(err.message ?? "Failed to load transactions");
@@ -68,10 +70,11 @@ export function Transactions() {
 
     loadTransactions();
 
+
     return () => {
       cancelled = true;
     };
-  }, [authLoading, tokenClaims?.userId, retryCount]);
+  }, [authLoading, tokenClaims?.userId, retryCount,activeFilter]);
 
   const rows = useMemo(
     () => filterTransactions(rawTransactions, activeFilter),
@@ -91,6 +94,41 @@ export function Transactions() {
     navigate(`/transactions/${tx.transactionId}?filter=${encodeURIComponent(activeFilter)}`);
   };
 
+
+const handleFavouriteToggle = async (transactionId) => {
+  // Find the current transaction
+  const transaction = rawTransactions.find((tx) => tx.transactionId === transactionId);
+
+  if (!transaction) {
+    return;
+  }
+
+  const newFavourite = !transaction.favourite;
+  setRawTransactions((prev) =>
+    prev.map((tx) =>
+      tx.transactionId === transactionId ? { ...tx, favourite: newFavourite } : tx
+    )
+  );
+
+  try {
+    const updatedTransaction = await updateTransactionFavourite(tokenClaims.userId, transactionId, newFavourite);
+
+    // Replace optimistic transaction with backend response
+    setRawTransactions((prev) =>
+      prev.map((tx) =>
+        tx.transactionId === updatedTransaction.transactionId ? updatedTransaction : tx
+      )
+    );
+  } catch (err) {
+    setRawTransactions((prev) =>
+      prev.map((tx) =>
+        tx.transactionId === transactionId ? { ...tx, favourite: transaction.favourite } : tx
+      )
+    );
+
+    console.error("Failed to update favourite:", err);
+  }
+};
   return (
     <>
       <Navbar />
@@ -144,15 +182,16 @@ export function Transactions() {
                 <CircularProgress size={28} />
               </Box>
             ) : !error && rows.length === 0 ? (
-              <Typography sx={{ fontSize: 14, color: tokens.color.text.muted }}>
-                No transactions found
-              </Typography>
+              <Box sx={{ height: 160 }}>
+                <CustomNoRowsOverlay />
+              </Box>
             ) : (
               !error && (
                 <WalletActivityTable
                   transactions={rows}
                   selectedId={selectedId}
                   onSelect={handleSelect}
+                  onFavouriteToggle={handleFavouriteToggle}
                 />
               )
             )}
