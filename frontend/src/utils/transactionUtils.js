@@ -67,6 +67,10 @@ export const TRANSACTION_FILTERS = {
     label: 'Sent & Received',
     predicate: (t) => TRANSFERS_TYPES.has(t.type),
   },
+  favourites: {
+    label: 'Favourites',
+    predicate: (t) => true,
+  },
 };
  
 export function filterTransactions(transactions, filterKey) {

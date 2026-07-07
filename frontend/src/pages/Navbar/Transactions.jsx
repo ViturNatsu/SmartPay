@@ -59,7 +59,7 @@ export function Transactions() {
       setDataLoading(true);
       setError(null);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT);
+        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
         if (!cancelled) setRawTransactions(data);
       } catch (err) {
         if (!cancelled) setError(err.message ?? "Failed to load transactions");
@@ -74,7 +74,7 @@ export function Transactions() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, tokenClaims?.userId, retryCount]);
+  }, [authLoading, tokenClaims?.userId, retryCount,activeFilter]);
 
   const rows = useMemo(
     () => filterTransactions(rawTransactions, activeFilter),
