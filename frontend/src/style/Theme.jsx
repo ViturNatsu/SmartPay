@@ -84,6 +84,7 @@ export const tokens = {
       warningText: "#C2410C",
       warningBright: "#F59E0B",
       gold: "#C8A84B",
+      successBorder: "#BBF7D0",
     },
     button: {
       primaryBg: "#0F7490",
@@ -179,6 +180,24 @@ export const tokens = {
     cyan: "0 10px 20px rgba(0, 151, 167, 0.16)",
     cardDark: "0 8px 32px rgba(15, 36, 54, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2)",
     cardLight: "0 2px 8px rgba(0, 0, 0, 0.10)",
+  },
+    spacing: {
+    xs: 0.5,
+    sm: 1,
+    md: 2,
+    lg: 3,
+    xl: 4,
+  },
+
+  layout: {
+    pagePadding: 3,
+    sectionGap: 3,
+    cardGap: 2,
+  },
+
+  card: {
+    padding: 2,
+    actionGap: 1,
   },
 };
 

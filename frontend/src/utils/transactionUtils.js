@@ -33,6 +33,7 @@ export function normalizeTransaction(raw) {
     amount: isOutflow ? -Math.abs(raw.amount) : Math.abs(raw.amount),
     status: raw.status,
     type: raw.type,
+    railType: raw.railType,
   };
 }
  
@@ -65,6 +66,10 @@ export const TRANSACTION_FILTERS = {
   transfers: {
     label: 'Sent & Received',
     predicate: (t) => TRANSFERS_TYPES.has(t.type),
+  },
+  favourites: {
+    label: 'Favourites',
+    predicate: (t) => true,
   },
 };
  

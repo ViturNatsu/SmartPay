@@ -5,6 +5,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Chip,
 } from "@mui/material";
 import { tokens } from "@/style/Theme";
 import {
@@ -13,12 +14,21 @@ import {
   getMerchantPayee,
   isInflow,
 } from "@/utils/walletTransactionFormatters";
+import { getRailLabel } from "@/utils/transactionRailUtils";
+
+import { FavouriteButton } from "@/components/transactions/FavoriteTransactionButton";
 
 const headerCellSx = {
   fontSize: 13,
   color: tokens.color.text.muted,
   fontWeight: 600,
   borderBottom: `1px solid ${tokens.color.border.light}`,
+};
+
+const STATUS_COLOR = {
+  COMPLETED: "success",
+  PENDING: "warning",
+  FAILED: "error",
 };
 
 /**
@@ -28,15 +38,21 @@ const headerCellSx = {
  * @param {Array}  transactions
  * @param {string} selectedId   - transactionId to highlight as active
  * @param {function} onSelect   - called with the full transaction object on row activation
+ * @param {function} onFavouriteToggle - called with the full transaction object on favourite button click
  */
-export function WalletActivityTable({ transactions, selectedId, onSelect }) {
+export function WalletActivityTable({ transactions, selectedId, onSelect, onFavouriteToggle}) {
   return (
     <Table sx={{ width: "100%" }} aria-label="Wallet activity transactions">
       <TableHead>
         <TableRow>
           <TableCell scope="col" sx={headerCellSx}>Merchant</TableCell>
           <TableCell scope="col" sx={headerCellSx}>Date</TableCell>
-          <TableCell scope="col" sx={headerCellSx}>Amount</TableCell>
+          <TableCell scope="col" sx={headerCellSx}>Payment Type</TableCell>
+          <TableCell scope="col" sx={headerCellSx}>Status</TableCell>
+          <TableCell scope="col" sx={headerCellSx} align="right">Amount</TableCell>
+          {/* <TableCell scope="col" sx={headerCellSx}>Amount</TableCell> */}
+          <TableCell scope="col" sx={headerCellSx} align="center" >Favorite</TableCell>
+          
         </TableRow>
       </TableHead>
       <TableBody>
@@ -89,6 +105,25 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
                 </Typography>
               </TableCell>
               <TableCell>
+                <Typography sx={{ fontSize: 15, fontWeight: 500, color: tokens.color.text.primary }}>
+                  {tx.railType ? getRailLabel(tx.railType) : "N/A"}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                {tx.status ? (
+                  <Chip
+                    label={tx.status}
+                    size="small"
+                    color={STATUS_COLOR[tx.status] ?? "default"}
+                    variant="outlined"
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.disabled">
+                    N/A
+                  </Typography>
+                )}
+              </TableCell>
+              <TableCell align="right">
                 <Typography
                   sx={{
                     fontSize: 15,
@@ -98,6 +133,12 @@ export function WalletActivityTable({ transactions, selectedId, onSelect }) {
                 >
                   {formatTransactionAmount(tx.type, tx.amount)}
                 </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <FavouriteButton
+                  isFavourite={tx.favourite}
+                  onToggle={() => onFavouriteToggle(tx.transactionId)}
+                />
               </TableCell>
             </TableRow>
           );

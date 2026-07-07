@@ -9,6 +9,7 @@ import {
   getPaymentMethodLabel,
   isInflow,
 } from "@/utils/walletTransactionFormatters";
+import {getRailLabel} from "@/utils/transactionRailUtils";
 
 export const generateTransactionReceipt = (transaction) => {
   try {
@@ -30,7 +31,8 @@ export const generateTransactionReceipt = (transaction) => {
       ['Merchant / Payee', getMerchantPayee(transaction)],
       ['Transaction ID',   displayValue(transaction?.transactionId)],
       ['Payment Method',   getPaymentMethodLabel(transaction)],
-      ['Status',           transaction.status],
+      ['Payment Type',    getRailLabel(transaction?.railType)],
+      ['Status',         transaction.status],
     ];
 
     // ---- Header ----

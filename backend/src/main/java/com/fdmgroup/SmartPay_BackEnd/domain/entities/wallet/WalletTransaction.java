@@ -54,6 +54,13 @@ public class WalletTransaction {
 
     @Column(name = "counterparty_name")
     private String counterpartyName;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rail_type", nullable = false, updatable = false)
+    private RailType railType;
+
+    @Column(name ="is_favourite", nullable = false)
+    private boolean isFavourite=false;
 
     @PrePersist
     protected void onCreate() {
