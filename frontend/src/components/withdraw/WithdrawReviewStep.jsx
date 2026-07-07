@@ -1,3 +1,4 @@
+import { tokens } from "@/style/Theme.jsx";
 import {
   Alert,
   Box,
@@ -74,12 +75,12 @@ import {
   return (
     <>
       <DialogContent dividers>
-        <Typography variant="body2" sx={{ color: "#64748B", mb: 2.5 }}>
+        <Typography variant="body2" sx={{ color: tokens.color.text.subdued, mb: 2.5 }}>
           Review the withdrawal details before moving funds to your linked bank account.
         </Typography>
 
         {/* Confirmation summary box (Scenario 4) */}
-        <Box sx={{ border: "1px solid #E2E8F0", borderRadius: "16px", overflow: "hidden" }}>
+        <Box sx={{ border: `1px solid ${tokens.color.border.light}`, borderRadius: "16px", overflow: "hidden" }}>
           {rows.map((row, idx) => (
             <Box
               key={row.label}
@@ -88,10 +89,10 @@ import {
                 justifyContent: "space-between",
                 px: 2.25,
                 py: 2,
-                borderBottom: idx < rows.length - 1 ? "1px solid #EEF2F3" : "none",
+                borderBottom: idx < rows.length - 1 ? `1px solid ${tokens.color.border.dividerSoft}` : "none",
               }}
             >
-              <Typography sx={{ color: "#64748B", fontWeight: 600, fontSize: 14 }}>
+              <Typography sx={{ color: tokens.color.text.subdued, fontWeight: 600, fontSize: 14 }}>
                 {row.label}
               </Typography>
               <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
@@ -105,7 +106,7 @@ import {
             Transaction Limit Check
           </Typography>
 
-          <Typography sx={{ color: "#64748B", fontSize: 14, mb: 2 }}>
+          <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: 2 }}>
             This transaction is within your wallet-level spending limits.
           </Typography>
 
@@ -121,13 +122,13 @@ import {
               sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: transactionAllowed ? "#DCFCE7" : "#FEE2E2",
+                bgcolor: transactionAllowed ? tokens.color.status.successBg : tokens.color.status.errorBg,
                 border: transactionAllowed
-                  ? "1px solid #86EFAC"
-                  : "1px solid #FCA5A5",
+                  ? `1px solid ${tokens.color.status.successBorder}`
+                  : `1px solid ${tokens.color.status.errorBorder}`,
               }}
             >
-              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+              <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Transaction Amount
               </Typography>
               <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -139,11 +140,11 @@ import {
               sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: "#F5F7FA",
-                border: "1px solid #E2E8F0",
+                bgcolor: tokens.color.background.app,
+                border: `1px solid ${tokens.color.border.light}`,
               }}
             >
-              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+              <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Per-Transaction Limit
               </Typography>
               <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -157,11 +158,11 @@ import {
               sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: "#F5F7FA",
-                border: "1px solid #E2E8F0",
+                bgcolor: tokens.color.background.app,
+                border: `1px solid ${tokens.color.border.light}`,
               }}
             >
-              <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+              <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Daily Limit Remaining
               </Typography>
               <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -197,10 +198,10 @@ import {
                 sx={{
                   height: 12,
                   borderRadius: 999,
-                  bgcolor: "#E2E8F0",
+                  bgcolor: tokens.color.border.light,
                   "& .MuiLinearProgress-bar": {
                     borderRadius: 999,
-                    bgcolor: "#0F7490",
+                    bgcolor: tokens.color.brand.primary,
                   },
                 }}
               />
@@ -243,7 +244,7 @@ import {
           variant="contained"
           disabled={submitting || !transactionAllowed}
           startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
-          sx={{ textTransform: "none", bgcolor: "#0F7490", "&:hover": { bgcolor: "#0A5A70" } }}
+          sx={{ textTransform: "none", bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}
         >
           {submitting ? "Processing…" : "Confirm Withdrawal"}
         </Button>

@@ -24,6 +24,7 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { getPayees, deletePayee } from "@/api/payee/payeeApi";
 
+import { tokens } from "@/style/Theme.jsx";
 export default function PayeeList() {
   const { tokenClaims, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ export default function PayeeList() {
   return (
     <>
       <Navbar />
-      <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
         <Container maxWidth="lg">
           <Stack spacing={3}>
             <Box>
@@ -96,7 +97,7 @@ export default function PayeeList() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -132,7 +133,7 @@ export default function PayeeList() {
             <Card
               sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -147,7 +148,7 @@ export default function PayeeList() {
                 ) : payees.length === 0 ? (
                   <Box
                     sx={{
-                      border: "1px dashed #CBD5E1",
+                      border: `1px dashed ${tokens.color.border.medium}`,
                       borderRadius: 2,
                       p: 3,
                       textAlign: "center",
@@ -177,7 +178,7 @@ export default function PayeeList() {
                       <Box
                         key={payee.payeeId}
                         sx={{
-                          border: "1px solid #E2E8F0",
+                          border: `1px solid ${tokens.color.border.light}`,
                           borderRadius: 2,
                           p: 2.5,
                         }}

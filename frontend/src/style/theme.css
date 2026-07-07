@@ -1,0 +1,21 @@
+/* CSS custom properties that mirror the JS theme tokens in src/style/Theme.jsx.
+   This lets plain CSS files stay consistent with the global theme. */
+:root {
+  --sp-brand-primary: #0F7490;
+  --sp-brand-primary-hover: #0A5A70;
+
+  --sp-link-primary: #2563EB;
+  --sp-link-primary-hover: #1D4ED8;
+
+  --sp-text-white: #FFFFFF;
+  --sp-text-neutral: #6B7280;
+
+  --sp-status-success: #15803D;
+  --sp-status-error: #B91C1C;
+  --sp-status-error-bright: #F44336;
+
+  --sp-border-legacy: #CCCCCC;
+  --sp-border-medium-gray: #E0E0E0;
+
+  --sp-background-light-gray: #F5F5F5;
+}

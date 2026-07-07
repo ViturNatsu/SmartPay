@@ -24,6 +24,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import Navbar from "@/components/Navbar";
 import OpenAccountForm from "./OpenAccountForm";
 import { useAuth } from "@/context/AuthContext";
+import { tokens } from "@/style/Theme.jsx";
 import {
   getUserAccounts,
   createAccount,
@@ -165,7 +166,7 @@ export const Accounts = () => {
   return (
     <>
       <Navbar />
-      <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", pb: 6 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.background.lightGray, pb: 6 }}>
         <Container
           maxWidth="lg"
           sx={{
@@ -263,8 +264,8 @@ export const Accounts = () => {
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    bgcolor: "#fff",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    bgcolor: tokens.color.background.surface,
+                    boxShadow: tokens.shadow.small,
                     textAlign: "center",
                   }}
                 >
@@ -326,9 +327,9 @@ export const Accounts = () => {
                         key={account.id}
                         sx={{
                           borderRadius: 2,
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                          boxShadow: tokens.shadow.small,
                           "&:hover": {
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                            boxShadow: tokens.shadow.medium,
                           },
                         }}
                       >
@@ -394,7 +395,7 @@ export const Accounts = () => {
               sx={{
                 borderRadius: 2,
                 p: 3,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
                 position: { md: "sticky" },
                 top: 20,
               }}
@@ -447,10 +448,10 @@ export const Accounts = () => {
                       sx={{
                         height: 8,
                         borderRadius: 4,
-                        bgcolor: "#e0e0e0",
+                        bgcolor: tokens.color.border.mediumGray,
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 4,
-                          bgcolor: "#1976d2",
+                          bgcolor: tokens.color.brand.primary,
                         },
                       }}
                     />

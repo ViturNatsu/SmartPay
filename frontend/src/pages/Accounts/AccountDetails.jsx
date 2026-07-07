@@ -18,6 +18,7 @@ import {
 import axiosInstance from "../../api/axios";
 import Navbar from "../../components/Navbar";
 
+import { tokens } from "@/style/Theme.jsx";
 const AccountDetails = () => {
   const navigate = useNavigate();
   const { accountId } = useParams();
@@ -87,7 +88,7 @@ const AccountDetails = () => {
       <Box
         sx={{
           flex: "1",
-          bgcolor: "#f5f5f5",
+          bgcolor: tokens.color.background.lightGray,
           p: 2,
           display: "flex",
           justifyContent: "center",
@@ -106,9 +107,9 @@ const AccountDetails = () => {
                 sm: "60%",
                 md: "30%",
               },
-              bgcolor: "#fff",
+              bgcolor: tokens.color.background.surface,
               borderRadius: "16px",
-              border: "1px solid #E5E7EB",
+              border: `1px solid ${tokens.color.border.gray}`,
               p: 3,
               boxSizing: "border-box",
               overflow: "hidden",
@@ -118,7 +119,7 @@ const AccountDetails = () => {
               variant="h6"
               mb="20px"
               sx={{
-                borderBottom: "1px solid #000000",
+                borderBottom: `1px solid ${tokens.color.underline.dark}`,
                 justifyContent: "center",
               }}
             >

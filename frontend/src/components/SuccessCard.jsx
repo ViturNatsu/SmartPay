@@ -16,7 +16,7 @@ import {
 import CheckIcon from "@mui/icons-material/CheckOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleIcon from "@mui/icons-material/Circle";
-
+import {tokens} from "../style/Theme.jsx"
 const SuccessCard = ({
   data,
   title,
@@ -51,12 +51,12 @@ const SuccessCard = ({
           sx={{
             height: "95px",
             width: "95px",
-            color: "rgba(37, 161, 142, 0.49)",
+            color: tokens.color.icon.successCheck,
             opacity: "1",
           }}
         ></CircleIcon>
         <CheckIcon
-          sx={{ color: "#25A18E", position: "absolute", fontSize: 40 }}
+          sx={{ color:tokens.color.icon.successBg, position: "absolute", fontSize: 40 }}
         />
       </Box>
 
@@ -83,7 +83,7 @@ const SuccessCard = ({
       </Typography>
 
       {transactionId && (
-        <Typography sx={{ color: "#94A3B8", fontSize: 12, fontFamily: "monospace" }}>
+        <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, fontFamily: "monospace" }}>
           Transaction ID: {transactionId}
         </Typography>
       )}
@@ -99,19 +99,20 @@ const SuccessCard = ({
               height: 44,
               minWidth: "111px",
 
-              boxShadow: "0 10px 20px rgba(149, 145, 145, 0.13)",
+              boxShadow: tokens.shadow.grey,
               "&:hover": {
-                boxShadow: "0 10px 20px rgba(149, 145, 145, 0.3)",
+                boxShadow: tokens.shadow.greyHover,
               },
               borderRadius: "12px",
-              border: "1px solid #d1d5db",
+              border: "1px solid",
+                borderColor: tokens.color.button.neutralBorder,
             }}
           >
             <Typography
               variant="subtitle"
               sx={{
                 fontWeight: 700,
-                color: "black",
+                color: tokens.color.text.primary,
                 textTransform: "none",
               }}
             >
@@ -127,8 +128,8 @@ const SuccessCard = ({
             py: 1.5,
             height: 44,
             minWidth: "111px",
-            background: "linear-gradient(135deg, #008c99, #00a8b5)",
-            boxShadow: "0 10px 20px rgba(0, 151, 167, .16)",
+            background: tokens.color.button.gradientBg,
+            boxShadow: tokens.shadow.cyan,
             borderRadius: "12px",
           }}
         >
@@ -151,7 +152,7 @@ const SuccessCard = ({
         <Card
           sx={{
             borderRadius: 2,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            boxShadow: tokens.shadow.smallDark,
           }}
           variant="outlined"
         >
