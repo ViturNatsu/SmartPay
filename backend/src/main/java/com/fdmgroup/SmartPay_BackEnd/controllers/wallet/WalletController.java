@@ -113,13 +113,14 @@ public class WalletController {
     public ResponseEntity<List<WalletTransactionDTO>> getTransactions(
             @PathVariable long userId,
             @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) Boolean favourite,
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(walletService.getTransactions(userId, limit));
+        return ResponseEntity.ok(walletService.getTransactions(userId, limit,favourite));
     }
 
     @PostMapping("/{userId}/transfer")

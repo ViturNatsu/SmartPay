@@ -75,11 +75,18 @@ export async function withdrawFromWallet(userId, payload) {
   }
 }
 
-export async function getWalletTransactions(userId, limit = 10) {
+export async function getWalletTransactions(userId, limit = 10, favourite = null) {
   try {
+    const params = { limit };
+
+    if (favourite !== null) {
+      params.favourite = favourite;
+    }
+
     const res = await axiosInstance.get(`${WALLETS_URL}/${userId}/transactions`, {
-      params: { limit },
+      params,
     });
+
     return res.data;
   } catch (err) {
     throw handleAxiosError(err);
