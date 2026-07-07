@@ -73,7 +73,7 @@ export const tokens = {
     status: {
       success: "#15803D",
       successBg: "#DCFCE7",
-      successBorder: "#86EFAC",
+      successBorder: "#BBF7D0",
       error: "#B91C1C",
       errorBg: "#FEE2E2",
       errorBorder: "#FCA5A5",
@@ -84,7 +84,6 @@ export const tokens = {
       warningText: "#C2410C",
       warningBright: "#F59E0B",
       gold: "#C8A84B",
-      successBorder: "#BBF7D0",
     },
     button: {
       primaryBg: "#0F7490",
