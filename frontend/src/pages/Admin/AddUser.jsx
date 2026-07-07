@@ -14,6 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getAllUsers } from "../../api/users/userApi";
 import { getAccountById, updateAccountUsers } from "../../api/accounts/accountApi";
 
+import { tokens } from "@/style/Theme.jsx";
 const AddUser = () => {
   const navigate = useNavigate();
   const { accountId } = useParams();
@@ -84,7 +85,7 @@ const AddUser = () => {
       <Box
         sx={{
           flex: 1,
-          bgcolor: "#f5f5f5",
+          bgcolor: tokens.color.background.lightGray,
           p: 2,
           display: "flex",
           justifyContent: "center",
@@ -101,9 +102,9 @@ const AddUser = () => {
                 sm: "60%",
                 md: "40%",
               },
-              bgcolor: "#fff",
+              bgcolor: tokens.color.background.surface,
               borderRadius: "16px",
-              border: "1px solid #E5E7EB",
+              border: `1px solid ${tokens.color.border.gray}`,
               p: 3,
               boxSizing: "border-box",
               overflow: "hidden",
@@ -113,7 +114,7 @@ const AddUser = () => {
               variant="h6"
               mb="20px"
               sx={{
-                borderBottom: "1px solid #000000",
+                borderBottom: `1px solid ${tokens.color.underline.dark}`,
                 justifyContent: "center",
               }}
             >
@@ -163,8 +164,8 @@ const AddUser = () => {
                         minWidth: 60,
                         justifyContent: "center",
                         "&.MuiChip-colorPrimary": {
-                          bgcolor: "#2563EB",
-                          color: "#fff",
+                          bgcolor: tokens.color.link.primary,
+                          color: tokens.color.text.white,
                         },
                       }}
                     />
@@ -185,12 +186,12 @@ const AddUser = () => {
                     textTransform: "none",
                     borderRadius: "8px",
                     py: 1.2,
-                    bgcolor: "#2563EB",
-                    "&:hover": { bgcolor: "#1D4ED8" },
+                    bgcolor: tokens.color.link.primary,
+                    "&:hover": { bgcolor: tokens.color.link.primaryHover },
                   }}
                 >
                   {submitting ? (
-                    <CircularProgress size={20} sx={{ color: "#fff" }} />
+                    <CircularProgress size={20} sx={{ color: tokens.color.text.white }} />
                   ) : (
                     "Update Account Users"
                   )}
@@ -200,7 +201,7 @@ const AddUser = () => {
                   variant="text"
                   fullWidth
                   onClick={() => navigate(-1)}
-                  sx={{ mt: 1, textTransform: "none", color: "#4B5563" }}
+                  sx={{ mt: 1, textTransform: "none", color: tokens.color.text.secondary }}
                 >
                   Cancel
                 </Button>

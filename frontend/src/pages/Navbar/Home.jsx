@@ -9,6 +9,7 @@ import LoadWalletDialog from "@/components/LoadWalletDialog";
 import { useAuth } from "@/context/AuthContext";
 import WalletBalance from "@/components/WalletBalance";
 
+import { tokens } from "@/style/Theme.jsx";
 export const Home = () => {
   const { user } = useAuth();
   const [loadWalletOpen, setLoadWalletOpen] = useState(false);
@@ -19,7 +20,7 @@ export const Home = () => {
       <Navbar />
       <div
         style={{
-          background: "#F8FAFC",
+          background: tokens.color.brand.primaryBackground,
           minHeight: "100vh",
           minWidth: "100%",
           padding: 20,

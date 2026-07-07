@@ -3,6 +3,7 @@ import { Card, Stack, Typography } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletByUserId } from "@/api/wallets/walletApi";
 
+import { tokens } from "@/style/Theme.jsx";
 function WalletBalance({ refreshKey = 0 }) {
   const { tokenClaims, loading: authLoading } = useAuth();
   const [balance, setBalance] = useState(0);
@@ -39,8 +40,8 @@ function WalletBalance({ refreshKey = 0 }) {
         boxSizing: "border-box",
         borderRadius: "16px",
         border: "none",
-        background: "linear-gradient(135deg, #062f3d, #0097a7)",
-        color: "#fff",
+        background: tokens.color.gradient.walletBalance,
+        color: tokens.color.text.white,
       }}
     >
       <Stack
@@ -51,7 +52,7 @@ function WalletBalance({ refreshKey = 0 }) {
         <Typography
           component="h2"
           sx={{
-            color: "#fff",
+            color: tokens.color.text.white,
             fontWeight: 600,
             fontSize: "1rem",
             lineHeight: 1.4,
@@ -61,7 +62,7 @@ function WalletBalance({ refreshKey = 0 }) {
         </Typography>
         <Typography
           sx={{
-            color: "#fff",
+            color: tokens.color.text.white,
             fontSize: "44px",
             lineHeight: 1.15,
             fontWeight: 600,
@@ -74,7 +75,7 @@ function WalletBalance({ refreshKey = 0 }) {
         </Typography>
         <Typography
           sx={{
-            color: "#fff",
+            color: tokens.color.text.white,
             fontSize: "0.875rem",
             lineHeight: 1.43,
             opacity: 0.95,

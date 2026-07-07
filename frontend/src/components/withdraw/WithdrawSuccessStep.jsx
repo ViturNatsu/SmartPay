@@ -1,6 +1,7 @@
 import { Box, Button, DialogContent, Divider, Typography } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
+import { tokens } from "@/style/Theme.jsx";
 /**
  * Step 3 of the withdrawal flow — Success.
  *
@@ -21,9 +22,9 @@ function WithdrawSuccessStep({ parsedAmount, selectedMethod, transactionId, onCl
             width: 82,
             height: 82,
             borderRadius: "50%",
-            bgcolor: "#DCFCE7",
-            border: "1px solid #86EFAC",
-            color: "#15803D",
+            bgcolor: tokens.color.status.successBg,
+            border: `1px solid ${tokens.color.status.successBorder}`,
+            color: tokens.color.status.success,
             display: "grid",
             placeItems: "center",
             mx: "auto",
@@ -36,12 +37,12 @@ function WithdrawSuccessStep({ parsedAmount, selectedMethod, transactionId, onCl
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, letterSpacing: "-0.03em" }}>
           Funds Withdrawn
         </Typography>
-        <Typography sx={{ color: "#64748B", fontSize: 14, mb: 1.5, lineHeight: 1.5 }}>
+        <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: 1.5, lineHeight: 1.5 }}>
           ${parsedAmount.toFixed(2)} has been withdrawn from your SmartPay wallet
           and sent to {destinationLabel}.
         </Typography>
         {transactionId && (
-          <Typography sx={{ color: "#94A3B8", fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
+          <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
             Transaction ID: {transactionId}
           </Typography>
         )}
@@ -51,7 +52,7 @@ function WithdrawSuccessStep({ parsedAmount, selectedMethod, transactionId, onCl
         <Button
           onClick={onClose}
           variant="contained"
-          sx={{ textTransform: "none", bgcolor: "#0F7490", "&:hover": { bgcolor: "#0A5A70" } }}
+          sx={{ textTransform: "none", bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}
         >
           Return to Wallet
         </Button>

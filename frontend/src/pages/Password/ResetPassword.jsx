@@ -4,6 +4,7 @@ import { resetPassword } from "@/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
 
+import { tokens } from "@/style/Theme.jsx";
 export const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -61,7 +62,7 @@ export const ResetPassword = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        bgcolor: "#F8FAFC",
+        bgcolor: tokens.color.brand.primaryBackground,
         fontFamily: "'Inter', sans-serif",
       }}
     >
@@ -76,7 +77,7 @@ export const ResetPassword = () => {
           justifyContent: "center",
           px: { xs: 3, md: 8 },
           py: { xs: 6, md: 0 },
-          bgcolor: "white",
+          bgcolor: tokens.color.background.surface,
         }}
       >
         <Box sx={{ width: "100%", maxWidth: { xs: "290px", md: "448px" } }}>
@@ -87,7 +88,7 @@ export const ResetPassword = () => {
             sx={{
               p: { xs: 3, md: 4 },
               borderRadius: { xs: "24px", md: "12px" },
-              backgroundColor: { xs: "#F3F4F6", md: "transparent" },
+              backgroundColor: { xs: tokens.color.background.appLight, md: "transparent" },
             }}
           >
             <Typography
@@ -95,7 +96,7 @@ export const ResetPassword = () => {
               sx={{
                 fontSize: "30px",
                 fontWeight: "bold",
-                color: "#111827",
+                color: tokens.color.text.primaryDark,
                 textAlign: "center",
                 mb: 1,
                 display: { xs: "none", md: "block" },
@@ -121,7 +122,7 @@ export const ResetPassword = () => {
                   sx={{
                     fontSize: "20px",
                     fontWeight: 600,
-                    color: "#374151",
+                    color: tokens.color.text.heading,
                     mb: 1,
                   }}
                 >
@@ -141,7 +142,7 @@ export const ResetPassword = () => {
                       height: { xs: "50px", md: "54px" },
                       borderRadius: "12px",
                       "& fieldset": {
-                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" },
+                        borderColor: { xs: tokens.color.border.gray, md: tokens.color.border.grayLight },
                       },
                     },
                   }}
@@ -155,7 +156,7 @@ export const ResetPassword = () => {
                   sx={{
                     fontSize: "20px",
                     fontWeight: 600,
-                    color: "#374151",
+                    color: tokens.color.text.heading,
                     mb: 1,
                   }}
                 >
@@ -177,7 +178,7 @@ export const ResetPassword = () => {
                       height: { xs: "50px", md: "54px" },
                       borderRadius: "12px",
                       "& fieldset": {
-                        borderColor: { xs: "#E5E7EB", md: "#D1D5DB" },
+                        borderColor: { xs: tokens.color.border.gray, md: tokens.color.border.grayLight },
                       },
                     },
                   }}
@@ -194,14 +195,14 @@ export const ResetPassword = () => {
                   textTransform: "none",
                   fontSize: "16px",
                   fontWeight: 600,
-                  color: "#F8FAFC",
-                  bgcolor: "#2563EB",
+                  color: tokens.color.brand.primaryBackground,
+                  bgcolor: tokens.color.link.primary,
                   background: {
-                    xs: "linear-gradient(to right, #06B6D4, #2563EB)",
-                    md: "#2563EB",
+                    xs: tokens.color.button.forgotGradient,
+                    md: tokens.color.link.primary,
                   },
-                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
-                  "&:hover": { bgcolor: "#1D4ED8" },
+                  boxShadow: tokens.shadow.linkButton,
+                  "&:hover": { bgcolor: tokens.color.link.primaryHover },
                 }}
               >
                 {loading ? "Saving..." : "Reset Password"}
