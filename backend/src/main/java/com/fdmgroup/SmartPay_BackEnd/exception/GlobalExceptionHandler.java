@@ -1,13 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.exception;
 
 
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +11,25 @@ import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeExpiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeInvalidatedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockActionsRequiresUserRoleException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockRequestInvalidType;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
@@ -35,10 +42,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -230,6 +234,15 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        @ExceptionHandler(InvalidRecurringPayeeException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidRecurringPayee(InvalidRecurringPayeeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+        
         @ExceptionHandler(PayeeNotFoundException.class)
         public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
                 Map<String, String> errorBody = new HashMap<>();

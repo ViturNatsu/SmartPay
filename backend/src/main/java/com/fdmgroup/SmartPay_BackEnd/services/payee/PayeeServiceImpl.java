@@ -1,5 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -12,9 +14,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
@@ -100,18 +105,72 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         payeeRepository.save(payee);
     }
     @Override
-    public RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO payeeRequestDTO) {
-        // Implementation for adding a recurring payee
-        return null; // Placeholder return statement
+    public RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO recurringPayeeRequestDTO) {
+        String recurringPayeeName = recurringPayeeRequestDTO.getPayeeName();
+        String recipientIdentifier = recurringPayeeRequestDTO.getRecipientIdentifier();
+        Double recurringAmount=recurringPayeeRequestDTO.getAmount();
+        LocalDate date = recurringPayeeRequestDTO.getDate();
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new UserNotFoundException("Owner not found"));
+                User recipient;
+        if (recipientIdentifier.contains("@")) {
+            recipient = userRepository.findByEmail(recipientIdentifier)
+                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
+        } else {
+            Customer customer = customerRepository.findByPhoneNumber(recipientIdentifier)
+                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
+            recipient = customer.getUser();
+        }
+
+        if (recipient.getRole().equals(Role.ADMIN)) {
+            throw new InvalidRecurringPayeeException("SmartPay user not found");
+        }
+
+        if (recipient.getId().equals(ownerId)) {
+            throw new InvalidRecurringPayeeException("Cannot add yourself as a payee");
+        }
+        if (recurringAmount<=0){
+            throw new InvalidRecurringPayeeException("Payment amount must be positive");
+        }
+        if (date.isBefore(LocalDate.now(ZoneId.of("EST")))){
+            throw new InvalidRecurringPayeeException("Payment must be scheduled in the future");
+        }
+        Optional<RecurringPayee> existingRecurringPayee = recurringPayeeRepository.findByOwnerIdAndRecipientId(ownerId, recipient.getId());
+        if (existingRecurringPayee.isPresent()) {
+            RecurringPayee recurringPayee = existingRecurringPayee.get();
+            if (recurringPayee.isActive()) {
+                throw new PayeeAlreadyExistsException("Payee already exists");
+            }
+            recurringPayee.setActive(true);
+            recurringPayee.setPayeeName(recurringPayeeName);
+            recurringPayee.setAmount(recurringAmount);
+            recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
+            recurringPayee.setDate(date);
+            recurringPayeeRepository.save(recurringPayee);
+            return toRecurringResponseDTO(recurringPayee);
+        }
+        RecurringPayee recurringPayee= new RecurringPayee();
+        recurringPayee.setActive(true);
+        recurringPayee.setOwner(owner);
+        recurringPayee.setRecipient(recipient);
+        recurringPayee.setPayeeName(recurringPayeeName);
+        recurringPayee.setAmount(recurringAmount);
+        recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
+        recurringPayee.setDate(date);
+        recurringPayeeRepository.save(recurringPayee);
+        return toRecurringResponseDTO(recurringPayee);
     }
     @Override
     public List<RecurringPayeeResponseDTO> getRecurringPayeesForUser(Long ownerId){
-        //Add implementation
-        return null;
+        List<RecurringPayee> recurringPayees = recurringPayeeRepository.findByOwnerIdAndActiveTrue(ownerId);
+        return recurringPayees.stream().map(this::toRecurringResponseDTO).collect(Collectors.toList());
     }
     @Override
-    public void deleteRecurringPayee(Long ownerId, Long payeeId){
-        //Add implementation
+    public void deleteRecurringPayee(Long ownerId, Long recurringPayeeId){
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(recurringPayeeId, ownerId)
+            .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+        recurringPayee.setActive(false);
+        recurringPayeeRepository.save(recurringPayee);
     }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
@@ -126,5 +185,21 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 payee.getRecipient().getLastName(),
                 payee.getRecipient().getEmail(),
                 phoneNumber);
+    }
+        private RecurringPayeeResponseDTO toRecurringResponseDTO(RecurringPayee recurringPayee) {
+        String phoneNumber = customerRepository.findByUser(recurringPayee.getRecipient())
+                .map(Customer::getPhoneNumber)
+                .orElse(null);
+        return new RecurringPayeeResponseDTO(
+                recurringPayee.getPayeeId(),
+                recurringPayee.getPayeeName(),
+                recurringPayee.getRecipient().getId(),
+                recurringPayee.getRecipient().getFirstName(),
+                recurringPayee.getRecipient().getLastName(),
+                recurringPayee.getRecipient().getEmail(),
+                phoneNumber,
+                recurringPayee.getSchedule(),
+                recurringPayee.getAmount(),
+                recurringPayee.getDate());
     }
 }

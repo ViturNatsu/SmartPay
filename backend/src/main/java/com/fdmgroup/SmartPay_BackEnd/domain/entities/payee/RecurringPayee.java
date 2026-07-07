@@ -1,14 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
@@ -24,10 +22,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecurringPayee extends Payee{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "recurring_payee_id")
-    private long recurringpayeeId;
 
     @Column(name = "amount", nullable=false)
     @Positive
@@ -37,7 +31,10 @@ public class RecurringPayee extends Payee{
     @Column(name = "schedule", nullable=false)
     private Schedule schedule;
 
-    @Column(name= "dateCreated", nullable=false)
+    @Column(name = "date", nullable=false)
+    private LocalDate date;
+
+    @Column(name = "dateCreated", nullable=false)
     private LocalDateTime createdAt;
 
     @PrePersist
