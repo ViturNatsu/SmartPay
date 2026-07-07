@@ -33,7 +33,7 @@ public interface WalletService {
 
     WalletResponseDTO loadFunds(long userId, LoadWalletRequestDTO request);
 
-    List<WalletTransactionDTO> getTransactions(long userId, int limit);
+    List<WalletTransactionDTO> getTransactions(long userId, int limit, Boolean favourite);
 
     /**
      * Updates the wallet-level daily spending limit for the specified user.
