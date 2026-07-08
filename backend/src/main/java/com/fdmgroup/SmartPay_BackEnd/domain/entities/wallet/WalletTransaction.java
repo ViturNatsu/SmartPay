@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -55,6 +56,7 @@ public class WalletTransaction {
     @Column(name = "counterparty_name")
     private String counterpartyName;
     
+    @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
     @Column(name = "rail_type", nullable = false, updatable = false)
     private RailType railType;
@@ -64,6 +66,23 @@ public class WalletTransaction {
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) createdAt = Instant.now();
+        if (railType == null) {
+            throw new IllegalStateException("railType is required for wallet transactions");
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
+    public void setRailType(RailType railType) {
+        if (railType == null) {
+            throw new IllegalArgumentException("railType is required");
+        }
+
+        if (this.railType != null && this.railType != railType) {
+            throw new IllegalStateException("railType cannot be modified after it is assigned");
+        }
+
+        this.railType = railType;
     }
 }
