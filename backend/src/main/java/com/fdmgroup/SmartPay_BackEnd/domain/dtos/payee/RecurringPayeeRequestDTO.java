@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
@@ -37,6 +38,7 @@ public class RecurringPayeeRequestDTO {
     private Schedule schedule;
 
     @JsonProperty("date")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull
     private LocalDate date;
 

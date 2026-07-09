@@ -15,7 +15,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
@@ -132,7 +131,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (recurringAmount<=0){
             throw new InvalidRecurringPayeeException("Payment amount must be positive");
         }
-        if (date.isBefore(LocalDate.now(ZoneId.of("EST")))){
+        if (date.isBefore(LocalDate.now(ZoneId.of("America/New_York")))) {
             throw new InvalidRecurringPayeeException("Payment must be scheduled in the future");
         }
         Optional<RecurringPayee> existingRecurringPayee = recurringPayeeRepository.findByOwnerIdAndRecipientId(ownerId, recipient.getId());
