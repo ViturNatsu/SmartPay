@@ -55,18 +55,17 @@ export async function denyCardRequest(requestId, denyReason) {
 
 export async function requestNewCardOtp() {
     try {
-        const res = await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card/otp`);
-        return res.data;
+        return await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card/otp`);
     } catch (err) {
         throw handleAxiosError(err);
     }
 }
 
-export async function createNewCardRequest(accessCode) {
+export async function createNewCardRequest(accessCode, confirmationStatus) {
     try {
         const res = await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card`, {
             "access-code": accessCode,
-            confirmed: true,
+            confirmed: confirmationStatus,
         });
         return res.data;
     } catch (err) {

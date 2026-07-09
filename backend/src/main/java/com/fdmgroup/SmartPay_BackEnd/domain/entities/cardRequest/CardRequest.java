@@ -44,10 +44,3 @@ public class CardRequest {
     private String denyReason;
 
 }
-
-// CardRequestRepo9sitoy extends JPARepostiryo(){
-//
-//     specialFunction = () => do we have more than 4?- but in SQL
-// }
-//
-// WHERE THE DATE < F , USER_ID = 0
