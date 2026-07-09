@@ -39,6 +39,7 @@ import {LockCardRedirectDialog} from "@/components/customComponents/dialogs/Lock
 import {LockButton} from "@/components/customComponents/buttons/LockButton.jsx";
 
 import { tokens } from "@/style/Theme.jsx";
+import {RequestNewCardDialog} from "@/components/customComponents/dialogs/RequestNewCardDialog.jsx";
 /**
  * Wallet page — Scenario 1
  *
@@ -71,6 +72,7 @@ export function Wallet() {
 
   const [lockCardDialogOpen, setLockCardDialogOpen] = useState(false);
   const [lockCardRedirectDialogOpen, setLockCardRedirectDialogOpen] = useState(false);
+  const [cardRequestDialogOpen, setCardRequestDialogOpen] = useState(false);
 
   const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -474,6 +476,27 @@ export function Wallet() {
               </Box>
             </Stack>
           </Card>
+
+          {/* Request new virtual card — entry point (wireframe Step 1) */}
+          <Box sx={{display: "flex", justifyContent: "flex-end", mt: 2.5}}>
+            <Button
+              variant="outlined"
+              onClick={() => setCardRequestDialogOpen(true)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 900,
+                borderColor: tokens.color.status.errorBorder,
+                color: tokens.color.status.error,
+                backgroundColor: tokens.color.status.errorBg,
+                height: 48,
+                px: 3,
+                "&:hover": {backgroundColor: tokens.color.status.errorBgHover, borderColor: tokens.color.status.errorBgHover},
+              }}
+            >
+              ⚠ Request New Card
+            </Button>
+          </Box>
+
         </Container>
       </Box>
 
@@ -518,6 +541,18 @@ export function Wallet() {
       >
       </LockCardRedirectDialog>
 
+      <RequestNewCardDialog
+        open={cardRequestDialogOpen}
+        onClose={
+        ()=> setCardRequestDialogOpen(false)}
+        onSuccess={
+          async () => {
+            await fetchWallet();
+          }
+
+        }
+      >
+      </RequestNewCardDialog>
 
       <LoadWalletDialog
         open={loadWalletOpen}

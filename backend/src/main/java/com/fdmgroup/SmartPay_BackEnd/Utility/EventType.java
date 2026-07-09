@@ -8,5 +8,6 @@ public enum EventType {
     SESSION_EXPIRED,
     CARD_LOCK,
     CARD_UNLOCK,
-    REVEAL_CARD
+    REVEAL_CARD,
+    REQUEST_NEW_CARD
 }

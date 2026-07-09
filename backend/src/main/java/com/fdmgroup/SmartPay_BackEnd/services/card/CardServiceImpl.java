@@ -5,11 +5,13 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.integration.EmailDetails;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
+    private final CardRequestRepository cardRequestRepository;
     private final EmailService emailService;
 
     @Autowired
@@ -198,9 +201,11 @@ public class CardServiceImpl implements CardService {
             if(card.getStatus() != CardStatus.LOCKED) {
                 throw new  CardStatusOperationNotAllowedException("Card status is not LOCKED");
             }
+            if(cardRequestRepository.existsByCardAndRequestStatus(card, RequestStatus.PENDING)){
+                throw new  CardStatusOperationNotAllowedException("This Card has a pending request for renewal, and cannot be unlocked.");
+            }
         }
     }
-
 
 
     // Helper methods for locking and unlocking a card through the associated User id. This operation requires multiple SQL JOINs.

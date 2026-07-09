@@ -78,6 +78,8 @@ export const tokens = {
       errorBg: "#FEE2E2",
       errorBorder: "#FCA5A5",
       errorBright: "#F44336",
+      errorBgHover: "#FECACA",
+      errorBorderHover: "#B91C1C",
       warning: "#B45309",
       warningBg: "#FEF3C7",
       warningBorder: "#FDBA74",
