@@ -1,5 +1,4 @@
 import {useState} from "react";
-import {useSearchParams} from "react-router-dom";
 import {
   Alert,
   Box,
@@ -19,18 +18,14 @@ import RecurringSubscriptionCard from "@/components/recurringPayments/RecurringS
 import RecurringEmptyState from "@/components/recurringPayments/RecurringEmptyState";
 import Navbar from "@/components/Navbar";
 import {tokens} from "@/style/Theme";
-
-const VALID_TABS = new Set(["subscriptions", "bills"]);
-const DEFAULT_TAB = "subscriptions";
+import {useRecurringPaymentsTab} from "@/utils/useRecurringPaymentsTab";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
 const BILLS_EMPTY_MESSAGE = "No bills found.";
 
 export default function RecurringPayments() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const activeTab = VALID_TABS.has(tabParam) ? tabParam : DEFAULT_TAB;
+  const {activeTab, handleTabChange} = useRecurringPaymentsTab();
 
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
@@ -78,12 +73,6 @@ export default function RecurringPayments() {
       date: "2026-07-05",
     },
   ]);
-
-  const handleTabChange = (_, newTab) => {
-    if (newTab !== null) {
-      setSearchParams({tab: newTab});
-    }
-  };
 
   const handleInputChange = event => {
     const {name, value} = event.target;
