@@ -14,6 +14,7 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { getPayees } from "@/api/payees/payeeApi";
 import { getWalletByUserId, sendMoney } from "@/api/wallets/walletApi";
+import { getRailLabel, RAIL_TYPES } from "@/utils/transactionRailUtils";
 
 import { tokens } from "@/style/Theme.jsx";
 const STEPS = ["Select Payee", "Enter Amount", "Review", "Done"];
@@ -360,6 +361,7 @@ export function MakeAPayment() {
               <StepIndicator current={2} />
 
               <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, overflow: "hidden" }}>
+                <ConfirmRow label="Payment Type" value={getRailLabel(RAIL_TYPES.WALLET_TRANSFER)} />
                 <ConfirmRow label="Send From" value="SmartPay Wallet" />
                 <ConfirmRow label="Send To" value={`${selectedPayee.payeeName} — ${selectedPayee.email}`} />
                 <ConfirmRow label="Transfer Amount" value={formattedAmount} />

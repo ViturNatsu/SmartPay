@@ -299,7 +299,10 @@ test.describe("Transaction page – table rows", () => {
       page,
       successHandler([WITHDRAW_TRANSACTION])
     );
-    await expect(page.getByText("COMPLETED")).toBeVisible({ timeout: 15_000 });
+    const transactionRow = page.getByRole("button", {
+      name: "View details for Withdraw to TD",
+    });
+    await expect(transactionRow.getByText("COMPLETED")).toBeVisible({ timeout: 15_000 });
   });
 
   test("renders PENDING status chip", async ({ page }) => {
@@ -307,7 +310,10 @@ test.describe("Transaction page – table rows", () => {
       page,
       successHandler([PENDING_TRANSACTION])
     );
-    await expect(page.getByText("PENDING")).toBeVisible({ timeout: 15_000 });
+    const transactionRow = page.getByRole("button", {
+      name: "View details for Load from RBC",
+    });
+    await expect(transactionRow.getByText("PENDING")).toBeVisible({ timeout: 15_000 });
   });
 
   test("renders FAILED status chip", async ({ page }) => {
@@ -315,7 +321,10 @@ test.describe("Transaction page – table rows", () => {
       page,
       successHandler([FAILED_TRANSACTION])
     );
-    await expect(page.getByText("FAILED")).toBeVisible({ timeout: 15_000 });
+    const transactionRow = page.getByRole("button", {
+      name: "View details for Withdraw to BMO",
+    });
+    await expect(transactionRow.getByText("FAILED")).toBeVisible({ timeout: 15_000 });
   });
 
   test("renders Payment Type via getRailLabel mapping", async ({ page }) => {
