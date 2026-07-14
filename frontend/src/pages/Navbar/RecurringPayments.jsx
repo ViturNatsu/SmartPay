@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import {
   Alert,
   Box,
@@ -16,17 +16,21 @@ import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCar
 import RecurringPayeeForm from "@/components/recurringPayments/RecurringPayeeForm";
 import RecurringSubscriptionCard from "@/components/recurringPayments/RecurringSubscriptionCard";
 import RecurringEmptyState from "@/components/recurringPayments/RecurringEmptyState";
+import RecurringPaymentsSearchBar from "@/components/recurringPayments/RecurringPaymentsSearchBar";
 import Navbar from "@/components/Navbar";
 import {tokens} from "@/style/Theme";
 import {useRecurringPaymentsTab} from "@/utils/useRecurringPaymentsTab";
+import {filterItemsByName} from "@/utils/recurringPaymentsSearchUtils";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
 const BILLS_EMPTY_MESSAGE = "No bills found.";
+const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
 
 export default function RecurringPayments() {
   const {activeTab, handleTabChange} = useRecurringPaymentsTab();
 
+  const [billsSearchQuery, setBillsSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -176,6 +180,13 @@ export default function RecurringPayments() {
     formData.schedule &&
     formData.date;
 
+  const filteredPayees = useMemo(
+    () => filterItemsByName(payees, billsSearchQuery),
+    [payees, billsSearchQuery],
+  );
+
+  const hasBillsSearch = billsSearchQuery.trim().length > 0;
+
   return (
     <>
       <Navbar />
@@ -234,6 +245,16 @@ export default function RecurringPayments() {
                 ))
               ))}
 
+            {activeTab === "bills" && (
+              <RecurringPaymentsSearchBar
+                value={billsSearchQuery}
+                onChange={e => setBillsSearchQuery(e.target.value)}
+                onClear={() => setBillsSearchQuery("")}
+                placeholder="Search by payee name..."
+                aria-label="Search bill payees"
+              />
+            )}
+
             {activeTab === "bills" && showForm && (
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <RecurringPayeeForm
@@ -260,8 +281,10 @@ export default function RecurringPayments() {
             {activeTab === "bills" &&
               (payees.length === 0 ? (
                 <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
+              ) : filteredPayees.length === 0 && hasBillsSearch ? (
+                <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
               ) : (
-                payees.map(payee => (
+                filteredPayees.map(payee => (
                   <RecurringPayeeCard key={payee.id} payee={payee} />
                 ))
               ))}
