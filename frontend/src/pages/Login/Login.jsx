@@ -267,12 +267,15 @@ export const Login = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
+                          type="button"
                           edge="end"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => setShowPassword((prev) => !prev)}
                           aria-label={
                             showPassword ? "Hide password" : "Show password"
                           }
+                          aria-pressed={showPassword}
+                          title={showPassword ? "Hide password" : "Show password"}
                           sx={{ color: tokens.color.text.titleMuted }}
                         >
                           {showPassword ? (
