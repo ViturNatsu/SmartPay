@@ -12,7 +12,7 @@ import { MuiOtpInput } from "mui-one-time-password-input";
 import { forwardRef, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext.jsx";
 import Slide from "@mui/material/Slide";
-import {useOtpVerify} from "@/hooks/useOtpVerify.js";
+import {useOtpVerify} from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
 import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
 import Divider from "@mui/material/Divider";
 import {WarningAmberRounded} from "@mui/icons-material";

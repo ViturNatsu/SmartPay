@@ -1,16 +1,19 @@
 import {useState} from "react";
-import {createNewCardRequest} from "@/api/cardrequest/cardrequestApi.js";
+import {sendVerifyCode} from "@/api/authApi.js";
 
 
-export const useNewCardRequestOtpVerify = () => {
+export const useOtpVerify = ({
+      RequestAPI = sendVerifyCode,
+    } = {}
+  ) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  const verifyNewCardRequestOtp = async (accessCode, confirmationStatus) => {
+  const sendOtpVerify = async (payload) => {
     setLoading(true);
     try{
-      const res = await createNewCardRequest(accessCode, confirmationStatus);
+      const res = await RequestAPI(payload);
       setError(null);
       return res;
     }catch(err){
@@ -27,5 +30,5 @@ export const useNewCardRequestOtpVerify = () => {
     setError(null);
   }
 
-  return {verifyNewCardRequestOtp, loading, error, reset};
+  return {sendOtpVerify,loading, error, reset};
 }

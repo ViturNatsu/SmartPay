@@ -16,7 +16,7 @@ import {useTheme} from "@mui/material/styles";
 import {useState} from "react";
 import {useAuth} from "@/context/AuthContext.jsx";
 import {MuiOtpInput} from "mui-one-time-password-input";
-import {useNewCardRequestOtpVerify} from "@/hooks/useNewCardRequestOtpVerify.js";
+import {useNewCardRequestOtpVerify} from "@/hooks/OtpHooks/OtpVerify/useNewCardRequestOtpVerify.js";
 import { tokens } from "@/style/Theme.jsx";
 import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
 import {useRenewCardOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useRenewCardOtpRequest.js";
@@ -51,7 +51,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
   } = useRenewCardOtpRequest()
 
   const {
-    verifyNewCardRequestOtp,
+    sendOtpVerify,
     loading: otpVerifying,
     error: otpVerifyError,
     reset: ResetOtpVerifyState,
@@ -255,7 +255,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
             disabled={!acknowledged || otp.length < 7}
             onClick={
             ()=>{
-              verifyNewCardRequestOtp(otp, acknowledged).then(async (r) => {
+              sendOtpVerify({"access-code": otp, "confirmed": acknowledged,}).then(async (r) => {
                 await onSuccess();
                 setHasPending(true);
               })
