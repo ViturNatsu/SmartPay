@@ -101,7 +101,7 @@ export const VerifyOtp = () => {
         setError("Too many attempts. Please try again later.");
       else if (err.status === 410) {
         setError(
-          "Too many invalid attempts. Please restart the process. Reidirecting to login...",
+          "Too many invalid attempts. Please restart the process. Redirecting to login...",
         );
         await delay(3000);
         navigate(`/login`, { replace: true });

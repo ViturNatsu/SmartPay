@@ -1,8 +1,12 @@
-import { createCardLockRequestOTP } from "@/api/cards/cardsApi.js";
 import { useRef, useState} from "react";
 import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
 
-export const useCardLockRequestData = () => {
+export const useOtpRequest = ({requestAPI}) => {
+
+  const [isSent, setIsSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const lastRequestRef = useRef(null);
 
   const {
     timeLeft,
@@ -10,28 +14,15 @@ export const useCardLockRequestData = () => {
     start: startCooldown,
   } = useCountdownTimer(30);
 
-  const [isSent, setIsSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const lastRequestRef = useRef(null);
-
-  const requestCardLockOTP = async (payload) => {
+  const makeOtpRequest = async (payload) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await createCardLockRequestOTP(payload);
-      if (res.status !== 202) {
-        setIsSent(false);
-        // silently returning without raising error. Behavior should be adjusted in the future.
-        // this code is currently tracking what happens when the status code is different.
-        return;
-      }
-
+      const res = await requestAPI(payload);
       setIsSent(true);
       setError(null);
       return res;
-
     } catch (err) {
       setError(err?.response?.data?.message || err.message || "Something went wrong");
       throw err;
@@ -40,10 +31,10 @@ export const useCardLockRequestData = () => {
     }
   };
 
-  const handleSendOtp = async (payload) => {
+  const handleOtpRequest = async (payload) => {
     lastRequestRef.current = payload
 
-    const res = await requestCardLockOTP(payload);
+    const res = await makeOtpRequest(payload);
 
     if (res) {
       startCooldown();
@@ -56,7 +47,7 @@ export const useCardLockRequestData = () => {
     if (loading || timeLeft > 0) return;
     if (!lastRequestRef.current) return;
 
-    return await handleSendOtp(lastRequestRef.current);
+    return await handleOtpRequest(lastRequestRef.current);
   };
 
   const reset = () => {
@@ -68,7 +59,7 @@ export const useCardLockRequestData = () => {
   }
 
   return {
-    handleSendOtp,
+    handleOtpRequest,
     handleResend,
     timeLeft,
     isSent,
