@@ -27,10 +27,12 @@ const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
 const BILLS_EMPTY_MESSAGE = "No bills found.";
 const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
+const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
 export default function RecurringPayments() {
   const {activeTab, handleTabChange} = useRecurringPaymentsTab();
 
+  const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
@@ -181,11 +183,27 @@ export default function RecurringPayments() {
     formData.schedule &&
     formData.date;
 
-  const filteredPayees = useMemo(
-    () => filterItemsByName(payees, billsSearchQuery),
-    [payees, billsSearchQuery],
+  const filteredSubscriptions = useMemo(
+    () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
+    [subscriptions, subscriptionsSearchQuery],
   );
 
+ const filteredPayees = useMemo(() => {
+    const normalizedQuery = billsSearchQuery.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return payees;
+    }
+
+    return payees.filter(payee =>
+      String(payee.name ?? "")
+        .trim()
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [payees, billsSearchQuery]);
+
+  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
 
   return (
@@ -251,46 +269,47 @@ export default function RecurringPayments() {
                       </ToggleButton>
                     </ToggleButtonGroup>
 
-                    {activeTab === "bills" && (
-                      <Button
-                        variant="contained"
-                        onClick={() => {
-                          setShowForm(prev => !prev);
-                          setErrors({});
-                        }}
-                        sx={{
+              {activeTab === "bills" && (
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setShowForm(prev => !prev);
+                    setErrors({});
+                  }}
+                  sx={{
                           alignSelf: {xs: "stretch", sm: "auto"},
-                        }}
-                      >
-                        Add New Payee
-                      </Button>
-                    )}
-                  </Stack>
+                  }}
+                >
+                  Add New Payee
+                </Button>
+              )}
+            </Stack>
 
-                  {activeTab === "bills" && showForm && (
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <RecurringPayeeForm
-                        formData={formData}
-                        errors={errors}
-                        isFormComplete={isFormComplete}
-                        onInputChange={handleInputChange}
-                        onConfirm={handleConfirm}
-                        onCancel={resetForm}
-                      />
-                    </LocalizationProvider>
-                  )}
 
-                  {successMessage && (
-                    <Alert
-                      severity="success"
-                      onClose={() => setSuccessMessage("")}
-                    >
-                      {successMessage}
-                    </Alert>
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
+                {activeTab === "bills" && showForm && (
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <RecurringPayeeForm
+                      formData={formData}
+                      errors={errors}
+                      isFormComplete={isFormComplete}
+                      onInputChange={handleInputChange}
+                      onConfirm={handleConfirm}
+                      onCancel={resetForm}
+                    />
+                  </LocalizationProvider>
+                )}
+
+                {successMessage && (
+                  <Alert
+                    severity="success"
+                    onClose={() => setSuccessMessage("")}
+                  >
+                    {successMessage}
+                  </Alert>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
 
             {/* Bottom section: existing items */}
             <Card
@@ -306,10 +325,29 @@ export default function RecurringPayments() {
                     : "Existing Bill Payees"}
                 </Typography>
 
+                {activeTab === "subscriptions" && (
+                  <RecurringPaymentsSearchBar
+                    value={subscriptionsSearchQuery}
+                    onChange={event =>
+                      setSubscriptionsSearchQuery(event.target.value)
+                    }
+                    onClear={() => setSubscriptionsSearchQuery("")}
+                    placeholder="Search by subscription name..."
+                    aria-label="Search subscriptions"
+                  />
+                )}
+
                 {activeTab === "bills" && (
                   <RecurringPaymentsSearchBar
                     value={billsSearchQuery}
-                    onChange={event => setBillsSearchQuery(event.target.value)}
+                    onChange={eventOrValue => {
+                      const nextValue =
+                        typeof eventOrValue === "string"
+                          ? eventOrValue
+                          : eventOrValue.target.value;
+
+                      setBillsSearchQuery(nextValue);
+                    }}
                     onClear={() => setBillsSearchQuery("")}
                     placeholder="Search by payee name..."
                     aria-label="Search bill payees"
@@ -319,9 +357,14 @@ export default function RecurringPayments() {
                 {activeTab === "subscriptions" &&
                   (subscriptions.length === 0 ? (
                     <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+                  ) : filteredSubscriptions.length === 0 &&
+                    hasSubscriptionsSearch ? (
+                    <RecurringEmptyState
+                      message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
+                    />
                   ) : (
                     <Stack spacing={2}>
-                      {subscriptions.map(subscription => (
+                      {filteredSubscriptions.map(subscription => (
                         <RecurringSubscriptionCard
                           key={subscription.id}
                           subscription={subscription}
