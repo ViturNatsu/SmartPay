@@ -19,11 +19,12 @@ export default function RecurringSubscriptionCard({ subscription }) {
       </Typography>
 
       <Typography variant="body2">
-        ${formatRecurringAmount(subscription.amount)} • {formatRecurringSchedule(subscription.schedule)}
+        ${formatRecurringAmount(subscription.amount)}
       </Typography>
 
       <Typography variant="body2">
-        Next payment: {formatRecurringDate(subscription.nextPaymentDate)}
+        Due {formatRecurringDate(subscription.nextPaymentDate)} •{" "}
+        {formatRecurringSchedule(subscription.schedule)}
       </Typography>
 
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
