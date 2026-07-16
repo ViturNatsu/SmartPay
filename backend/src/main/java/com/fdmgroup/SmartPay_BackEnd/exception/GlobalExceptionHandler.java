@@ -29,6 +29,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExcee
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
@@ -235,6 +236,15 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        @ExceptionHandler(InvalidRecurringPayeeException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidRecurringPayee(InvalidRecurringPayeeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+        
         @ExceptionHandler(PayeeNotFoundException.class)
         public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
                 Map<String, String> errorBody = new HashMap<>();
