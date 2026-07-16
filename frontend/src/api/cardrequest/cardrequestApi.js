@@ -1,6 +1,7 @@
 import axiosInstance, { handleAxiosError } from "../axios";
 
 const CARD_REQUEST_ADMIN_BASE_URL = "/api/v1/card-request/admin";
+const CARD_REQUEST_USER_BASE_URL = "/api/v1/card-request/user";
 
 export async function getAllCardRequests() {
     try {
@@ -46,6 +47,26 @@ export async function denyCardRequest(requestId, denyReason) {
                 denyReason: denyReason,
             }
         );
+        return res.data;
+    } catch (err) {
+        throw handleAxiosError(err);
+    }
+}
+
+export async function requestNewCardOtp() {
+    try {
+        return await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card/otp`);
+    } catch (err) {
+        throw handleAxiosError(err);
+    }
+}
+
+export async function createNewCardRequest(accessCode, confirmationStatus) {
+    try {
+        const res = await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card`, {
+            "access-code": accessCode,
+            confirmed: confirmationStatus,
+        });
         return res.data;
     } catch (err) {
         throw handleAxiosError(err);

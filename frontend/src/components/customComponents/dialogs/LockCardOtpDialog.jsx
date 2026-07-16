@@ -111,7 +111,7 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
                 }}
                 disabled={cardLockRequestIsLoading || authLoading || !email}
               >
-                {cardLockRequestIsLoading ? "Sending OTP..." : "Send verification code"}
+                {cardLockRequestIsLoading ? "Sending OTP..." : "Send Verification Code"}
               </Button>
             )}
             {cardLockIsSent && cardLockRequestIsLoading && <CircularProgress></CircularProgress>}

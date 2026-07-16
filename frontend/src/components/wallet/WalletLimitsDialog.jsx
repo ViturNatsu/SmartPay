@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { tokens } from "@/style/Theme.jsx";
 import {
   Alert,
   Box,
@@ -205,15 +206,15 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 width: 82,
                 height: 82,
                 borderRadius: "999px",
-                bgcolor: "#DCFCE7",
-                color: "#15803D",
+                bgcolor: tokens.color.status.successBg,
+                color: tokens.color.status.success,
                 display: "grid",
                 placeItems: "center",
                 mx: "auto",
                 mb: 2.75,
                 fontSize: 42,
                 fontWeight: 900,
-                border: "1px solid #86EFAC",
+                border: `1px solid ${tokens.color.status.successBorder}`,
                 }}
             >
                 ✓
@@ -223,7 +224,7 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 Wallet Limits Saved
             </Typography>
 
-            <Typography sx={{ color: "#475569", fontSize: 14, mb: 3.5 }}>
+            <Typography sx={{ color: tokens.color.text.secondary, fontSize: 14, mb: 3.5 }}>
                 Your wallet-level daily spending limit and per-transaction limit
                 have been saved successfully.
             </Typography>
@@ -234,8 +235,8 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 sx={{
                 textTransform: "none",
                 fontWeight: 800,
-                bgcolor: "#0F7490",
-                "&:hover": { bgcolor: "#0A5A70" },
+                bgcolor: tokens.color.brand.primary,
+                "&:hover": { bgcolor: tokens.color.brand.primaryHover },
                 }}
             >
                 Return to Wallet
@@ -260,18 +261,18 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             </DialogTitle>
 
             <DialogContent>
-                <Typography sx={{ color: "#475569", fontSize: 13, mb: 2 }}>
+                <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13, mb: 2 }}>
                 Wallet / Wallet Limits / Review
                 </Typography>
 
-                <Typography sx={{ color: "#64748B", mb: 3 }}>
+                <Typography sx={{ color: tokens.color.text.subdued, mb: 3 }}>
                 Review the wallet-level spending limits before saving them.
                 </Typography>
 
                 <Box
                 sx={{
                     mt: 2,
-                    border: "1px solid #E2E8F0",
+                    border: `1px solid ${tokens.color.border.light}`,
                     borderRadius: 2,
                     overflow: "hidden",
                 }}
@@ -291,11 +292,11 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                         gap: 2,
                         px: 2.25,
                         py: 2,
-                        borderBottom: "1px solid #EEF2F3",
+                        borderBottom: `1px solid ${tokens.color.border.dividerSoft}`,
                         "&:last-child": { borderBottom: 0 },
                     }}
                     >
-                    <Typography sx={{ color: "#475569", fontWeight: 700 }}>
+                    <Typography sx={{ color: tokens.color.text.secondary, fontWeight: 700 }}>
                         {label}
                     </Typography>
                     <Typography sx={{ fontWeight: 900, textAlign: "right" }}>
@@ -323,8 +324,8 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                     sx={{
                     textTransform: "none",
                     fontWeight: 800,
-                    bgcolor: "#0F7490",
-                    "&:hover": { bgcolor: "#0A5A70" },
+                    bgcolor: tokens.color.brand.primary,
+                    "&:hover": { bgcolor: tokens.color.brand.primaryHover },
                     }}
                 >
                     Confirm Limits
@@ -348,11 +349,11 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
       </DialogTitle>
 
       <DialogContent>
-        <Typography sx={{ color: "#475569", fontSize: 13, mb: 2 }}>
+        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13, mb: 2 }}>
             Wallet / Wallet Limits
         </Typography>
 
-        <Typography sx={{ color: "#64748B", mb: 3, lineHeight: 1.5 }}>
+        <Typography sx={{ color: tokens.color.text.subdued, mb: 3, lineHeight: 1.5 }}>
             Set daily and per-transaction limits that apply across the entire SmartPay
             wallet, regardless of linked bank accounts, cards, or funding sources.
         </Typography>
@@ -369,11 +370,11 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: "#E5F5FA",
-                border: "1px solid #B2DDE8",
+                bgcolor: tokens.color.brand.primaryLight,
+                border: `1px solid ${tokens.color.brand.primaryMid}`,
             }}
             >
-            <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+            <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Wallet Balance
             </Typography>
             <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -385,11 +386,11 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: "#F5F7FA",
-                border: "1px solid #E2E8F0",
+                bgcolor: tokens.color.background.app,
+                border: `1px solid ${tokens.color.border.light}`,
             }}
             >
-            <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+            <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Daily Usage Today
             </Typography>
             <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -401,11 +402,11 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             sx={{
                 borderRadius: 2,
                 p: 2,
-                bgcolor: "#F5F7FA",
-                border: "1px solid #E2E8F0",
+                bgcolor: tokens.color.background.app,
+                border: `1px solid ${tokens.color.border.light}`,
             }}
             >
-            <Typography sx={{ color: "#475569", fontSize: 12, fontWeight: 800, mb: 0.75 }}>
+            <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, fontWeight: 800, mb: 0.75 }}>
                 Funding Sources
             </Typography>
             <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
@@ -422,16 +423,16 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 alignItems: "center",
                 gap: 2,
                 p: 2,
-                border: "1px solid #E2E8F0",
+                border: `1px solid ${tokens.color.border.light}`,
                 borderRadius: 2,
-                bgcolor: "#F8FAFC",
+                bgcolor: tokens.color.brand.primaryBackground,
             }}
             >
             <Box>
                 <Typography sx={{ fontWeight: 900, fontSize: 14 }}>
                 Daily Spending Limit
                 </Typography>
-                <Typography sx={{ color: "#64748B", fontSize: 12, mt: 0.5 }}>
+                <Typography sx={{ color: tokens.color.text.subdued, fontSize: 12, mt: 0.5 }}>
                 Applies to total outgoing wallet transactions per calendar day.
                 </Typography>
             </Box>
@@ -479,16 +480,16 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 alignItems: "center",
                 gap: 2,
                 p: 2,
-                border: "1px solid #E2E8F0",
+                border: `1px solid ${tokens.color.border.light}`,
                 borderRadius: 2,
-                bgcolor: "#F8FAFC",
+                bgcolor: tokens.color.brand.primaryBackground,
             }}
             >
             <Box>
                 <Typography sx={{ fontWeight: 900, fontSize: 14 }}>
                 Per-Transaction Limit
                 </Typography>
-                <Typography sx={{ color: "#64748B", fontSize: 12, mt: 0.5 }}>
+                <Typography sx={{ color: tokens.color.text.subdued, fontSize: 12, mt: 0.5 }}>
                 Applies to any single outgoing wallet transaction.
                 </Typography>
             </Box>
@@ -588,8 +589,8 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 sx={{
                 textTransform: "none",
                 fontWeight: 800,
-                bgcolor: "#0F7490",
-                "&:hover": { bgcolor: "#0A5A70" },
+                bgcolor: tokens.color.brand.primary,
+                "&:hover": { bgcolor: tokens.color.brand.primaryHover },
                 }}
             >
                 Review Limits

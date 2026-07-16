@@ -5,6 +5,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;

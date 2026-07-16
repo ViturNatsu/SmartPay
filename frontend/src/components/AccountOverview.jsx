@@ -3,6 +3,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { Card, Stack, Typography, ButtonBase, Avatar } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import { getUserAccounts } from "@/api/accounts/accountApi";
+import {tokens} from "../style/Theme"
 
 function AccountOverview() {
     const { tokenClaims, loading: authLoading } = useAuth();
@@ -45,9 +46,10 @@ function AccountOverview() {
             elevation={0}
             sx={{
                 width: "100%",
-                bgcolor: "#fff",
+                bgcolor: tokens.color.background.surface,
                 borderRadius: "16px",
-                border: "1px solid #E5E7EB",
+                border: "1px solid ",
+                borderColor: tokens.color.border.light,
                 p: 3,
                 boxSizing: "border-box",
                 overflow: "hidden",
@@ -56,7 +58,10 @@ function AccountOverview() {
             <Typography
                 variant="h6"
                 mb="20px"
-                sx={{ borderBottom: "1px solid #000000" }}
+                sx={{
+                        borderBottom: "1px solid",
+                        borderBottomColor: tokens.color.underline.dark
+                    }}
             >
                 Account Overview
             </Typography>
@@ -67,13 +72,15 @@ function AccountOverview() {
                         direction="row"
                         justifyContent="space-between"
                         alignItems="center"
-                        sx={{ bgcolor: "#F9FAFB", borderRadius: "12px", p: 2 }}
+                        sx={{
+                            bgcolor: tokens.color.background.stack,
+                            borderRadius: "12px", p: 2 }}
                     >
                         <Stack>
-                            <Typography sx={{ color: "#4B5563" }}>
+                            <Typography sx={{color: tokens.color.text.secondary}}>
                                 {account.type}
                             </Typography>
-                            <Typography sx={{ color: "#6B7280" }}>
+                            <Typography sx={{ color: tokens.color.text.secondary}}>
                                 {account.number}
                             </Typography>
                         </Stack>
@@ -99,9 +106,9 @@ function AccountOverview() {
                                     color:
                                         account.type !== "Credit Card"
                                             ? account.other > 0
-                                                ? "#16A34A"
-                                                : "#DC2626"
-                                            : "#6B7280",
+                                                ? tokens.color.text.number.positive
+                                                : tokens.color.text.number.negative
+                                            : tokens.color.text.number.neutral,
                                     fontWeight: "light",
                                 }}
                             >

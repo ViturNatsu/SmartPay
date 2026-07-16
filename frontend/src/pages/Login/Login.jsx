@@ -21,6 +21,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { login } from "@/api/authApi";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
+import { tokens } from "@/style/Theme";
 
 export const Login = () => {
   const location = useLocation();
@@ -137,7 +138,7 @@ export const Login = () => {
           justifyContent: "center",
           px: { xs: 3, md: 8 },
           py: { xs: 6, md: 0 },
-          bgcolor: "white",
+          bgcolor: tokens.color.background.surface,
         }}
       >
         <Box sx={{ width: "100%", maxWidth: "100%" }}>
@@ -199,7 +200,7 @@ export const Login = () => {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <MailIcon sx={{ color: "rgba(15, 23, 42, 0.45)" }} />
+                        <MailIcon sx={{ color: tokens.color.text.titleMuted }} />
                       </InputAdornment>
                     ),
                   },
@@ -259,20 +260,23 @@ export const Login = () => {
                     startAdornment: (
                       <InputAdornment position="start">
                         <PasswordIcon
-                          sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                          sx={{ color: tokens.color.text.titleMuted }}
                         />
                       </InputAdornment>
                     ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
+                          type="button"
                           edge="end"
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => setShowPassword((prev) => !prev)}
                           aria-label={
                             showPassword ? "Hide password" : "Show password"
                           }
-                          sx={{ color: "rgba(15, 23, 42, 0.45)" }}
+                          aria-pressed={showPassword}
+                          title={showPassword ? "Hide password" : "Show password"}
+                          sx={{ color: tokens.color.text.titleMuted }}
                         >
                           {showPassword ? (
                             <VisibilityOffIcon />
@@ -311,7 +315,7 @@ export const Login = () => {
                   textTransform: "none",
                   fontWeight: 700,
                   mb: 2,
-                  boxShadow: "0 10px 24px rgba(37, 99, 235, 0.25)",
+                  boxShadow: tokens.shadow.linkButton,
                 }}
               >
                 {isLoading ? "Signing In..." : "Sign In"}

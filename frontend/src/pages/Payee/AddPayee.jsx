@@ -18,6 +18,7 @@ import { addPayee } from "../../api/payee/payeeApi";
 import SuccessCard from "../../components/SuccessCard";
 import { useNavigate } from "react-router-dom";
 
+import { tokens } from "@/style/Theme.jsx";
 const AddPayee = () => {
   const navigate = useNavigate();
   const [recipientName, setRecipientName] = useState("");
@@ -84,7 +85,7 @@ const AddPayee = () => {
     <div>
       <Navbar />
 
-      <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", py: 4 }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
         {!payeeSaved ? (
           <Container maxWidth="md">
             <Stack spacing={3}>
@@ -101,7 +102,7 @@ const AddPayee = () => {
               <Card
                 sx={{
                   borderRadius: 2,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  boxShadow: tokens.shadow.smallDark,
                 }}
               >
                 <CardContent
@@ -214,20 +215,19 @@ const AddPayee = () => {
                             minWidth: "111px",
                            
 
-                            boxShadow:
-                              "0px 10px 20px rgba(149, 145, 145, 0.13)",
+                            boxShadow: tokens.shadow.grey,
                             "&:hover": {
-                              boxShadow: "0 10px 20px rgba(149, 145, 145, 0.3)",
+                              boxShadow: tokens.shadow.greyHover,
                             },
                             borderRadius: "12px",
-                            border: "1px solid #d1d5db",
+                            border: `1px solid ${tokens.color.border.grayLight}`,
                           }}
                         >
                           <Typography
                             variant="subtitle"
                             sx={{
                               fontWeight: 750,
-                              color: "black",
+                              color: tokens.color.text.black,
                               textTransform: "none",
                             }}
                           >
@@ -241,9 +241,9 @@ const AddPayee = () => {
                             height: 44,
                             minWidth: "111px",
                             background:
-                              "linear-gradient(135deg, #008c99, #00a8b5)",
+                              tokens.color.button.gradientBg,
 
-                            boxShadow: "0 10px 20px rgba(0, 151, 167, .16)",
+                            boxShadow: tokens.shadow.cyan,
                             borderRadius: "12px",
                           }}
                         >

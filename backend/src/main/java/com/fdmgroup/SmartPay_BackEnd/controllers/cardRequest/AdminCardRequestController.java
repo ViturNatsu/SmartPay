@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/card-request/admin")
-public class CardRequestController {
+@RequestMapping("/api/v1/card-request/admin")
+public class AdminCardRequestController {
 
     private final CardRequestService cardRequestService;
 
-    public CardRequestController(CardRequestService cardRequestService) {
+    public AdminCardRequestController(CardRequestService cardRequestService) {
         this.cardRequestService = cardRequestService;
     }
 

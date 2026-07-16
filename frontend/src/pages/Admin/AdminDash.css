@@ -11,8 +11,8 @@
 }
 
 .btn-primary {
-  background-color: #007bff;
-  color: #fff;
+  background-color: var(--sp-link-primary);
+  color: var(--sp-text-white);
   border: none;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -30,13 +30,13 @@
 .form-container input,
 .form-container select {
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--sp-border-legacy);
   border-radius: 4px;
 }
 
 .form-container .btn-submit {
-  background-color: #28a745;
-  color: #fff;
+  background-color: var(--sp-status-success);
+  color: var(--sp-text-white);
   border: none;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -50,27 +50,27 @@
 
 .accounts-table th,
 .accounts-table td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--sp-border-medium-gray);
   padding: 0.75rem;
   text-align: left;
 }
 
 .accounts-table th {
-  background-color: #f8f9fa;
+  background-color: var(--sp-background-light-gray);
 }
 
 .status {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  color: #fff;
+  color: var(--sp-text-white);
   font-size: 0.9rem;
 }
 
 .status.active {
-  background-color: #28a745;
+  background-color: var(--sp-status-success);
 }
 .status.inactive {
-  background-color: #dc3545;
+  background-color: var(--sp-status-error);
 }
 
 .btn-edit,
@@ -82,8 +82,8 @@
 }
 
 .btn-edit {
-  color: #007bff;
+  color: var(--sp-link-primary);
 }
 .btn-delete {
-  color: #dc3545;
+  color: var(--sp-status-error);
 }

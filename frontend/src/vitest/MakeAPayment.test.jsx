@@ -243,11 +243,13 @@ describe("MakeAPayment — Step 2: Amount & Memo Validation", () => {
 });
 
 describe("MakeAPayment — Step 3: Review Screen", () => {
-  it("shows all 5 required fields on review screen", async () => {
+  it("shows all required fields on review screen", async () => {
     const user = userEvent.setup();
     render(<AppHarness />);
     await goToReviewScreen(user);
 
+    expect(screen.getByText("Payment Type")).toBeInTheDocument();
+    expect(screen.getByText("SmartPay Wallet Transfer")).toBeInTheDocument();
     expect(screen.getByText("Send From")).toBeInTheDocument();
     expect(screen.getByText("Send To")).toBeInTheDocument();
     expect(screen.getByText("Transfer Amount")).toBeInTheDocument();

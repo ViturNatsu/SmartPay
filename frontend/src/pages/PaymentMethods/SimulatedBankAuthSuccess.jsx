@@ -7,9 +7,7 @@ import {handleAxiosError} from "@/api/axios.js";
 import {Alert, Box, Card, CardContent, Snackbar, Stack, Typography} from "@mui/material";
 import {batchCreatePaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
-import {blueGrey} from "@mui/material/colors";
-
-
+import { tokens } from "@/style/Theme.jsx";
 function SimulatedBankAuthSuccess() {
   const {tokenClaims} = useAuth();
   const navigate = useNavigate();
@@ -113,8 +111,8 @@ function SimulatedBankAuthSuccess() {
           justifyContent="space-between"
           alignItems="center"
           sx={{ bgcolor: disabled
-                  ? "#caccce"
-                  : selectedAccounts.includes(account.accountNumberDigest) ? "#DFF6F8" : "#F9FAFB" ,
+                  ? tokens.color.background.disabled
+                  : selectedAccounts.includes(account.accountNumberDigest) ? tokens.color.background.selected : tokens.color.background.stack ,
               borderRadius: "12px",
               p: 2,
               margin:2,
@@ -126,10 +124,10 @@ function SimulatedBankAuthSuccess() {
 
       >
       <Stack>
-          <Typography sx={{ color: "#4B5563" }}>
+          <Typography sx={{ color: tokens.color.text.secondary }}>
               {account.accountName}
           </Typography>
-          <Typography sx={{ color: "#6B7280" , textAlign: "left"}}>
+          <Typography sx={{ color: tokens.color.text.number.neutral , textAlign: "left"}}>
               {account.accountNumber.substring(2)}
           </Typography>
       </Stack>
@@ -147,7 +145,7 @@ function SimulatedBankAuthSuccess() {
             //ref={topOfDisplayRef}
             sx={{
                 borderRadius: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                boxShadow: tokens.shadow.small,
             }}
         >
             <CardContent sx={{ p: 3 }}>
@@ -184,7 +182,7 @@ function SimulatedBankAuthSuccess() {
                                 variant="contained"
                                 onClick={() => {navigate("/payment-methods")}}
                                 sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" },
-                                    bgcolor: blueGrey[400] }}
+                                    bgcolor: tokens.color.text.muted }}
                             >
                                 Cancel
                             </Button>
@@ -207,9 +205,9 @@ function SimulatedBankAuthSuccess() {
             elevation={0}
             sx={{
                 width: "100%",
-                bgcolor: "#fff",
+                bgcolor: tokens.color.background.surface,
                 borderRadius: "16px",
-                border: "1px solid #E5E7EB",
+                border: `1px solid ${tokens.color.border.gray}`,
                 p: 3,
                 boxSizing: "border-box",
                 overflow: "hidden",

@@ -31,6 +31,7 @@ import LinkBankAccount from "../pages/PaymentMethods/LinkBankAccount";
 import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthSuccess";
 import AddUser from "../pages/Admin/AddUser";
 import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
+import RecurringPayments from "@/pages/Navbar/RecurringPayments";
 
 
 export default function AppRoutes() {
@@ -63,6 +64,7 @@ export default function AppRoutes() {
         <Route path="/make-a-payment" element={<MakeAPayment />} />
         <Route path="/add-payee" element={<AddPayee />} />
         <Route path="/payees" element={<PayeeList />} />
+        <Route path="/recurring-payments" element={<RecurringPayments />} />
         <Route
           path="/simulatedbankauth/:selectedBank"
           element={<SimulatedBankAuthorization />}

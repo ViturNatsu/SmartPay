@@ -1,7 +1,11 @@
 package com.fdmgroup.SmartPay_BackEnd.services.cardRequest;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.EventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.GenerateStringsHelper;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CardRequestResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.cardRequest.CreateCardRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
@@ -12,9 +16,12 @@ import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundEx
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,9 +31,11 @@ import java.util.List;
 public class CardRequestServiceImpl implements CardRequestService {
     private final CardRequestRepository cardRequestRepository;
     private final CardRepository cardRepository;
+    private final OtpService otpService;
 
     @Autowired
     private GenerateStringsHelper helper;
+
 
 
     /**
@@ -175,5 +184,86 @@ public class CardRequestServiceImpl implements CardRequestService {
                 cardRequest.getRequestReason(),
                 cardRequest.getDenyReason()
         );
+    }
+
+    /**
+     * request for OTP verification for card regeneration
+     */
+    @Override
+    public void requestNewCardOtp(User user, HttpServletRequest httpRequest) {
+        // check whether user is eligible before sending OTP
+        Card card = getCardForUser(user);
+        validateNewCardRequestEligibility(user, card);
+
+        otpService.requestOtp(
+                user.getEmail(),
+                EventType.REQUEST_NEW_CARD,
+                httpRequest
+        );
+    }
+
+    /**
+     * Verify a card regenerate request and save it in database
+     * @param user, createCardRequestDTO, HttpServletRequest
+     * @return The CardRequestResponseDTO which is the
+     */
+    @Override
+    @Transactional
+    public CardRequestResponseDTO createNewCardRequest(User user, CreateCardRequestDTO dto, HttpServletRequest httpRequest) {
+        if (!dto.isConfirmed()) {
+            throw new InvalidCardRequestStatusException("User must confirm before requesting a new card");
+        }
+
+        Card card = getCardForUser(user);
+        validateNewCardRequestEligibility(user, card);
+
+        Otp otpEntity = otpService.verifyOtp(new OtpDTO(user.getEmail(), dto.getAccessCode(),
+                EventType.REQUEST_NEW_CARD), httpRequest);
+
+        //when making regenerate request, the card is automatically locked
+        card.setStatus(CardStatus.LOCKED);
+        cardRepository.save(card);
+
+        CardRequest cardRequest = new CardRequest();
+        cardRequest.setUser(user);
+        cardRequest.setCard(card);
+        cardRequest.setRequestStatus(RequestStatus.PENDING);
+        cardRequest.setRequestCreatedAt(LocalDateTime.now());
+        // no request reason input text form on the wireframe, so set this to default reason for now
+        cardRequest.setRequestReason("Card details is compromised");
+        CardRequest savedRequest = cardRequestRepository.save(cardRequest);
+
+        otpEntity.markAsUsed();
+        otpService.save(otpEntity);
+
+        return mapToDto(savedRequest);
+    }
+
+    /**
+     * helper method to get card for user
+     * @param user the user who owns the card
+     * @return the card linked to user
+     */
+    private Card getCardForUser(User user) {
+        return cardRepository.findCardByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Card not found for user"));
+    }
+
+    /**
+     * helper method to check if this user is valid to make card regenerate request
+     * @param user, card
+     */
+    private void validateNewCardRequestEligibility(User user, Card card) {
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+
+        long requestCount = cardRequestRepository.countByUserAndRequestCreatedAtAfter(user, oneYearAgo);
+        if (requestCount >= 4) {
+            throw new CardRequestLimitExceededException("User has exceeded the limit of 4 requests per year");
+        }
+
+        boolean hasPendingRequest = cardRequestRepository.existsByCardAndRequestStatus(card, RequestStatus.PENDING);
+        if (hasPendingRequest) {
+            throw new InvalidCardRequestStatusException("A pending card request already exists");
+        }
     }
 }

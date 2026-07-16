@@ -79,7 +79,7 @@ public class Otp {
 
     public int getLimit() {
         return switch (this.otpType) {
-            case FORGOT_PASSWORD, CARD_LOCK, CARD_UNLOCK, REVEAL_CARD -> 5;
+            case FORGOT_PASSWORD, CARD_LOCK, CARD_UNLOCK, REVEAL_CARD, REQUEST_NEW_CARD -> 5;
             case REGISTER -> 3;
             case LOGIN -> 10;
             default -> throw new IllegalStateException("No OTP limit for type: " + this.otpType);
@@ -97,6 +97,7 @@ public class Otp {
             case LOGIN -> 5;
             case REVEAL_CARD -> 5;
             case CARD_LOCK, CARD_UNLOCK -> 10;
+            case REQUEST_NEW_CARD -> 10;
             default -> throw new IllegalStateException("No OTP expiry for type: " + this.otpType);
         };
     }
@@ -115,6 +116,7 @@ public class Otp {
             case REVEAL_CARD -> "Verify your SmartPay card access";
             case CARD_LOCK -> "Lock your card";
             case CARD_UNLOCK -> "Unlock your card";
+            case REQUEST_NEW_CARD -> "Verify your SmartPay card replacement request";
             default -> throw new IllegalStateException("No email subject for type: " + this.otpType);
         });
         String template = """
@@ -133,6 +135,8 @@ public class Otp {
                 template.formatted("Card Details Access", frontendUrl, this.email, "reveal-card", code);
             case CARD_LOCK -> getCardLockTemplate().formatted("Card Lock", frontendUrl, code, this.otpType);
             case CARD_UNLOCK -> getCardLockTemplate().formatted("Card Unlock", frontendUrl, code, this.otpType);
+            case REQUEST_NEW_CARD ->
+                    template.formatted("New Virtual Card Request", frontendUrl, this.email, "request-new-card", code);
             default -> throw new IllegalStateException("No email body for type: " + this.otpType);
         }
                 + "\nYour verification code is: " + code + "\n\n"

@@ -43,6 +43,8 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -325,6 +327,26 @@ public class GlobalExceptionHandler {
         @ExceptionHandler
         public ResponseEntity<ExceptionShapeDTO> handleCardLockActionsRequiresUserRole(CardLockActionsRequiresUserRoleException ex) {
                 return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
+        }
+
+        //US 11-01-16
+        @ExceptionHandler(WalletTransactionNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleWalletTransactionNotFound(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "404");
+                errorBody.put(ERROR, "Wallet Transaction id not found!");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        //US 11-01-16
+        @ExceptionHandler(WalletTransactionForbiddenAccessException.class)
+        public ResponseEntity<Map<String, String>> WalletTransactionForbiddenAccessException(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "Wallet Transaction does not belong to User's Wallet.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         /**

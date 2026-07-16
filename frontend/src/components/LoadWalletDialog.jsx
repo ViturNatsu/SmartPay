@@ -23,6 +23,7 @@ import {
   primaryButtonSx,
   secondaryButtonSx,
 } from "@/components/wallet/walletTheme";
+import {tokens} from "../style/Theme.jsx";
 
 const REVIEW_ALERT_SLOT_MIN_HEIGHT = 52;
 
@@ -174,7 +175,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
             >
               Load Wallet
             </Typography>
-            <Typography sx={{ color: "#334155", fontSize: 15, lineHeight: 1.5 }}>
+            <Typography sx={{ color: tokens.color.text.primary , fontSize: 15, lineHeight: 1.5 }}>
               Transfer money from a linked bank account into your SmartPay wallet balance.
             </Typography>
 
@@ -190,7 +191,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                 sx={{
                   borderRadius: "14px",
                   p: 2,
-                  bgcolor: "#f7fafb",
+                  bgcolor: tokens.color.background.stack,
                   border: `1px solid ${WALLET_COLORS.border}`,
                 }}
               >
@@ -207,7 +208,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                 sx={{
                   borderRadius: "14px",
                   p: 2,
-                  bgcolor: "#f7fafb",
+                  bgcolor: tokens.color.background.stack,
                   border: `1px solid ${WALLET_COLORS.border}`,
                 }}
               >
@@ -231,14 +232,18 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
               </Box>
             ) : (
               <Box sx={{ mt: 2 }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 800, mb: 1, color: "#334155" }}>
+                <Typography sx={{
+                  fontSize: tokens.typography.fontSize.extraSmall,
+                  fontWeight: tokens.typography.fontWeight.extrabold,
+                  mb: 1,
+                  color: tokens.color.text.primary }}>
                   Load Funds From
                 </Typography>
                 <Select
                   fullWidth
                   value={selectedId}
                   onChange={(e) => setSelectedId(e.target.value)}
-                  sx={{ height: 48, borderRadius: "12px", bgcolor: "#fff" }}
+                  sx={{ height: 48, borderRadius: "12px", bgcolor: tokens.color.background.stack }}
                 >
                   {paymentMethods.map((pm) => (
                     <MenuItem key={pm.paymentMethodId} value={String(pm.paymentMethodId)}>
@@ -250,7 +255,13 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                   Only verified linked payment methods should appear here.
                 </Typography>
 
-                <Typography sx={{ fontSize: 13, fontWeight: 800, mb: 1, mt: 2.25, color: "#334155" }}>
+                <Typography sx={{
+                  fontSize: tokens.typography.fontSize.extraSmall,
+                  fontWeight: 800,
+                  mb: 1,
+                  mt: 2.25,
+                  color: tokens.color.text.primary
+                }}>
                   Load Amount
                 </Typography>
                 <TextField
@@ -297,7 +308,10 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
             >
               Confirm Wallet Load
             </Typography>
-            <Typography sx={{ color: "#334155", fontSize: 15, lineHeight: 1.5 }}>
+            <Typography sx={{
+              color: tokens.color.text.primary,
+              fontSize: tokens.typography.fontSize.small,
+              lineHeight: 1.5 }}>
               Review the wallet funding details before transferring money into your SmartPay wallet.
             </Typography>
 
@@ -321,7 +335,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                     display: "flex",
                     justifyContent: "space-between",
                     p: "12px 14px",
-                    borderBottom: index < rows.length - 1 ? "1px solid #eef2f3" : "none",
+                    borderBottom: index < rows.length - 1 ? "1px solid " + tokens.color.border.light : "none",
                     fontSize: 14,
                   }}
                 >

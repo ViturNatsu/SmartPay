@@ -17,14 +17,18 @@ import {
   Container,
   Button,
   AlertTitle,
+  TextField
 } from "@mui/material";
 
 import TransactionFilterBar from "../../components/table/TransactionFilterBar";
+import CustomNoRowsOverlay from "../../components/table/CustomNoRowOverlay";
 import { WalletActivityTable } from "@/components/transactions/WalletActivityTable";
 import { filterTransactions } from "../../utils/transactionUtils";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
+import { getMerchantPayee } from "@/utils/walletTransactionFormatters";
 import { tokens } from "@/style/Theme";
+import { updateTransactionFavourite } from "@/api/wallets/walletApi";
 
 const TRANSACTION_LIMIT = 25;
 
@@ -42,6 +46,9 @@ export function Transactions() {
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -57,7 +64,7 @@ export function Transactions() {
       setDataLoading(true);
       setError(null);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT);
+        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
         if (!cancelled) setRawTransactions(data);
       } catch (err) {
         if (!cancelled) setError(err.message ?? "Failed to load transactions");
@@ -68,10 +75,11 @@ export function Transactions() {
 
     loadTransactions();
 
+
     return () => {
       cancelled = true;
     };
-  }, [authLoading, tokenClaims?.userId, retryCount]);
+  }, [authLoading, tokenClaims?.userId, retryCount, activeFilter]);
 
   const rows = useMemo(
     () => filterTransactions(rawTransactions, activeFilter),
@@ -90,6 +98,52 @@ export function Transactions() {
     // Carry the active filter into the details page so Back can restore it
     navigate(`/transactions/${tx.transactionId}?filter=${encodeURIComponent(activeFilter)}`);
   };
+
+
+  const handleFavouriteToggle = async (transactionId) => {
+    // Find the current transaction
+    const transaction = rawTransactions.find((tx) => tx.transactionId === transactionId);
+
+    if (!transaction) {
+      return;
+    }
+
+    const newFavourite = !transaction.favourite;
+    setRawTransactions((prev) =>
+      prev.map((tx) =>
+        tx.transactionId === transactionId ? { ...tx, favourite: newFavourite } : tx
+      )
+    );
+
+    try {
+      const updatedTransaction = await updateTransactionFavourite(tokenClaims.userId, transactionId, newFavourite);
+
+      // Replace optimistic transaction with backend response
+      setRawTransactions((prev) =>
+        prev.map((tx) =>
+          tx.transactionId === updatedTransaction.transactionId ? updatedTransaction : tx
+        )
+      );
+    } catch (err) {
+      setRawTransactions((prev) =>
+        prev.map((tx) =>
+          tx.transactionId === transactionId ? { ...tx, favourite: transaction.favourite } : tx
+        )
+      );
+
+      console.error("Failed to update favourite:", err);
+    }
+  };
+
+
+  const filteredRows = rows.filter((tx) => {
+    const merchant = getMerchantPayee(tx);
+
+    return merchant
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+  });
+
 
   return (
     <>
@@ -118,6 +172,17 @@ export function Transactions() {
             {/* Filter Bar */}
             <TransactionFilterBar activeFilter={activeFilter} onChange={handleFilterChange} />
 
+
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search by merchant..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ mt: 2, mb: 2 }}
+            />
+
+
             {/* Error Retry button */}
             {error && (
               <Alert
@@ -139,20 +204,33 @@ export function Transactions() {
               </Alert>
             )}
 
+
+
             {dataLoading || authLoading ? (
               <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                 <CircularProgress size={28} />
               </Box>
-            ) : !error && rows.length === 0 ? (
-              <Typography sx={{ fontSize: 14, color: tokens.color.text.muted }}>
-                No transactions found
-              </Typography>
+            ) : !error && filteredRows.length === 0 ? (
+              <Box sx={{ height: 160 }}>
+<Box sx={{ height: 160 }}>
+  {searchQuery ? (
+    <Typography
+      align="center"
+      sx={{ mt: 6, color: tokens.color.text.muted }}
+    >
+      No matching transactions found.
+    </Typography>
+  ) : (
+    <CustomNoRowsOverlay />
+  )}
+</Box>              </Box>
             ) : (
               !error && (
                 <WalletActivityTable
-                  transactions={rows}
+                  transactions={filteredRows}
                   selectedId={selectedId}
                   onSelect={handleSelect}
+                  onFavouriteToggle={handleFavouriteToggle}
                 />
               )
             )}

@@ -9,12 +9,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.RailType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
@@ -140,5 +142,17 @@ class WalletTransferServiceTest {
     @Test
     void transfer_worksWithNullMemo() {
         assertDoesNotThrow(() -> walletService.transfer(1L, 2L, 10.00, null));
+    }
+
+    @Test
+    void transfer_recordsWalletTransferRailForSenderAndRecipientTransactions() {
+        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+
+        ArgumentCaptor<WalletTransaction> transactionCaptor =
+                ArgumentCaptor.forClass(WalletTransaction.class);
+        verify(walletTransactionRepository, times(2)).save(transactionCaptor.capture());
+
+        assertTrue(transactionCaptor.getAllValues().stream()
+                .allMatch(tx -> tx.getRailType() == RailType.WALLET_TRANSFER));
     }
 }
