@@ -192,7 +192,7 @@ export const tokens = {
 
   layout: {
     pagePadding: 3,
-    sectionGap: 3,
+    sectionGap: 4,
     cardGap: 2,
   },
 
