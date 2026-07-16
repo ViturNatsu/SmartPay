@@ -26,10 +26,12 @@ const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
 const BILLS_EMPTY_MESSAGE = "No bills found.";
 const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
+const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
 export default function RecurringPayments() {
   const {activeTab, handleTabChange} = useRecurringPaymentsTab();
 
+  const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
@@ -180,11 +182,17 @@ export default function RecurringPayments() {
     formData.schedule &&
     formData.date;
 
+  const filteredSubscriptions = useMemo(
+    () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
+    [subscriptions, subscriptionsSearchQuery],
+  );
+
   const filteredPayees = useMemo(
     () => filterItemsByName(payees, billsSearchQuery),
     [payees, billsSearchQuery],
   );
 
+  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
 
   return (
@@ -233,17 +241,15 @@ export default function RecurringPayments() {
               )}
             </Stack>
 
-            {activeTab === "subscriptions" &&
-              (subscriptions.length === 0 ? (
-                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-              ) : (
-                subscriptions.map(subscription => (
-                  <RecurringSubscriptionCard
-                    key={subscription.id}
-                    subscription={subscription}
-                  />
-                ))
-              ))}
+            {activeTab === "subscriptions" && (
+              <RecurringPaymentsSearchBar
+                value={subscriptionsSearchQuery}
+                onChange={e => setSubscriptionsSearchQuery(e.target.value)}
+                onClear={() => setSubscriptionsSearchQuery("")}
+                placeholder="Search by subscription name..."
+                aria-label="Search subscriptions"
+              />
+            )}
 
             {activeTab === "bills" && (
               <RecurringPaymentsSearchBar
@@ -254,6 +260,20 @@ export default function RecurringPayments() {
                 aria-label="Search bill payees"
               />
             )}
+
+            {activeTab === "subscriptions" &&
+              (subscriptions.length === 0 ? (
+                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+              ) : filteredSubscriptions.length === 0 && hasSubscriptionsSearch ? (
+                <RecurringEmptyState message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE} />
+              ) : (
+                filteredSubscriptions.map(subscription => (
+                  <RecurringSubscriptionCard
+                    key={subscription.id}
+                    subscription={subscription}
+                  />
+                ))
+              ))}
 
             {activeTab === "bills" && showForm && (
               <LocalizationProvider dateAdapter={AdapterDayjs}>
