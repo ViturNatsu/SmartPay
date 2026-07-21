@@ -250,16 +250,6 @@ public class DataBaseInitializer {
                 // Removed: testTD1 already linked to testUser1 via @OneToOne — can't link same account to testUser2
 
             }
-
-            if(cardRequestRepository.findById(1L).orElse(null) == null) {
-                CardRequest cardRequest = new CardRequest();
-                cardRequest.setCard(cardRepository.findById(1l).orElse(null));
-                cardRequest.setUser(userRepository.findById(3L).orElse(null));
-                cardRequest.setRequestCreatedAt(LocalDateTime.now(ZoneId.systemDefault()));
-                cardRequest.setRequestReason("Mock Request");
-                cardRequest.setRequestStatus(RequestStatus.PENDING);
-                cardRequestRepository.save(cardRequest);
-            }
         };
     }
 }
