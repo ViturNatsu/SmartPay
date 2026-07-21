@@ -28,12 +28,12 @@ import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
  *
  * // Usage in a component
  *
- * const { handleOtpRequest } = useCardLockOtpRequest();
+ * const otpRequestObject = useCardLockOtpRequest();
  *
  * const payload = ({example: example});
  *
  * return (
- *   <Button onClick={()=>{handleOtpRequest(payload)}}>
+ *   <Button onClick={otpRequestObject.handlers.handleOtpRequest(object)}>
  *     Lock Card
  *   </Button>
  * );
