@@ -13,15 +13,7 @@ import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
  * @param {Object} params
  * @param {Function} params.requestAPI - Function used to send the OTP request.
  *
- * @returns {{
- *   handleOtpRequest: Function,
- *   handleResend: Function,
- *   timeLeft: number,
- *   isSent: boolean,
- *   loading: boolean,
- *   error: (string|null),
- *   reset: Function
- * }} OTP request handlers and state.
+ * @returns {{handlers: {handleOtpRequest: function(*): Promise<*>, handleResend: function(): Promise<undefined|*>, handleMockOtpRequest: function(*): Promise<void>, reset: function(): void}, state: {timeLeft: number, isSent: boolean, isRequesting: boolean, error: string}}} OTP request handlers and state.
  *
  * @example Create a specialized OTP hook by composing `useOtpRequest`.
  *
@@ -50,7 +42,7 @@ import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
 export const useOtpRequest = ({requestAPI} = {}) => {
 
   const [isSent, setIsSent] = useState(false);
-  const [requesting, setRequesting] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState("");
   const lastRequestRef = useRef(null);
 
@@ -61,7 +53,7 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   } = useCountdownTimer(30);
 
   const makeOtpRequest = async (payload) => {
-    setRequesting(true);
+    setIsRequesting(true);
     setError(null);
 
     try {
@@ -73,7 +65,7 @@ export const useOtpRequest = ({requestAPI} = {}) => {
       setError(err?.response?.data?.message || err.message || "Something went wrong");
       throw err;
     } finally {
-      setRequesting(false);
+      setIsRequesting(false);
     }
   };
 
@@ -90,7 +82,7 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   };
 
   const handleResend = async () => {
-    if (requesting || timeLeft > 0) return;
+    if (isRequesting || timeLeft > 0) return;
     if (!lastRequestRef.current) return;
 
     return await handleOtpRequest(lastRequestRef.current);
@@ -99,14 +91,14 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   const reset = () => {
     stop();
     setIsSent(false);
-    setRequesting(false);
+    setIsRequesting(false);
     setError(null);
     lastRequestRef.current = null;
   }
 
   // perform a "Fake" request, which does not hit any endpoint, but updates states as if a successful request was made.
   // useful if a page doesn't perform an endpoint request, but must still show OTP states. (example: Showing resend cooldown)
-  const mockOtpRequest = async (payload) => {
+  const handleMockOtpRequest = async (payload) => {
     lastRequestRef.current = payload;
     setIsSent(true);
     setError(null);
@@ -114,13 +106,17 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   }
 
   return {
-    handleOtpRequest,
-    handleResend,
-    mockOtpRequest,
-    timeLeft,
-    isSent,
-    requesting,
-    error,
-    reset
+    handlers: {
+      handleOtpRequest,
+      handleResend,
+      handleMockOtpRequest,
+      reset
+    },
+    state: {
+      timeLeft,
+      isSent,
+      isRequesting,
+      error,
+    },
   };
 };

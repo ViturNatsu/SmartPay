@@ -36,40 +36,32 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
 
   const [code, setCode] = useState("");
 
-  const {
-    handleResend: handleRevealOtpResend,
-    handleOtpRequest: handleMakeRevealOtpRequest,
-    requesting: cardRevealOtpRequesting,
-    error: otpRequestError,
-    timeLeft: countdownTimeLeft,
-    isSent: revealOtpIsSent,
-    reset: resetRevealOtpState
-  } = useCardRevealOtpRequest();
-
+  const cardRevealRequestObject = useCardRevealOtpRequest();
 
   // Hook for handling OTP Verify
-  const {
-    loading: otpVerifyIsLoading,
-    sendOtpVerify,
-    error: otpError,
-    reset: resetOtpVerifyStates,
-  } = useOtpVerify();
-
+  const otpVerifyObject = useOtpVerify();
 
   const handleClose = () => {
     setCode("");
-    resetOtpVerifyStates();
-    resetRevealOtpState();
+    otpVerifyObject.handlers.reset();
+    cardRevealRequestObject.handlers.reset();
     onClose();
   };
+
+  const getPayload = () => {
+    return {
+      "email": email,
+      "code": code,
+      "type": "reveal-card",
+    }
+  }
 
   // Send OTP as soon as the dialog opens
   useEffect(() => {
     if (!open || !email) return;
 
     const temp = async () => {
-
-      await handleMakeRevealOtpRequest(payload);
+      await cardRevealRequestObject.handlers.handleOtpRequest(payload);
     }
 
     temp().catch(console.error);
@@ -100,46 +92,34 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
             This action will briefly display sensitive card detail information.
           </Typography>
 
-          {otpRequestError && (
-            <Alert severity="error" sx={{ width: "100%" }}>
-              {otpRequestError}
-            </Alert>
-          )}
-
           <OtpInputField
             messageFluff={"view your card details"}
             emailTarget={email}
-            isSent={revealOtpIsSent}
-            isRequesting={cardRevealOtpRequesting}
-            otpErrorMessage={otpError}
-            isVerifying={otpVerifyIsLoading}
+            otpRequestObject={cardRevealRequestObject}
+            otpVerifyObject={otpVerifyObject}
             value={code}
             onChange={setCode}
-            timeLeft={countdownTimeLeft}
-            handleResend={handleRevealOtpResend}
+            payload={getPayload()}
           />
 
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
-        <Button variant="outlined" onClick={handleClose} disabled={otpVerifyIsLoading}>
+      <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
+        <Button variant="outlined" onClick={handleClose} disabled={otpVerifyObject.state.isVerifying}>
           Cancel
         </Button>
         <Button
           variant="contained"
-          disabled={otpVerifyIsLoading || code.length !== 7}
-          onClick={()=>{sendOtpVerify({
-              "email": email,
-              "code": code,
-              "type": "reveal-card",
-            }
-          ) .then(r => {
-            resetOtpVerifyStates();
+          disabled={otpVerifyObject.state.isVerifying || code.length !== 7}
+          onClick={()=>{
+            otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(r => {
+            otpVerifyObject.handlers.reset();
             onSuccess();
             onClose();
-          })}}>
-          {otpVerifyIsLoading ? "Verifying..." : "Verify"}
+          })}}
+        >
+          {otpVerifyObject.state.isVerifying ? "Verifying..." : "Verify"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -62,36 +62,23 @@ export const VerifyOtp = () => {
 
 
   // Hook for handling all Otp REQUEST related events
-  const {
-    handleResend,
-    mockOtpRequest,
-    isSent,
-    timeLeft,
-    requesting: otpRequesting,
-    error: otpRequestError,
-    reset
-  } = useOtpRequest({
+  const otpRequestObject = useOtpRequest({
     requestAPI: requestOtpCode,
-  });
+  })
 
-  // Hook for handling all Otp VERIFICATION related events
-  const {
-    sendOtpVerify,
-    loading: otpVerifying,
-    error: otpVerifyError,
-  } = useOtpVerify();
+  const otpVerifyObject = useOtpVerify();
 
   useEffect(() => {
 
-    mockOtpRequest({
+    void otpRequestObject.handlers.handleMockOtpRequest({
       email: emailParam,
       type: typeParam,
-    })
+    });
 
     const submit = async () => {
       submittedRef.current = true;
 
-      return await sendOtpVerify({
+      return await otpVerifyObject.handlers.sendOtpVerify({
           email: emailParam,
           code: codeParam,
           type: typeParam,
@@ -153,20 +140,16 @@ export const VerifyOtp = () => {
           </Typography>
           <OtpInputField
             messageFluff={determineMessageFluff(typeParam)}
-            isRequesting={otpRequesting}
-            isSent={isSent}
             emailTarget={emailParam}
-            otpErrorMessage={otpVerifyError}
-            isVerifying={otpVerifying}
+            otpRequestObject={otpRequestObject}
+            otpVerifyObject={otpVerifyObject}
             value={otp}
             onChange={setOtp}
-            timeLeft={timeLeft}
-            handleResend={handleResend}
           />
 
           <Button
             onClick={() => {
-              sendOtpVerify({
+              otpVerifyObject.handlers.sendOtpVerify({
                 email: emailParam,
                 code: otp,
                 type: typeParam,
@@ -186,8 +169,8 @@ export const VerifyOtp = () => {
               )
             }}
             variant="contained"
-            disabled={otpVerifying}>
-            {otpVerifying ? "Verifying Code..." : "Verify Code"}
+            disabled={otpVerifyObject.state.isVerifying}>
+            {otpVerifyObject.state.isVerifying ? "Verifying Code..." : "Verify Code"}
           </Button>
         </Box>
 
@@ -195,245 +178,3 @@ export const VerifyOtp = () => {
     </Grid>
   );
 }
-
-// export const VerifyOtp = () => {
-//   const location = useLocation();
-//   const [showSuccess, setShowSuccess] = useState(
-//     location.state?.showSuccess || false,
-//   );
-//   const [successMessage, setSuccessMessage] = useState(
-//     location.state?.successMessage || "",
-//   );
-//
-//   const [code, setCode] = useState("");
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false); // related to OTP Verifying
-//   const [resendLoading, setResendLoading] = useState(false);
-//
-//   const navigate = useNavigate();
-//   const [searchParams] = useSearchParams();
-//   const emailParam = searchParams.get("email");
-//   const typeParam = searchParams.get("type");
-//   const codeParam = searchParams.get("code");
-//
-//   const { setAuthFromTokens, tokenClaims } = useAuth();
-//
-//   // Guard to avoid double submission (React 18 StrictMode may invoke effects twice in dev)
-//   const submittedRef = useRef(false);
-//
-//   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-//
-//   // const {
-//   //   sendOtpVerify,
-//   //   loading,
-//   //   error
-//   // } = useOtpVerify();
-//
-//   const typeParameterBranching = async (res, typeParam, submittedCode) => {
-//     switch (typeParam) {
-//       case "login": {
-//         const newClaims = await setAuthFromTokens({
-//           accessToken: res.accessToken,
-//           refreshToken: res.refreshToken,
-//         });
-//         // redirect after login based on user role; use returned claims since
-//         // the context state may not have updated yet
-//         const role = newClaims?.role || tokenClaims?.role;
-//         if (role === "ADMIN") {
-//           console.log("Redirecting to admin dashboard");
-//           navigate("/admin/dashboard", { replace: true });
-//         } else {
-//           console.log("Redirecting to user dashboard");
-//           navigate("/home", { replace: true });
-//         }
-//         break;
-//       }
-//       case "register":
-//         setShowSuccess(true);
-//         setSuccessMessage(
-//           "Email verified successfully! Redirecting to login...",
-//         );
-//         await delay(2000);
-//         navigate(`/login`, { replace: true });
-//         break;
-//       case "forgot-password":
-//         navigate(
-//           `/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`,
-//           { replace: true },
-//         );
-//         break;
-//       default:
-//         setError("Unknown verification type.");
-//     }
-//   }
-//
-//   const submit = async (submittedCode) => {
-//     setError("");
-//     if (!/^[0-9]{7}$/.test(submittedCode)) {
-//       setError("Enter a valid 7-digit code.");
-//       return;
-//     }
-//
-//     try {
-//       setLoading(true);
-//       const res = await sendVerifyCode({
-//         email: emailParam,
-//         code: submittedCode,
-//         type: typeParam,
-//       });
-//
-//       await typeParameterBranching(res, typeParam);
-//
-//     } catch (err) {
-//       if (err.status === 400) setError("Code is invalid.");
-//       else if (err.status === 401)
-//         setError("Code has expired or was already used.");
-//       else if (err.status === 404) setError("Email not found.");
-//       else if (err.status === 429)
-//         setError("Too many attempts. Please try again later.");
-//       else if (err.status === 410) {
-//         setError(
-//           "Too many invalid attempts. Please restart the process. Redirecting to login...",
-//         );
-//         await delay(3000);
-//         navigate(`/login`, { replace: true });
-//       } else setError(err.message || "Verification failed.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-//
-//   // auto submit if this page was reached through a re-direct link.
-//   useEffect(() => {
-//     if (emailParam && typeParam && codeParam && !submittedRef.current) {
-//       submittedRef.current = true;
-//       setCode(codeParam);
-//       submit(codeParam);
-//     }
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [emailParam, typeParam, codeParam]);
-//
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     await submit(code);
-//   };
-//
-//   const handleResendCode = async () => {
-//     setResendLoading(true);
-//     setError("");
-//     try {
-//       await requestResetCode({ email: emailParam, type: typeParam });
-//       setShowSuccess(true);
-//       setSuccessMessage("Verification code has been resent to your email.");
-//     } catch (err) {
-//       if (err.status === 400) setError("Invalid details.");
-//       else if (err.status === 429)
-//         setError("Too many attempts. Please try again later.");
-//       else if (err.status === 503)
-//         setError(
-//           "Email service is currently unavailable. Please try again later.",
-//         );
-//       else setError(err.message || "Failed to resend verification code.");
-//     } finally {
-//       setResendLoading(false);
-//     }
-//   };
-//
-//   useEffect(() => {
-//     if (showSuccess) {
-//       const timer = setTimeout(() => setShowSuccess(false), 5000);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [showSuccess]);
-//
-//   return (
-//     <Grid
-//       sx={{
-//         minHeight: "100vh",
-//         display: "flex",
-//         flexDirection: { xs: "column", md: "row" },
-//       }}
-//     >
-//       <SmartPayBanner />
-//
-//       <Grid
-//         sx={{
-//           flex: 1,
-//           display: "flex",
-//           flexDirection: "column",
-//           alignItems: "center",
-//           justifyContent: "center",
-//           px: { xs: 3, md: 8 },
-//           py: { xs: 6, md: 0 },
-//         }}
-//       >
-//         <Box
-//           component="form"
-//           onSubmit={handleSubmit}
-//           sx={{
-//             display: "flex",
-//             flexDirection: "column",
-//             gap: 2,
-//             width: 450,
-//           }}
-//         >
-//           <Typography variant="h5" align="center">
-//             Verify Code
-//           </Typography>
-//           <OtpInputField
-//             messageFluff={"continue"}
-//             emailTarget={emailParam}
-//           />
-//
-//
-//
-//           <TextField
-//             label="7-digit code"
-//             value={code}
-//             onChange={(e) => setCode(e.target.value)}
-//             onBlur={() => {
-//               if (code && !/^\d{7}$/.test(code)) {
-//                 setError("Enter a valid 7-digit code.");
-//               }
-//             }}
-//             error={Boolean(error)}
-//             helperText={error || ""}
-//             inputProps={{ maxLength: 7 }}
-//             required
-//           />
-//
-//           <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-//             <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-//               Didn't receive the code?{" "}
-//               <Link
-//                 component="button"
-//                 type="button"
-//                 underline="hover"
-//                 onClick={handleResendCode}
-//                 disabled={resendLoading}
-//                 sx={{ fontWeight: 700, cursor: "pointer" }}
-//               >
-//                 {resendLoading ? "Resending..." : "Resend Code"}
-//               </Link>
-//             </Typography>
-//           </Box>
-//
-//           <Button type="submit" variant="contained" disabled={loading}>
-//             {loading ? "Verifying Code..." : "Verify Code"}
-//           </Button>
-//
-//           {showSuccess && successMessage && (
-//             <Alert
-//               icon={<CheckIcon fontSize="inherit" />}
-//               severity="success"
-//               sx={{ mb: 2 }}
-//             >
-//               {successMessage}
-//             </Alert>
-//           )}
-//         </Box>
-//
-//       </Grid>
-//     </Grid>
-//   );
-// };

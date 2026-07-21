@@ -34,23 +34,10 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
   const email = tokenClaims?.email;
 
   // Hook for handling Lock requests
-  const {
-    handleOtpRequest,
-    handleResend,
-    timeLeft: cardLockResendTimeLeft,
-    isSent: cardLockIsSent,
-    requesting: cardLockRequesting,
-    error: cardLockRequestError,
-    reset: cardLockRequestReset,
-  } = useCardLockOtpRequest();
+  const cardLockRequestObject = useCardLockOtpRequest();
 
   // Hook for handling OTP Verify
-  const {
-    loading: otpVerifyIsLoading,
-    sendOtpVerify,
-    error: otpError,
-    reset: otpStatesReset,
-  } = useOtpVerify();
+  const otpVerifyObject = useOtpVerify();
 
   // State for tracking input
   const [otp, setOtp] = useState("");
@@ -63,8 +50,8 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
   };
 
   const handleReset = () => {
-    cardLockRequestReset();
-    otpStatesReset();
+    cardLockRequestObject.handlers.reset();
+    otpVerifyObject.handlers.reset();
     setOtp("");
   }
 
@@ -134,54 +121,24 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
               flex={1}
               spacing={2}
             >
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                height="100%"
-              >
-
-                {cardLockRequestError && (
-                  <Alert severity="error" sx={{ width: "100%" }}>
-                    {cardLockRequestError}
-                  </Alert>
-                )}
-
-                {!cardLockIsSent && !cardLockRequestError && !cardLockRequesting  && (
-                  <Button
-                    variant="contained"
-                    onClick={()=>{
-                      isActive(cardStatus) ?
-                        handleOtpRequest(lockPayload).catch(console.error) :
-                        handleOtpRequest(unlockPayload).catch(console.error)
-                    }}
-                    disabled={cardLockRequesting || authLoading || !email}
-                  >
-                    {"Send Verification Code"}
-                  </Button>
-                )}
-              </Box>
-
-              {/* STEP 2 */}
               <OtpInputField
                 messageFluff={isActive(cardStatus) ?
                   "lock your card"
                   : "unlock your card" }
                 emailTarget={email}
-                isSent={cardLockIsSent}
-                isRequesting={cardLockRequesting}
-                otpErrorMessage={otpError}
-                isVerifying={otpVerifyIsLoading}
+                otpRequestObject={cardLockRequestObject}
+                otpVerifyObject={otpVerifyObject}
                 value={otp}
                 onChange={setOtp}
-                timeLeft={cardLockResendTimeLeft}
-                handleResend={handleResend}
+                payload={
+                  isActive(cardStatus) ? lockPayload : unlockPayload
+                }
               ></OtpInputField>
             </Stack>
           </Stack>
         </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
+        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
           <Button
             variant="outlined"
             onClick={onClose}
@@ -190,10 +147,11 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
           </Button>
 
           <Button
-            loading={otpVerifyIsLoading}
+            loading={otpVerifyObject.state.isVerifying}
             variant="contained"
-            disabled={!cardLockIsSent || otp.length < 7}
-            onClick={()=>{sendOtpVerify({
+            disabled={!cardLockRequestObject.state.isSent || otp.length < 7}
+            onClick={()=>{
+              otpVerifyObject.handlers.sendOtpVerify({
                 "email": tokenClaims?.email,
                 "code": otp,
                 "type": isActive(cardStatus) ? "CARD_LOCK" : "CARD_UNLOCK",

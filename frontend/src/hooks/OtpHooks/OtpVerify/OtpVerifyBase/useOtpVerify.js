@@ -7,11 +7,11 @@ export const useOtpVerify = ({
     } = {}
   ) => {
 
-  const [loading, setLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState(false);
 
   const sendOtpVerify = async (payload) => {
-    setLoading(true);
+    setIsVerifying(true);
     try{
       const res = await RequestAPI(payload);
       setError(null);
@@ -21,14 +21,23 @@ export const useOtpVerify = ({
       throw err;
     }
     finally {
-      setLoading(false);
+      setIsVerifying(false);
     }
   }
 
   const reset = () => {
-    setLoading(false);
+    setIsVerifying(false);
     setError(null);
   }
 
-  return {sendOtpVerify,loading, error, reset};
+  return {
+    handlers: {
+      sendOtpVerify,
+      reset,
+    },
+    state: {
+      isVerifying,
+      error,
+    }
+  }
 }

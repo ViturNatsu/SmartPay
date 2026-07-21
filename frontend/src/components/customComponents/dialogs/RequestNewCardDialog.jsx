@@ -39,22 +39,9 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
   const [otp, setOtp] = useState("");
   const [hasPending, setHasPending] = useState(false);
 
-  const {
-    handleResend,
-    handleOtpRequest,
-    requesting: cardRequestIsRequesting ,
-    error: cardRequestError,
-    timeLeft: cardRequestTimeLeft,
-    isSent: cardRequestIsSent,
-    reset: cardRequestReset,
-  } = useRenewCardOtpRequest()
+  const otpRequestObject = useRenewCardOtpRequest();
 
-  const {
-    sendOtpVerify,
-    loading: otpVerifying,
-    error: otpVerifyError,
-    reset: ResetOtpVerifyState,
-  } = useNewCardRequestOtpVerify()
+  const otpVerifyObject = useNewCardRequestOtpVerify();
 
   return (
     <Dialog
@@ -62,11 +49,12 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
       slotProps={{
         paper: {
           sx: {
-            width: 700,
+            width: 850,
             maxWidth: '90vw',
           },
         },
-      }}>
+      }}
+    >
       <DialogTitle sx={{ textAlign: "left" }}>
         {"Request New Virtual Card"}
       </DialogTitle>
@@ -124,44 +112,13 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
               flex={1}
               spacing={2}
             >
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                height="100%"
-              >
-                {!cardRequestIsSent && !cardRequestError && !cardRequestIsRequesting && (
-                  <Button
-                    variant="contained"
-                    onClick={()=>{handleOtpRequest().then(r =>{
-                        console.log(r);
-                      }
-                    );}}
-                    disabled={cardRequestIsRequesting || authLoading || !email}
-                  >
-                    {cardRequestIsRequesting ? "Sending OTP..." : "Send Verification Code"}
-                  </Button>
-                )}
-
-                {cardRequestError &&
-                  <Alert severity="error">
-                    {cardRequestError}
-                  </Alert>
-                }
-
-              </Box>
-
               <OtpInputField
                 messageFluff="request a new virtual card"
                 emailTarget={email}
-                otpErrorMessage={otpVerifyError}
-                isSent={cardRequestIsSent}
-                isRequesting={cardRequestIsRequesting}
-                isVerifying={otpVerifying}
+                otpVerifyObject={otpVerifyObject}
+                otpRequestObject={otpRequestObject}
                 value={otp}
                 onChange={setOtp}
-                timeLeft={cardRequestTimeLeft}
-                handleResend={handleResend}
               />
 
               <Stack
@@ -256,7 +213,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
       }
 
       { !hasPending &&
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
+        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
           <Button
             onClick={onClose}
             variant="outlined"
@@ -264,11 +221,11 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
             Cancel
           </Button>
           <Button
-            loading={otpVerifying}
-            disabled={!cardRequestIsSent || !acknowledged || otp.length < 7}
+            loading={otpVerifyObject.state.isVerifying}
+            disabled={!otpRequestObject.state.isSent || !acknowledged || otp.length < 7}
             onClick={
             ()=>{
-              sendOtpVerify({"access-code": otp, "confirmed": acknowledged,}).then(async (r) => {
+              otpVerifyObject.handlers.sendOtpVerify({"access-code": otp, "confirmed": acknowledged,}).then(async (r) => {
                 await onSuccess();
                 setHasPending(true);
               })
