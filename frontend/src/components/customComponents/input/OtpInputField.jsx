@@ -38,14 +38,11 @@ export const OtpInputField = (
         alignItems="center"
         minHeight={150}
         height="100%"
+        gap={1}
+        flexDirection="column"
         // border="1px solid"
       >
 
-        {otpRequestObject.state.error && (
-          <Alert severity="error" sx={{ width: "100%" }}>
-            {otpRequestObject.state.error}
-          </Alert>
-        )}
 
         {!otpRequestObject.state.isSent && !otpRequestObject.state.error && !otpRequestObject.state.isRequesting  && (
           <Button
@@ -112,7 +109,22 @@ export const OtpInputField = (
           </Box>
         }
 
-        {otpVerifyObject.state.error && !otpVerifyObject.state.isVerifying && (
+        {/* Request Error */}
+        {otpRequestObject.state.error && (
+          <Alert
+            severity="error"
+            sx={{
+            justifyContent: "center",
+            textAlign: "center",
+          }}
+          >
+            Request Error: {otpRequestObject.state.error}
+          </Alert>
+        )}
+
+        {/*Verification Error*/}
+        {/* No need to show verification error if request error is present to avoid clutter */}
+        {otpVerifyObject.state.error && !otpVerifyObject.state.isVerifying && !otpRequestObject.state.error && (
           <Alert
             severity="error"
             sx={{
@@ -120,11 +132,11 @@ export const OtpInputField = (
               textAlign: "center",
             }}
           >
-            {otpVerifyObject.state.error}
+            Verification Error: {otpVerifyObject.state.error}
           </Alert>
         )}
-      </Box>
-
+      </Box
+      >
 
       <Box
         display="flex"
