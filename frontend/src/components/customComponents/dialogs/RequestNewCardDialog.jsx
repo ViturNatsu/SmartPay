@@ -75,7 +75,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
         <DialogContent>
           <Stack
             direction={{ xs: "column", md: "row" }}
-            spacing={3}
+            spacing={2}
             divider={
               <Divider
                 orientation="vertical"
@@ -256,7 +256,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
       }
 
       { !hasPending &&
-        <DialogActions sx={{px: 3, pb: 3}}>
+        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Button
             onClick={onClose}
             variant="outlined"

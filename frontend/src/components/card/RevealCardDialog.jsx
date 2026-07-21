@@ -122,7 +122,7 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{px: 3, pb: 3, gap: 1}}>
+      <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
         <Button variant="outlined" onClick={handleClose} disabled={otpVerifyIsLoading}>
           Cancel
         </Button>
