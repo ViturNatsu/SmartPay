@@ -39,32 +39,13 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
   const {
     handleResend: handleRevealOtpResend,
     handleOtpRequest: handleMakeRevealOtpRequest,
-    loading: makingRevealOtpRequest,
+    requesting: cardRevealOtpRequesting,
     error: otpRequestError,
     timeLeft: countdownTimeLeft,
     isSent: revealOtpIsSent,
     reset: resetRevealOtpState
   } = useCardRevealOtpRequest();
 
-  // const {
-  //   handleResend: handleRevealOtpResend,
-  //   handleMakeOtpRequest: handleMakeRevealOtpRequest,
-  //   loading: makingRevealOtpRequest,
-  //   error: otpRequestError,
-  //   timeLeft: countdownTimeLeft,
-  //   isSent: revealOtpIsSent,
-  //   reset: resetRevealOtpState
-  // } = useWalletReveal();
-
-  // return {
-  //   handleOtpRequest,
-  //   handleResend,
-  //   timeLeft,
-  //   isSent,
-  //   loading,
-  //   error,
-  //   reset
-  // };
 
   // Hook for handling OTP Verify
   const {
@@ -125,20 +106,19 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
             </Alert>
           )}
 
-          {makingRevealOtpRequest && <CircularProgress></CircularProgress>}
+          <OtpInputField
+            messageFluff={"view your card details"}
+            emailTarget={email}
+            isSent={revealOtpIsSent}
+            isRequesting={cardRevealOtpRequesting}
+            otpErrorMessage={otpError}
+            isVerifying={otpVerifyIsLoading}
+            value={code}
+            onChange={setCode}
+            timeLeft={countdownTimeLeft}
+            handleResend={handleRevealOtpResend}
+          />
 
-          {revealOtpIsSent && !makingRevealOtpRequest && (
-            <OtpInputField
-              messageFluff={"view your card details"}
-              emailTarget={email}
-              otpErrorMessage={otpError}
-              isVerifying={otpVerifyIsLoading}
-              value={code}
-              onChange={setCode}
-              timeLeft={countdownTimeLeft}
-              handleResend={handleRevealOtpResend}
-            />
-          )}
         </Box>
       </DialogContent>
 

@@ -1,4 +1,4 @@
-import {Alert, Box, Button, Link, TextField, Typography} from "@mui/material";
+import {Alert, Box, Button, CircularProgress, Link, TextField, Typography} from "@mui/material";
 import {MuiOtpInput} from "mui-one-time-password-input";
 import CheckIcon from "@mui/icons-material/Check";
 import {useState} from "react";
@@ -9,6 +9,8 @@ export const OtpInputField = (
     messageFluff,
     emailTarget,
     otpErrorMessage,
+    isSent,
+    isRequesting,
     isVerifying,
     value,
     onChange,
@@ -30,34 +32,46 @@ export const OtpInputField = (
       }}
     >
 
-      <Typography
-        variant="caption"
-        align="left"
-        fontSize="small"
-        color="textSecondary"
-      >
-        A 7-digit code has been sent to{" "}
-        <Box
-          component="span"
+
+
+      {!isRequesting && isSent &&
+        <Alert
+          severity="success"
           sx={{
-            fontWeight: "bold",
-            color: "primary.main",
+            justifyContent: "center",
+            textAlign: "center",
           }}
         >
-          {emailTarget}
-        </Box>
-        . Enter it below to {messageFluff}.
-      </Typography>
+          <Typography
+            variant="caption"
+            align="left"
+            fontSize="small"
+            color="success"
+          >
+            A 7-digit code has been sent to{" "}
+            <Box
+              component="span"
+              sx={{
+                fontWeight: "bold",
 
-      <Alert
-        severity="success"
-        sx={{
-          justifyContent: "center",
-          textAlign: "center",
-        }}
-      >
-        Code sent to <strong>{emailTarget}</strong>
-      </Alert>
+              }}
+            >
+              {emailTarget}
+            </Box>
+            . Enter it below to {messageFluff}.
+          </Typography>
+        </Alert>
+      }
+      {isRequesting &&
+        <Box
+          sx={{
+            justifyContent: "center",
+            textAlign: "center",
+          }}>
+          <CircularProgress
+          />
+        </Box>
+      }
 
       {otpErrorMessage && !isVerifying && (
         <Alert

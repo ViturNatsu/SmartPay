@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
 import { Button, Box, Typography, Paper, Divider } from "@mui/material";
-import { requestResetCode } from "@/api/authApi";
+import { requestOtpCode } from "@/api/authApi";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
@@ -23,7 +23,7 @@ export const VerifyEmail = () => {
     try {
       setLoading(true);
 
-      await requestResetCode({ email: emailParam, type: "register" });
+      await requestOtpCode({ email: emailParam, type: "register" });
 
       navigate(`/verify?email=${encodeURIComponent(emailParam)}&type=register`, { replace: true }, {
         state: {

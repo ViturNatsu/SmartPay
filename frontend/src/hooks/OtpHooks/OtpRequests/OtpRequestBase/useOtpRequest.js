@@ -4,26 +4,29 @@ import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
 /**
  * Custom hook for requesting and resending OTP codes.
  *
- * Responsibilities:
- *  - Send an OTP request through the provided API function.
- *  - Track whether an OTP has been sent.
- *  - Manage loading and error states.
- *  - Enforce a cooldown period before allowing OTP resends.
- *  - Store the last request payload to support resending.
+ * This hook abstracts OTP request flows by handling:
+ *  - Sending OTP requests through a provided API function.
+ *  - Tracking request status and errors.
+ *  - Managing resend cooldown timing.
+ *  - Persisting the latest request payload for resend operations.
  *
  * @param {Object} params
- * @param {Function} params.requestAPI - API function responsible for sending the OTP request.
+ * @param {Function} params.requestAPI - Function used to send the OTP request.
  *
- * @returns {Object} OTP request state and handlers.
- * @returns {Function} returns.handleOtpRequest - Sends an OTP request with the provided payload.
- * @returns {Function} returns.handleResend - Resends the previous OTP request after the cooldown expires.
- * @returns {number} returns.timeLeft - Remaining cooldown time in seconds.
- * @returns {boolean} returns.isSent - Whether an OTP has been successfully sent.
- * @returns {boolean} returns.loading - Whether an OTP request is currently in progress.
- * @returns {string|null} returns.error - Error message from the latest failed request.
- * @returns {Function} returns.reset - Resets OTP state and clears the cooldown timer.
+ * @returns {{
+ *   handleOtpRequest: Function,
+ *   handleResend: Function,
+ *   timeLeft: number,
+ *   isSent: boolean,
+ *   loading: boolean,
+ *   error: (string|null),
+ *   reset: Function
+ * }} OTP request handlers and state.
  *
  * @example Create a specialized OTP hook by composing `useOtpRequest`.
+ *
+ *
+ * // Note: createCardLockRequestOTP is a valid request API
  *
  * export const useCardLockOtpRequest = () => {
  *   return useOtpRequest({
@@ -44,10 +47,10 @@ import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
  * );
  */
 
-export const useOtpRequest = ({requestAPI}) => {
+export const useOtpRequest = ({requestAPI} = {}) => {
 
   const [isSent, setIsSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [requesting, setRequesting] = useState(false);
   const [error, setError] = useState("");
   const lastRequestRef = useRef(null);
 
@@ -58,7 +61,7 @@ export const useOtpRequest = ({requestAPI}) => {
   } = useCountdownTimer(30);
 
   const makeOtpRequest = async (payload) => {
-    setLoading(true);
+    setRequesting(true);
     setError(null);
 
     try {
@@ -70,7 +73,7 @@ export const useOtpRequest = ({requestAPI}) => {
       setError(err?.response?.data?.message || err.message || "Something went wrong");
       throw err;
     } finally {
-      setLoading(false);
+      setRequesting(false);
     }
   };
 
@@ -87,7 +90,7 @@ export const useOtpRequest = ({requestAPI}) => {
   };
 
   const handleResend = async () => {
-    if (loading || timeLeft > 0) return;
+    if (requesting || timeLeft > 0) return;
     if (!lastRequestRef.current) return;
 
     return await handleOtpRequest(lastRequestRef.current);
@@ -96,17 +99,27 @@ export const useOtpRequest = ({requestAPI}) => {
   const reset = () => {
     stop();
     setIsSent(false);
-    setLoading(false);
+    setRequesting(false);
     setError(null);
     lastRequestRef.current = null;
+  }
+
+  // perform a "Fake" request, which does not hit any endpoint, but updates states as if a successful request was made.
+  // useful if a page doesn't perform an endpoint request, but must still show OTP states. (example: Showing resend cooldown)
+  const mockOtpRequest = async (payload) => {
+    lastRequestRef.current = payload;
+    setIsSent(true);
+    setError(null);
+    startCooldown();
   }
 
   return {
     handleOtpRequest,
     handleResend,
+    mockOtpRequest,
     timeLeft,
     isSent,
-    loading,
+    requesting,
     error,
     reset
   };

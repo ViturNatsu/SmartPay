@@ -39,7 +39,7 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
     handleResend,
     timeLeft: cardLockResendTimeLeft,
     isSent: cardLockIsSent,
-    loading: cardLockRequestIsLoading,
+    requesting: cardLockRequesting,
     error: cardLockRequestError,
     reset: cardLockRequestReset,
   } = useCardLockOtpRequest();
@@ -106,36 +106,35 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
             )}
 
             {/* STEP 1 */}
-            {!cardLockIsSent && !cardLockRequestError && (
+            {!cardLockIsSent && !cardLockRequestError && !cardLockRequesting  && (
               <Button
                 variant="contained"
                 onClick={()=>{
                   isActive(cardStatus) ?
-                  handleOtpRequest(lockPayload).catch(console.error) :
-                  handleOtpRequest(unlockPayload).catch(console.error)
+                    handleOtpRequest(lockPayload).catch(console.error) :
+                    handleOtpRequest(unlockPayload).catch(console.error)
                 }}
-                disabled={cardLockRequestIsLoading || authLoading || !email}
+                disabled={cardLockRequesting || authLoading || !email}
               >
-                {cardLockRequestIsLoading ? "Sending OTP..." : "Send Verification Code"}
+                {"Send Verification Code"}
               </Button>
             )}
-            {cardLockIsSent && cardLockRequestIsLoading && <CircularProgress></CircularProgress>}
 
             {/* STEP 2 */}
-            {cardLockIsSent && !cardLockRequestIsLoading && (
-              <OtpInputField
-                messageFluff={isActive(cardStatus) ?
-                  "lock your card"
-                  : "unlock your card" }
-                emailTarget={email}
-                otpErrorMessage={otpError}
-                isVerifying={otpVerifyIsLoading}
-                value={otp}
-                onChange={setOtp}
-                timeLeft={cardLockResendTimeLeft}
-                handleResend={handleResend}
-              ></OtpInputField>
-            )}
+            <OtpInputField
+              messageFluff={isActive(cardStatus) ?
+                "lock your card"
+                : "unlock your card" }
+              emailTarget={email}
+              isSent={cardLockIsSent}
+              isRequesting={cardLockRequesting}
+              otpErrorMessage={otpError}
+              isVerifying={otpVerifyIsLoading}
+              value={otp}
+              onChange={setOtp}
+              timeLeft={cardLockResendTimeLeft}
+              handleResend={handleResend}
+            ></OtpInputField>
 
           </Box>
         </DialogContent>

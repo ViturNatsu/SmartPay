@@ -70,7 +70,7 @@ describe('VerifyEmail Component', () => {
         it('should call requestResetCode on form submit', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockResolvedValueOnce({ status: 200 });
+            authApi.requestOtpCode.mockResolvedValueOnce({ status: 200 });
 
             render(<VerifyEmailTestHarness />);
 
@@ -78,7 +78,7 @@ describe('VerifyEmail Component', () => {
             await user.click(submitButton);
 
             await waitFor(() => {
-                expect(authApi.requestResetCode).toHaveBeenCalledWith({
+                expect(authApi.requestOtpCode).toHaveBeenCalledWith({
                     email: 'test@example.com',
                     type: 'register',
                 });
@@ -88,7 +88,7 @@ describe('VerifyEmail Component', () => {
         it('should show loading state while resending', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockImplementationOnce(
+            authApi.requestOtpCode.mockImplementationOnce(
                 () => new Promise(resolve => setTimeout(() => resolve({ status: 200 }), 100))
             );
 
@@ -107,7 +107,7 @@ describe('VerifyEmail Component', () => {
         it('should clear error message on successful resubmit', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockRejectedValueOnce({
+            authApi.requestOtpCode.mockRejectedValueOnce({
                 status: 400,
                 response: { status: 400 },
             });
@@ -120,7 +120,7 @@ describe('VerifyEmail Component', () => {
             });
 
             vi.clearAllMocks();
-            authApi.requestResetCode.mockResolvedValueOnce({ status: 200 });
+            authApi.requestOtpCode.mockResolvedValueOnce({ status: 200 });
 
             await user.click(getResendButton());
 
@@ -135,7 +135,7 @@ describe('VerifyEmail Component', () => {
         it('should display error for 400 status (bad email format)', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockRejectedValueOnce({
+            authApi.requestOtpCode.mockRejectedValueOnce({
                 status: 400,
                 response: { status: 400 },
             });
@@ -152,7 +152,7 @@ describe('VerifyEmail Component', () => {
         it('should display error for 409 status (email already verified)', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockRejectedValueOnce({
+            authApi.requestOtpCode.mockRejectedValueOnce({
                 status: 409,
                 response: { status: 409 },
             });
@@ -169,7 +169,7 @@ describe('VerifyEmail Component', () => {
         it('should display error for 429 status (account locked)', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockRejectedValueOnce({
+            authApi.requestOtpCode.mockRejectedValueOnce({
                 status: 429,
                 response: { status: 429 },
             });
@@ -186,7 +186,7 @@ describe('VerifyEmail Component', () => {
         it('should display generic error for unknown status', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockRejectedValueOnce({
+            authApi.requestOtpCode.mockRejectedValueOnce({
                 status: 500,
                 response: { status: 500 },
             });
@@ -203,7 +203,7 @@ describe('VerifyEmail Component', () => {
         it('should disable submit button while loading', async () => {
             const user = userEvent.setup();
 
-            authApi.requestResetCode.mockImplementationOnce(
+            authApi.requestOtpCode.mockImplementationOnce(
                 () => new Promise(resolve => setTimeout(() => resolve({ status: 200 }), 200))
             );
 

@@ -11,7 +11,7 @@ import {
   forgotPasswordSubmitButton,
 } from "@/vitest/domQueries";
 import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
-import { requestResetCode } from "@/api/authApi";
+import { requestOtpCode } from "@/api/authApi";
 
 vi.mock("@/api/authApi", () => ({
   forgotPassword: vi.fn(async () => ({ ok: true })),
