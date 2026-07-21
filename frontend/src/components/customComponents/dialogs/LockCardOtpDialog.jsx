@@ -88,6 +88,7 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
             <Stack
               flex={1}
               spacing={2}
+              justifyContent="space-between"
             >
               <Typography
                 align="left"

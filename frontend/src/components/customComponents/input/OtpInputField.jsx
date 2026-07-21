@@ -36,7 +36,7 @@ export const OtpInputField = (
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight={120}
+        minHeight={150}
         height="100%"
         // border="1px solid"
       >
@@ -173,7 +173,11 @@ export const OtpInputField = (
         {/* RESEND SECTION */}
         <Typography
           variant="caption"
-          color="text.secondary" sx={{ textAlign: "center" }}
+          color="text.secondary"
+          sx={{
+            textAlign: "center",
+            visibility: otpRequestObject.state.isSent ? "visible" : "hidden",
+          }}
         >
           Didn’t receive a code?{" "}
           <Box
@@ -185,7 +189,9 @@ export const OtpInputField = (
               fontWeight: 500,
             }}
           >
-            {hasTimeLeft() ? `Resend in ${otpRequestObject.state.timeLeft}s` : "Resend code"}
+            {hasTimeLeft()
+              ? `Resend in ${otpRequestObject.state.timeLeft}s`
+              : "Resend code"}
           </Box>
         </Typography>
       </Box>

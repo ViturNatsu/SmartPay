@@ -43,6 +43,10 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
 
   const otpVerifyObject = useNewCardRequestOtpVerify();
 
+  const getPayload = () => {
+    return {"access-code": otp, "confirmed": acknowledged,};
+  }
+
   return (
     <Dialog
       open={open}
@@ -75,6 +79,8 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
             <Stack
               flex={1}
               spacing={2}
+              justifyContent="space-between"
+
             >
               <Box
                 sx={{
@@ -119,6 +125,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
                 otpRequestObject={otpRequestObject}
                 value={otp}
                 onChange={setOtp}
+                payload={getPayload()}
               />
 
               <Stack
@@ -225,7 +232,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
             disabled={!otpRequestObject.state.isSent || !acknowledged || otp.length < 7}
             onClick={
             ()=>{
-              otpVerifyObject.handlers.sendOtpVerify({"access-code": otp, "confirmed": acknowledged,}).then(async (r) => {
+              otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(async (r) => {
                 await onSuccess();
                 setHasPending(true);
               })
