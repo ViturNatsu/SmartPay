@@ -7,7 +7,8 @@ import { VerifyEmail } from '@/pages/Verify/VerifyEmail';
 import { getVerifyEmailHeading, getResendButton, getBackToSignInButton, getSVGIcons } from '@/vitest/domQueries';
 
 vi.mock('@/api/authApi', () => ({
-    requestResetCode: vi.fn(),
+    //requestResetCode: vi.fn(),
+    requestOtpCode: vi.fn(),
 }));
 
 import * as authApi from '@/api/authApi';
@@ -67,7 +68,7 @@ describe('VerifyEmail Component', () => {
 
     // --------- Form Submission Tests ---------
     describe('Form Submission - Success Cases', () => {
-        it('should call requestResetCode on form submit', async () => {
+        it('should call requestOtpCode on form submit', async () => {
             const user = userEvent.setup();
 
             authApi.requestOtpCode.mockResolvedValueOnce({ status: 200 });
