@@ -13,13 +13,30 @@ import {
 import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
 import { requestOtpCode } from "@/api/authApi";
 
-vi.mock("@/api/authApi", () => ({
-  forgotPassword: vi.fn(async () => ({ ok: true })),
-  requestResetCode: vi.fn(async () => ({ ok: true })),
-  refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
-  getMyUser: vi.fn(async () => ({ id: 1 })),
-  requestOtpCode: vi.fn(async () => ({ ok: true })),
-}));
+// vi.mock("@/api/authApi", () => ({
+//   forgotPassword: vi.fn(async () => ({ ok: true })),
+//   requestResetCode: vi.fn(async () => ({ ok: true })),
+//   refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
+//   getMyUser: vi.fn(async () => ({ id: 1 })),
+//   requestOtpCode: vi.fn(async () => ({ ok: true })),
+// }));
+
+vi.mock("@/api/authApi", async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual,
+
+    requestOtpCode: vi.fn(async () => ({ ok: true })),
+
+    sendVerifyCode: vi.fn(async () => ({ ok: true })),
+
+    refreshTokens: vi.fn(async () => ({ accessToken: "a.b.c" })),
+
+    getMyUser: vi.fn(async () => ({ id: 1 })),
+  };
+});
+
 
 const LocationWatcher = () => {
   const location = useLocation();
