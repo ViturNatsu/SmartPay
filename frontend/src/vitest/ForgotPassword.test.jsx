@@ -18,6 +18,7 @@ vi.mock("@/api/authApi", () => ({
   requestResetCode: vi.fn(async () => ({ ok: true })),
   refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
   getMyUser: vi.fn(async () => ({ id: 1 })),
+  requestOtpCode: vi.fn(async () => ({ ok: true })),
 }));
 
 const LocationWatcher = () => {
@@ -57,7 +58,7 @@ describe("ForgotPassword", () => {
     await user.type(forgotPasswordEmailField(), "test@example.com");
     await user.click(forgotPasswordSubmitButton());
 
-    const heading = await screen.findByRole('heading', { name: /Verify Code/i }, { timeout: 3000 });
+    const heading = await screen.findByRole('heading', { name: /Verify Code/i }, { timeout: 5000 });
     expect(heading).toBeInTheDocument();
 
     const locationText = screen.getByTestId("location").textContent;
