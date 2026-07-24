@@ -414,28 +414,50 @@ class PayeeServiceTest {
     }
     @Test
     void addRecurringPayee_shouldAddRecurringPayee_whenUsingAccountNumber() {
+        String accountNumber = "99990001";
+
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("99990001");
+        dto.setRecipientIdentifier(accountNumber);
         dto.setAmount(100.0);
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("99990001")).thenReturn(Optional.of(recipientCustomer));
-        when(recurringPayeeRepository.findByOwnerIdAndRecipientId(1L, 2L)).thenReturn(Optional.empty());
-        when(recurringPayeeRepository.save(any(RecurringPayee.class))).thenAnswer(invocation -> {
-            RecurringPayee p = invocation.getArgument(0);
-            p.setPayeeId(101L);
-            return p;
-        });
-        RecurringPayeeResponseDTO result = payeeService.addRecurringPayee(1L, dto);
+        Account recipientAccount = new CheckingAccount();
+        recipientAccount.setActive(true);
+        recipientAccount.getUsers().add(recipient);
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(owner));
+
+        when(accountRepository.findByAccountNumber(accountNumber))
+                .thenReturn(Optional.of(recipientAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L,
+                        accountNumber,
+                        "My Buddy",
+                        100.0,
+                        Schedule.MONTHLY,
+                        dto.getDate()))
+                .thenReturn(false);
+
+        when(recurringPayeeRepository.save(any(RecurringPayee.class)))
+                .thenAnswer(invocation -> {
+                    RecurringPayee payee = invocation.getArgument(0);
+                    payee.setPayeeId(101L);
+                    return payee;
+                });
+
+        RecurringPayeeResponseDTO result =
+                payeeService.addRecurringPayee(1L, dto);
 
         assertNotNull(result);
         assertEquals(101L, result.getPayeeId());
         assertEquals("My Buddy", result.getPayeeName());
 
-        verify(customerRepository).findByPhoneNumber("99990001");
+        verify(accountRepository).findByAccountNumber(accountNumber);
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
     @Test
