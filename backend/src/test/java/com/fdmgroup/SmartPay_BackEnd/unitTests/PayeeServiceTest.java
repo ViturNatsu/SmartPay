@@ -435,7 +435,7 @@ class PayeeServiceTest {
         assertEquals(101L, result.getPayeeId());
         assertEquals("My Buddy", result.getPayeeName());
 
-        verify(customerRepository).findByPhoneNumber("4165551234");
+        verify(customerRepository).findByPhoneNumber("99990001");
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
     @Test
@@ -448,7 +448,6 @@ class PayeeServiceTest {
         dto.setDate(LocalDate.now().plusDays(1));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
 
         assertThrows(InvalidRecurringPayeeException.class, () -> payeeService.addRecurringPayee(1L, dto));
     }
@@ -484,7 +483,6 @@ class PayeeServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
         assertThrows(InvalidRecurringPayeeException.class,
                 () -> payeeService.addRecurringPayee(1L, dto));
