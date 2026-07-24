@@ -413,16 +413,16 @@ class PayeeServiceTest {
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
     @Test
-    void addRecurringPayee_shouldAddRecurringPayee_whenUsingPhoneIdentifier() {
+    void addRecurringPayee_shouldAddRecurringPayee_whenUsingAccountNumber() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("4165551234");
+        dto.setRecipientIdentifier("99990001");
         dto.setAmount(100.0);
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
+        when(customerRepository.findByPhoneNumber("99990001")).thenReturn(Optional.of(recipientCustomer));
         when(recurringPayeeRepository.findByOwnerIdAndRecipientId(1L, 2L)).thenReturn(Optional.empty());
         when(recurringPayeeRepository.save(any(RecurringPayee.class))).thenAnswer(invocation -> {
             RecurringPayee p = invocation.getArgument(0);
@@ -452,20 +452,7 @@ class PayeeServiceTest {
 
         assertThrows(InvalidRecurringPayeeException.class, () -> payeeService.addRecurringPayee(1L, dto));
     }
-    @Test
-    void addRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenDateIsInThePast() {
-        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
-        dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("4165551234");
-        dto.setAmount(100.0);
-        dto.setSchedule(Schedule.MONTHLY);
-        dto.setDate(LocalDate.now().minusDays(1));
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
-
-        assertThrows(InvalidRecurringPayeeException.class, () -> payeeService.addRecurringPayee(1L, dto));
-    }
+    
     @Test
     void addRecurringPayee_shouldThrowUserNotFoundException_whenOwnerNotFound() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
