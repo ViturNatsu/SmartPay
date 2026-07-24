@@ -340,6 +340,39 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        //US 11-01-16
+        @ExceptionHandler(WalletTransactionForbiddenAccessException.class)
+        public ResponseEntity<Map<String, String>> WalletTransactionForbiddenAccessException(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "Wallet Transaction does not belong to User's Wallet.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        /**
+         * Creates a standardized error response body for the supplied HTTP status
+         * and error message.
+         *
+         * @param status the HTTP status associated with the error
+         * @param message the error message to include in the response body
+         * @return a {@link ResponseEntity} containing an {@link ExceptionShapeDTO}
+         *         with the status code, reason phrase, and error message
+         */
+        private ResponseEntity<ExceptionShapeDTO> errorResponseBuilder(HttpStatus status, String message) {
+                // This is meant to be used for simple error shapes.
+                // For more complex error shapes, either update this to handle them or manually create error shapes instead (how it was done before).
+
+                ExceptionShapeDTO body = new ExceptionShapeDTO(
+                        status.value(),
+                        status.getReasonPhrase(),
+                        message
+                );
+
+                return ResponseEntity
+                        .status(status)
+                        .body(body);
+        }
 
         @ExceptionHandler(MethodArgumentTypeMismatchException.class)
         public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatch(
