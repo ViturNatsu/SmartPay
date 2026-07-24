@@ -41,6 +41,9 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 
 @ExtendWith(MockitoExtension.class)
 class PayeeServiceTest {
@@ -56,6 +59,9 @@ class PayeeServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private AccountRepository accountRepository;
 
     @InjectMocks
     private PayeeServiceImpl payeeService;
@@ -363,14 +369,28 @@ class PayeeServiceTest {
     void addRecurringPayee_shouldAddRecurringPayee_whenUsingEmailIdentifier() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("bob@example.com");
+        dto.setRecipientIdentifier("99990001");
         dto.setAmount(100.0);
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(userRepository.findByEmail("bob@example.com")).thenReturn(Optional.of(recipient));
-        when(recurringPayeeRepository.findByOwnerIdAndRecipientId(1L, 2L)).thenReturn(Optional.empty());
+
+        Account recipientAccount = new CheckingAccount();
+        recipientAccount.setActive(true);
+        recipientAccount.getUsers().add(recipient);
+
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(recipientAccount));
+                when(recurringPayeeRepository
+        .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                1L,
+                "99990001",
+                "My Buddy",
+                100.0,
+                Schedule.MONTHLY,
+                dto.getDate()))
+        .thenReturn(false);
         when(recurringPayeeRepository.save(any(RecurringPayee.class))).thenAnswer(invocation -> {
             RecurringPayee p = invocation.getArgument(0);
             p.setPayeeId(100L);
