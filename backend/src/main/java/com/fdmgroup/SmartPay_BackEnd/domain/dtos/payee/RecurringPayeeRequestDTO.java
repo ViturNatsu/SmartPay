@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,14 +24,17 @@ public class RecurringPayeeRequestDTO {
     @NotBlank
     private String payeeName;
 
-    @JsonProperty("recipientIdentifier")
-    @NotNull
     @NotBlank
+    @Pattern(
+        regexp = "^\\d{8}$",
+        message = "Account number must be exactly 8 digits."
+    )
     private String recipientIdentifier;
 
     @JsonProperty("amount")
     @NotNull
-    @Positive
+    @DecimalMin(value = "0.00", inclusive = false,
+            message = "Amount must be greater than $0.00")
     private Double amount;
 
     @JsonProperty("schedule")

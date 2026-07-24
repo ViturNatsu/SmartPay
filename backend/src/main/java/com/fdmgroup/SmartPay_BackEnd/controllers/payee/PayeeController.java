@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.payee;
 
 import java.net.URI;
 import java.util.List;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -50,7 +51,7 @@ public class PayeeController {
     @PostMapping("/recurring")
     public ResponseEntity<RecurringPayeeResponseDTO> addRecurringPayee(
             @AuthenticationPrincipal User authenticatedUser,
-            @RequestBody RecurringPayeeRequestDTO payeeRequestDTO) {
+            @Valid @RequestBody RecurringPayeeRequestDTO payeeRequestDTO) {
 
         RecurringPayeeResponseDTO payee = recurringPayeeService.addRecurringPayee(authenticatedUser.getId(), payeeRequestDTO);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
