@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
@@ -430,8 +432,8 @@ class PayeeServiceTest {
         when(userRepository.findById(1L))
                 .thenReturn(Optional.of(owner));
 
-        when(accountRepository.findByAccountNumber(accountNumber))
-                .thenReturn(Optional.of(recipientAccount));
+        when(accountRepository.findByAccountNumber(anyString()))
+            .thenReturn(Optional.of(recipientAccount));
 
         when(recurringPayeeRepository
                 .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
