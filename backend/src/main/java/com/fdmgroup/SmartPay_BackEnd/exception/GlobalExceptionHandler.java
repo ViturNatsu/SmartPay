@@ -11,6 +11,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
@@ -371,5 +372,27 @@ public class GlobalExceptionHandler {
                 return ResponseEntity
                         .status(status)
                         .body(body);
+        }
+
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatch(
+                MethodArgumentTypeMismatchException ex) {
+
+        Map<String, String> errorBody = new HashMap<>();
+
+        errorBody.put("status", "400");
+        errorBody.put("error", "Bad Request");
+
+        if ("favourite".equals(ex.getName())
+                && Boolean.class.equals(ex.getRequiredType())) {
+                errorBody.put("message", "Only accepting TRUE or FALSE.");
+        } else {
+                errorBody.put("message", "Invalid request parameter.");
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorBody);
         }
 }
