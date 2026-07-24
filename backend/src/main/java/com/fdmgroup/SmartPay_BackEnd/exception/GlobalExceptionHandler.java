@@ -11,6 +11,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
@@ -339,37 +340,26 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
-        //US 11-01-16
-        @ExceptionHandler(WalletTransactionForbiddenAccessException.class)
-        public ResponseEntity<Map<String, String>> WalletTransactionForbiddenAccessException(RuntimeException ex) {
-                Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "403");
-                errorBody.put(ERROR, "Forbidden");
-                errorBody.put(MESSAGE, "Wallet Transaction does not belong to User's Wallet.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatch(
+                MethodArgumentTypeMismatchException ex) {
+
+        Map<String, String> errorBody = new HashMap<>();
+
+        errorBody.put("status", "400");
+        errorBody.put("error", "Bad Request");
+
+        if ("favourite".equals(ex.getName())
+                && Boolean.class.equals(ex.getRequiredType())) {
+                errorBody.put("message", "Only accepting TRUE or FALSE.");
+        } else {
+                errorBody.put("message", "Invalid request parameter.");
         }
 
-        /**
-         * Creates a standardized error response body for the supplied HTTP status
-         * and error message.
-         *
-         * @param status the HTTP status associated with the error
-         * @param message the error message to include in the response body
-         * @return a {@link ResponseEntity} containing an {@link ExceptionShapeDTO}
-         *         with the status code, reason phrase, and error message
-         */
-        private ResponseEntity<ExceptionShapeDTO> errorResponseBuilder(HttpStatus status, String message) {
-                // This is meant to be used for simple error shapes.
-                // For more complex error shapes, either update this to handle them or manually create error shapes instead (how it was done before).
-
-                ExceptionShapeDTO body = new ExceptionShapeDTO(
-                        status.value(),
-                        status.getReasonPhrase(),
-                        message
-                );
-
-                return ResponseEntity
-                        .status(status)
-                        .body(body);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorBody);
         }
 }
