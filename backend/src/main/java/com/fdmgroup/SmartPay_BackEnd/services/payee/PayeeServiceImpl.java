@@ -173,6 +173,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
 
         RecurringPayee recurringPayee= new RecurringPayee();
+        recurringPayee.setType(recurringPayeeRequestDTO.getType());
         recurringPayee.setActive(true);
         recurringPayee.setOwner(owner);
         recurringPayee.setRecipient(recipient);
@@ -224,7 +225,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 phoneNumber,
                 recurringPayee.getSchedule(),
                 recurringPayee.getAmount(),
-                recurringPayee.getDate());
+                recurringPayee.getDate(),
+                recurringPayee.getType());
     }
 
     
