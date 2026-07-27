@@ -23,6 +23,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RecurringPayee extends Payee{
 
+    @Column(name = "account_number", nullable = false)
+    private String accountNumber;
+
     @Column(name = "amount", nullable=false)
     @Positive
     private Double amount;

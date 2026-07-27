@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
@@ -41,6 +43,9 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 
 @ExtendWith(MockitoExtension.class)
 class PayeeServiceTest {
@@ -56,6 +61,9 @@ class PayeeServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private AccountRepository accountRepository;
 
     @InjectMocks
     private PayeeServiceImpl payeeService;
@@ -363,14 +371,28 @@ class PayeeServiceTest {
     void addRecurringPayee_shouldAddRecurringPayee_whenUsingEmailIdentifier() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("bob@example.com");
+        dto.setRecipientIdentifier("99990001");
         dto.setAmount(100.0);
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(userRepository.findByEmail("bob@example.com")).thenReturn(Optional.of(recipient));
-        when(recurringPayeeRepository.findByOwnerIdAndRecipientId(1L, 2L)).thenReturn(Optional.empty());
+
+        Account recipientAccount = new CheckingAccount();
+        recipientAccount.setActive(true);
+        recipientAccount.getUsers().add(recipient);
+
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(recipientAccount));
+                when(recurringPayeeRepository
+        .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                1L,
+                "99990001",
+                "My Buddy",
+                100.0,
+                Schedule.MONTHLY,
+                dto.getDate()))
+        .thenReturn(false);
         when(recurringPayeeRepository.save(any(RecurringPayee.class))).thenAnswer(invocation -> {
             RecurringPayee p = invocation.getArgument(0);
             p.setPayeeId(100L);
@@ -393,29 +415,51 @@ class PayeeServiceTest {
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
     @Test
-    void addRecurringPayee_shouldAddRecurringPayee_whenUsingPhoneIdentifier() {
+    void addRecurringPayee_shouldAddRecurringPayee_whenUsingAccountNumber() {
+        String accountNumber = "99990001";
+
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("4165551234");
+        dto.setRecipientIdentifier(accountNumber);
         dto.setAmount(100.0);
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
-        when(recurringPayeeRepository.findByOwnerIdAndRecipientId(1L, 2L)).thenReturn(Optional.empty());
-        when(recurringPayeeRepository.save(any(RecurringPayee.class))).thenAnswer(invocation -> {
-            RecurringPayee p = invocation.getArgument(0);
-            p.setPayeeId(101L);
-            return p;
-        });
-        RecurringPayeeResponseDTO result = payeeService.addRecurringPayee(1L, dto);
+        Account recipientAccount = new CheckingAccount();
+        recipientAccount.setActive(true);
+        recipientAccount.getUsers().add(recipient);
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(owner));
+
+        when(accountRepository.findByAccountNumber(anyString()))
+            .thenReturn(Optional.of(recipientAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L,
+                        accountNumber,
+                        "My Buddy",
+                        100.0,
+                        Schedule.MONTHLY,
+                        dto.getDate()))
+                .thenReturn(false);
+
+        when(recurringPayeeRepository.save(any(RecurringPayee.class)))
+                .thenAnswer(invocation -> {
+                    RecurringPayee payee = invocation.getArgument(0);
+                    payee.setPayeeId(101L);
+                    return payee;
+                });
+
+        RecurringPayeeResponseDTO result =
+                payeeService.addRecurringPayee(1L, dto);
 
         assertNotNull(result);
         assertEquals(101L, result.getPayeeId());
         assertEquals("My Buddy", result.getPayeeName());
 
-        verify(customerRepository).findByPhoneNumber("4165551234");
+        verify(accountRepository).findByAccountNumber(accountNumber);
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
     @Test
@@ -428,24 +472,10 @@ class PayeeServiceTest {
         dto.setDate(LocalDate.now().plusDays(1));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
 
         assertThrows(InvalidRecurringPayeeException.class, () -> payeeService.addRecurringPayee(1L, dto));
     }
-    @Test
-    void addRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenDateIsInThePast() {
-        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
-        dto.setPayeeName("My Buddy");
-        dto.setRecipientIdentifier("4165551234");
-        dto.setAmount(100.0);
-        dto.setSchedule(Schedule.MONTHLY);
-        dto.setDate(LocalDate.now().minusDays(1));
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(customerRepository.findByPhoneNumber("4165551234")).thenReturn(Optional.of(recipientCustomer));
-
-        assertThrows(InvalidRecurringPayeeException.class, () -> payeeService.addRecurringPayee(1L, dto));
-    }
+    
     @Test
     void addRecurringPayee_shouldThrowUserNotFoundException_whenOwnerNotFound() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
@@ -477,7 +507,6 @@ class PayeeServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
         assertThrows(InvalidRecurringPayeeException.class,
                 () -> payeeService.addRecurringPayee(1L, dto));

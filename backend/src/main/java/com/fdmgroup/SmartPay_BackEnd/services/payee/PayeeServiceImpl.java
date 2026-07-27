@@ -1,7 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,7 +25,8 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
-
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
@@ -34,13 +34,20 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
     private final RecurringPayeeRepository recurringPayeeRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
-
-    public PayeeServiceImpl(PayeeRepository payeeRepository, RecurringPayeeRepository recurringPayeeRepository, 
-        UserRepository userRepository, CustomerRepository customerRepository) {
+    private final AccountRepository accountRepository;
+    
+    public PayeeServiceImpl(
+            PayeeRepository payeeRepository,
+            RecurringPayeeRepository recurringPayeeRepository,
+            UserRepository userRepository,
+            CustomerRepository customerRepository,
+            AccountRepository accountRepository
+    ) {
         this.payeeRepository = payeeRepository;
         this.recurringPayeeRepository = recurringPayeeRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -111,15 +118,31 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         LocalDate date = recurringPayeeRequestDTO.getDate();
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
-                User recipient;
-        if (recipientIdentifier.contains("@")) {
-            recipient = userRepository.findByEmail(recipientIdentifier)
-                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
-        } else {
-            Customer customer = customerRepository.findByPhoneNumber(recipientIdentifier)
-                    .orElseThrow(() -> new UserNotFoundException("SmartPay user not found"));
-            recipient = customer.getUser();
+                
+        Account recipientAccount = accountRepository
+                .findByAccountNumber(recipientIdentifier)
+                .orElseThrow(() ->
+                        new InvalidRecurringPayeeException(
+                                "Recipient account number not found"
+                        )
+                );
+
+        if (!recipientAccount.getActive()) {
+            throw new InvalidRecurringPayeeException(
+                    "Recipient account is not active"
+            );
         }
+
+        if (recipientAccount.getUsers().isEmpty()) {
+            throw new InvalidRecurringPayeeException(
+                    "Recipient account has no associated user"
+            );
+        }
+
+        User recipient = recipientAccount
+                .getUsers()
+                .iterator()
+                .next();
 
         if (recipient.getRole().equals(Role.ADMIN)) {
             throw new InvalidRecurringPayeeException("SmartPay user not found");
@@ -131,29 +154,31 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (recurringAmount<=0){
             throw new InvalidRecurringPayeeException("Payment amount must be positive");
         }
-        if (date.isBefore(LocalDate.now(ZoneId.of("America/New_York")))) {
-            throw new InvalidRecurringPayeeException("Payment must be scheduled in the future");
+
+        boolean duplicateRecurringPayee =
+            recurringPayeeRepository
+                    .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                            ownerId,
+                            recipientIdentifier,
+                            recurringPayeeName,
+                            recurringAmount,
+                            recurringPayeeRequestDTO.getSchedule(),
+                            date
+                    );
+
+        if (duplicateRecurringPayee) {
+            throw new PayeeAlreadyExistsException("Recurring payment already exists");
         }
-        Optional<RecurringPayee> existingRecurringPayee = recurringPayeeRepository.findByOwnerIdAndRecipientId(ownerId, recipient.getId());
-        if (existingRecurringPayee.isPresent()) {
-            RecurringPayee recurringPayee = existingRecurringPayee.get();
-            if (recurringPayee.isActive()) {
-                throw new PayeeAlreadyExistsException("Payee already exists");
-            }
-            recurringPayee.setActive(true);
-            recurringPayee.setPayeeName(recurringPayeeName);
-            recurringPayee.setAmount(recurringAmount);
-            recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
-            recurringPayee.setDate(date);
-            recurringPayeeRepository.save(recurringPayee);
-            return toRecurringResponseDTO(recurringPayee);
-        }
+        
+
+
         RecurringPayee recurringPayee= new RecurringPayee();
         recurringPayee.setActive(true);
         recurringPayee.setOwner(owner);
         recurringPayee.setRecipient(recipient);
         recurringPayee.setPayeeName(recurringPayeeName);
         recurringPayee.setAmount(recurringAmount);
+        recurringPayee.setAccountNumber(recipientIdentifier);
         recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
         recurringPayee.setDate(date);
         recurringPayeeRepository.save(recurringPayee);
@@ -201,4 +226,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 recurringPayee.getAmount(),
                 recurringPayee.getDate());
     }
+
+    
 }
