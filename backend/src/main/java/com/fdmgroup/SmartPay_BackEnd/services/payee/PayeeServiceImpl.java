@@ -11,6 +11,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
@@ -21,12 +22,11 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeExcept
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
-import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
@@ -197,6 +197,36 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayeeRepository.save(recurringPayee);
     }
 
+    @Override
+    public RecurringPayeeResponseDTO updateRecurringPayee(Long ownerId, Long recurringPayeeId, RecurringPayeeRequestDTO payeeRequestDTO) {
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(recurringPayeeId, ownerId)
+            .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(!recurringPayee.isActive()){
+            throw new RuntimeException("Can't update inactive account!");
+        }
+        if(recurringPayee.getDate().equals(payeeRequestDTO.getDate()) 
+            && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())){
+            throw new RuntimeException("Update values are the same");
+        }
+        recurringPayee.setDate(payeeRequestDTO.getDate());
+        recurringPayee.setAmount(payeeRequestDTO.getAmount());
+        recurringPayeeRepository.save(recurringPayee);
+        return toRecurringResponseDTO(recurringPayee);
+    }
+
+    @Override
+    public void cancelRecurringPayee(Long ownerId, Long payeeId){
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+        .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(!recurringPayee.isActive()){
+            throw new RuntimeException("Recurring Payee is already inactive!");
+        }
+        recurringPayee.setActive(false);
+        recurringPayeeRepository.save(recurringPayee);
+    }
+
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
                 .map(Customer::getPhoneNumber)
@@ -226,6 +256,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 recurringPayee.getAmount(),
                 recurringPayee.getDate());
     }
+
+
 
     
 }

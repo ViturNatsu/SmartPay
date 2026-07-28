@@ -2,7 +2,6 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.payee;
 
 import java.net.URI;
 import java.util.List;
-import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +22,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.RecurringPayeeService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/v1/payee")
@@ -88,6 +90,22 @@ public class PayeeController {
             @PathVariable Long payeeId) {
 
         recurringPayeeService.deleteRecurringPayee(authenticatedUser.getId(), payeeId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/recurring/{payeeId}")
+    public ResponseEntity<RecurringPayeeResponseDTO> updateRecurringPayee(
+        @AuthenticationPrincipal User authenticatedUser,
+        @PathVariable Long payeeId,
+        @Valid @RequestBody RecurringPayeeRequestDTO payeeRequestDTO){
+        return ResponseEntity.ok(recurringPayeeService.updateRecurringPayee(authenticatedUser.getId(), payeeId, payeeRequestDTO));
+    }
+
+    @PutMapping("/recurring/cancel/{payeeId}")
+    public ResponseEntity<Void> cancelRecurringPayee(
+        @AuthenticationPrincipal User authenticatedUser,
+        @PathVariable Long payeeId){
+        recurringPayeeService.cancelRecurringPayee(authenticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
 }
