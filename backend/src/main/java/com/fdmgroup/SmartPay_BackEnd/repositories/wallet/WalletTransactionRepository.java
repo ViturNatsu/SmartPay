@@ -21,5 +21,10 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("SELECT wt FROM WalletTransaction wt WHERE wt.transactionId = :transactionId")
     Optional<WalletTransaction> findByTransactionId(@Param("transactionId") String transactionId);
+
+    List<WalletTransaction> findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
+            Long userId,
+            Pageable pageable
+    );
     
 }
