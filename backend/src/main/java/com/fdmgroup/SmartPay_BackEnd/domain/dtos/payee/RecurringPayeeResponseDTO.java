@@ -17,6 +17,7 @@ public class RecurringPayeeResponseDTO {
     private Long payeeId;
     private String payeeName;
     private Long recipientId;
+    private String recipientIdentifier;
     private String firstName;
     private String lastName;
     private String email;
