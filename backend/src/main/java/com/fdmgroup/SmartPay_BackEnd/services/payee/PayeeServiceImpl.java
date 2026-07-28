@@ -219,6 +219,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 recurringPayee.getPayeeId(),
                 recurringPayee.getPayeeName(),
                 recurringPayee.getRecipient().getId(),
+                recurringPayee.getAccountNumber(),
                 recurringPayee.getRecipient().getFirstName(),
                 recurringPayee.getRecipient().getLastName(),
                 recurringPayee.getRecipient().getEmail(),
