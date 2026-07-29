@@ -26,4 +26,5 @@ public class RecurringPayeeResponseDTO {
     private Double amount;
     private LocalDate date;
     private RecurringPaymentType type;
+    private LocalDate endDate;
 }
