@@ -17,7 +17,8 @@ import {
   Container,
   Button,
   AlertTitle,
-  TextField
+  TextField,
+  Pagination
 } from "@mui/material";
 
 import TransactionFilterBar from "../../components/table/TransactionFilterBar";
@@ -42,6 +43,9 @@ export function Transactions() {
   const selectedId = searchParams.get("selected");
   const activeFilter = searchParams.get("filter") || "all";
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [rawTransactions, setRawTransactions] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,8 +68,14 @@ export function Transactions() {
       setDataLoading(true);
       setError(null);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
-        if (!cancelled) setRawTransactions(data);
+        const data = await getWalletTransactions(tokenClaims.userId, currentPage, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
+        if (!cancelled)
+        {
+          setRawTransactions(data.transactions ?? []);
+          setCurrentPage(data.currentPage ?? 0);
+          setTotalPages(data.totalPages ?? 0);
+          setTotalElements(data.totalElements ?? 0);
+        }
       } catch (err) {
         if (!cancelled) setError(err.message ?? "Failed to load transactions");
       } finally {
@@ -79,18 +89,29 @@ export function Transactions() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, tokenClaims?.userId, retryCount, activeFilter]);
+  }, [authLoading, tokenClaims?.userId, retryCount, activeFilter, currentPage]);
 
   const rows = useMemo(
     () => filterTransactions(rawTransactions, activeFilter),
     [rawTransactions, activeFilter]
   );
 
+
+  const handlePageChange = (_event, pageNumber) => {
+    setCurrentPage(pageNumber - 1);
+
+    const params = new URLSearchParams(searchParams);
+    params.delete("selected");
+    setSearchParams(params);
+  };
+
   const handleFilterChange = (next) => {
     const params = new URLSearchParams(searchParams);
+
     params.set("filter", next);
-    // Clear stale row selection when the filter changes
     params.delete("selected");
+
+    setCurrentPage(0);
     setSearchParams(params);
   };
 
@@ -210,28 +231,60 @@ export function Transactions() {
               <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                 <CircularProgress size={28} />
               </Box>
-            ) : !error && filteredRows.length === 0 ? (
+                        ) : !error && filteredRows.length === 0 ? (
               <Box sx={{ height: 160 }}>
-<Box sx={{ height: 160 }}>
-  {searchQuery ? (
-    <Typography
-      align="center"
-      sx={{ mt: 6, color: tokens.color.text.muted }}
-    >
-      No matching transactions found.
-    </Typography>
-  ) : (
-    <CustomNoRowsOverlay />
-  )}
-</Box>              </Box>
+                {searchQuery ? (
+                  <Typography
+                    align="center"
+                    sx={{ mt: 6, color: tokens.color.text.muted }}
+                  >
+                    No matching transactions found.
+                  </Typography>
+                ) : (
+                  <CustomNoRowsOverlay />
+                )}
+              </Box>
             ) : (
-              !error && (
-                <WalletActivityTable
-                  transactions={filteredRows}
-                  selectedId={selectedId}
-                  onSelect={handleSelect}
-                  onFavouriteToggle={handleFavouriteToggle}
-                />
+          !error && (
+                <Box>
+                  <WalletActivityTable
+                    transactions={filteredRows}
+                    selectedId={selectedId}
+                    onSelect={handleSelect}
+                    onFavouriteToggle={handleFavouriteToggle}
+                  />
+
+                  {totalPages > 1 && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        mt: 3
+                      }}
+                    >
+                      <Pagination
+                        count={totalPages}
+                        page={currentPage + 1}
+                        onChange={handlePageChange}
+                        showFirstButton
+                        showLastButton
+                      />
+                    </Box>
+                  )}
+
+                  {totalElements > 0 && (
+                    <Typography
+                      align="center"
+                      sx={{
+                        mt: 1.5,
+                        fontSize: 14,
+                        color: tokens.color.text.muted
+                      }}
+                    >
+                      {totalElements} transaction{totalElements === 1 ? "" : "s"}
+                    </Typography>
+                  )}
+                </Box>
               )
             )}
           </Box>

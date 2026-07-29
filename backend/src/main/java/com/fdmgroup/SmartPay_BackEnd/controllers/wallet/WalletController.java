@@ -1,7 +1,5 @@
 package com.fdmgroup.SmartPay_BackEnd.controllers.wallet;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +23,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -108,19 +107,31 @@ public class WalletController {
     }
 
     @GetMapping("/{userId}/transactions")
-    @Operation(summary = "Get wallet transaction history",
-               description = "Returns recent wallet load and withdraw events for the authenticated user.")
-    public ResponseEntity<List<WalletTransactionDTO>> getTransactions(
+    @Operation(
+            summary = "Get wallet transaction history",
+            description = "Returns a paginated wallet transaction history for the authenticated user."
+    )
+    public ResponseEntity<WalletTransactionPageDTO> getTransactions(
             @PathVariable long userId,
-            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int limit,
             @RequestParam(required = false) Boolean favourite,
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
+
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(walletService.getTransactions(userId, limit,favourite));
+
+        return ResponseEntity.ok(
+                walletService.getTransactions(
+                        userId,
+                        page,
+                        limit,
+                        favourite
+                )
+        );
     }
 
     @PostMapping("/{userId}/transfer")

@@ -9,10 +9,11 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestD
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletPerTransactionLimitRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
-
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 @Service
 public interface WalletService {
 
@@ -33,7 +34,12 @@ public interface WalletService {
 
     WalletResponseDTO loadFunds(long userId, LoadWalletRequestDTO request);
 
-    List<WalletTransactionDTO> getTransactions(long userId, int limit, Boolean favourite);
+    WalletTransactionPageDTO getTransactions(
+            long userId,
+            int page,
+            int limit,
+            Boolean favourite
+    );
 
     /**
      * Updates the wallet-level daily spending limit for the specified user.

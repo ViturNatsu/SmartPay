@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
 
@@ -17,12 +18,14 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT wt FROM WalletTransaction wt WHERE wt.wallet.walletId = :walletId")
     List<WalletTransaction> findByWalletId(@Param("walletId") Long walletId);
 
-    List<WalletTransaction> findByWallet_User_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-
+    Page<WalletTransaction> findByWallet_User_IdOrderByCreatedAtDesc(
+            Long userId,
+            Pageable pageable
+    );
     @Query("SELECT wt FROM WalletTransaction wt WHERE wt.transactionId = :transactionId")
     Optional<WalletTransaction> findByTransactionId(@Param("transactionId") String transactionId);
 
-    List<WalletTransaction> findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
+    Page<WalletTransaction> findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
             Long userId,
             Pageable pageable
     );
