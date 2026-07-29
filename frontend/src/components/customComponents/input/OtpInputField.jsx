@@ -1,86 +1,149 @@
-import {Alert, Box, Button, CircularProgress, Link, TextField, Typography} from "@mui/material";
-import {MuiOtpInput} from "mui-one-time-password-input";
-import CheckIcon from "@mui/icons-material/Check";
-import {useState} from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  TextField,
+  Typography,
+} from "@mui/material";
 
-export const OtpInputField = (
-  {
-    otpRequestObject,
-    otpVerifyObject,
-    messageFluff,
-    emailTarget,
-    value,
-    onChange,
-    payload
-  }) => {
-
+export const OtpInputField = ({
+  otpRequestObject,
+  otpVerifyObject,
+  messageFluff,
+  emailTarget,
+  value,
+  onChange,
+  payload,
+}) => {
   const hasTimeLeft = () => {
     return otpRequestObject.state.timeLeft > 0;
-  }
+  };
+
+  const handleOtpChange = (event) => {
+    // Only allow numbers and limit the code to 7 digits
+    const numericValue = event.target.value
+      .replace(/\D/g, "")
+      .slice(0, 7);
+
+    onChange(numericValue);
+  };
 
   return (
     <Box
       sx={{
         width: "100%",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: 2,
-        // border: "1px solid",
-        paddingX: "2rem",
-        boxSizing: "border-box",
-        borderRadius: 2
       }}
     >
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight={150}
-        height="100%"
-        gap={1}
-        flexDirection="column"
-        // border="1px solid"
-      >
+      {/* ======================================================
+          STATE 1 — REQUEST VERIFICATION CODE
+          ====================================================== */}
 
+      {!otpRequestObject.state.isSent && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Request error */}
+          {otpRequestObject.state.error && (
+            <Alert
+              severity="error"
+              sx={{
+                mb: 2,
+                borderRadius: 2,
+              }}
+            >
+              Request Error: {otpRequestObject.state.error}
+            </Alert>
+          )}
 
-        {!otpRequestObject.state.isSent && !otpRequestObject.state.error && !otpRequestObject.state.isRequesting  && (
-          <Button
-            variant="contained"
-            onClick={()=>{
-                otpRequestObject.handlers.handleOtpRequest(payload).catch(console.error);
-            }}
-            disabled={otpRequestObject.state.isRequesting || !emailTarget}
-          >
-            {"Send Verification Code"}
-          </Button>
-        )}
+          {/* Send verification button */}
+          {!otpRequestObject.state.error &&
+            !otpRequestObject.state.isRequesting && (
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => {
+                  otpRequestObject.handlers
+                    .handleOtpRequest(payload)
+                    .catch(console.error);
+                }}
+                disabled={!emailTarget}
+                sx={{
+                  minHeight: 52,
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 700,
+                  fontSize: 16,
+                }}
+              >
+                Send Verification Code
+              </Button>
+            )}
 
-        {
-          !otpRequestObject.state.isRequesting
-          && otpRequestObject.state.isSent &&
+          {/* Loading state */}
+          {otpRequestObject.state.isRequesting && (
+            <Box
+              sx={{
+                minHeight: 52,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <CircularProgress size={28} />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {/* ======================================================
+          STATE 2 — ENTER VERIFICATION CODE
+          ====================================================== */}
+
+      {otpRequestObject.state.isSent && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Success message */}
           <Alert
             severity="success"
             sx={{
+              mb: 3,
+              borderRadius: 2,
+              alignItems: "flex-start",
+
               "& .MuiAlert-icon": {
-                alignItems: "center",
+                mt: 0.25,
               },
+
               "& .MuiAlert-message": {
-                display: "flex",
-                alignItems: "center",
+                width: "100%",
               },
             }}
           >
             <Typography
-              variant="caption"
-              align="left"
-              fontSize="small"
-              color="success"
+              sx={{
+                fontSize: 15,
+                lineHeight: 1.5,
+                fontWeight: 600,
+              }}
             >
               A 7-digit code has been sent to{" "}
               <Box
                 component="span"
-                sx={{ fontWeight: "bold" }}
+                sx={{
+                  fontWeight: 800,
+                }}
               >
                 {emailTarget}
               </Box>
@@ -89,90 +152,70 @@ export const OtpInputField = (
                 component="span"
                 sx={{
                   display: "block",
-                  marginTop: 1,
+                  mt: 0.5,
                 }}
               >
                 Enter it below to {messageFluff}.
               </Box>
             </Typography>
           </Alert>
-        }
 
-        {otpRequestObject.state.isRequesting &&
-          <Box
-            sx={{
-              justifyContent: "center",
-              textAlign: "center",
-            }}>
-            <CircularProgress
-            />
-          </Box>
-        }
+          {/* Verification error */}
+          {otpVerifyObject.state.error &&
+            !otpVerifyObject.state.isVerifying && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  borderRadius: 2,
+                }}
+              >
+                Verification Error: {otpVerifyObject.state.error}
+              </Alert>
+            )}
 
-        {/* Request Error */}
-        {otpRequestObject.state.error && (
-          <Alert
-            severity="error"
+          {/* OTP label */}
+          <Typography
+            component="label"
+            htmlFor="otp-code"
             sx={{
-            justifyContent: "center",
-            textAlign: "center",
-          }}
-          >
-            Request Error: {otpRequestObject.state.error}
-          </Alert>
-        )}
-
-        {/*Verification Error*/}
-        {/* No need to show verification error if request error is present to avoid clutter */}
-        {otpVerifyObject.state.error && !otpVerifyObject.state.isVerifying && !otpRequestObject.state.error && (
-          <Alert
-            severity="error"
-            sx={{
-              justifyContent: "center",
-              textAlign: "center",
+              fontSize: 15,
+              fontWeight: 700,
+              color: "text.primary",
+              mb: 1,
             }}
           >
-            Verification Error: {otpVerifyObject.state.error}
-          </Alert>
-        )}
-      </Box
-      >
+            Enter the 7-digit code below
+          </Typography>
 
-      <Box
-        display="flex"
-        flexDirection="column"
-        // border="1px solid"
-      >
-        <Typography
-          variant="caption"
-          align="left"
-          color="text.primary"
-        >
-          <strong>Enter the 7-digit code below</strong>
-        </Typography>
-
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          {/* OTP input */}
           <TextField
+            id="otp-code"
             fullWidth
             placeholder="Enter Code"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={handleOtpChange}
             slotProps={{
               htmlInput: {
                 maxLength: 7,
                 inputMode: "numeric",
                 pattern: "[0-9]*",
                 autoComplete: "one-time-code",
+                "aria-label": "7-digit verification code",
               },
             }}
             sx={{
+              "& .MuiOutlinedInput-root": {
+                minHeight: 56,
+                borderRadius: 2,
+              },
+
               "& input": {
-                textAlign: "center",
                 fontSize: "1rem",
                 fontWeight: 600,
-                letterSpacing: "0.5rem",
-                fontFamily: "monospace",
+                letterSpacing: "0.25rem",
               },
+
               "& input::placeholder": {
                 fontSize: "1rem",
                 letterSpacing: "normal",
@@ -180,34 +223,43 @@ export const OtpInputField = (
               },
             }}
           />
-        </Box>
 
-        {/* RESEND SECTION */}
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{
-            textAlign: "center",
-            visibility: otpRequestObject.state.isSent ? "visible" : "hidden",
-          }}
-        >
-          Didn’t receive a code?{" "}
-          <Box
-            component="span"
-            onClick={hasTimeLeft() ? undefined : otpRequestObject.handlers.handleResend}
+          {/* Resend */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
             sx={{
-              color: hasTimeLeft() ? "text.disabled" : "primary.main",
-              cursor: hasTimeLeft() ? "not-allowed" : "pointer",
-              fontWeight: 500,
+              mt: 1,
             }}
           >
-            {hasTimeLeft()
-              ? `Resend in ${otpRequestObject.state.timeLeft}s`
-              : "Resend code"}
-          </Box>
-        </Typography>
-      </Box>
-    </Box>
-  )
+            Didn&apos;t receive a code?{" "}
 
-}
+            <Box
+              component="span"
+              onClick={
+                hasTimeLeft()
+                  ? undefined
+                  : otpRequestObject.handlers.handleResend
+              }
+              sx={{
+                color: hasTimeLeft()
+                  ? "text.disabled"
+                  : "primary.main",
+
+                cursor: hasTimeLeft()
+                  ? "default"
+                  : "pointer",
+
+                fontWeight: 600,
+              }}
+            >
+              {hasTimeLeft()
+                ? `Resend in ${otpRequestObject.state.timeLeft}s`
+                : "Resend code"}
+            </Box>
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+};

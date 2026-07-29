@@ -1,49 +1,60 @@
 import {
-  Alert,
   Box,
-  Button, CircularProgress,
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle, Snackbar, Stack,
+  DialogTitle,
+  Stack,
   Typography,
 } from "@mui/material";
-import { MuiOtpInput } from "mui-one-time-password-input";
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext.jsx";
 import Slide from "@mui/material/Slide";
-import {useOtpVerify} from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
-import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
-import Divider from "@mui/material/Divider";
-import {WarningAmberRounded} from "@mui/icons-material";
-import {useTheme} from "@mui/material/styles";
-import {useCardLockOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useCardLockOtpRequest.js";
+import { useOtpVerify } from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
+import { OtpInputField } from "@/components/customComponents/input/OtpInputField.jsx";
+import { WarningAmberRounded } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { useCardLockOtpRequest } from "@/hooks/OtpHooks/OtpRequests/useCardLockOtpRequest.js";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const isActive = (cardStatus) => {
-  return (cardStatus === "ACTIVE");
-}
+  return cardStatus === "ACTIVE";
+};
 
-export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
-  // Auth
+export const LockCardOtpDialog = ({
+  cardStatus,
+  open,
+  onClose,
+  onSuccess,
+}) => {
   const theme = useTheme();
-  const { tokenClaims, loading: authLoading } = useAuth();
+
+  // Auth
+  const { tokenClaims } = useAuth();
   const email = tokenClaims?.email;
 
-  // Hook for handling Lock requests
+  // Hook for handling Lock/Unlock OTP requests
   const cardLockRequestObject = useCardLockOtpRequest();
 
-  // Hook for handling OTP Verify
+  // Hook for handling OTP verification
   const otpVerifyObject = useOtpVerify();
 
-  // State for tracking input
+  // OTP input state
   const [otp, setOtp] = useState("");
 
+  // Whether the verification code has been sent
+  const isOtpSent = cardLockRequestObject.state.isSent;
+
   // Payload formats
-  const lockPayload = {"email": tokenClaims?.email, "type": "CARD_LOCK"};
+  const lockPayload = {
+    email: tokenClaims?.email,
+    type: "CARD_LOCK",
+  };
+
   const unlockPayload = {
     ...lockPayload,
     type: "CARD_UNLOCK",
@@ -53,124 +64,239 @@ export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
     cardLockRequestObject.handlers.reset();
     otpVerifyObject.handlers.reset();
     setOtp("");
-  }
+  };
+
+  const handleClose = () => {
+    handleReset();
+    onClose();
+  };
+
+  const handleConfirm = () => {
+    otpVerifyObject.handlers
+      .sendOtpVerify({
+        email: tokenClaims?.email,
+        code: otp,
+        type: isActive(cardStatus)
+          ? "CARD_LOCK"
+          : "CARD_UNLOCK",
+      })
+      .then(() => {
+        if (isActive(cardStatus)) {
+          onSuccess("Card Locked Successfully");
+        } else {
+          onSuccess("Card Unlocked Successfully");
+        }
+
+        handleReset();
+        onClose();
+      })
+      .catch(console.error);
+  };
 
   return (
-    <>
-      <Dialog
-        // slots={{ transition: Transition }}
-        open={open}
-        onClose={onClose}
-        slotProps={{
-          paper: {
-            sx: {
-              width: 700,
-              maxWidth: '90vw',
-            },
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            width: "100%",
+            maxWidth: 600,
+            borderRadius: 4,
           },
+        },
+      }}
+    >
+      {/* ======================================================
+          TITLE
+          ====================================================== */}
+
+      <DialogTitle
+        sx={{
+          textAlign: "left",
+          fontSize: 28,
+          fontWeight: 800,
+          px: 4,
+          pt: 4,
+          pb: 2,
         }}
       >
-        <DialogTitle sx={{ textAlign: "left" }}>
-          {isActive(cardStatus) ? "Lock Virtual Card" : "Unlock Virtual Card"}
-        </DialogTitle>
+        {isActive(cardStatus)
+          ? "Lock Virtual Card"
+          : "Unlock Virtual Card"}
+      </DialogTitle>
 
-        <DialogContent sx={{ py: 3 }}>
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            spacing={2}
-            divider={
-              <Divider
-                orientation="vertical"
-                flexItem
-              />
-            }
-          >
-            <Stack
-              flex={1}
-              spacing={2}
-              justifyContent="space-between"
+      <DialogContent
+        sx={{
+          px: 4,
+          pt: 1,
+          pb: isOtpSent ? 1 : 4,
+        }}
+      >
+        {/* ======================================================
+            MODAL STATE 1
+            BEFORE OTP HAS BEEN SENT
+            ====================================================== */}
+
+        {!isOtpSent && (
+          <Stack spacing={3}>
+            {/* Description */}
+
+            <Typography
+              sx={{
+                fontSize: 16,
+                lineHeight: 1.6,
+                color: "text.primary",
+              }}
             >
-              <Typography
-                align="left"
-                sx={{fontSize: 13.5, lineHeight: 1.5}}>
-                {isActive(cardStatus) ?
-                  "This action will lock the card. A locked card cannot be used until it is unlocked again."
-                  : "This action will unlock the card. Unlocked cards are active, and may be used until it is locked or expired." }
-              </Typography>
-              <Box
+              {isActive(cardStatus)
+                ? "This action will lock the card. A locked card cannot be used until it is unlocked again."
+                : "This action will unlock the card. Unlocked cards are active, and may be used until they are locked or expired."}
+            </Typography>
+
+            {/* Warning */}
+
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                p: 2.5,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.main,
+                backgroundColor: theme.palette.warning.light,
+              }}
+            >
+              <WarningAmberRounded
                 sx={{
-                  display: "flex",
-                  gap: 1.25,
-                  p: 2,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: theme.palette.warning.main,
-                  color: theme.palette.warning.main,
-                  backgroundColor: theme.palette.warning.light,
+                  mt: 0.2,
+                  flexShrink: 0,
+                }}
+              />
+
+              <Typography
+                sx={{
+                  fontSize: 15,
+                  lineHeight: 1.6,
                 }}
               >
-                <WarningAmberRounded sx={{mt: 0.2}} />
-                <Typography sx={{fontSize: 13.5, lineHeight: 1.5}}>
-                  The Card Lock and Card Unlock features are unavailable when there is a pending request for a card renewal.
-                  <br/>
-                  <br/>
-                  The Virtual Card is automatically locked when creating a request for a card renewal.
-                </Typography>
-              </Box>
-            </Stack>
-            <Stack
-              flex={1}
-              spacing={2}
-            >
-              <OtpInputField
-                messageFluff={isActive(cardStatus) ?
-                  "lock your card"
-                  : "unlock your card" }
-                emailTarget={email}
-                otpRequestObject={cardLockRequestObject}
-                otpVerifyObject={otpVerifyObject}
-                value={otp}
-                onChange={setOtp}
-                payload={
-                  isActive(cardStatus) ? lockPayload : unlockPayload
-                }
-              ></OtpInputField>
-            </Stack>
-          </Stack>
-        </DialogContent>
+                The Card Lock and Card Unlock features are unavailable
+                when there is a pending request for a card renewal.
 
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
+                <br />
+                <br />
+
+                The Virtual Card is automatically locked when creating
+                a request for a card renewal.
+              </Typography>
+            </Box>
+
+            {/* OTP component only renders Send Verification Code
+                at this point */}
+
+            <OtpInputField
+              messageFluff={
+                isActive(cardStatus)
+                  ? "lock your card"
+                  : "unlock your card"
+              }
+              emailTarget={email}
+              otpRequestObject={cardLockRequestObject}
+              otpVerifyObject={otpVerifyObject}
+              value={otp}
+              onChange={setOtp}
+              payload={
+                isActive(cardStatus)
+                  ? lockPayload
+                  : unlockPayload
+              }
+            />
+          </Stack>
+        )}
+
+        {/* ======================================================
+            MODAL STATE 2
+            AFTER OTP HAS BEEN SENT
+            ====================================================== */}
+
+        {isOtpSent && (
+          <OtpInputField
+            messageFluff={
+              isActive(cardStatus)
+                ? "lock your card"
+                : "unlock your card"
+            }
+            emailTarget={email}
+            otpRequestObject={cardLockRequestObject}
+            otpVerifyObject={otpVerifyObject}
+            value={otp}
+            onChange={setOtp}
+            payload={
+              isActive(cardStatus)
+                ? lockPayload
+                : unlockPayload
+            }
+          />
+        )}
+      </DialogContent>
+
+      {/* ======================================================
+          ACTIONS
+
+          Only show Cancel / Confirm after OTP has been sent.
+          ====================================================== */}
+
+      {isOtpSent && (
+        <DialogActions
+          sx={{
+            display: "flex",
+            gap: 2,
+            px: 4,
+            pt: 2,
+            pb: 4,
+
+            "& > :not(style) ~ :not(style)": {
+              ml: 0,
+            },
+          }}
+        >
           <Button
+            fullWidth
             variant="outlined"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={otpVerifyObject.state.isVerifying}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
           >
             Cancel
           </Button>
 
           <Button
+            fullWidth
             loading={otpVerifyObject.state.isVerifying}
             variant="contained"
-            disabled={!cardLockRequestObject.state.isSent || otp.length < 7}
-            onClick={()=>{
-              otpVerifyObject.handlers.sendOtpVerify({
-                "email": tokenClaims?.email,
-                "code": otp,
-                "type": isActive(cardStatus) ? "CARD_LOCK" : "CARD_UNLOCK",
-              }
-            ) .then(r => {
-              if(isActive(cardStatus)){
-                onSuccess("Card Locked Successfully")
-              }
-              else{
-                onSuccess("Card Unlocked Successfully")
-              }
-              handleReset();
-              onClose();
-            })}}>
-            {isActive(cardStatus) ? ("Confirm Lock") : "Confirm Unlock"}
+            disabled={otp.length !== 7}
+            onClick={handleConfirm}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            {isActive(cardStatus)
+              ? "Confirm Lock"
+              : "Confirm Unlock"}
           </Button>
         </DialogActions>
-      </Dialog>
-    </>
+      )}
+    </Dialog>
   );
 };

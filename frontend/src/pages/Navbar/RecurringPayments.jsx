@@ -31,6 +31,8 @@ export default function RecurringPayments() {
   const {activeTab, handleTabChange} = useRecurringPaymentsTab();
 
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
+  const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -185,7 +187,13 @@ export default function RecurringPayments() {
     [payees, billsSearchQuery],
   );
 
+    const filteredSubscriptions = useMemo(
+    () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
+    [subscriptions, subscriptionsSearchQuery],
+  );
+
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
+  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
   return (
     <>
@@ -233,7 +241,7 @@ export default function RecurringPayments() {
               )}
             </Stack>
 
-            {activeTab === "subscriptions" &&
+            {/* {activeTab === "subscriptions" &&
               (subscriptions.length === 0 ? (
                 <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
               ) : (
@@ -243,7 +251,7 @@ export default function RecurringPayments() {
                     subscription={subscription}
                   />
                 ))
-              ))}
+              ))} */}
 
             {activeTab === "bills" && (
               <RecurringPaymentsSearchBar
@@ -252,6 +260,16 @@ export default function RecurringPayments() {
                 onClear={() => setBillsSearchQuery("")}
                 placeholder="Search by payee name..."
                 aria-label="Search bill payees"
+              />
+            )}
+
+            {activeTab === "subscriptions" && (
+              <RecurringPaymentsSearchBar
+                value={subscriptionsSearchQuery}
+                onChange={e => setSubscriptionsSearchQuery(e.target.value)}
+                onClear={() => setSubscriptionsSearchQuery("")}
+                placeholder="Search by subscription name..."
+                aria-label="Search subscriptions"
               />
             )}
 
@@ -288,6 +306,20 @@ export default function RecurringPayments() {
                   <RecurringPayeeCard key={payee.id} payee={payee} />
                 ))
               ))}
+            
+            {activeTab === "subscriptions" &&
+              (subscriptions.length === 0 && hasSubscriptionsSearch ? (
+                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+              ) : (
+                filteredSubscriptions.map(subscription => (
+                  <RecurringSubscriptionCard
+                    key={subscription.id}
+                    subscription={subscription}
+                  />
+                ))
+              ))}
+
+
           </Card>
         </Container>
       </Box>

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 const STORAGE_KEY = "recurringPaymentsActiveTab";
 const VALID_TABS = new Set(["subscriptions", "bills"]);
-const DEFAULT_TAB = "subscriptions";
+const DEFAULT_TAB = "bills";
 
 function readStoredTab() {
   try {
