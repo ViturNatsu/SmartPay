@@ -122,11 +122,17 @@ export default function RecurringPayments() {
     }));
   };
 
+
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required.";
+    } else if (formData.name.trim().length > 30) {
+      newErrors.name = "Payee Name cannot exceed 30 characters.";
+    } else if (!/^[A-Za-z0-9 ]+$/.test(formData.name.trim())) {
+      newErrors.name = "Payee Name cannot contain special characters.";
     }
 
     if (!formData.accountNumber.trim()) {
@@ -139,8 +145,10 @@ export default function RecurringPayments() {
       newErrors.amount = "Amount is required.";
     } else if (Number.isNaN(amountValue)) {
       newErrors.amount = "Amount must be a valid number.";
-    } else if (amountValue <= 0) {
-      newErrors.amount = "Amount must be greater than 0.";
+    } else if (amountValue < 1) {
+      newErrors.amount = "Amount must be greater than 1.";
+    } else if (!/^\d+(\.\d{1,3})?$/.test(amountText)) {
+      newErrors.amount = "Amount can have a maximum of 3 decimal places.";
     }
 
     if (!formData.schedule) {
@@ -149,6 +157,16 @@ export default function RecurringPayments() {
 
     if (!formData.date) {
       newErrors.date = "Please select a date.";
+    } else {
+      const selectedDate = new Date(`${formData.date}T00:00:00`);
+      const today = new Date();
+
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        newErrors.date =
+          "Past dates are not allowed for recurring payments.";
+      }
     }
 
 
