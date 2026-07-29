@@ -46,4 +46,9 @@ public class RecurringPayeeRequestDTO {
     @NotNull
     private LocalDate date;
 
+    @JsonProperty("endDate")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @NotNull
+    private LocalDate endDate;
+
 }

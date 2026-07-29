@@ -116,6 +116,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         String recipientIdentifier = recurringPayeeRequestDTO.getRecipientIdentifier();
         Double recurringAmount=recurringPayeeRequestDTO.getAmount();
         LocalDate date = recurringPayeeRequestDTO.getDate();
+        LocalDate endDate = recurringPayeeRequestDTO.getEndDate();
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
                 
@@ -170,7 +171,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new PayeeAlreadyExistsException("Recurring payment already exists");
         }
         
-
+        if(endDate.compareTo(date)<=-1){
+            throw new InvalidRecurringPayeeException("End Date can't be before Payment Date");
+        }
 
         RecurringPayee recurringPayee= new RecurringPayee();
         recurringPayee.setActive(true);
@@ -181,6 +184,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayee.setAccountNumber(recipientIdentifier);
         recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
         recurringPayee.setDate(date);
+        recurringPayee.setEndDate(endDate);
         recurringPayeeRepository.save(recurringPayee);
         return toRecurringResponseDTO(recurringPayee);
     }
@@ -199,31 +203,50 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
     @Override
     public RecurringPayeeResponseDTO updateRecurringPayee(Long ownerId, Long recurringPayeeId, RecurringPayeeRequestDTO payeeRequestDTO) {
-        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(recurringPayeeId, ownerId)
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerId(recurringPayeeId, ownerId)
             .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
         if(!recurringPayee.isActive()){
-            throw new RuntimeException("Can't update inactive account!");
+            throw new InvalidRecurringPayeeException("Can't update inactive account");
         }
         if(recurringPayee.getDate().equals(payeeRequestDTO.getDate()) 
-            && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())){
-            throw new RuntimeException("Update values are the same");
+            && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())
+            && recurringPayee.getEndDate().equals(payeeRequestDTO.getEndDate())){
+            throw new InvalidRecurringPayeeException("No changes were detected");
         }
+
+        if(payeeRequestDTO.getEndDate().compareTo(payeeRequestDTO.getDate())<=-1){
+            throw new InvalidRecurringPayeeException("End Date can't be before Payment Date");
+        }
+
         recurringPayee.setDate(payeeRequestDTO.getDate());
         recurringPayee.setAmount(payeeRequestDTO.getAmount());
+        recurringPayee.setEndDate(payeeRequestDTO.getEndDate());
         recurringPayeeRepository.save(recurringPayee);
         return toRecurringResponseDTO(recurringPayee);
     }
 
     @Override
     public void cancelRecurringPayee(Long ownerId, Long payeeId){
-        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerId(payeeId, ownerId)
         .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
         if(!recurringPayee.isActive()){
-            throw new RuntimeException("Recurring Payee is already inactive!");
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive!");
         }
         recurringPayee.setActive(false);
+        recurringPayeeRepository.save(recurringPayee);
+    }
+
+    @Override
+    public void reactivateRecurringPayee(Long ownerId, Long payeeId) {
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerId(payeeId, ownerId)
+        .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Recurring Payee is already active!");
+        }
+        recurringPayee.setActive(true);
         recurringPayeeRepository.save(recurringPayee);
     }
 
@@ -254,10 +277,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 phoneNumber,
                 recurringPayee.getSchedule(),
                 recurringPayee.getAmount(),
-                recurringPayee.getDate());
+                recurringPayee.getDate(),
+                recurringPayee.getEndDate());
     }
-
-
-
     
 }

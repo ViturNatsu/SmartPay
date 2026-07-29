@@ -23,4 +23,5 @@ public class RecurringPayeeResponseDTO {
     private Schedule schedule;
     private Double amount;
     private LocalDate date;
+    private LocalDate endDate;
 }

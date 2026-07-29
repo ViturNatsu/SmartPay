@@ -108,4 +108,12 @@ public class PayeeController {
         recurringPayeeService.cancelRecurringPayee(authenticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/recurring/reactivate/{payeeId}")
+    public ResponseEntity<Void> reactivateRecurringPayee(
+        @AuthenticationPrincipal User authenticatedUser,
+        @PathVariable Long payeeId){
+        recurringPayeeService.reactivateRecurringPayee(authenticatedUser.getId(), payeeId);
+        return ResponseEntity.noContent().build();
+    }
 }
