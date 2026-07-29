@@ -149,6 +149,7 @@ export default function RecurringPayments() {
       newErrors.amount = "Amount must be greater than 1.";
     } else if (!/^\d+(\.\d{1,3})?$/.test(amountText)) {
       newErrors.amount = "Amount can have a maximum of 3 decimal places.";
+    }
 
     if (!formData.schedule) {
       newErrors.schedule = "Please select a schedule.";
