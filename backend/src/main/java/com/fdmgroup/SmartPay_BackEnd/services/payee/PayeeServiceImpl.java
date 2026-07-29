@@ -170,10 +170,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (duplicateRecurringPayee) {
             throw new PayeeAlreadyExistsException("Recurring payment already exists");
         }
-        
-        if(endDate.compareTo(date)<=-1){
-            throw new InvalidRecurringPayeeException("End Date can't be before Payment Date");
-        }
 
         RecurringPayee recurringPayee= new RecurringPayee();
         recurringPayee.setType(recurringPayeeRequestDTO.getType());
