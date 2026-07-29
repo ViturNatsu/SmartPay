@@ -232,7 +232,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
         if(!recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive!");
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
         }
         recurringPayee.setActive(false);
         recurringPayeeRepository.save(recurringPayee);
@@ -244,7 +244,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
         if(recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Recurring Payee is already active!");
+            throw new InvalidRecurringPayeeException("Recurring Payee is already active");
         }
         recurringPayee.setActive(true);
         recurringPayeeRepository.save(recurringPayee);

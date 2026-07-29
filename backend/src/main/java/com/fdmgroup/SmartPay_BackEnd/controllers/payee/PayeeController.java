@@ -76,6 +76,7 @@ public class PayeeController {
 
         return ResponseEntity.ok(recurringPayeeService.getRecurringPayeesForUser(authenticatedUser.getId()));
     }
+    
     @DeleteMapping("/{payeeId}")
     public ResponseEntity<Void> deletePayee(
             @AuthenticationPrincipal User authenticatedUser,
@@ -84,6 +85,7 @@ public class PayeeController {
         payeeService.deletePayee(authenticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
+
     @DeleteMapping("/recurring/{payeeId}")
     public ResponseEntity<Void> deleteRecurringPayee(
             @AuthenticationPrincipal User authenticatedUser,
