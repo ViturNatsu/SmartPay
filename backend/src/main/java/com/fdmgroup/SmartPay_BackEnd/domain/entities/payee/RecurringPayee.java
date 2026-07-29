@@ -3,6 +3,8 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,6 +24,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecurringPayee extends Payee{
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RecurringPaymentType type;
 
     @Column(name = "account_number", nullable = false)
     private String accountNumber;

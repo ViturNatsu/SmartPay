@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -22,6 +22,10 @@ import Navbar from "@/components/Navbar";
 import {tokens} from "@/style/Theme";
 import {useRecurringPaymentsTab} from "@/utils/useRecurringPaymentsTab";
 import {filterItemsByName} from "@/utils/recurringPaymentsSearchUtils";
+import {
+  addRecurringPayee,
+  getRecurringPayees,
+} from "@/api/recurringPayment/recurringPayeeApi";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -39,7 +43,7 @@ export default function RecurringPayments() {
   const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
-    accountNumber: "",
+    accountNumber: "99990001",
     amount: "",
     schedule: "",
     date: "",
@@ -63,23 +67,46 @@ export default function RecurringPayments() {
     },
   ]);
 
-  const [payees, setPayees] = useState([
-    // To be removed upon connecting to the backend
-    {
-      id: 1,
-      name: "Electric Company",
-      amount: "120",
-      schedule: "monthly",
-      date: "2026-07-05",
-    },
-    {
-      id: 2,
-      name: "Water Company",
-      amount: "20",
-      schedule: "monthly",
-      date: "2026-07-05",
-    },
-  ]);
+  const [payees, setPayees] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadRecurringPayees = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const data = await getRecurringPayees();
+
+      const recurringPayees = Array.isArray(data) ? data : [];
+
+      const mappedPayees = recurringPayees.map((payee) => ({
+        id: payee.payeeId,
+        name: payee.payeeName,
+        accountNumber:
+          payee.accountNumber ??
+          payee.recipientIdentifier ??
+          "",
+        amount: payee.amount,
+        schedule: payee.schedule,
+        date: payee.date,
+      }));
+
+      setPayees(mappedPayees);
+    } catch (error) {
+      setErrorMessage(
+        error?.message ||
+          "Unable to load recurring payees. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecurringPayees();
+  }, []);
 
   const handleInputChange = event => {
     const {name, value} = event.target;
@@ -124,43 +151,100 @@ export default function RecurringPayments() {
       newErrors.date = "Please select a date.";
     }
 
-    const normalizedName = formData.name.trim().toLowerCase();
 
-    const duplicatePayee = payees.some(
-      payee => payee.name.trim().toLowerCase() === normalizedName,
+    const duplicateRecurringPayee = payees.some((payee) => {
+    const sameName =
+      String(payee.name ?? "").trim().toLowerCase() ===
+      formData.name.trim().toLowerCase();
+
+    const sameAccountNumber =
+      String(payee.accountNumber ?? "").trim().toLowerCase() ===
+      formData.accountNumber.trim().toLowerCase();
+
+    const sameAmount =
+      Number(payee.amount) === Number(formData.amount);
+
+    const sameSchedule =
+      String(payee.schedule ?? "").trim().toUpperCase() ===
+      formData.schedule.trim().toUpperCase();
+
+    const sameDate =
+      String(payee.date ?? "") === formData.date;
+
+    return (
+      sameName &&
+      sameAccountNumber &&
+      sameAmount &&
+      sameSchedule &&
+      sameDate
     );
+  });
 
-    if (duplicatePayee) {
-      newErrors.name = "A payee with this name already exists.";
-    }
+  if (duplicateRecurringPayee) {
+    newErrors.name =
+      "An identical recurring payment already exists.";
+  }
 
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    setErrorMessage("");
+
     if (!validateForm()) {
       return;
     }
 
-    const newPayee = {
-      id: Date.now(),
-      ...formData,
+    if (isSubmitting) {
+      return;
+    }
+
+    const payload = {
+      payeeName: formData.name.trim(),
+      recipientIdentifier: formData.accountNumber,
+      amount: Number(formData.amount),
+      schedule: formData.schedule.toUpperCase(),
+      date: formData.date,
+      type: activeTab === "bills" ? "BILL" : "SUBSCRIPTION",
     };
 
-    setPayees(prev => [...prev, newPayee]);
-    setSuccessMessage("Payee added successfully!");
+    try {
+      setIsSubmitting(true);
 
-    setFormData({
-      name: "",
-      accountNumber: "",
-      amount: "",
-      schedule: "",
-      date: "",
-    });
+      await addRecurringPayee(payload);
+      await loadRecurringPayees();
+      setSuccessMessage("Recurring payment added successfully.");
 
-    setShowForm(false);
+      setFormData({
+        name: "",
+        accountNumber: "99990001",
+        amount: "",
+        schedule: "",
+        date: "",
+      });
+
+      setErrors({});
+      setShowForm(false);
+    } catch (error) {
+      if (!error.response) {
+        setErrorMessage(
+          "Unable to connect to the server. Check your connection and try again.",
+        );
+      } else if (error.response.status >= 500) {
+        setErrorMessage(
+          "The server encountered an error. Please try again.",
+        );
+      } else {
+        setErrorMessage(
+          error.response.data?.message ||
+            "Unable to create the recurring payment.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -168,7 +252,7 @@ export default function RecurringPayments() {
     setErrors({});
     setFormData({
       name: "",
-      accountNumber: "",
+      accountNumber: "99990001",
       amount: "",
       schedule: "",
       date: "",
@@ -292,11 +376,21 @@ export default function RecurringPayments() {
                       formData={formData}
                       errors={errors}
                       isFormComplete={isFormComplete}
+                      isSubmitting={isSubmitting}
                       onInputChange={handleInputChange}
                       onConfirm={handleConfirm}
                       onCancel={resetForm}
                     />
                   </LocalizationProvider>
+                )}
+
+                {errorMessage && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setErrorMessage("")}
+                  >
+                    {errorMessage}
+                  </Alert>
                 )}
 
                 {successMessage && (

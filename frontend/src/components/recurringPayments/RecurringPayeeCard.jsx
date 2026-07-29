@@ -12,10 +12,16 @@ import {
  * @param {{ id: number, name: string, amount: string, schedule: string, date: string }} payee
  */
 export default function RecurringPayeeCard({ payee }) {
+  console.log("Payee received by card:", payee);
+
   return (
     <Card sx={{ p: tokens.card.padding, mb: 2 }}>
       <Typography fontWeight={tokens.typography.fontWeight.bold}>
         {payee.name}
+      </Typography>
+
+      <Typography variant="body2">
+        Account Number: {payee.accountNumber}
       </Typography>
 
       <Typography variant="body2">
