@@ -1,9 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.repositories.payee;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDate;
-
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -28,4 +27,6 @@ public interface RecurringPayeeRepository extends JpaRepository<RecurringPayee, 
             Schedule schedule,
             LocalDate date
     );
+
+    Optional<RecurringPayee> findByPayeeIdAndOwnerId(Long payeeId, Long ownerId);
 }
