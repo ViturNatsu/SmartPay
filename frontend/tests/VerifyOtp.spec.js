@@ -21,13 +21,17 @@ test('verifies that sendVerifyCode API is called on form submission', async ({ p
   await page.goto('/verify?email=test@example.com&type=login');
 
   // Fill in the 7-digit code
-  await page.getByLabel('7-digit code').fill('1234567');
+  // await page.getByLabel('7-digit code').fill('1234567');
+  const textbox = page.getByRole("textbox");
+  await expect(textbox).toBeVisible({ timeout: 10000 });
 
+  await textbox.fill("1234567");
+  
   // Click the submit button
   await page.getByRole('button', { name: 'Verify Code' }).click();
 
   // Wait for the API call to be made
-  await page.waitForTimeout(100); // Small delay to ensure async operations
+  //await page.waitForTimeout(100); // Small delay to ensure async operations
 
   // Assert that the API was called
   expect(apiCalled).toBe(true);

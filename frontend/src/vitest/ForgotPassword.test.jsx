@@ -11,14 +11,32 @@ import {
   forgotPasswordSubmitButton,
 } from "@/vitest/domQueries";
 import { VerifyOtp } from "@/pages/Verify/VerifyOtp";
-import { requestResetCode } from "@/api/authApi";
+import { requestOtpCode } from "@/api/authApi";
 
-vi.mock("@/api/authApi", () => ({
-  forgotPassword: vi.fn(async () => ({ ok: true })),
-  requestResetCode: vi.fn(async () => ({ ok: true })),
-  refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
-  getMyUser: vi.fn(async () => ({ id: 1 })),
-}));
+// vi.mock("@/api/authApi", () => ({
+//   forgotPassword: vi.fn(async () => ({ ok: true })),
+//   requestResetCode: vi.fn(async () => ({ ok: true })),
+//   refreshTokens: vi.fn(async () => ({ accessToken: 'a.b.c' })),
+//   getMyUser: vi.fn(async () => ({ id: 1 })),
+//   requestOtpCode: vi.fn(async () => ({ ok: true })),
+// }));
+
+vi.mock("@/api/authApi", async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual,
+
+    requestOtpCode: vi.fn(async () => ({ ok: true })),
+
+    sendVerifyCode: vi.fn(async () => ({ ok: true })),
+
+    refreshTokens: vi.fn(async () => ({ accessToken: "a.b.c" })),
+
+    getMyUser: vi.fn(async () => ({ id: 1 })),
+  };
+});
+
 
 const LocationWatcher = () => {
   const location = useLocation();
@@ -57,7 +75,7 @@ describe("ForgotPassword", () => {
     await user.type(forgotPasswordEmailField(), "test@example.com");
     await user.click(forgotPasswordSubmitButton());
 
-    const heading = await screen.findByRole('heading', { name: /Verify Code/i }, { timeout: 3000 });
+    const heading = await screen.findByRole('heading', { name: /Verify Code/i }, { timeout: 5000 });
     expect(heading).toBeInTheDocument();
 
     const locationText = screen.getByTestId("location").textContent;

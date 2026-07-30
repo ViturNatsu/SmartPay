@@ -61,12 +61,9 @@ export async function requestNewCardOtp() {
     }
 }
 
-export async function createNewCardRequest(accessCode, confirmationStatus) {
+export async function createNewCardRequest(payload) {
     try {
-        const res = await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card`, {
-            "access-code": accessCode,
-            confirmed: confirmationStatus,
-        });
+        const res = await axiosInstance.post(`${CARD_REQUEST_USER_BASE_URL}/new-card`, payload);
         return res.data;
     } catch (err) {
         throw handleAxiosError(err);

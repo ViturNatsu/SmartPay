@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-import { useOtpVerify } from "@/hooks/useOtpVerify.js";
+import { useOtpVerify } from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { useEffect, useRef } from "react";
 

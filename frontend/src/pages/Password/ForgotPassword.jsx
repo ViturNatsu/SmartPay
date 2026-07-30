@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
-import { requestResetCode } from "@/api/authApi";
+import { requestOtpCode } from "@/api/authApi";
 import { useNavigate } from "react-router-dom";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
 
@@ -38,7 +38,7 @@ export const ForgotPassword = () => {
     }
 
     try {
-      await requestResetCode({ email, type: "forgot-password" });
+      await requestOtpCode({ email, type: "forgot-password" });
 
       navigate(`/verify?email=${encodeURIComponent(email)}&type=forgot-password`, { replace: true });
     } catch (e) {

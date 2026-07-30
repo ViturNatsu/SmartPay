@@ -9,10 +9,12 @@ import {
   Typography,
   Alert,
   Link,
-  Box,
+  Box, CircularProgress,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import {requestResetCode, sendVerifyCode} from "@/api/authApi";
+import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
+import {useOtpVerify} from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
+import {useCardRevealOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useCardRevealOtpRequest.js";
 
 /**
  * OTP verification dialog for revealing card details.
@@ -28,81 +30,44 @@ import {requestResetCode, sendVerifyCode} from "@/api/authApi";
  * @param {function} onClose   - Called when the dialog should close
  */
 export function RevealCardDialog({open, email, onSuccess, onClose}) {
+
+  const payload = {email: email, type: "reveal-card"};
+
+
   const [code, setCode] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
-  const [sentSuccess, setSentSuccess] = useState(false);
+
+  const cardRevealRequestObject = useCardRevealOtpRequest();
+
+  // Hook for handling OTP Verify
+  const otpVerifyObject = useOtpVerify();
+
+  const handleClose = () => {
+    setCode("");
+    otpVerifyObject.handlers.reset();
+    cardRevealRequestObject.handlers.reset();
+    onClose();
+  };
+
+  const getPayload = () => {
+    return {
+      "email": email,
+      "code": code,
+      "type": "reveal-card",
+    }
+  }
 
   // Send OTP as soon as the dialog opens
   useEffect(() => {
     if (!open || !email) return;
-    setCode("");
-    setError("");
-    setSentSuccess(false);
-    sendOtp();
+
+    const temp = async () => {
+      await cardRevealRequestObject.handlers.handleOtpRequest(payload);
+    }
+
+    temp().catch(console.error);
+
   }, [open]);
 
-  const sendOtp = async () => {
-    try {
-      await requestResetCode({email, type: "reveal-card"});
-      setSentSuccess(true);
-    } catch (err) {
-      if (err.status === 429)
-        setError("Too many attempts. Please try again later.");
-      else setError("Failed to send verification code. Please try again.");
-    }
-  };
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setError("");
-
-    if (!/^[0-9]{7}$/.test(code)) {
-      setError("Enter a valid 7-digit code.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await sendVerifyCode({email, code, type: "reveal-card"});
-      onSuccess();
-      onClose();
-    } catch (err) {
-      if (err.status === 400) setError("Code is invalid.");
-      else if (err.status === 401)
-        setError("Code has expired or was already used.");
-      else if (err.status === 429)
-        setError("Too many attempts. Please try again later.");
-      else if (err.status === 410)
-        setError("Too many invalid attempts. Please request a new code.");
-      else setError(err.message || "Verification failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResendLoading(true);
-    setError("");
-    setSentSuccess(false);
-    try {
-      await requestResetCode({email, type: "reveal-card"});
-      setSentSuccess(true);
-    } catch (err) {
-      if (err.status === 429)
-        setError("Too many attempts. Please try again later.");
-      else setError("Failed to resend code. Please try again.");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    setCode("");
-    setError("");
-    onClose();
-  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
@@ -112,61 +77,49 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
       </DialogTitle>
 
       <DialogContent>
-        <Typography variant="body2" sx={{mb: 2}}>
-          A 7-digit verification code has been sent to <strong>{email}</strong>.
-          Enter it below to reveal your card details.
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 2,
+          }}
+        >
+          <Typography
+            align="left"
+            sx={{fontSize: 13.5, lineHeight: 1.5}}>
+            This action will briefly display sensitive card detail information.
+          </Typography>
 
-        {sentSuccess && !error && (
-          <Alert severity="success" sx={{mb: 2}}>
-            Code sent - check your email.
-          </Alert>
-        )}
-
-        {error && (
-          <Alert severity="error" sx={{mb: 2}}>
-            {error}
-          </Alert>
-        )}
-
-        <Box component="form" id="reveal-card-form" onSubmit={handleSubmit}>
-          <TextField
-            label="7-digit code"
+          <OtpInputField
+            messageFluff={"view your card details"}
+            emailTarget={email}
+            otpRequestObject={cardRevealRequestObject}
+            otpVerifyObject={otpVerifyObject}
             value={code}
-            onChange={e => setCode(e.target.value)}
-            inputProps={{maxLength: 7}}
-            fullWidth
-            autoFocus
-            required
+            onChange={setCode}
+            payload={getPayload()}
           />
-        </Box>
 
-        <Typography sx={{fontSize: 13, color: "text.secondary", mt: 1.5}}>
-          Didn't receive it?{" "}
-          <Link
-            component="button"
-            type="button"
-            underline="hover"
-            onClick={handleResend}
-            disabled={resendLoading}
-            sx={{fontWeight: 700, cursor: "pointer"}}
-          >
-            {resendLoading ? "Resending..." : "Resend Code"}
-          </Link>
-        </Typography>
+        </Box>
       </DialogContent>
 
-      <DialogActions sx={{px: 3, pb: 3, gap: 1}}>
-        <Button variant="outlined" onClick={handleClose} disabled={loading}>
+      <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
+        <Button variant="outlined" onClick={handleClose} disabled={otpVerifyObject.state.isVerifying}>
           Cancel
         </Button>
         <Button
-          type="submit"
-          form="reveal-card-form"
           variant="contained"
-          disabled={loading || code.length !== 7}
+          disabled={otpVerifyObject.state.isVerifying || code.length !== 7}
+          onClick={()=>{
+            otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(r => {
+            otpVerifyObject.handlers.reset();
+            onSuccess();
+            onClose();
+          })}}
         >
-          {loading ? "Verifying..." : "Verify"}
+          {otpVerifyObject.state.isVerifying ? "Verifying..." : "Verify"}
         </Button>
       </DialogActions>
     </Dialog>
