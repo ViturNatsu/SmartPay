@@ -31,12 +31,19 @@ async function navigateToTransactionWithRouteMock(page, routeHandler) {
 
 function successHandler(transactions) {
   return (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(transactions),
-    });
-}
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          transactions,
+          currentPage: 0,
+          totalPages: 1,
+          totalElements: transactions.length,
+          hasNext: false,
+          hasPrevious: false,
+        }),
+      });
+  }
 
 const errorHandler = (route) =>
   route.fulfill({ status: 500, body: "Internal Server Error" });
