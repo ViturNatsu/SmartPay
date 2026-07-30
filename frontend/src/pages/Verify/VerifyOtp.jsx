@@ -10,148 +10,101 @@ import {
   Avatar,
   Link,
 } from "@mui/material";
-import { requestResetCode, sendVerifyCode } from "@/api/authApi";
+import { requestOtpCode, sendVerifyCode } from "@/api/authApi";
 import { useAuth } from "@/context/AuthContext";
 import CheckIcon from "@mui/icons-material/Check";
 import { SmartPayBanner } from "@/components/SmartPayBanner";
+import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
+import {useOtpRequest} from "@/hooks/OtpHooks/OtpRequests/OtpRequestBase/useOtpRequest.js";
+import {useOtpVerify} from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
+import {useLoginRoleNavigation} from "@/hooks/NavigationHooks/useLoginRoleNavigation.js";
+import {useRegisterNavigation} from "@/hooks/NavigationHooks/useRegisterNavigation.js";
+import {useResetPasswordNavigation} from "@/hooks/NavigationHooks/useResetPasswordNavigation.js";
+import {useCountdownTimer} from "@/utils/timers/useCountdownTimer.js";
+
+
+
+
+
+const determineMessageFluff = (typeParameter) => {
+  switch (typeParameter) {
+    case "login" : {
+      return "login to your account";
+    }
+    case "register" : {
+      return "complete account registration";
+    }
+    case "forgot-password" : {
+      return "reset password";
+    }
+  }
+}
+
+
 
 export const VerifyOtp = () => {
-  const location = useLocation();
-  const [showSuccess, setShowSuccess] = useState(
-    location.state?.showSuccess || false,
-  );
-  const [successMessage, setSuccessMessage] = useState(
-    location.state?.successMessage || "",
-  );
 
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
-
-  const navigate = useNavigate();
+  // Get the current URL's parameters. This is done to determine if the page was accessed through a re-direct link.
   const [searchParams] = useSearchParams();
+
   const emailParam = searchParams.get("email");
   const typeParam = searchParams.get("type");
   const codeParam = searchParams.get("code");
 
-  const { setAuthFromTokens, tokenClaims } = useAuth();
+  const [otp, setOtp] = useState("");
 
-  // Guard to avoid double submission (React 18 StrictMode may invoke effects twice in dev)
   const submittedRef = useRef(false);
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  // NavigationHooks
+  const roleNavigation = useLoginRoleNavigation();
+  const registerNavigation = useRegisterNavigation();
+  const resetPasswordNavigation = useResetPasswordNavigation();
 
-  const submit = async (submittedCode) => {
-    setError("");
-    if (!/^[0-9]{7}$/.test(submittedCode)) {
-      setError("Enter a valid 7-digit code.");
-      return;
-    }
 
-    try {
-      setLoading(true);
-      const res = await sendVerifyCode({
-        email: emailParam,
-        code: submittedCode,
-        type: typeParam,
-      });
+  // Hook for handling all Otp REQUEST related events
+  const otpRequestObject = useOtpRequest({
+    requestAPI: requestOtpCode,
+  })
 
-      switch (typeParam) {
-        case "login": {
-          const newClaims = await setAuthFromTokens({
-            accessToken: res.accessToken,
-            refreshToken: res.refreshToken,
-          });
-          // redirect after login based on user role; use returned claims since
-          // the context state may not have updated yet
-          const role = newClaims?.role || tokenClaims?.role;
-          if (role === "ADMIN") {
-            console.log("Redirecting to admin dashboard");
-            navigate("/admin/dashboard", { replace: true });
-          } else {
-            console.log("Redirecting to user dashboard");
-            navigate("/home", { replace: true });
-          }
-          break;
-        }
-        case "register":
-          setShowSuccess(true);
-          setSuccessMessage(
-            "Email verified successfully! Redirecting to login...",
-          );
-          await delay(2000);
-          navigate(`/login`, { replace: true });
-          break;
-        case "forgot-password":
-          navigate(
-            `/reset-password?email=${encodeURIComponent(emailParam)}&code=${submittedCode}`,
-            { replace: true },
-          );
-          break;
-        default:
-          setError("Unknown verification type.");
-      }
-    } catch (err) {
-      if (err.status === 400) setError("Code is invalid.");
-      else if (err.status === 401)
-        setError("Code has expired or was already used.");
-      else if (err.status === 404) setError("Email not found.");
-      else if (err.status === 429)
-        setError("Too many attempts. Please try again later.");
-      else if (err.status === 410) {
-        setError(
-          "Too many invalid attempts. Please restart the process. Reidirecting to login...",
-        );
-        await delay(3000);
-        navigate(`/login`, { replace: true });
-      } else setError(err.message || "Verification failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const otpVerifyObject = useOtpVerify();
 
   useEffect(() => {
-    if (emailParam && typeParam && codeParam && !submittedRef.current) {
+
+    void otpRequestObject.handlers.handleMockOtpRequest({
+      email: emailParam,
+      type: typeParam,
+    });
+
+    const submit = async () => {
       submittedRef.current = true;
-      setCode(codeParam);
-      submit(codeParam);
+
+      return await otpVerifyObject.handlers.sendOtpVerify({
+          email: emailParam,
+          code: codeParam,
+          type: typeParam,
+        }
+      )
+    }
+    if (emailParam && typeParam && codeParam && !submittedRef.current) {
+      setOtp(codeParam);
+      submit().then( async res => {
+        switch (typeParam) {
+          case "login": {
+            await roleNavigation(res)
+            break;
+          }
+          case "register":
+            registerNavigation();
+            break;
+          case "forgot-password":
+            resetPasswordNavigation(emailParam, codeParam);
+            break;
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailParam, typeParam, codeParam]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await submit(code);
-  };
-
-  const handleResendCode = async () => {
-    setResendLoading(true);
-    setError("");
-    try {
-      await requestResetCode({ email: emailParam, type: typeParam });
-      setShowSuccess(true);
-      setSuccessMessage("Verification code has been resent to your email.");
-    } catch (err) {
-      if (err.status === 400) setError("Invalid details.");
-      else if (err.status === 429)
-        setError("Too many attempts. Please try again later.");
-      else if (err.status === 503)
-        setError(
-          "Email service is currently unavailable. Please try again later.",
-        );
-      else setError(err.message || "Failed to resend verification code.");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (showSuccess) {
-      const timer = setTimeout(() => setShowSuccess(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccess]);
 
   return (
     <Grid
@@ -175,65 +128,53 @@ export const VerifyOtp = () => {
         }}
       >
         <Box
-          component="form"
-          onSubmit={handleSubmit}
           sx={{
             display: "flex",
             flexDirection: "column",
             gap: 2,
-            width: 300,
+            width: 450,
           }}
         >
           <Typography variant="h5" align="center">
             Verify Code
           </Typography>
-
-          <TextField
-            label="7-digit code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            onBlur={() => {
-              if (code && !/^\d{7}$/.test(code)) {
-                setError("Enter a valid 7-digit code.");
-              }
-            }}
-            error={Boolean(error)}
-            helperText={error || ""}
-            inputProps={{ maxLength: 7 }}
-            required
+          <OtpInputField
+            messageFluff={determineMessageFluff(typeParam)}
+            emailTarget={emailParam}
+            otpRequestObject={otpRequestObject}
+            otpVerifyObject={otpVerifyObject}
+            value={otp}
+            onChange={setOtp}
           />
 
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-            <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-              Didn't receive the code?{" "}
-              <Link
-                component="button"
-                type="button"
-                underline="hover"
-                onClick={handleResendCode}
-                disabled={resendLoading}
-                sx={{ fontWeight: 700, cursor: "pointer" }}
-              >
-                {resendLoading ? "Resending..." : "Resend Code"}
-              </Link>
-            </Typography>
-          </Box>
-
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? "Verifying Code..." : "Verify Code"}
+          <Button
+            onClick={() => {
+              otpVerifyObject.handlers.sendOtpVerify({
+                email: emailParam,
+                code: otp,
+                type: typeParam,
+              }).then( async (res) => {
+                switch (typeParam) {
+                  case "login": {
+                    await roleNavigation(res)
+                    break;
+                  }
+                  case "register":
+                    registerNavigation();
+                    break;
+                  case "forgot-password":
+                    resetPasswordNavigation(emailParam, codeParam);
+                    break;
+                }                }
+              )
+            }}
+            variant="contained"
+            disabled={otpVerifyObject.state.isVerifying}>
+            {otpVerifyObject.state.isVerifying ? "Verifying Code..." : "Verify Code"}
           </Button>
-
-          {showSuccess && successMessage && (
-            <Alert
-              icon={<CheckIcon fontSize="inherit" />}
-              severity="success"
-              sx={{ mb: 2 }}
-            >
-              {successMessage}
-            </Alert>
-          )}
         </Box>
+
       </Grid>
     </Grid>
   );
-};
+}

@@ -1,201 +1,285 @@
 import {
-  Alert,
   Box,
-  Button, CircularProgress,
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle, Snackbar,
+  DialogTitle,
+  Stack,
   Typography,
 } from "@mui/material";
-import { MuiOtpInput } from "mui-one-time-password-input";
-import { forwardRef, useEffect, useState } from "react";
-import { useCardLockRequestData } from "@/hooks/useCardLockRequest.js";
+import { forwardRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext.jsx";
 import Slide from "@mui/material/Slide";
-import {useOtpVerify} from "@/hooks/useOtpVerify.js";
+import { useOtpVerify } from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
+import { OtpInputField } from "@/components/customComponents/input/OtpInputField.jsx";
+import { WarningAmberRounded } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { useCardLockOtpRequest } from "@/hooks/OtpHooks/OtpRequests/useCardLockOtpRequest.js";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const isActive = (cardStatus) => {
-  return (cardStatus === "ACTIVE");
-}
+  return cardStatus === "ACTIVE";
+};
 
-export const LockCardOtpDialog = ({ cardStatus ,open, onClose, onSuccess}) => {
+export const LockCardOtpDialog = ({
+  cardStatus,
+  open,
+  onClose,
+  onSuccess,
+}) => {
+  const theme = useTheme();
+
   // Auth
-  const { tokenClaims, loading: authLoading } = useAuth();
+  const { tokenClaims } = useAuth();
   const email = tokenClaims?.email;
 
-  // Hook for handling Lock requests
-  const {
-    handleSendOtp,
-    handleResend,
-    timeLeft: cardLockResendTimeLeft,
-    isSent: cardLockIsSent,
-    loading: cardLockRequestIsLoading,
-    error: cardLockRequestError,
-    reset: cardLockRequestReset,
-  } = useCardLockRequestData(email);
+  // Hook for handling Lock/Unlock OTP requests
+  const cardLockRequestObject = useCardLockOtpRequest();
 
-  // Hook for handling OTP Verify
-  const {
-    loading: otpVerifyIsLoading,
-    sendOtpVerify,
-    error: otpError,
-    reset: otpStatesReset,
-  } = useOtpVerify();
+  // Hook for handling OTP verification
+  const otpVerifyObject = useOtpVerify();
 
-  // State for tracking input
+  // OTP input state
   const [otp, setOtp] = useState("");
 
+  // Whether the verification code has been sent
+  const isOtpSent = cardLockRequestObject.state.isSent;
+
   // Payload formats
-  const lockPayload = {"email": tokenClaims?.email, "type": "CARD_LOCK"};
+  const lockPayload = {
+    email: tokenClaims?.email,
+    type: "CARD_LOCK",
+  };
+
   const unlockPayload = {
     ...lockPayload,
     type: "CARD_UNLOCK",
   };
 
   const handleReset = () => {
-    cardLockRequestReset();
-    otpStatesReset();
+    cardLockRequestObject.handlers.reset();
+    otpVerifyObject.handlers.reset();
     setOtp("");
-  }
+  };
+
+  const handleClose = () => {
+    handleReset();
+    onClose();
+  };
+
+  const handleConfirm = () => {
+    otpVerifyObject.handlers
+      .sendOtpVerify({
+        email: tokenClaims?.email,
+        code: otp,
+        type: isActive(cardStatus)
+          ? "CARD_LOCK"
+          : "CARD_UNLOCK",
+      })
+      .then(() => {
+        if (isActive(cardStatus)) {
+          onSuccess("Card Locked Successfully");
+        } else {
+          onSuccess("Card Unlocked Successfully");
+        }
+
+        handleReset();
+        onClose();
+      })
+      .catch(console.error);
+  };
 
   return (
-    <>
-      <Dialog
-        // slots={{ transition: Transition }}
-        open={open}
-        onClose={onClose}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle sx={{ textAlign: "center" }}>
-          {isActive(cardStatus) ? "Lock Card" : "Unlock Card"}
-        </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            width: "100%",
+            maxWidth: 600,
+            borderRadius: 4,
+          },
+        },
+      }}
+    >
 
-        <DialogContent sx={{ py: 3 }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              gap: 2,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              {isActive(cardStatus) ?
-                "This action will lock the card. A locked card cannot be used until it is unlocked again."
-                : "This action will unlock the card. Unlocked cards are active, and may be used until it is locked or expired." }
+
+      <DialogTitle
+        sx={{
+          textAlign: "left",
+          fontSize: 28,
+          fontWeight: 800,
+          px: 4,
+          pt: 4,
+          pb: 2,
+        }}
+      >
+        {isActive(cardStatus)
+          ? "Lock Virtual Card"
+          : "Unlock Virtual Card"}
+      </DialogTitle>
+
+      <DialogContent
+        sx={{
+          px: 4,
+          pt: 1,
+          pb: isOtpSent ? 1 : 4,
+        }}
+      >
+
+        {!isOtpSent && (
+          <Stack spacing={3}>
+            {/* Description */}
+
+            <Typography
+              sx={{
+                fontSize: 16,
+                lineHeight: 1.6,
+                color: "text.primary",
+              }}
+            >
+              {isActive(cardStatus)
+                ? "This action will lock the card. A locked card cannot be used until it is unlocked again."
+                : "This action will unlock the card. Unlocked cards are active, and may be used until they are locked or expired."}
             </Typography>
 
-            {cardLockRequestError && (
-              <Alert severity="error" sx={{ width: "100%" }}>
-                {cardLockRequestError}
-              </Alert>
-            )}
+            {/* Warning */}
 
-
-
-            {/* STEP 1 */}
-            {!cardLockIsSent && !cardLockRequestError && (
-              <Button
-                variant="contained"
-                onClick={()=>{
-                  isActive(cardStatus) ?
-                  handleSendOtp(lockPayload).catch(console.error) :
-                  handleSendOtp(unlockPayload).catch(console.error)
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                p: 2.5,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.main,
+                backgroundColor: theme.palette.warning.light,
+              }}
+            >
+              <WarningAmberRounded
+                sx={{
+                  mt: 0.2,
+                  flexShrink: 0,
                 }}
-                disabled={cardLockRequestIsLoading || authLoading || !email}
+              />
+
+              <Typography
+                sx={{
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                }}
               >
-                {cardLockRequestIsLoading ? "Sending OTP..." : "Send Verification Code"}
-              </Button>
-            )}
-            {cardLockIsSent && cardLockRequestIsLoading && <CircularProgress></CircularProgress>}
+                The Card Lock and Card Unlock features are unavailable
+                when there is a pending request for a card renewal.
 
-            {/* STEP 2 */}
-            {cardLockIsSent && !cardLockRequestIsLoading && (
-              <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
-                <Alert severity="success">
-                  Code sent to <strong>{email}</strong>
-                </Alert>
+                <br />
+                <br />
 
-                {otpError && !otpVerifyIsLoading && (
-                  <Alert severity="error">
-                    {otpError}
-                  </Alert>
-                )}
+                The Virtual Card is automatically locked when creating
+                a request for a card renewal.
+              </Typography>
+            </Box>
 
-                <Typography variant="body2" color="text.secondary">
-                  Enter the 7-digit code below
-                </Typography>
 
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                  <MuiOtpInput
-                    value={otp}
-                    onChange={setOtp}
-                    length={7}
-                    sx={{
-                      gap: 1,
-                      "& .MuiInputBase-root": {
-                        width: 40,
-                        height: 44,
-                        fontSize: 14,
-                      },
-                    }}
-                  />
-                </Box>
+            <OtpInputField
+              messageFluff={
+                isActive(cardStatus)
+                  ? "lock your card"
+                  : "unlock your card"
+              }
+              emailTarget={email}
+              otpRequestObject={cardLockRequestObject}
+              otpVerifyObject={otpVerifyObject}
+              value={otp}
+              onChange={setOtp}
+              payload={
+                isActive(cardStatus)
+                  ? lockPayload
+                  : unlockPayload
+              }
+            />
+          </Stack>
+        )}
 
-                {/* RESEND SECTION */}
-                <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
-                  Didn’t receive the code?{" "}
-                  <Box
-                    component="span"
-                    onClick={cardLockResendTimeLeft > 0 || cardLockRequestIsLoading ? undefined : handleResend}
-                    sx={{
-                      color: cardLockResendTimeLeft > 0 || cardLockRequestIsLoading ? "text.disabled" : "primary.main",
-                      cursor: cardLockResendTimeLeft > 0 || cardLockRequestIsLoading ? "not-allowed" : "pointer",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {cardLockResendTimeLeft > 0 ? `Resend in ${cardLockResendTimeLeft}s` : "Resend code"}
-                  </Box>
-                </Typography>
-              </Box>
-            )}
 
-          </Box>
-        </DialogContent>
+        {isOtpSent && (
+          <OtpInputField
+            messageFluff={
+              isActive(cardStatus)
+                ? "lock your card"
+                : "unlock your card"
+            }
+            emailTarget={email}
+            otpRequestObject={cardLockRequestObject}
+            otpVerifyObject={otpVerifyObject}
+            value={otp}
+            onChange={setOtp}
+            payload={
+              isActive(cardStatus)
+                ? lockPayload
+                : unlockPayload
+            }
+          />
+        )}
+      </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
-          <Button onClick={onClose}>Cancel</Button>
+
+      {isOtpSent && (
+        <DialogActions
+          sx={{
+            display: "flex",
+            gap: 2,
+            px: 4,
+            pt: 2,
+            pb: 4,
+
+            "& > :not(style) ~ :not(style)": {
+              ml: 0,
+            },
+          }}
+        >
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleClose}
+            disabled={otpVerifyObject.state.isVerifying}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            Cancel
+          </Button>
 
           <Button
-            loading={otpVerifyIsLoading}
+            fullWidth
+            loading={otpVerifyObject.state.isVerifying}
             variant="contained"
-            disabled={!cardLockIsSent || otp.length < 7}
-            onClick={()=>{sendOtpVerify({
-                "email": tokenClaims?.email,
-                "code": otp,
-                "type": isActive(cardStatus) ? "CARD_LOCK" : "CARD_UNLOCK",
-              }
-            ) .then(r => {
-              if(isActive(cardStatus)){
-                onSuccess("Card Locked Successfully")
-              }
-              else{
-                onSuccess("Card Unlocked Successfully")
-              }
-              handleReset();
-              onClose();
-            })}}>
-            {isActive(cardStatus) ? ("Confirm Lock") : "Confirm Unlock"}
+            disabled={otp.length !== 7}
+            onClick={handleConfirm}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            {isActive(cardStatus)
+              ? "Confirm Lock"
+              : "Confirm Unlock"}
           </Button>
         </DialogActions>
-      </Dialog>
-    </>
+      )}
+    </Dialog>
   );
 };

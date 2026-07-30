@@ -38,6 +38,7 @@ export default function RecurringPayments() {
 
   const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -285,7 +286,7 @@ export default function RecurringPayments() {
     formData.schedule &&
     formData.date;
 
-  const filteredSubscriptions = useMemo(
+    const filteredSubscriptions = useMemo(
     () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
     [subscriptions, subscriptionsSearchQuery],
   );
@@ -305,8 +306,8 @@ export default function RecurringPayments() {
     );
   }, [payees, billsSearchQuery]);
 
-  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
+  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
   return (
     <>
@@ -401,6 +402,63 @@ export default function RecurringPayments() {
                     />
                   </LocalizationProvider>
                 )}
+
+            {activeTab === "subscriptions" && (
+              <RecurringPaymentsSearchBar
+                value={subscriptionsSearchQuery}
+                onChange={e => setSubscriptionsSearchQuery(e.target.value)}
+                onClear={() => setSubscriptionsSearchQuery("")}
+                placeholder="Search by subscription name..."
+                aria-label="Search subscriptions"
+              />
+            )}
+
+            {activeTab === "bills" && showForm && (
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <RecurringPayeeForm
+                  formData={formData}
+                  errors={errors}
+                  isFormComplete={isFormComplete}
+                  onInputChange={handleInputChange}
+                  onConfirm={handleConfirm}
+                  onCancel={resetForm}
+                />
+              </LocalizationProvider>
+            )}
+
+            {successMessage && (
+              <Alert
+                severity="success"
+                sx={{mb: 2}}
+                onClose={() => setSuccessMessage("")}
+              >
+                {successMessage}
+              </Alert>
+            )}
+
+            {activeTab === "bills" &&
+              (payees.length === 0 ? (
+                <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
+              ) : filteredPayees.length === 0 && hasBillsSearch ? (
+                <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
+              ) : (
+                filteredPayees.map(payee => (
+                  <RecurringPayeeCard key={payee.id} payee={payee} />
+                ))
+              ))}
+            
+            {activeTab === "subscriptions" &&
+              (subscriptions.length === 0 && hasSubscriptionsSearch ? (
+                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+              ) : (
+                filteredSubscriptions.map(subscription => (
+                  <RecurringSubscriptionCard
+                    key={subscription.id}
+                    subscription={subscription}
+                  />
+                ))
+              ))}
+
 
                 {errorMessage && (
                   <Alert

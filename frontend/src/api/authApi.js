@@ -47,7 +47,7 @@ export async function logout(reason) {
   }
 }
 
-export async function requestResetCode(payload) {
+export async function requestOtpCode(payload) {
   try {
     const res = await axiosInstance.post(`${OTP_URL}`, {
       email: payload.email,
