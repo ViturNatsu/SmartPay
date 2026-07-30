@@ -116,6 +116,7 @@ public class WalletController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int limit,
             @RequestParam(required = false) Boolean favourite,
+            @RequestParam(required = false) String search,
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
@@ -129,7 +130,8 @@ public class WalletController {
                         userId,
                         page,
                         limit,
-                        favourite
+                        favourite,
+                        search
                 )
         );
     }

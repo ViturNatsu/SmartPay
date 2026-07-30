@@ -27,7 +27,6 @@ import { WalletActivityTable } from "@/components/transactions/WalletActivityTab
 import { filterTransactions } from "../../utils/transactionUtils";
 import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
-import { getMerchantPayee } from "@/utils/walletTransactionFormatters";
 import { tokens } from "@/style/Theme";
 import { updateTransactionFavourite } from "@/api/wallets/walletApi";
 
@@ -68,7 +67,7 @@ export function Transactions() {
       setDataLoading(true);
       setError(null);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, currentPage, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null);
+        const data = await getWalletTransactions(tokenClaims.userId, currentPage, TRANSACTION_LIMIT, activeFilter === "favourites" ? true : null, searchQuery);
         if (!cancelled)
         {
           setRawTransactions(data.transactions ?? []);
@@ -89,7 +88,11 @@ export function Transactions() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, tokenClaims?.userId, retryCount, activeFilter, currentPage]);
+  }, [authLoading, tokenClaims?.userId, retryCount, activeFilter, currentPage, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery]);
 
   const rows = useMemo(
     () => filterTransactions(rawTransactions, activeFilter),
@@ -157,15 +160,6 @@ export function Transactions() {
   };
 
 
-  const filteredRows = rows.filter((tx) => {
-    const merchant = getMerchantPayee(tx);
-
-    return merchant
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-  });
-
-
   return (
     <>
       <Navbar />
@@ -231,7 +225,7 @@ export function Transactions() {
               <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                 <CircularProgress size={28} />
               </Box>
-                        ) : !error && filteredRows.length === 0 ? (
+                        ) : !error && rows.length === 0 ? (
               <Box sx={{ height: 160 }}>
                 {searchQuery ? (
                   <Typography
@@ -248,7 +242,7 @@ export function Transactions() {
           !error && (
                 <Box>
                   <WalletActivityTable
-                    transactions={filteredRows}
+                    transactions={rows}
                     selectedId={selectedId}
                     onSelect={handleSelect}
                     onFavouriteToggle={handleFavouriteToggle}

@@ -29,5 +29,40 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
             Long userId,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT wt
+        FROM WalletTransaction wt
+        WHERE wt.wallet.user.id = :userId
+        AND (
+                LOWER(COALESCE(wt.bankDisplayName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(COALESCE(wt.counterpartyName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(CAST(wt.type AS string)) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+        ORDER BY wt.createdAt DESC
+        """)
+    Page<WalletTransaction> searchTransactions(
+        @Param("userId") Long userId,
+        @Param("search") String search,
+        Pageable pageable
+    );
+
+    @Query("""
+        SELECT wt
+        FROM WalletTransaction wt
+        WHERE wt.wallet.user.id = :userId
+        AND wt.isFavourite = true
+        AND (
+                LOWER(COALESCE(wt.bankDisplayName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(COALESCE(wt.counterpartyName, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(CAST(wt.type AS string)) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+        ORDER BY wt.createdAt DESC
+        """)
+    Page<WalletTransaction> searchFavouriteTransactions(
+        @Param("userId") Long userId,
+        @Param("search") String search,
+        Pageable pageable
+   );
     
 }

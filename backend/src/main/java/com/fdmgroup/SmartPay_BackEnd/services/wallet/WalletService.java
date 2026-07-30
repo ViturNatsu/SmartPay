@@ -35,10 +35,11 @@ public interface WalletService {
     WalletResponseDTO loadFunds(long userId, LoadWalletRequestDTO request);
 
     WalletTransactionPageDTO getTransactions(
-            long userId,
-            int page,
-            int limit,
-            Boolean favourite
+        long userId,
+        int page,
+        int limit,
+        Boolean favourite,
+        String search
     );
 
     /**

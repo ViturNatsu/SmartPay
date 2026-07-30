@@ -177,19 +177,36 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public WalletTransactionPageDTO getTransactions(long userId, int page, int limit, Boolean favourite) {
+    public WalletTransactionPageDTO getTransactions(long userId, int page, int limit, Boolean favourite, String search) {
         int pageNumber = Math.max(page, 0);
         int pageSize = Math.min(Math.max(limit, 1), 50);
+        boolean hasSearch = search != null && !search.isBlank();
+        String cleanedSearch = hasSearch ? search.trim() : null;
 
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
         Page<WalletTransaction> transactionPage;
 
-        if (Boolean.TRUE.equals(favourite)) {
+        if (Boolean.TRUE.equals(favourite) && hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchFavouriteTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
+        } else if (Boolean.TRUE.equals(favourite)) {
             transactionPage = walletTransactionRepository
                     .findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
                             userId,
                             pageRequest);
+
+        } else if (hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
         } else {
             transactionPage = walletTransactionRepository
                     .findByWallet_User_IdOrderByCreatedAtDesc(
