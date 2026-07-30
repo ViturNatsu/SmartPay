@@ -202,6 +202,20 @@ export const tokens = {
   },
 };
 
+/** Shared layout styles for dashboard right-sidebar cards (Quick Actions, Linked Accounts, etc.) */
+export const dashboardSidebarCardSx = {
+  width: "100%",
+  minWidth: 0,
+  maxWidth: "none",
+  alignSelf: "stretch",
+  flexShrink: 0,
+  boxSizing: "border-box",
+  borderRadius: "18px",
+  border: `1px solid ${tokens.color.border.light}`,
+  boxShadow: tokens.shadow.large,
+  p: "22px",
+};
+
 export const theme = createTheme({
   palette: {
     primary: {
