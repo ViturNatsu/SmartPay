@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
@@ -41,6 +42,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 
 import lombok.AllArgsConstructor;
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
@@ -175,28 +177,59 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public List<WalletTransactionDTO> getTransactions(long userId, int limit, Boolean favourite) {
+    public WalletTransactionPageDTO getTransactions(long userId, int page, int limit, Boolean favourite, String search) {
+        int pageNumber = Math.max(page, 0);
         int pageSize = Math.min(Math.max(limit, 1), 50);
+        boolean hasSearch = search != null && !search.isBlank();
+        String cleanedSearch = hasSearch ? search.trim() : null;
 
-        List<WalletTransaction> transactions;
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
-        if (Boolean.TRUE.equals(favourite)) {
-            transactions = walletTransactionRepository
+        Page<WalletTransaction> transactionPage;
+
+        if (Boolean.TRUE.equals(favourite) && hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchFavouriteTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
+        } else if (Boolean.TRUE.equals(favourite)) {
+            transactionPage = walletTransactionRepository
                     .findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
                             userId,
-                            PageRequest.of(0, pageSize)
-                    );
+                            pageRequest);
+
+        } else if (hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
         } else {
-            transactions = walletTransactionRepository
+            transactionPage = walletTransactionRepository
                     .findByWallet_User_IdOrderByCreatedAtDesc(
                             userId,
-                            PageRequest.of(0, pageSize)
-                    );
+                            pageRequest);
         }
 
-        return transactions.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        WalletTransactionPageDTO response = new WalletTransactionPageDTO();
+
+        response.setTransactions(
+                transactionPage.getContent()
+                        .stream()
+                        .map(this::toDto)
+                        .collect(Collectors.toList()));
+
+        response.setCurrentPage(transactionPage.getNumber());
+        response.setPageSize(transactionPage.getSize());
+        response.setTotalPages(transactionPage.getTotalPages());
+        response.setTotalElements(transactionPage.getTotalElements());
+        response.setHasNext(transactionPage.hasNext());
+        response.setHasPrevious(transactionPage.hasPrevious());
+
+        return response;
     }
 
     @Override
