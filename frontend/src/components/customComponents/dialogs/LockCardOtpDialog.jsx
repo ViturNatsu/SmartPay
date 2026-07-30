@@ -109,9 +109,7 @@ export const LockCardOtpDialog = ({
         },
       }}
     >
-      {/* ======================================================
-          TITLE
-          ====================================================== */}
+
 
       <DialogTitle
         sx={{
@@ -135,10 +133,6 @@ export const LockCardOtpDialog = ({
           pb: isOtpSent ? 1 : 4,
         }}
       >
-        {/* ======================================================
-            MODAL STATE 1
-            BEFORE OTP HAS BEEN SENT
-            ====================================================== */}
 
         {!isOtpSent && (
           <Stack spacing={3}>
@@ -194,8 +188,6 @@ export const LockCardOtpDialog = ({
               </Typography>
             </Box>
 
-            {/* OTP component only renders Send Verification Code
-                at this point */}
 
             <OtpInputField
               messageFluff={
@@ -217,10 +209,6 @@ export const LockCardOtpDialog = ({
           </Stack>
         )}
 
-        {/* ======================================================
-            MODAL STATE 2
-            AFTER OTP HAS BEEN SENT
-            ====================================================== */}
 
         {isOtpSent && (
           <OtpInputField
@@ -243,11 +231,6 @@ export const LockCardOtpDialog = ({
         )}
       </DialogContent>
 
-      {/* ======================================================
-          ACTIONS
-
-          Only show Cancel / Confirm after OTP has been sent.
-          ====================================================== */}
 
       {isOtpSent && (
         <DialogActions

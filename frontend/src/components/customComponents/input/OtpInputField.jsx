@@ -37,9 +37,6 @@ export const OtpInputField = ({
         flexDirection: "column",
       }}
     >
-      {/* ======================================================
-          STATE 1 — REQUEST VERIFICATION CODE
-          ====================================================== */}
 
       {!otpRequestObject.state.isSent && (
         <Box
@@ -102,9 +99,6 @@ export const OtpInputField = ({
         </Box>
       )}
 
-      {/* ======================================================
-          STATE 2 — ENTER VERIFICATION CODE
-          ====================================================== */}
 
       {otpRequestObject.state.isSent && (
         <Box
