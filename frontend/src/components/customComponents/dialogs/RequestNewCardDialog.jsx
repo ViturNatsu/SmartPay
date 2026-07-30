@@ -14,11 +14,11 @@ import Divider from "@mui/material/Divider";
 import {WarningAmberRounded} from "@mui/icons-material";
 import {useTheme} from "@mui/material/styles";
 import {useState} from "react";
-import {useNewCardRequest} from "@/hooks/useNewCardRequest.js";
 import {useAuth} from "@/context/AuthContext.jsx";
-import {MuiOtpInput} from "mui-one-time-password-input";
-import {useNewCardRequestOtpVerify} from "@/hooks/useNewCardRequestOtpVerify.js";
+import {useNewCardRequestOtpVerify} from "@/hooks/OtpHooks/OtpVerify/useNewCardRequestOtpVerify.js";
 import { tokens } from "@/style/Theme.jsx";
+import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
+import {useRenewCardOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useRenewCardOtpRequest.js";
 
 
 const Row = ({label, value}) => {
@@ -39,22 +39,13 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
   const [otp, setOtp] = useState("");
   const [hasPending, setHasPending] = useState(false);
 
-  const {
-    handleResend,
-    handleSendOtp,
-    loading: cardRequestIsLoading,
-    error: cardRequestError,
-    timeLeft: cardRequestTimeLeft,
-    isSent: cardRequestIsSent,
-    reset: cardRequestReset,
-  } = useNewCardRequest()
+  const otpRequestObject = useRenewCardOtpRequest();
 
-  const {
-    verifyNewCardRequestOtp,
-    loading: OtpVerifying,
-    error: OtpVerifyError,
-    reset: ResetOtpVerifyState,
-  } = useNewCardRequestOtpVerify()
+  const otpVerifyObject = useNewCardRequestOtpVerify();
+
+  const getPayload = () => {
+    return {"access-code": otp, "confirmed": acknowledged,};
+  }
 
   return (
     <Dialog
@@ -62,150 +53,108 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
       slotProps={{
         paper: {
           sx: {
-            width: 500,
+            width: 850,
             maxWidth: '90vw',
           },
         },
-      }}>
+      }}
+    >
       <DialogTitle sx={{ textAlign: "left" }}>
         {"Request New Virtual Card"}
       </DialogTitle>
 
       {!hasPending &&
         <DialogContent>
-          <Stack spacing={2}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            divider={
+              <Divider
+                orientation="vertical"
+                flexItem
+              />
+            }
+          >
+            {/*left side*/}
+            <Stack
+              flex={1}
+              spacing={2}
+              justifyContent="space-between"
 
-            <Box
-              sx={{
-                borderRadius: 2,
-                border: "1px solid",
-                overflow: "hidden"
-              }}
             >
-              <Row label="Current Card" value={`Virtual Visa ending •••• 1234`} />
-              <Divider />
-              <Row label="New Expiration Timeline" value="2 years from regeneration" />
-            </Box>
-
-            { !cardRequestIsSent && <Box
-              sx={{
-                display: "flex",
-                gap: 1.25,
-                p: 2,
-                borderRadius: 2,
-                border: "1px solid",
-                borderColor: theme.palette.warning.main,
-                color: theme.palette.warning.main,
-                backgroundColor: theme.palette.warning.light,
-              }}
-            >
-              <WarningAmberRounded sx={{mt: 0.2}} />
-              <Typography sx={{fontSize: 13.5, lineHeight: 1.5}}>
-                Only request a new card if your current virtual card details may be compromised. Your current card will
-                be replaced after regeneration. <strong>Email verification is necessary to complete this action</strong>.
-              </Typography>
-            </Box>}
-
-            {/* STEP 1 */}
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              height="100%"
-            >
-              {!cardRequestIsSent && !cardRequestError && (
-                <Button
-                  variant="contained"
-                  onClick={()=>{handleSendOtp().then(r =>{
-                      console.log(r);
-                    }
-                  );}}
-                  disabled={cardRequestIsLoading || authLoading || !email}
-                >
-                  {cardRequestIsLoading ? "Sending OTP..." : "Send Verification Code"}
-                </Button>
-              )}
-              {cardRequestIsSent && cardRequestIsLoading && <CircularProgress></CircularProgress>}
-
-              {cardRequestError &&
-                <Alert severity="error">
-                  {cardRequestError}
-                </Alert>
-              }
-
-            </Box>
-
-            {/* STEP 2 */}
-            {cardRequestIsSent && !cardRequestIsLoading && (
-              <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
-                <Alert severity="success">
-                  Code sent to <strong>{email}</strong>
-                </Alert>
-
-                {OtpVerifyError && !OtpVerifying && (
-                  <Alert severity="error">
-                    {OtpVerifyError}
-                  </Alert>
-                )}
-
-                <Typography variant="body2" color="text.secondary"
-                            sx={{
-                              paddingX: "4px",
-                            }}>
-                  Enter the 7-digit code below
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                  <MuiOtpInput
-                    value={otp}
-                    onChange={setOtp}
-                    length={7}
-                    sx={{
-                      gap: 1,
-                      "& .MuiInputBase-root": {
-                        width: 40,
-                        height: 44,
-                        fontSize: 14,
-                      },
-                    }}
-                  />
-                </Box>
-
-                {/* RESEND SECTION */}
-                <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
-                  Didn’t receive the code?{" "}
-                  <Box
-                    component="span"
-                    onClick={cardRequestTimeLeft > 0 || cardRequestIsLoading ? undefined : handleResend}
-                    sx={{
-                      color: cardRequestTimeLeft > 0 || cardRequestIsLoading ? "text.disabled" : "primary.main",
-                      cursor: cardRequestTimeLeft > 0 || cardRequestIsLoading ? "not-allowed" : "pointer",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {cardRequestTimeLeft > 0 ? `Resend in ${cardRequestTimeLeft}s` : "Resend code"}
-                  </Box>
-                </Typography>
-                <Box sx={{display: "flex", gap: 1.25, alignItems: "flex-start"}}>
-
-                  <Checkbox
-                    checked={acknowledged}
-                    onChange={e => setAcknowledged(e.target.checked)} sx={{p: 0.5, mt: 0.2}} />
-                  <Typography
-                    sx={{
-                      fontSize: 13.5,
-                      color: tokens.color.text.secondary,
-                      lineHeight: 1.5}}
-                  >
-                    I understand that requesting a new virtual card will replace my current card details and reset the card
-                    expiration timeline.
-                  </Typography>
-                </Box>
+              <Box
+                sx={{
+                  borderRadius: 2,
+                  border: "1px solid",
+                  overflow: "hidden"
+                }}
+              >
+                <Row label="Current Card" value={`Virtual Visa ending •••• 1234`} />
+                <Divider />
+                <Row label="New Expiration Timeline" value="2 years from regeneration" />
               </Box>
 
-            )}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1.25,
+                  p: 2,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: theme.palette.warning.main,
+                  color: theme.palette.warning.main,
+                  backgroundColor: theme.palette.warning.light,
+                }}
+              >
+                <WarningAmberRounded sx={{mt: 0.2}} />
+                <Typography sx={{fontSize: 13.5, lineHeight: 1.5}}>
+                  Only request a new card if your current virtual card details may be compromised. Your current card will
+                  be replaced after regeneration. <strong>Email verification is necessary to complete this action</strong>.
+                </Typography>
+              </Box>
+            </Stack>
+            {/*right side*/}
+            <Stack
+              flex={1}
+              spacing={2}
+            >
+              <OtpInputField
+                messageFluff="request a new virtual card"
+                emailTarget={email}
+                otpVerifyObject={otpVerifyObject}
+                otpRequestObject={otpRequestObject}
+                value={otp}
+                onChange={setOtp}
+                payload={getPayload()}
+              />
 
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="flex-start"
+              >
+                <Checkbox
+                  checked={acknowledged}
+                  onChange={(e) => setAcknowledged(e.target.checked)}
+                  sx={{
+                    p: 0.5,
+                    mt: 0.1,
+                  }}
+                />
 
-
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: tokens.color.text.primary,
+                    lineHeight: 1.5,
+                    fontSize: 12,
+                  }}
+                >
+                  I understand that requesting a new virtual card will replace my
+                  current card details and reset the card expiration timeline.
+                </Typography>
+              </Stack>
+            </Stack>
           </Stack>
 
         </DialogContent>
@@ -271,7 +220,7 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
       }
 
       { !hasPending &&
-        <DialogActions sx={{px: 3, pb: 3}}>
+        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
           <Button
             onClick={onClose}
             variant="outlined"
@@ -279,11 +228,11 @@ export const RequestNewCardDialog = ({open, onClose, onSuccess}) => {
             Cancel
           </Button>
           <Button
-            loading={OtpVerifying}
-            disabled={!acknowledged || otp.length < 7}
+            loading={otpVerifyObject.state.isVerifying}
+            disabled={!otpRequestObject.state.isSent || !acknowledged || otp.length < 7}
             onClick={
             ()=>{
-              verifyNewCardRequestOtp(otp, acknowledged).then(async (r) => {
+              otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(async (r) => {
                 await onSuccess();
                 setHasPending(true);
               })

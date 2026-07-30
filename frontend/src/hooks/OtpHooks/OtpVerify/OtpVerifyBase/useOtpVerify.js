@@ -2,15 +2,18 @@ import {useState} from "react";
 import {sendVerifyCode} from "@/api/authApi.js";
 
 
-export const useOtpVerify = () => {
+export const useOtpVerify = ({
+      RequestAPI = sendVerifyCode,
+    } = {}
+  ) => {
 
-  const [loading, setLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState(false);
 
   const sendOtpVerify = async (payload) => {
-    setLoading(true);
+    setIsVerifying(true);
     try{
-      const res = await sendVerifyCode(payload);
+      const res = await RequestAPI(payload);
       setError(null);
       return res;
     }catch(err){
@@ -18,14 +21,23 @@ export const useOtpVerify = () => {
       throw err;
     }
     finally {
-      setLoading(false);
+      setIsVerifying(false);
     }
   }
 
   const reset = () => {
-    setLoading(false);
+    setIsVerifying(false);
     setError(null);
   }
 
-  return {sendOtpVerify,loading, error, reset};
+  return {
+    handlers: {
+      sendOtpVerify,
+      reset,
+    },
+    state: {
+      isVerifying,
+      error,
+    }
+  }
 }
