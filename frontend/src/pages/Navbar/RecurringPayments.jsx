@@ -442,29 +442,6 @@ export default function RecurringPayments() {
               />
             )}
 
-            {/* {activeTab === "bills" && showForm && (
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <RecurringPayeeForm
-                  formData={formData}
-                  errors={errors}
-                  isFormComplete={isFormComplete}
-                  onInputChange={handleInputChange}
-                  onConfirm={handleConfirm}
-                  onCancel={resetForm}
-                />
-              </LocalizationProvider>
-            )} */}
-
-            {successMessage && (
-              <Alert
-                severity="success"
-                sx={{mb: 2}}
-                onClose={() => setSuccessMessage("")}
-              >
-                {successMessage}
-              </Alert>
-            )}
-
             {activeTab === "bills" &&
               (payees.length === 0 ? (
                 <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
