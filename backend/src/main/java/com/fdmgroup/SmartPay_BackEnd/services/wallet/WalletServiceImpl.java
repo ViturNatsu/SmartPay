@@ -177,11 +177,25 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<WalletTransactionDTO> getTransactions(long userId, int limit, Boolean favourite) {
         int pageSize = Math.min(Math.max(limit, 1), 50);
-        return walletTransactionRepository
-                .findByWallet_User_IdOrderByCreatedAtDesc(userId, PageRequest.of(0, pageSize))
-                .stream()
+
+        List<WalletTransaction> transactions;
+
+        if (Boolean.TRUE.equals(favourite)) {
+            transactions = walletTransactionRepository
+                    .findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
+                            userId,
+                            PageRequest.of(0, pageSize)
+                    );
+        } else {
+            transactions = walletTransactionRepository
+                    .findByWallet_User_IdOrderByCreatedAtDesc(
+                            userId,
+                            PageRequest.of(0, pageSize)
+                    );
+        }
+
+        return transactions.stream()
                 .map(this::toDto)
-                .filter(dto -> favourite == null || dto.isFavourite() == favourite)
                 .collect(Collectors.toList());
     }
 

@@ -5,6 +5,7 @@ export default function RecurringPayeeForm({
   formData,
   errors,
   isFormComplete,
+  isSubmitting,
   onInputChange,
   onConfirm,
   onCancel,
@@ -17,7 +18,7 @@ export default function RecurringPayeeForm({
 
       <Stack spacing={2}>
         <TextField label="Name *" name="name" value={formData.name} onChange={onInputChange} error={!!errors.name} helperText={errors.name} fullWidth />
-        <TextField label="Account Number *" name="accountNumber" value={formData.accountNumber} onChange={onInputChange} error={!!errors.accountNumber} helperText={errors.accountNumber} fullWidth />
+        <TextField label="Account Number *" name="accountNumber" value={formData.accountNumber} fullWidth InputProps={{readOnly: true,}} helperText="Automatically assigned" />
         <TextField label="Amount *" name="amount" value={formData.amount} onChange={onInputChange} error={!!errors.amount} helperText={errors.amount} fullWidth type="number" inputProps={{ min: 0, step: "0.01" }} />
 
         <TextField select label="Recurring Schedule *" name="schedule" value={formData.schedule} onChange={onInputChange} error={!!errors.schedule} helperText={errors.schedule} fullWidth>
@@ -26,10 +27,11 @@ export default function RecurringPayeeForm({
         </TextField>
 
         <TextField label="Date *" name="date" value={formData.date} onChange={onInputChange} error={!!errors.date} helperText={errors.date} fullWidth type="date" InputLabelProps={{ shrink: true }} />
+        
 
         <Stack direction="row" spacing={1}>
-          <Button variant="contained" onClick={onConfirm} disabled={!isFormComplete}>
-            Confirm
+          <Button variant="contained" onClick={onConfirm} disabled={!isFormComplete || isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Confirm"}
           </Button>
 
           <Button variant="outlined" onClick={onCancel}>

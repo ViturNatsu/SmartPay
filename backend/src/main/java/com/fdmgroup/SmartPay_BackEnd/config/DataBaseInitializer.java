@@ -175,9 +175,78 @@ public class DataBaseInitializer {
 
 
             }
+
+            if (userRepository.findByEmail("merchant@example.com").isEmpty()) {
+
+                User merchantUser = User.builder()
+                        .firstName("Merchant")
+                        .lastName("Vendor")
+                        .email("merchant@example.com")
+                        .role(Role.USER)
+                        .emailVerified(true)
+                        .emailVerifiedAt(LocalDateTime.now())
+                        .password(
+                                encoderConfig.passwordEncoder()
+                                        .encode("Merchant@1234")
+                        )
+                        .build();
+
+                userRepository.save(merchantUser);
+
+                log.info(
+                        "Database initialized with merchant user: {}",
+                        merchantUser.getEmail()
+                );
+
+                Wallet merchantWallet = new Wallet();
+                merchantWallet.setUser(merchantUser);
+                merchantWallet.setBalance(0.0);
+
+                walletRepository.save(merchantWallet);
+
+                Card merchantCard = new Card();
+                merchantCard.setCardNumber(helper.generateCardNumber());
+                merchantCard.setCvv("123");
+                merchantCard.setExpirationDate(
+                        LocalDateTime.now().plusYears(2)
+                );
+                merchantCard.setStatus(CardStatus.ACTIVE);
+                merchantCard.setWallet(merchantWallet);
+
+                cardRepository.save(merchantCard);
+
+                Customer merchantCustomer = Customer.builder()
+                        .user(merchantUser)
+                        .addressLine1("100 Merchant Street")
+                        .city("Montreal")
+                        .country("Canada")
+                        .createdAt(LocalDateTime.now())
+                        .dob("19900101")
+                        .firstName("Merchant")
+                        .lastName("Vendor")
+                        .occupation("Merchant")
+                        .phoneNumber("5145551000")
+                        .postalCode("H3B 1A1")
+                        .province("QC")
+                        .socialInsuranceNumber("987-654-321")
+                        .governmentIdNumber("M1234567")
+                        .governmentIdType(GovernmentIdType.PASSPORT)
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+
+                customerRepository.save(merchantCustomer);
+
+                log.info(
+                        "Database initialized with merchant customer: {}",
+                        merchantCustomer.getUser().getEmail()
+                );
+            }
+
             User testUser2 = userRepository.findByEmail("test2@example.com").orElse(null);
             User testUser1 = userRepository.findByEmail("test@example.com").orElse(null);
-            if(testUser2 != null && testUser1 != null){
+            User merchantUser = userRepository.findByEmail("merchant@example.com").orElse(null);
+
+            if(testUser2 != null && testUser1 != null && merchantUser != null){
 
                 if(accountRepository.findByAccountNumber("00000401").isEmpty()){
                     Account testAccTd1 = new CheckingAccount();
@@ -236,6 +305,23 @@ public class DataBaseInitializer {
                     testAccRbc2.getUsers().add(testUser2);
                     accountRepository.save(testAccRbc2);
                 }
+                if (accountRepository.findByAccountNumber("99990001").isEmpty()) {
+
+                    Account merchantAccount = new CheckingAccount();
+                    merchantAccount.setAccountName("Rbc Merchant Checking");
+                    merchantAccount.setInstitutionNumber("003");
+                    merchantAccount.setTransitNumber("999999");
+                    merchantAccount.setAccountNumber("99990001");
+                    merchantAccount.setBalance(10000.00);
+                    merchantAccount.setActive(true);
+                    merchantAccount.getUsers().add(merchantUser);
+                    accountRepository.save(merchantAccount);
+
+                    log.info("Database initialized with merchant account: {}",
+                            merchantAccount.getAccountNumber());
+                }
+
+                
 
                 Account testTD1 = accountRepository.findByAccountNumber("00000401").get();
                 if(paymentRepository.findByUserIdAndAccountId(3, 1).isEmpty()){

@@ -11,6 +11,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.exception.ExceptionShapeDTO;
@@ -29,6 +30,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExcee
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
@@ -235,6 +237,15 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
+        @ExceptionHandler(InvalidRecurringPayeeException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidRecurringPayee(InvalidRecurringPayeeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+        
         @ExceptionHandler(PayeeNotFoundException.class)
         public ResponseEntity<Map<String, String>> handlePayeeNotFound(PayeeNotFoundException ex) {
                 Map<String, String> errorBody = new HashMap<>();
@@ -361,5 +372,27 @@ public class GlobalExceptionHandler {
                 return ResponseEntity
                         .status(status)
                         .body(body);
+        }
+
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatch(
+                MethodArgumentTypeMismatchException ex) {
+
+        Map<String, String> errorBody = new HashMap<>();
+
+        errorBody.put("status", "400");
+        errorBody.put("error", "Bad Request");
+
+        if ("favourite".equals(ex.getName())
+                && Boolean.class.equals(ex.getRequiredType())) {
+                errorBody.put("message", "Only accepting TRUE or FALSE.");
+        } else {
+                errorBody.put("message", "Invalid request parameter.");
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorBody);
         }
 }
