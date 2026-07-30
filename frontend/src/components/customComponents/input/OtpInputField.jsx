@@ -172,6 +172,7 @@ export const OtpInputField = ({
           <Typography
             component="label"
             htmlFor="otp-code"
+            textAlign="left"
             sx={{
               fontSize: 15,
               fontWeight: 700,
@@ -222,9 +223,11 @@ export const OtpInputField = ({
           <Typography
             variant="body2"
             color="text.secondary"
+            textAlign="center"
             sx={{
               mt: 1,
             }}
+
           >
             Didn&apos;t receive a code?{" "}
 
