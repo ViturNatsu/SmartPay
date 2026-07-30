@@ -48,6 +48,7 @@ export default function RecurringPayments() {
     amount: "",
     schedule: "",
     date: "",
+    endDate: "",
   });
 
   const [subscriptions] = useState([
@@ -92,6 +93,7 @@ export default function RecurringPayments() {
         amount: payee.amount,
         schedule: payee.schedule,
         date: payee.date,
+        endDate: payee.endDate,
       }));
 
       setPayees(mappedPayees);
@@ -148,7 +150,7 @@ export default function RecurringPayments() {
       newErrors.amount = "Amount must be a valid number.";
     } else if (amountValue < 1) {
       newErrors.amount = "Amount must be greater than 1.";
-    } else if (!/^\d+(\.\d{1,3})?$/.test(amountText)) {
+    } else if (!/^\d+(\.\d{1,3})?$/.test(formData.amount.trim())) {
       newErrors.amount = "Amount can have a maximum of 3 decimal places.";
     }
 
@@ -170,6 +172,25 @@ export default function RecurringPayments() {
       }
     }
 
+    if (!formData.endDate) {
+      newErrors.endDate = "Please select an end date.";
+    } else {
+      const selectedDate = new Date(`${formData.endDate}T00:00:00`);
+      const paymentDate = new Date(`${formData.date}T00:00:00`);
+      const today = new Date();
+
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate <= paymentDate){
+        newErrors.endDate =
+          "End date must be after next payment date for recurring payments.";
+      }
+
+      if (selectedDate < today) {
+        newErrors.endDate =
+          "Past dates are not allowed for recurring payments.";
+      }
+    }
 
     const duplicateRecurringPayee = payees.some((payee) => {
     const sameName =
@@ -189,13 +210,17 @@ export default function RecurringPayments() {
 
     const sameDate =
       String(payee.date ?? "") === formData.date;
+    
+    const sameEndDate =
+      String(payee.endDate ?? "") === formData.endDate;
 
     return (
       sameName &&
       sameAccountNumber &&
       sameAmount &&
       sameSchedule &&
-      sameDate
+      sameDate &&
+      sameEndDate
     );
   });
 
@@ -226,6 +251,7 @@ export default function RecurringPayments() {
       amount: Number(formData.amount),
       schedule: formData.schedule.toUpperCase(),
       date: formData.date,
+      endDate: formData.endDate,
       type: activeTab === "bills" ? "BILL" : "SUBSCRIPTION",
     };
 
@@ -242,6 +268,7 @@ export default function RecurringPayments() {
         amount: "",
         schedule: "",
         date: "",
+        endDate: "",
       });
 
       setErrors({});
@@ -275,6 +302,7 @@ export default function RecurringPayments() {
       amount: "",
       schedule: "",
       date: "",
+      endDate: "",
     });
   };
 
@@ -284,7 +312,8 @@ export default function RecurringPayments() {
     formData.amount &&
     Number(formData.amount) > 0 &&
     formData.schedule &&
-    formData.date;
+    formData.date &&
+    formData.endDate;
 
     const filteredSubscriptions = useMemo(
     () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
@@ -411,29 +440,6 @@ export default function RecurringPayments() {
                 placeholder="Search by subscription name..."
                 aria-label="Search subscriptions"
               />
-            )}
-
-            {activeTab === "bills" && showForm && (
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <RecurringPayeeForm
-                  formData={formData}
-                  errors={errors}
-                  isFormComplete={isFormComplete}
-                  onInputChange={handleInputChange}
-                  onConfirm={handleConfirm}
-                  onCancel={resetForm}
-                />
-              </LocalizationProvider>
-            )}
-
-            {successMessage && (
-              <Alert
-                severity="success"
-                sx={{mb: 2}}
-                onClose={() => setSuccessMessage("")}
-              >
-                {successMessage}
-              </Alert>
             )}
 
             {activeTab === "bills" &&

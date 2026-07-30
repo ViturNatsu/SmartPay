@@ -28,6 +28,7 @@ export default function RecurringPayeeForm({
 
         <TextField label="Date *" name="date" value={formData.date} onChange={onInputChange} error={!!errors.date} helperText={errors.date} fullWidth type="date" InputLabelProps={{ shrink: true }} />
         
+        <TextField label="End Date *" name="endDate" value={formData.endDate} onChange={onInputChange} error={!!errors.endDate} helperText={errors.endDate} fullWidth type="date" InputLabelProps={{ shrink: true }} />
 
         <Stack direction="row" spacing={1}>
           <Button variant="contained" onClick={onConfirm} disabled={!isFormComplete || isSubmitting}>
