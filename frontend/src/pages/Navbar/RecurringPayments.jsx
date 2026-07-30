@@ -432,40 +432,6 @@ export default function RecurringPayments() {
                   </LocalizationProvider>
                 )}
 
-            {activeTab === "subscriptions" && (
-              <RecurringPaymentsSearchBar
-                value={subscriptionsSearchQuery}
-                onChange={e => setSubscriptionsSearchQuery(e.target.value)}
-                onClear={() => setSubscriptionsSearchQuery("")}
-                placeholder="Search by subscription name..."
-                aria-label="Search subscriptions"
-              />
-            )}
-
-            {activeTab === "bills" &&
-              (payees.length === 0 ? (
-                <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
-              ) : filteredPayees.length === 0 && hasBillsSearch ? (
-                <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
-              ) : (
-                filteredPayees.map(payee => (
-                  <RecurringPayeeCard key={payee.id} payee={payee} />
-                ))
-              ))}
-            
-            {activeTab === "subscriptions" &&
-              (subscriptions.length === 0 && hasSubscriptionsSearch ? (
-                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-              ) : (
-                filteredSubscriptions.map(subscription => (
-                  <RecurringSubscriptionCard
-                    key={subscription.id}
-                    subscription={subscription}
-                  />
-                ))
-              ))}
-
-
                 {errorMessage && (
                   <Alert
                     severity="error"
