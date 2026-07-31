@@ -58,14 +58,36 @@ export default function RecurringPayments() {
       name: "Netflix",
       amount: "15",
       schedule: "monthly",
+      startPaymentDate: "2026-01-01",
       nextPaymentDate: "2026-07-10",
+      status: "active",
+      bankDisplayName: "TD Bank",
+      account_type: "Checking",
+      account_number: "77777301"
     },
     {
       id: 2,
       name: "Spotify",
       amount: "10",
       schedule: "monthly",
+      startPaymentDate: "2026-01-01",
       nextPaymentDate: "2026-07-10",
+      status: "paused",
+      bankDisplayName: "TD Bank",
+      account_type: "Checking",
+      account_number: "77777301"
+    },
+    {
+      id: 2,
+      name: "Amazon",
+      amount: "9.5",
+      schedule: "monthly",
+      startPaymentDate: "2026-01-01",
+      nextPaymentDate: "2026-07-10",
+      status: "cancelled",
+      bankDisplayName: "TD Bank",
+      account_type: "Checking",
+      account_number: "77777301"
     },
   ]);
 
