@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Typography, Link, Stack, Box } from "@mui/material";
-import {tokens} from "../style/Theme.jsx"
+import {tokens, dashboardSidebarCardSx} from "../style/Theme.jsx"
 
 const MESSAGES = [
   {
@@ -24,12 +24,8 @@ function ImportantMessages() {
     <Card
       elevation={0}
       sx={{
-        width: "100%",
+        ...dashboardSidebarCardSx,
         bgcolor: tokens.color.background.surface,
-        borderRadius: "18px",
-        border: "1px solid", borderColor: tokens.color.border.light,
-        boxShadow: tokens.shadow.large,
-        p: "22px",
         minHeight: expanded ? "auto" : 92,
         display: "flex",
         flexDirection: "column",

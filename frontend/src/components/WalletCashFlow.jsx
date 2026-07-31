@@ -126,12 +126,22 @@ function WalletCashFlow() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
-      if (!tokenClaims?.userId) return;
+    const fetchTransactions = async () => {
+      if (!tokenClaims?.userId) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, 10);
-        setTransactions(Array.isArray(data) ? data : []);
+        const data = await getWalletTransactions(
+          tokenClaims.userId,
+          0,
+          10
+        );
+
+        setTransactions(data.transactions ?? []);
       } catch (err) {
         console.error("Failed to fetch wallet transactions:", err);
         setTransactions([]);
@@ -140,7 +150,9 @@ function WalletCashFlow() {
       }
     };
 
-    if (!authLoading) fetch();
+    if (!authLoading) {
+      fetchTransactions();
+    }
   }, [authLoading, tokenClaims?.userId]);
 
   return (

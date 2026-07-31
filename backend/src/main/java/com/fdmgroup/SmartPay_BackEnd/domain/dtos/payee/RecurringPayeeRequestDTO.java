@@ -7,9 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -52,4 +49,10 @@ public class RecurringPayeeRequestDTO {
 
     @NotNull(message = "Recurring payment type is required")
     private RecurringPaymentType type;
+    
+    @JsonProperty("endDate")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @NotNull
+    private LocalDate endDate;
+
 }

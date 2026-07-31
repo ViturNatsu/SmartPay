@@ -354,11 +354,16 @@ export async function loginAndVerifyOtp(page, { email, password }) {
     await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 });
 
     // Wait for the verify page to fully render (the 7-digit code input)
-    const codeInput = page.getByLabel('7-digit code');
-    await expect(codeInput).toBeVisible({ timeout: 10_000 });
+    const textbox = page.getByRole("textbox");
+
+    await expect(textbox).toBeVisible({ timeout: 10000 });
+
+    await textbox.fill("1234567");
+    // const codeInput = page.getByLabel('Enter the 7-digit code below');
+    // await expect(codeInput).toBeVisible({ timeout: 10_000 });
 
     // Enter any 7-digit code (mocks accept all)
-    await codeInput.fill('1234567');
+   // await codeInput.fill('1234567');
     await page.getByRole('button', { name: /Verify Code/i }).click();
 
     // Should navigate away from /verify to /home or dashboard

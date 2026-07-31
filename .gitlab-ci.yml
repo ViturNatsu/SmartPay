@@ -76,7 +76,7 @@ e2e-test:
     - cd frontend
     - npm ci
     - npx playwright install --with-deps chromium
-    - npx playwright test --project=chromium
+    - npx playwright test --project=chromium --reporter=list
   artifacts:
     when: always
     paths:

@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -22,6 +22,10 @@ import Navbar from "@/components/Navbar";
 import {tokens} from "@/style/Theme";
 import {useRecurringPaymentsTab} from "@/utils/useRecurringPaymentsTab";
 import {filterItemsByName} from "@/utils/recurringPaymentsSearchUtils";
+import {
+  addRecurringPayee,
+  getRecurringPayees,
+} from "@/api/recurringPayment/recurringPayeeApi";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -34,15 +38,17 @@ export default function RecurringPayments() {
 
   const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
-    accountNumber: "",
+    accountNumber: "99990001",
     amount: "",
     schedule: "",
     date: "",
+    endDate: "",
   });
 
   const [subscriptions] = useState([
@@ -63,23 +69,47 @@ export default function RecurringPayments() {
     },
   ]);
 
-  const [payees, setPayees] = useState([
-    // To be removed upon connecting to the backend
-    {
-      id: 1,
-      name: "Electric Company",
-      amount: "120",
-      schedule: "monthly",
-      date: "2026-07-05",
-    },
-    {
-      id: 2,
-      name: "Water Company",
-      amount: "20",
-      schedule: "monthly",
-      date: "2026-07-05",
-    },
-  ]);
+  const [payees, setPayees] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadRecurringPayees = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const data = await getRecurringPayees();
+
+      const recurringPayees = Array.isArray(data) ? data : [];
+
+      const mappedPayees = recurringPayees.map((payee) => ({
+        id: payee.payeeId,
+        name: payee.payeeName,
+        accountNumber:
+          payee.accountNumber ??
+          payee.recipientIdentifier ??
+          "",
+        amount: payee.amount,
+        schedule: payee.schedule,
+        date: payee.date,
+        endDate: payee.endDate,
+      }));
+
+      setPayees(mappedPayees);
+    } catch (error) {
+      setErrorMessage(
+        error?.message ||
+          "Unable to load recurring payees. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecurringPayees();
+  }, []);
 
   const handleInputChange = event => {
     const {name, value} = event.target;
@@ -95,11 +125,17 @@ export default function RecurringPayments() {
     }));
   };
 
+
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required.";
+    } else if (formData.name.trim().length > 30) {
+      newErrors.name = "Payee Name cannot exceed 30 characters.";
+    } else if (!/^[A-Za-z0-9 ]+$/.test(formData.name.trim())) {
+      newErrors.name = "Payee Name cannot contain special characters.";
     }
 
     if (!formData.accountNumber.trim()) {
@@ -112,8 +148,10 @@ export default function RecurringPayments() {
       newErrors.amount = "Amount is required.";
     } else if (Number.isNaN(amountValue)) {
       newErrors.amount = "Amount must be a valid number.";
-    } else if (amountValue <= 0) {
-      newErrors.amount = "Amount must be greater than 0.";
+    } else if (amountValue < 1) {
+      newErrors.amount = "Amount must be greater than 1.";
+    } else if (!/^\d+(\.\d{1,3})?$/.test(formData.amount.trim())) {
+      newErrors.amount = "Amount can have a maximum of 3 decimal places.";
     }
 
     if (!formData.schedule) {
@@ -122,45 +160,137 @@ export default function RecurringPayments() {
 
     if (!formData.date) {
       newErrors.date = "Please select a date.";
+    } else {
+      const selectedDate = new Date(`${formData.date}T00:00:00`);
+      const today = new Date();
+
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        newErrors.date =
+          "Past dates are not allowed for recurring payments.";
+      }
     }
 
-    const normalizedName = formData.name.trim().toLowerCase();
+    if (!formData.endDate) {
+      newErrors.endDate = "Please select an end date.";
+    } else {
+      const selectedDate = new Date(`${formData.endDate}T00:00:00`);
+      const paymentDate = new Date(`${formData.date}T00:00:00`);
+      const today = new Date();
 
-    const duplicatePayee = payees.some(
-      payee => payee.name.trim().toLowerCase() === normalizedName,
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate <= paymentDate){
+        newErrors.endDate =
+          "End date must be after next payment date for recurring payments.";
+      }
+
+      if (selectedDate < today) {
+        newErrors.endDate =
+          "Past dates are not allowed for recurring payments.";
+      }
+    }
+
+    const duplicateRecurringPayee = payees.some((payee) => {
+    const sameName =
+      String(payee.name ?? "").trim().toLowerCase() ===
+      formData.name.trim().toLowerCase();
+
+    const sameAccountNumber =
+      String(payee.accountNumber ?? "").trim().toLowerCase() ===
+      formData.accountNumber.trim().toLowerCase();
+
+    const sameAmount =
+      Number(payee.amount) === Number(formData.amount);
+
+    const sameSchedule =
+      String(payee.schedule ?? "").trim().toUpperCase() ===
+      formData.schedule.trim().toUpperCase();
+
+    const sameDate =
+      String(payee.date ?? "") === formData.date;
+    
+    const sameEndDate =
+      String(payee.endDate ?? "") === formData.endDate;
+
+    return (
+      sameName &&
+      sameAccountNumber &&
+      sameAmount &&
+      sameSchedule &&
+      sameDate &&
+      sameEndDate
     );
+  });
 
-    if (duplicatePayee) {
-      newErrors.name = "A payee with this name already exists.";
-    }
+  if (duplicateRecurringPayee) {
+    newErrors.name =
+      "An identical recurring payment already exists.";
+  }
 
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    setErrorMessage("");
+
     if (!validateForm()) {
       return;
     }
 
-    const newPayee = {
-      id: Date.now(),
-      ...formData,
+    if (isSubmitting) {
+      return;
+    }
+
+    const payload = {
+      payeeName: formData.name.trim(),
+      recipientIdentifier: formData.accountNumber,
+      amount: Number(formData.amount),
+      schedule: formData.schedule.toUpperCase(),
+      date: formData.date,
+      endDate: formData.endDate,
+      type: activeTab === "bills" ? "BILL" : "SUBSCRIPTION",
     };
 
-    setPayees(prev => [...prev, newPayee]);
-    setSuccessMessage("Payee added successfully!");
+    try {
+      setIsSubmitting(true);
 
-    setFormData({
-      name: "",
-      accountNumber: "",
-      amount: "",
-      schedule: "",
-      date: "",
-    });
+      await addRecurringPayee(payload);
+      await loadRecurringPayees();
+      setSuccessMessage("Recurring payment added successfully.");
 
-    setShowForm(false);
+      setFormData({
+        name: "",
+        accountNumber: "99990001",
+        amount: "",
+        schedule: "",
+        date: "",
+        endDate: "",
+      });
+
+      setErrors({});
+      setShowForm(false);
+    } catch (error) {
+      if (!error.response) {
+        setErrorMessage(
+          "Unable to connect to the server. Check your connection and try again.",
+        );
+      } else if (error.response.status >= 500) {
+        setErrorMessage(
+          "The server encountered an error. Please try again.",
+        );
+      } else {
+        setErrorMessage(
+          error.response.data?.message ||
+            "Unable to create the recurring payment.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -168,10 +298,11 @@ export default function RecurringPayments() {
     setErrors({});
     setFormData({
       name: "",
-      accountNumber: "",
+      accountNumber: "99990001",
       amount: "",
       schedule: "",
       date: "",
+      endDate: "",
     });
   };
 
@@ -181,9 +312,10 @@ export default function RecurringPayments() {
     formData.amount &&
     Number(formData.amount) > 0 &&
     formData.schedule &&
-    formData.date;
+    formData.date &&
+    formData.endDate;
 
-  const filteredSubscriptions = useMemo(
+    const filteredSubscriptions = useMemo(
     () => filterItemsByName(subscriptions, subscriptionsSearchQuery),
     [subscriptions, subscriptionsSearchQuery],
   );
@@ -203,8 +335,8 @@ export default function RecurringPayments() {
     );
   }, [payees, billsSearchQuery]);
 
-  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
+  const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
   return (
     <>
@@ -292,11 +424,21 @@ export default function RecurringPayments() {
                       formData={formData}
                       errors={errors}
                       isFormComplete={isFormComplete}
+                      isSubmitting={isSubmitting}
                       onInputChange={handleInputChange}
                       onConfirm={handleConfirm}
                       onCancel={resetForm}
                     />
                   </LocalizationProvider>
+                )}
+
+                {errorMessage && (
+                  <Alert
+                    severity="error"
+                    onClose={() => setErrorMessage("")}
+                  >
+                    {errorMessage}
+                  </Alert>
                 )}
 
                 {successMessage && (
