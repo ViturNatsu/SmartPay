@@ -29,6 +29,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessExcept
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
@@ -295,6 +296,11 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(CardNotFoundException.class)
         public ResponseEntity<ExceptionShapeDTO> handleCardNotFound(CardNotFoundException ex) {
+                return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+
+        @ExceptionHandler(NotificationNotFoundException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleNotificationNotFound(NotificationNotFoundException ex) {
                 return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
         }
 
