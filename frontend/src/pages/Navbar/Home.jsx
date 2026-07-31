@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import { Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import QuickActions from "@/components/QuickActions";
 import ImportantMessages from "@/components/ImportantMessages";
 import WalletCashFlow from "@/components/WalletCashFlow";
@@ -30,42 +30,25 @@ export const Home = () => {
           Welcome, {user?.firstName}!
         </h1>
         <p>Here's your financial overview for today</p>
-        <div
-          style={{
-            display: "flex",
-            gap: "40px",
-            maxWidth: "1460px",
-            margin: "0 auto",
-          }}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={{ xs: 3, md: 5 }}
+          sx={{ maxWidth: "1460px", margin: "0 auto" }}
         >
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0,
-              overflow: "hidden",
-              maxWidth: "1014px",
-            }}
-          >
+          <Box sx={{ flex: 1, minWidth: 0, maxWidth: { md: "1014px" } }}>
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
               <WalletCashFlow />
               <TransactionHistory />
             </Stack>
-          </div>
-          <div
-            style={{
-              width: "338px",
-              flexShrink: 0,
-              flexGrow: 0,
-              overflow: "visible",
-            }}
-          >
+          </Box>
+          <Box sx={{ width: { xs: "100%", md: "338px" }, flexShrink: 0 }}>
             <Stack spacing={2.25}>
               <QuickActions onLoadWallet={() => setLoadWalletOpen(true)} />
               <ImportantMessages />
             </Stack>
-          </div>
-        </div>
+          </Box>
+        </Stack>
       </div>
 
       <LoadWalletDialog
