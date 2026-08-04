@@ -35,7 +35,7 @@ public class RecurringPayeeRequestDTO {
     @JsonProperty("amount")
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false,
-            message = "Amount must be greater than $0.00")
+            message = "Amount must be positive.")
     private Double amount;
 
     @JsonProperty("schedule")
