@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Box, Stack, Typography } from "@mui/material";
 import QuickActions from "@/components/QuickActions";
-import ImportantMessages from "@/components/ImportantMessages";
+import ImportantMessages, {
+  IMPORTANT_MESSAGES_PANEL_ID,
+} from "@/components/ImportantMessages";
 import LinkedAccountsPanel from "@/components/LinkedAccountsPanel";
 import WalletCashFlow from "@/components/WalletCashFlow";
 import TransactionHistory from "@/components/TransactionHistory";
@@ -13,8 +16,53 @@ import WalletBalance from "@/components/WalletBalance";
 import { tokens } from "@/style/Theme.jsx";
 export const Home = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!location.state?.scrollToNotifications) return;
+
+    let cancelled = false;
+    let settleTimer = null;
+
+    const scrollToPanel = (behavior) => {
+      document
+        .getElementById(IMPORTANT_MESSAGES_PANEL_ID)
+        ?.scrollIntoView({ behavior, block: "start" });
+    };
+
+    // Wallet balance, cash flow, transaction history, and this panel each
+    // load their data asynchronously, so the page's height keeps changing
+    // for a bit after mount — a single scroll-on-mount lands wherever the
+    // layout happened to be at that instant, which is usually short of the
+    // final position. Re-align every time the page's height changes, until
+    // it's gone quiet for a moment, instead of guessing a fixed delay.
+    const observer = new ResizeObserver(() => {
+      if (cancelled) return;
+      scrollToPanel("auto");
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => observer.disconnect(), 400);
+    });
+
+    requestAnimationFrame(() => {
+      if (cancelled) return;
+      scrollToPanel("smooth");
+      observer.observe(document.body);
+      // Hard cap so this can't keep re-scrolling indefinitely.
+      settleTimer = setTimeout(() => observer.disconnect(), 2500);
+    });
+
+    // Clear the flag so a refresh or back-navigation doesn't re-trigger it.
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (settleTimer) clearTimeout(settleTimer);
+    };
+  }, [location.state, location.pathname, navigate]);
 
   return (
     <>

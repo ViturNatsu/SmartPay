@@ -25,6 +25,8 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletServiceImpl;
@@ -55,6 +57,9 @@ class WalletTransferServiceTest {
 
     @Mock
     private StringHelper helper;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private WalletServiceImpl walletService;
@@ -154,5 +159,34 @@ class WalletTransferServiceTest {
 
         assertTrue(transactionCaptor.getAllValues().stream()
                 .allMatch(tx -> tx.getRailType() == RailType.WALLET_TRANSFER));
+    }
+
+    @Test
+    void transfer_createsSuccessNotification_whenTransferSucceeds() {
+        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+
+        verify(notificationService, times(1))
+                .createNotification(eq(1L), eq(NotificationType.SUCCESS), anyString(), anyString());
+    }
+
+    @Test
+    void transfer_createsLowBalanceWarning_whenResultingBalanceBelowThreshold() {
+        senderWallet.setBalance(300.00);
+
+        walletService.transfer(1L, 2L, 100.00, null);
+
+        verify(notificationService, times(1))
+                .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
+    }
+
+    @Test
+    void transfer_doesNotDuplicateLowBalanceWarning_whenActiveWarningAlreadyExists() {
+        senderWallet.setBalance(300.00);
+        when(notificationService.hasActiveOfType(1L, NotificationType.WARNING)).thenReturn(true);
+
+        walletService.transfer(1L, 2L, 100.00, null);
+
+        verify(notificationService, never())
+                .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
     }
 }
