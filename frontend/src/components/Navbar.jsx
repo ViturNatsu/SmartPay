@@ -10,6 +10,7 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
@@ -32,6 +33,11 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { tokens } from "@/style/Theme";
+import { getNotifications } from "@/api/notifications/notificationApi";
+import {
+  IMPORTANT_MESSAGES_PANEL_ID,
+  NOTIFICATIONS_COUNT_CHANGED_EVENT,
+} from "@/components/ImportantMessages";
 
 import logo from "@/style/logo.png";
 
@@ -107,11 +113,53 @@ export default function Navbar({isAdmin = false}) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // xs/sm => mobile
   const location = useLocation();
   const navigate = useNavigate();
-  const {logout} = useAuth();
+  const {logout, tokenClaims, loading: authLoading} = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [totalNotificationCount, setTotalNotificationCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (authLoading || !tokenClaims?.userId) return;
+
+    let cancelled = false;
+    getNotifications()
+      .then(data => {
+        if (!cancelled) setTotalNotificationCount(data.totalCount ?? 0);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, tokenClaims?.userId]);
+
+  // Kept in sync with dismiss actions that happen inside ImportantMessages,
+  // which is a sibling component with its own independent fetch/state.
+  React.useEffect(() => {
+    const handleCountChanged = (event) => {
+      setTotalNotificationCount(event.detail?.totalCount ?? 0);
+    };
+    window.addEventListener(NOTIFICATIONS_COUNT_CHANGED_EVENT, handleCountChanged);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_COUNT_CHANGED_EVENT, handleCountChanged);
+    };
+  }, []);
 
   const items = isAdmin ? adminNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : "/";
+
+  const handleBellClick = () => {
+    const isOnDashboard = location.pathname === "/" || location.pathname === "/home";
+    if (isOnDashboard) {
+      document
+        .getElementById(IMPORTANT_MESSAGES_PANEL_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      // Navigation is async, so the panel isn't in the DOM yet at this
+      // point — hand off a flag via router state and let Home scroll once
+      // it's actually mounted, rather than guessing with a timeout.
+      navigate(homePath, { state: { scrollToNotifications: true } });
+    }
+  };
 
   const sideMenuItems = isAdmin
   ? adminSideMenuItems
@@ -170,9 +218,12 @@ export default function Navbar({isAdmin = false}) {
 
               <IconButton
                 aria-label="notifications"
+                onClick={handleBellClick}
                 sx={{color: tokens.color.text.secondary,}}
               >
-                <NotificationsNoneRoundedIcon />
+                <Badge badgeContent={totalNotificationCount} color="error" invisible={totalNotificationCount === 0} max={9}>
+                  <NotificationsNoneRoundedIcon />
+                </Badge>
               </IconButton>
 
               <Avatar alt="Alex N" sx={{width: 34, height: 34, ml: 1}} />
@@ -343,9 +394,12 @@ export default function Navbar({isAdmin = false}) {
             >
               <IconButton
                 aria-label="notifications"
+                onClick={handleBellClick}
                 sx={{color: tokens.color.text.secondary,}}
               >
-                <NotificationsNoneRoundedIcon />
+                <Badge badgeContent={totalNotificationCount} color="error" invisible={totalNotificationCount === 0} max={9}>
+                  <NotificationsNoneRoundedIcon />
+                </Badge>
               </IconButton>
 
               <Divider orientation="vertical" flexItem sx={{mx: 0.5}} />

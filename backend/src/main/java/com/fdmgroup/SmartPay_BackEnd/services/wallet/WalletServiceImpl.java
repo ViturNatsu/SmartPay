@@ -40,11 +40,13 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 
 import lombok.AllArgsConstructor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
 
 @Service
@@ -54,6 +56,8 @@ public class WalletServiceImpl implements WalletService {
     private static final String INSUFFICIENT_BANK_FUNDS_MESSAGE =
             "Insufficient funds in this account. Please check your bank balance and try again.";
 
+    private static final Double LOW_BALANCE_THRESHOLD = 250.0;
+
     private final WalletRepository walletRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
@@ -61,6 +65,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
+    private final NotificationService notificationService;
 
     private StringHelper helper;
 
@@ -165,6 +170,8 @@ public class WalletServiceImpl implements WalletService {
         wallet.setDailySpentAmount(wallet.getDailySpentAmount() + request.getAmount());
         wallet.setDailySpentDate(today);
         Wallet savedWallet = walletRepository.save(wallet);
+
+        maybeNotifyLowBalance(userId, savedWallet.getBalance());
 
         WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod, RailType.BANK_TRANSFER);
 
@@ -276,6 +283,8 @@ public class WalletServiceImpl implements WalletService {
         senderWallet.setDailySpentDate(today);
         Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
+        maybeNotifyLowBalance(senderUserId, savedSenderWallet.getBalance());
+
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
         Wallet savedRecipientWallet = walletRepository.save(recipientWallet);
 
@@ -299,9 +308,23 @@ public class WalletServiceImpl implements WalletService {
 
         recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty, RailType.WALLET_TRANSFER);
         WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty, RailType.WALLET_TRANSFER);
+
+        notificationService.createNotification(
+                senderUserId, NotificationType.SUCCESS, "Payment successful",
+                "$" + String.format("%.2f", amount) + " sent to " + transferCounterparty);
+
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
         return dto;
+    }
+
+    private void maybeNotifyLowBalance(long userId, Double balance) {
+        if (balance != null && balance < LOW_BALANCE_THRESHOLD
+                && !notificationService.hasActiveOfType(userId, NotificationType.WARNING)) {
+            notificationService.createNotification(
+                    userId, NotificationType.WARNING, "Low wallet balance",
+                    "Below $" + LOW_BALANCE_THRESHOLD.intValue());
+        }
     }
 
     @Override
