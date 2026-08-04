@@ -7,8 +7,7 @@ import ImportantMessages, {
   IMPORTANT_MESSAGES_PANEL_ID,
 } from "@/components/ImportantMessages";
 import LinkedAccountsPanel from "@/components/LinkedAccountsPanel";
-import WalletCashFlow from "@/components/WalletCashFlow";
-import TransactionHistory from "@/components/TransactionHistory";
+import TransactionsActivityFeed from "@/components/TransactionsActivityFeed";
 import LoadWalletDialog from "@/components/LoadWalletDialog";
 import { useAuth } from "@/context/AuthContext";
 import WalletBalance from "@/components/WalletBalance";
@@ -33,7 +32,7 @@ export const Home = () => {
         ?.scrollIntoView({ behavior, block: "start" });
     };
 
-    // Wallet balance, cash flow, transaction history, and this panel each
+    // Wallet balance, transactions feed, and this panel each
     // load their data asynchronously, so the page's height keeps changing
     // for a bit after mount — a single scroll-on-mount lands wherever the
     // layout happened to be at that instant, which is usually short of the
@@ -102,8 +101,7 @@ export const Home = () => {
           >
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
-              <WalletCashFlow />
-              <TransactionHistory />
+              <TransactionsActivityFeed refreshKey={walletRefreshKey} />
             </Stack>
           </Box>
 
