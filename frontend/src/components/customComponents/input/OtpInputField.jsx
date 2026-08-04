@@ -8,14 +8,15 @@ import {
 } from "@mui/material";
 
 export const OtpInputField = ({
-  otpRequestObject,
-  otpVerifyObject,
-  messageFluff,
-  emailTarget,
-  value,
-  onChange,
-  payload,
-}) => {
+    otpRequestObject,
+    otpVerifyObject,
+    messageFluff,
+    emailTarget,
+    value,
+    onChange,
+    payload,
+  }) => {
+
   const hasTimeLeft = () => {
     return otpRequestObject.state.timeLeft > 0;
   };
@@ -129,7 +130,6 @@ export const OtpInputField = ({
               sx={{
                 fontSize: 15,
                 lineHeight: 1.5,
-                fontWeight: 600,
               }}
             >
               A 7-digit code has been sent to{" "}
@@ -175,7 +175,7 @@ export const OtpInputField = ({
             textAlign="left"
             sx={{
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 550,
               color: "text.primary",
               mb: 1,
             }}
@@ -206,14 +206,16 @@ export const OtpInputField = ({
               },
 
               "& input": {
+                textAlign: "center",
                 fontSize: "1rem",
                 fontWeight: 600,
-                letterSpacing: "0.25rem",
+                letterSpacing: "0.5rem",
+                fontFamily: "monospace",
               },
 
               "& input::placeholder": {
                 fontSize: "1rem",
-                letterSpacing: "normal",
+                letterSpacing: "0.125rem",
                 fontWeight: 400,
               },
             }}
@@ -227,7 +229,6 @@ export const OtpInputField = ({
             sx={{
               mt: 1,
             }}
-
           >
             Didn&apos;t receive a code?{" "}
 
