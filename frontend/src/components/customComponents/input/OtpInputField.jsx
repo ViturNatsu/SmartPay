@@ -236,6 +236,7 @@ export const OtpInputField = ({
             sx={{
               mt: 1,
             }}
+
           >
             Didn&apos;t receive a code?{" "}
 

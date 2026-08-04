@@ -5,7 +5,7 @@ import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
-import { tokens } from "../style/Theme";
+import { tokens, dashboardSidebarCardSx } from "../style/Theme";
 
 const ACTIONS = [
   {
@@ -35,12 +35,8 @@ function QuickActions({ onLoadWallet }) {
     <Card
       elevation={0}
       sx={{
-        width: "100%",
+        ...dashboardSidebarCardSx,
         bgcolor: tokens.color.background.card,
-        borderRadius: "18px",
-        border: `1px solid ${tokens.color.border.light}`,
-        boxShadow: tokens.shadow.large,
-        p: "22px",
       }}
     >
       <Typography

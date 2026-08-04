@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletDailyLimitRequestDTO;
@@ -39,10 +40,13 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 
 import lombok.AllArgsConstructor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
 
 @Service
@@ -52,6 +56,8 @@ public class WalletServiceImpl implements WalletService {
     private static final String INSUFFICIENT_BANK_FUNDS_MESSAGE =
             "Insufficient funds in this account. Please check your bank balance and try again.";
 
+    private static final Double LOW_BALANCE_THRESHOLD = 250.0;
+
     private final WalletRepository walletRepository;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
@@ -59,6 +65,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
+    private final NotificationService notificationService;
 
     private StringHelper helper;
 
@@ -164,6 +171,8 @@ public class WalletServiceImpl implements WalletService {
         wallet.setDailySpentDate(today);
         Wallet savedWallet = walletRepository.save(wallet);
 
+        maybeNotifyLowBalance(userId, savedWallet.getBalance());
+
         WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod, RailType.BANK_TRANSFER);
 
         WithdrawResponseDTO response = new WithdrawResponseDTO();
@@ -175,28 +184,59 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public List<WalletTransactionDTO> getTransactions(long userId, int limit, Boolean favourite) {
+    public WalletTransactionPageDTO getTransactions(long userId, int page, int limit, Boolean favourite, String search) {
+        int pageNumber = Math.max(page, 0);
         int pageSize = Math.min(Math.max(limit, 1), 50);
+        boolean hasSearch = search != null && !search.isBlank();
+        String cleanedSearch = hasSearch ? search.trim() : null;
 
-        List<WalletTransaction> transactions;
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
-        if (Boolean.TRUE.equals(favourite)) {
-            transactions = walletTransactionRepository
+        Page<WalletTransaction> transactionPage;
+
+        if (Boolean.TRUE.equals(favourite) && hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchFavouriteTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
+        } else if (Boolean.TRUE.equals(favourite)) {
+            transactionPage = walletTransactionRepository
                     .findByWallet_User_IdAndIsFavouriteTrueOrderByCreatedAtDesc(
                             userId,
-                            PageRequest.of(0, pageSize)
-                    );
+                            pageRequest);
+
+        } else if (hasSearch) {
+            transactionPage = walletTransactionRepository
+                    .searchTransactions(
+                            userId,
+                            cleanedSearch,
+                            pageRequest);
+
         } else {
-            transactions = walletTransactionRepository
+            transactionPage = walletTransactionRepository
                     .findByWallet_User_IdOrderByCreatedAtDesc(
                             userId,
-                            PageRequest.of(0, pageSize)
-                    );
+                            pageRequest);
         }
 
-        return transactions.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        WalletTransactionPageDTO response = new WalletTransactionPageDTO();
+
+        response.setTransactions(
+                transactionPage.getContent()
+                        .stream()
+                        .map(this::toDto)
+                        .collect(Collectors.toList()));
+
+        response.setCurrentPage(transactionPage.getNumber());
+        response.setPageSize(transactionPage.getSize());
+        response.setTotalPages(transactionPage.getTotalPages());
+        response.setTotalElements(transactionPage.getTotalElements());
+        response.setHasNext(transactionPage.hasNext());
+        response.setHasPrevious(transactionPage.hasPrevious());
+
+        return response;
     }
 
     @Override
@@ -243,6 +283,8 @@ public class WalletServiceImpl implements WalletService {
         senderWallet.setDailySpentDate(today);
         Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
+        maybeNotifyLowBalance(senderUserId, savedSenderWallet.getBalance());
+
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
         Wallet savedRecipientWallet = walletRepository.save(recipientWallet);
 
@@ -266,9 +308,23 @@ public class WalletServiceImpl implements WalletService {
 
         recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty, RailType.WALLET_TRANSFER);
         WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty, RailType.WALLET_TRANSFER);
+
+        notificationService.createNotification(
+                senderUserId, NotificationType.SUCCESS, "Payment successful",
+                "$" + String.format("%.2f", amount) + " sent to " + transferCounterparty);
+
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
         return dto;
+    }
+
+    private void maybeNotifyLowBalance(long userId, Double balance) {
+        if (balance != null && balance < LOW_BALANCE_THRESHOLD
+                && !notificationService.hasActiveOfType(userId, NotificationType.WARNING)) {
+            notificationService.createNotification(
+                    userId, NotificationType.WARNING, "Low wallet balance",
+                    "Below $" + LOW_BALANCE_THRESHOLD.intValue());
+        }
     }
 
     @Override
