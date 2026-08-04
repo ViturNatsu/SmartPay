@@ -27,12 +27,6 @@ import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethod
 import {useWalletData} from "@/hooks/useWalletData.js";
 import {useCardReveal} from "@/utils/useCardReveal.js";
 import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
-import {formatString} from "@/utils/stringFormaters/formatString.js";
-import {formatDate} from "@/utils/stringFormaters/formatDate.js";
-import {theme} from "@/style/Theme.jsx";
-import {LockOpen, LockOutlined} from "@mui/icons-material";
-import LockIcon from "@mui/icons-material/Lock";
-import {CustomButton} from "@/components/customComponents/CustomButton.jsx";
 import {LockCardOtpDialog} from "@/components/customComponents/dialogs/LockCardOtpDialog.jsx";
 import {AlertSnackbar} from "@/components/customComponents/snackbar/AlertSnackbar.jsx";
 import {LockCardRedirectDialog} from "@/components/customComponents/dialogs/LockCardRedirectDialog.jsx";
@@ -524,6 +518,8 @@ export function Wallet() {
         }}
       ></LockCardOtpDialog>
 
+      {/*This is an unused dialog.*/}
+      {/*This is related to the OTP links attached to the email sent to the user. Redirects from that link are not currently supported for actions other than loggin in*/}
       <LockCardRedirectDialog
         cardStatus={card?.cardStatus}
         open={lockCardRedirectDialogOpen}

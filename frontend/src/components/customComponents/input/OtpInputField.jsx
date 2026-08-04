@@ -32,6 +32,8 @@ export const OtpInputField = ({
 
   return (
     <Box
+      paddingY={1}
+
       sx={{
         width: "100%",
         display: "flex",
@@ -60,42 +62,17 @@ export const OtpInputField = ({
             </Alert>
           )}
 
-          {/* Send verification button */}
-          {!otpRequestObject.state.error &&
-            !otpRequestObject.state.isRequesting && (
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => {
-                  otpRequestObject.handlers
-                    .handleOtpRequest(payload)
-                    .catch(console.error);
-                }}
-                disabled={!emailTarget}
-                sx={{
-                  minHeight: 52,
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 700,
-                  fontSize: 16,
-                }}
-              >
-                Send Verification Code
-              </Button>
-            )}
-
-          {/* Loading state */}
-          {otpRequestObject.state.isRequesting && (
-            <Box
+          {/* Request error */}
+          {otpVerifyObject.state.error && (
+            <Alert
+              severity="error"
               sx={{
-                minHeight: 52,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                mb: 2,
+                borderRadius: 2,
               }}
             >
-              <CircularProgress size={28} />
-            </Box>
+              Request Error: {otpRequestObject.state.error}
+            </Alert>
           )}
         </Box>
       )}
@@ -107,56 +84,67 @@ export const OtpInputField = ({
             width: "100%",
             display: "flex",
             flexDirection: "column",
+            // backgroundColor: "#f5f5f5",
           }}
         >
-          {/* Success message */}
-          <Alert
-            severity="success"
+          <Box
             sx={{
               mb: 3,
-              borderRadius: 2,
-              alignItems: "flex-start",
-
-              "& .MuiAlert-icon": {
-                mt: 0.25,
-              },
-
-              "& .MuiAlert-message": {
-                width: "100%",
-              },
+              minHeight: 88,
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            <Typography
-              sx={{
-                fontSize: 15,
-                lineHeight: 1.5,
-              }}
-            >
-              A 7-digit code has been sent to{" "}
+            {otpRequestObject.state.isRequesting && (
               <Box
-                component="span"
                 sx={{
-                  fontWeight: 800,
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                {emailTarget}
+                <CircularProgress size={28} />
               </Box>
-              .
-              <Box
-                component="span"
-                sx={{
-                  display: "block",
-                  mt: 0.5,
-                }}
-              >
-                Enter it below to {messageFluff}.
-              </Box>
-            </Typography>
-          </Alert>
+            )}
 
-          {/* Verification error */}
-          {otpVerifyObject.state.error &&
-            !otpVerifyObject.state.isVerifying && (
+            {!otpRequestObject.state.isRequesting && !otpVerifyObject.state.error && !otpRequestObject.state.error && (
+              <Alert
+                severity="success"
+                sx={{
+                  width: "100%",
+                  borderRadius: 2,
+                  alignItems: "flex-start",
+
+                  "& .MuiAlert-icon": {
+                    mt: 0.25,
+                  },
+
+                  "& .MuiAlert-message": {
+                    width: "100%",
+                  },
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 15,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  A 7-digit code has been sent to{" "}
+                  <Box component="span" sx={{ fontWeight: 800 }}>
+                    {emailTarget}
+                  </Box>
+                  .
+                  <Box component="span" sx={{ display: "block", mt: 0.5 }}>
+                    Enter it below to {messageFluff}.
+                  </Box>
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Request error */}
+            {otpRequestObject.state.error && (
               <Alert
                 severity="error"
                 sx={{
@@ -164,9 +152,25 @@ export const OtpInputField = ({
                   borderRadius: 2,
                 }}
               >
-                Verification Error: {otpVerifyObject.state.error}
+                Request Error: {otpRequestObject.state.error}
               </Alert>
             )}
+
+            {/* Verification error */}
+            {otpVerifyObject.state.error && !otpRequestObject.state.error &&
+              !otpVerifyObject.state.isVerifying && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    mb: 2,
+                    borderRadius: 2,
+                  }}
+                >
+                  Verification Error: {otpVerifyObject.state.error}
+                </Alert>
+              )}
+          </Box>
+
 
           {/* OTP label */}
           <Typography
@@ -220,6 +224,9 @@ export const OtpInputField = ({
               },
             }}
           />
+
+
+
 
           {/* Resend */}
           <Typography
