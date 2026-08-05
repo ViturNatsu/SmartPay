@@ -100,6 +100,11 @@ public class WalletServiceImpl implements WalletService {
         double amount = request.getAmount();
         double accountBalance = account.getBalance() != null ? account.getBalance() : 0.0;
 
+        System.out.println("Requested amount = " + request.getAmount());
+        System.out.println("Account balance = " + account.getBalance());
+        System.out.println("Payment method id = " + paymentMethod.getPaymentMethodId());
+        System.out.println("Account id = " + account.getAccountNumber());
+
         if (accountBalance < amount) {
             throw new InsufficientFundsException(INSUFFICIENT_BANK_FUNDS_MESSAGE);
         }
