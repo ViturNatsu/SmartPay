@@ -1,7 +1,7 @@
 import {
   Box,
   Button,
-  Checkbox,
+  Checkbox, CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -118,7 +118,7 @@ export const RequestNewCardDialog = ({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       fullWidth
       maxWidth="sm"
       slotProps={{
@@ -129,33 +129,37 @@ export const RequestNewCardDialog = ({
             borderRadius: 4,
           },
         },
+        transition: {
+          onExited: handleReset,
+        },
       }}
+
     >
 
       <DialogTitle
         sx={{
-          textAlign: "left",
-          fontSize: 28,
-          fontWeight: 800,
-          px: 4,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
           pt: 4,
-          pb: 2,
+          px: 4,
+          pb: 1
         }}
       >
+        <WarningAmberRounded fontSize="small" color="primary" ></WarningAmberRounded>
         {hasPending
           ? "Request Submitted"
           : "Request New Virtual Card"}
       </DialogTitle>
 
 
-      {!hasPending && !isOtpSent && (
-        <DialogContent
-          sx={{
-            px: 4,
-            pt: 1,
-            pb: 4,
-          }}
-        >
+      <DialogContent
+        sx={{
+          px: 6,
+          pb: 0,
+        }}
+      >
+        {!hasPending && !isOtpSent &&
           <Stack spacing={3}>
 
             {/* Current card information */}
@@ -223,10 +227,6 @@ export const RequestNewCardDialog = ({
               </Typography>
             </Box>
 
-
-            {/* OTP component initially renders only the
-                Send Verification Code button */}
-
             <OtpInputField
               messageFluff="request a new virtual card"
               emailTarget={email}
@@ -238,19 +238,10 @@ export const RequestNewCardDialog = ({
             />
 
           </Stack>
-        </DialogContent>
-      )}
+        }
 
-
-      {!hasPending && isOtpSent && (
-        <DialogContent
-          sx={{
-            px: 4,
-            pt: 1,
-            pb: 1,
-          }}
-        >
-          <Stack spacing={2.5}>
+        {!hasPending && isOtpSent &&
+          <Stack>
 
             {/* OTP success message + input + resend */}
 
@@ -301,50 +292,29 @@ export const RequestNewCardDialog = ({
             </Stack>
 
           </Stack>
-        </DialogContent>
-      )}
+        }
+      </DialogContent>
 
+      <DialogActions
+        sx={{
+          px: 4,
+          pb: 4,
+        }}
+      >
 
-      {!hasPending && isOtpSent && (
-        <DialogActions
-          sx={{
-            display: "flex",
-            gap: 2,
-            px: 4,
-            pt: 2,
-            pb: 4,
-
-            "& > :not(style) ~ :not(style)": {
-              ml: 0,
-            },
-          }}
-        >
-
+        {!hasPending && !isOtpSent &&
           <Button
             fullWidth
-            variant="outlined"
-            onClick={handleClose}
-            disabled={otpVerifyObject.state.isVerifying}
-            sx={{
-              minHeight: 52,
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 700,
-            }}
-          >
-            Cancel
-          </Button>
-
-
-          <Button
-            fullWidth
-            loading={otpVerifyObject.state.isVerifying}
             variant="contained"
+            onClick={() => {
+              otpRequestObject.handlers
+                .handleOtpRequest(getPayload())
+                .catch(console.error);
+            }}
             disabled={
-              !acknowledged ||
-              otp.length !== 7
+              otpRequestObject.state.isRequesting ||
+              otpRequestObject.state.error
             }
-            onClick={handleCreateRequest}
             sx={{
               minHeight: 52,
               borderRadius: 2,
@@ -352,20 +322,66 @@ export const RequestNewCardDialog = ({
               fontWeight: 700,
             }}
           >
-            Create Request
+            {otpRequestObject.state.isRequesting ? (
+              <CircularProgress
+                size={24}
+                thickness={5}
+                sx={{ color: "inherit" }}
+              />
+            ) : (
+              "Send Verification Code"
+            )}
           </Button>
+        }
 
-        </DialogActions>
-      )}
+        {!hasPending && isOtpSent &&
+          <>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={onClose}
+              disabled={otpVerifyObject.state.isVerifying}
+              sx={{
+                minHeight: 52,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+              }}
+            >
+              Cancel
+            </Button>
 
 
-      {hasPending && (
+            <Button
+              fullWidth
+              loading={otpVerifyObject.state.isVerifying}
+              variant="contained"
+              disabled={
+                !acknowledged ||
+                otp.length !== 7
+              }
+              onClick={handleCreateRequest}
+              sx={{
+                minHeight: 52,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+              }}
+            >
+              Create Request
+            </Button>
+          </>
+        }
+      </DialogActions>
+
+      {/*Note: This is an incomplete feature. Ideally, a polling request on component load is done to check if the card already has a pending request.*/}
+
+      { hasPending && (
         <>
           <DialogContent
             sx={{
-              px: 4,
-              pt: 1,
-              pb: 2,
+              px: 6,
+              pb: 0,
             }}
           >
             <Stack
@@ -469,7 +485,7 @@ export const RequestNewCardDialog = ({
             <Button
               fullWidth
               variant="contained"
-              onClick={handleClose}
+              onClick={onClose}
               sx={{
                 minHeight: 52,
                 borderRadius: 2,
