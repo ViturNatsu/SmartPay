@@ -126,8 +126,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
-        if (request.getAmount() == null || request.getAmount() <= 0) {
-            throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
+        if (request.getAmount() == null || request.getAmount() < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
         }
 
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
@@ -247,8 +247,8 @@ public class WalletServiceImpl implements WalletService {
 
         LocalDate today = LocalDate.now();
 
-        if (amount == null || amount <= 0) {
-            throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
+        if (amount == null || amount < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
         }
 
         if (senderWallet.getBalance() < amount) {
@@ -337,8 +337,13 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getDailySpendingLimit() <= 0) {
-            throw new InvalidWithdrawAmountException("Daily spending limit must be greater than $0.00");
+        if (request.getDailySpendingLimit() < 1) {
+            throw new InvalidWithdrawAmountException("Daily spending limit must be at least $1.00");
+        }
+
+        if (request.getDailySpendingLimit() > 10000) {
+            throw new InvalidWithdrawAmountException(
+                "Daily spending limit cannot exceed $10,000.00");
         }
 
         wallet.setDailySpendingLimit(request.getDailySpendingLimit());
@@ -355,8 +360,14 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getPerTransactionLimit() <= 0) {
-            throw new WalletLimitExceededException("Per-transaction limit must be greater than $0.00");
+        if (request.getPerTransactionLimit() < 1) {
+            throw new WalletLimitExceededException("Per-transaction limit must be at least $1.00");
+        }
+
+        if (request.getPerTransactionLimit() > 10000) {
+            throw new WalletLimitExceededException(
+                "Per-transaction limit cannot exceed $10,000.00"
+            );
         }
 
         wallet.setPerTransactionLimit(request.getPerTransactionLimit());
