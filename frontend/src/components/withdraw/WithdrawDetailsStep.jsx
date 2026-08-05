@@ -119,13 +119,20 @@ function WithdrawDetailsStep({
               fullWidth
               size="small"
               label="Withdrawal Amount"
+              type="number"
               placeholder="e.g. 150.00"
               value={amountInput}
               onChange={onAmountChange}
               error={Boolean(validationError)}
+              slotProps={{
+                htmlInput: {
+                  min: 0.01,
+                  step: "0.01",
+                },
+              }}
             />
             <Typography sx={{mt: 0.75, fontSize: 12, color: tokens.color.text.subdued}}>
-              Amount must be greater than $0.00 and cannot exceed the wallet
+              Amount must be at least $1.00 and cannot exceed the wallet
               balance.
             </Typography>
           </Box>
@@ -133,7 +140,7 @@ function WithdrawDetailsStep({
 
         {/* Real-time feedback: green when valid, red when invalid */}
         {!validationError &&
-          parsedAmount > 0 &&
+          parsedAmount >= 1 &&
           parsedAmount <= walletBalance && (
             <Alert
               severity="success"

@@ -280,7 +280,7 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
                 />
                 {!validationMessage && (
                   <Typography sx={{ mt: 0.875, fontSize: 12, color: WALLET_COLORS.muted }}>
-                    Amount must be greater than $0.00 and within daily wallet funding limits.
+                    Amount must be greater than $1.00 and within daily wallet funding limits.
                   </Typography>
                 )}
               </Box>

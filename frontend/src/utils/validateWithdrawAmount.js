@@ -17,7 +17,7 @@ export function validateWithdrawAmount(rawValue, walletBalance) {
   const parsed = Number(stripped);
 
   if (isNaN(parsed) || stripped === "") return "Enter a valid currency format (e.g. 50.00)";
-  if (parsed <= 0) return "Amount must be greater than $0.00";
+  if (parsed < 1) return "Amount must be at least $1.00";
   if (parsed > walletBalance)
     return `You cannot withdraw more than the Wallet balance ($${walletBalance.toFixed(2)})`;
 
