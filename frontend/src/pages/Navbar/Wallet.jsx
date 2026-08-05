@@ -120,9 +120,15 @@ export function Wallet() {
   const fetchTransactions = async () => {
     if (!tokenClaims?.userId) return;
     setTxLoading(true);
+
     try {
-      const data = await getWalletTransactions(tokenClaims.userId, 5);
-      setTransactions(Array.isArray(data) ? data : []);
+      const data = await getWalletTransactions(
+        tokenClaims.userId,
+        0,   // page
+        5    // limit
+      );
+
+      setTransactions(data.transactions ?? []);
     } catch (err) {
       console.error("Failed to fetch wallet transactions:", err);
       setTransactions([]);

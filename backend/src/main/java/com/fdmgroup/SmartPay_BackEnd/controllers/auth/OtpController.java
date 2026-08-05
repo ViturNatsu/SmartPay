@@ -27,8 +27,10 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.security.JwtSessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -54,6 +56,7 @@ public class OtpController {
     TransactionExecutor transactionExecutor;
     WalletService walletService;
     CardService cardService;
+    NotificationService notificationService;
 
 
     @Operation(summary = "Request password reset", description = "Initiates the password reset flow. For security reasons, this returns 202 regardless of whether the email exists.")
@@ -101,6 +104,9 @@ public class OtpController {
                 String refreshToken = jwtSessionService.createRefreshToken(user);
 
                 sessionService.generateNewSession(user, refreshToken);
+
+                notificationService.createNotification(
+                        user.getId(), NotificationType.SECURITY, "New sign-in detected", null);
 
                 // Wallet logic for non admins
                 if(user.getRole().equals(Role.USER)){

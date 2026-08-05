@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { Stack } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import QuickActions from "@/components/QuickActions";
-import ImportantMessages from "@/components/ImportantMessages";
-import WalletCashFlow from "@/components/WalletCashFlow";
-import TransactionHistory from "@/components/TransactionHistory";
+import ImportantMessages, {
+  IMPORTANT_MESSAGES_PANEL_ID,
+} from "@/components/ImportantMessages";
+import LinkedAccountsPanel from "@/components/LinkedAccountsPanel";
+import TransactionsActivityFeed from "@/components/TransactionsActivityFeed";
 import LoadWalletDialog from "@/components/LoadWalletDialog";
 import { useAuth } from "@/context/AuthContext";
 import WalletBalance from "@/components/WalletBalance";
@@ -12,61 +15,126 @@ import WalletBalance from "@/components/WalletBalance";
 import { tokens } from "@/style/Theme.jsx";
 export const Home = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loadWalletOpen, setLoadWalletOpen] = useState(false);
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!location.state?.scrollToNotifications) return;
+
+    let cancelled = false;
+    let settleTimer = null;
+
+    const scrollToPanel = (behavior) => {
+      document
+        .getElementById(IMPORTANT_MESSAGES_PANEL_ID)
+        ?.scrollIntoView({ behavior, block: "start" });
+    };
+
+    // Wallet balance, transactions feed, and this panel each
+    // load their data asynchronously, so the page's height keeps changing
+    // for a bit after mount — a single scroll-on-mount lands wherever the
+    // layout happened to be at that instant, which is usually short of the
+    // final position. Re-align every time the page's height changes, until
+    // it's gone quiet for a moment, instead of guessing a fixed delay.
+    const observer = new ResizeObserver(() => {
+      if (cancelled) return;
+      scrollToPanel("auto");
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => observer.disconnect(), 400);
+    });
+
+    requestAnimationFrame(() => {
+      if (cancelled) return;
+      scrollToPanel("smooth");
+      observer.observe(document.body);
+      // Hard cap so this can't keep re-scrolling indefinitely.
+      settleTimer = setTimeout(() => observer.disconnect(), 2500);
+    });
+
+    // Clear the flag so a refresh or back-navigation doesn't re-trigger it.
+    navigate(location.pathname, { replace: true, state: {} });
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (settleTimer) clearTimeout(settleTimer);
+    };
+  }, [location.state, location.pathname, navigate]);
 
   return (
     <>
       <Navbar />
-      <div
-        style={{
+      <Box
+        sx={{
           background: tokens.color.brand.primaryBackground,
           minHeight: "100vh",
-          minWidth: "100%",
-          padding: 20,
+          width: "100%",
+          p: { xs: 2, md: 2.5 },
         }}
       >
-        <h1>
+        <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>
           Welcome, {user?.firstName}!
-        </h1>
-        <p>Here's your financial overview for today</p>
-        <div
-          style={{
+        </Typography>
+        <Typography sx={{ mb: 3, color: tokens.color.text.secondary }}>
+          Here&apos;s your financial overview for today
+        </Typography>
+
+        <Box
+          sx={{
             display: "flex",
-            gap: "40px",
-            maxWidth: "1460px",
-            margin: "0 auto",
+            flexDirection: { xs: "column", lg: "row" },
+            gap: { xs: 3, lg: 5 },
+            maxWidth: 1460,
+            mx: "auto",
+            alignItems: { xs: "stretch", lg: "flex-start" },
           }}
         >
-          <div
-            style={{
+          <Box
+            sx={{
               flex: 1,
               minWidth: 0,
-              overflow: "hidden",
-              maxWidth: "1014px",
+              width: { xs: "100%", lg: "auto" },
+              maxWidth: { lg: 1014 },
             }}
           >
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
-              <WalletCashFlow />
-              <TransactionHistory />
+              <TransactionsActivityFeed refreshKey={walletRefreshKey} />
             </Stack>
-          </div>
-          <div
-            style={{
-              width: "338px",
+          </Box>
+
+          <Box
+            sx={{
+              width: { xs: "100%", lg: 338 },
               flexShrink: 0,
-              flexGrow: 0,
-              overflow: "visible",
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
             }}
           >
-            <Stack spacing={2.25}>
+            <Stack
+              spacing={2.25}
+              sx={{
+                width: "100%",
+                minWidth: 0,
+                alignItems: "stretch",
+                "& > *": {
+                  width: "100%",
+                  minWidth: 0,
+                  alignSelf: "stretch",
+                },
+              }}
+            >
               <QuickActions onLoadWallet={() => setLoadWalletOpen(true)} />
+              <LinkedAccountsPanel />
               <ImportantMessages />
             </Stack>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
       <LoadWalletDialog
         open={loadWalletOpen}

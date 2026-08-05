@@ -11,7 +11,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
@@ -22,11 +21,13 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeExcept
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fasterxml.jackson.databind.JsonMappingException;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
@@ -152,8 +153,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (recipient.getId().equals(ownerId)) {
             throw new InvalidRecurringPayeeException("Cannot add yourself as a payee");
         }
-        if (recurringAmount<=0){
-            throw new InvalidRecurringPayeeException("Payment amount must be positive");
+        
+        if (recurringAmount<1){
+            throw new InvalidRecurringPayeeException("Minimum amount is 1.00$");
         }
 
         boolean duplicateRecurringPayee =
@@ -170,6 +172,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (duplicateRecurringPayee) {
             throw new PayeeAlreadyExistsException("Recurring payment already exists");
         }
+        
+
 
         RecurringPayee recurringPayee= new RecurringPayee();
         recurringPayee.setType(recurringPayeeRequestDTO.getType());
@@ -190,6 +194,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         List<RecurringPayee> recurringPayees = recurringPayeeRepository.findByOwnerIdAndActiveTrue(ownerId);
         return recurringPayees.stream().map(this::toRecurringResponseDTO).collect(Collectors.toList());
     }
+
     @Override
     public void deleteRecurringPayee(Long ownerId, Long recurringPayeeId){
         RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(recurringPayeeId, ownerId)
@@ -247,6 +252,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayeeRepository.save(recurringPayee);
     }
 
+
+
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
                 .map(Customer::getPhoneNumber)
@@ -279,5 +286,4 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 recurringPayee.getType(),
                 recurringPayee.getEndDate());
     }
-    
 }
