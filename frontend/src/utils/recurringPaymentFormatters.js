@@ -3,8 +3,11 @@ export function formatRecurringAmount(amount) {
 }
 
 export function formatRecurringSchedule(schedule) {
-  if (schedule === "monthly") return "Monthly";
-  if (schedule === "yearly") return "Yearly";
+  const normalized = String(schedule ?? "").toLowerCase();
+  if (normalized === "weekly") return "Weekly";
+  if (normalized === "biweekly") return "Bi-weekly";
+  if (normalized === "monthly") return "Monthly";
+  if (normalized === "yearly") return "Yearly";
   return schedule;
 }
 
