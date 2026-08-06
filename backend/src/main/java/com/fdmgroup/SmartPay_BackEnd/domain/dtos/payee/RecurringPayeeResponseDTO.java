@@ -6,12 +6,14 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class RecurringPayeeResponseDTO {
 
     private Long payeeId;
@@ -27,4 +29,9 @@ public class RecurringPayeeResponseDTO {
     private LocalDate date;
     private RecurringPaymentType type;
     private LocalDate endDate;
+    private LocalDate startDate;
+    private Long paymentMethodId;
+    private String paymentMethodBankDisplayName;
+    private String paymentMethodAccountType;
+    private String paymentMethodAccountNumberMasked;
 }

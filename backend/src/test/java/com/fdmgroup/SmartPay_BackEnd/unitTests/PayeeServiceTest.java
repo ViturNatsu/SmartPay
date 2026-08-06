@@ -46,6 +46,11 @@ import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeServiceImpl;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.CheckingAccount;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
+import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class PayeeServiceTest {
@@ -64,6 +69,12 @@ class PayeeServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
+    private MaskingUtil maskingUtil;
 
     @InjectMocks
     private PayeeServiceImpl payeeService;
@@ -513,6 +524,123 @@ class PayeeServiceTest {
 
         verify(recurringPayeeRepository, never()).save(any());
     }
+
+    @Test
+    void addRecurringPayee_shouldUseServerAssignedMerchantAccount_whenTypeIsSubscription() {
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Netflix");
+        dto.setAmount(15.0);
+        dto.setSchedule(Schedule.MONTHLY);
+        dto.setDate(LocalDate.now().plusDays(1));
+        dto.setType(RecurringPaymentType.SUBSCRIPTION);
+        dto.setPaymentMethodId(5L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+
+        Account merchantAccount = new CheckingAccount();
+        merchantAccount.setActive(true);
+        merchantAccount.getUsers().add(recipient);
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(merchantAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                .thenReturn(false);
+
+        PaymentMethod paymentMethod = new PaymentMethod();
+        paymentMethod.setPaymentMethodId(5L);
+        paymentMethod.setActive(true);
+        paymentMethod.setBankDisplayName("TD");
+        when(paymentRepository.findByPaymentMethodIdAndUser_Id(5L, 1L))
+                .thenReturn(Optional.of(paymentMethod));
+
+        when(recurringPayeeRepository.save(any(RecurringPayee.class)))
+                .thenAnswer(invocation -> {
+                    RecurringPayee payee = invocation.getArgument(0);
+                    payee.setPayeeId(200L);
+                    return payee;
+                });
+
+        RecurringPayeeResponseDTO result = payeeService.addRecurringPayee(1L, dto);
+
+        assertNotNull(result);
+        assertEquals("99990001", result.getRecipientIdentifier());
+        assertEquals(5L, result.getPaymentMethodId());
+        assertEquals("TD", result.getPaymentMethodBankDisplayName());
+        assertEquals(RecurringPaymentType.SUBSCRIPTION, result.getType());
+
+        verify(accountRepository).findByAccountNumber("99990001");
+        verify(recurringPayeeRepository).save(any(RecurringPayee.class));
+    }
+
+    @Test
+    void addRecurringPayee_shouldThrowPaymentMethodNotFoundException_whenPaymentMethodMissing() {
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Netflix");
+        dto.setAmount(15.0);
+        dto.setSchedule(Schedule.MONTHLY);
+        dto.setDate(LocalDate.now().plusDays(1));
+        dto.setType(RecurringPaymentType.SUBSCRIPTION);
+        dto.setPaymentMethodId(999L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+
+        Account merchantAccount = new CheckingAccount();
+        merchantAccount.setActive(true);
+        merchantAccount.getUsers().add(recipient);
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(merchantAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                .thenReturn(false);
+
+        when(paymentRepository.findByPaymentMethodIdAndUser_Id(999L, 1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(PaymentMethodNotFoundException.class,
+                () -> payeeService.addRecurringPayee(1L, dto));
+
+        verify(recurringPayeeRepository, never()).save(any());
+    }
+
+    @Test
+    void addRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenPaymentMethodInactive() {
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Netflix");
+        dto.setAmount(15.0);
+        dto.setSchedule(Schedule.MONTHLY);
+        dto.setDate(LocalDate.now().plusDays(1));
+        dto.setType(RecurringPaymentType.SUBSCRIPTION);
+        dto.setPaymentMethodId(5L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+
+        Account merchantAccount = new CheckingAccount();
+        merchantAccount.setActive(true);
+        merchantAccount.getUsers().add(recipient);
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(merchantAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                .thenReturn(false);
+
+        PaymentMethod inactivePaymentMethod = new PaymentMethod();
+        inactivePaymentMethod.setPaymentMethodId(5L);
+        inactivePaymentMethod.setActive(false);
+        when(paymentRepository.findByPaymentMethodIdAndUser_Id(5L, 1L))
+                .thenReturn(Optional.of(inactivePaymentMethod));
+
+        assertThrows(InvalidRecurringPayeeException.class,
+                () -> payeeService.addRecurringPayee(1L, dto));
+
+        verify(recurringPayeeRepository, never()).save(any());
+    }
+
     // getRecurringPayeesForUser Tests
 
     @Test
