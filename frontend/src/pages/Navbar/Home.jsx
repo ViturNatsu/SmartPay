@@ -80,7 +80,6 @@ export const Home = () => {
             flexDirection: { xs: "column", lg: "row" },
             gap: { xs: 3, lg: 5 },
             maxWidth: 1460,
-            mx: "auto",
             alignItems: { xs: "stretch", lg: "flex-start" },
           }}
         >

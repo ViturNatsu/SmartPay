@@ -33,10 +33,8 @@ const ACTIONS = [
 function QuickActions({ onLoadWallet }) {
   return (
     <Card
-      elevation={0}
       sx={{
         ...dashboardSidebarCardSx,
-        bgcolor: tokens.color.background.card,
       }}
     >
       <Typography
@@ -74,7 +72,6 @@ function QuickActions({ onLoadWallet }) {
                 sx={{
                   width: 34,
                   height: 34,
-                  borderRadius: "50%",
                   bgcolor: tokens.color.background.quickAction,
                   color: tokens.color.icon.quickAction,
                   display: "grid",

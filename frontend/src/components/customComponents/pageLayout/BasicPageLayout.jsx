@@ -5,7 +5,6 @@ export const BasicPageLayout = ({title, subtitle, children}) => {
 
   return (
     <Box sx={{
-      background: tokens.color.brand.primaryBackground,
       minHeight: "100%",
       width: "100%",
       boxSizing: "border-box",
@@ -18,19 +17,15 @@ export const BasicPageLayout = ({title, subtitle, children}) => {
         <Typography sx={{ mb: 3, color: tokens.color.text.secondary }}>
           {subtitle}
         </Typography>
-        {children}
+
+        <Box
+          sx={{
+            paddingLeft: 2,
+            paddingRight: 2}}
+        >
+          {children}
+        </Box>
       </Container>
     </Box>
   );
-  }
-
-// <Typography
-//   variant="h4"
-//   sx={{fontWeight: 800, mb: 0.75, letterSpacing: "-0.04em"}}
-// >
-//   Wallet
-// </Typography>
-// <Typography sx={{color: tokens.color.text.heading, fontSize: 15}}>
-//   Manage your SmartPay wallet, view your balance and load funds to
-//   send money or make payments.
-// </Typography>
+}

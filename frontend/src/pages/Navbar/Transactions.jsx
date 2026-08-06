@@ -18,7 +18,7 @@ import {
   Button,
   AlertTitle,
   TextField,
-  Pagination
+  Pagination, Card
 } from "@mui/material";
 
 import TransactionFilterBar from "../../components/table/TransactionFilterBar";
@@ -166,12 +166,8 @@ export function Transactions() {
       title="Wallet Activity"
       subtitle={"View all of your wallet transactions. Select a row to see full details."}
     >
-      <Box
+      <Card
         sx={{
-          background: tokens.color.background.surface,
-          border: `1px solid ${tokens.color.border.light}`,
-          borderRadius: `${tokens.borderRadius.xxl}px`,
-          boxShadow: tokens.shadow.card,
           p: "28px",
         }}
       >
@@ -273,7 +269,7 @@ export function Transactions() {
             </Box>
           )
         )}
-      </Box>
+      </Card>
     </BasicPageLayout>
   );
 }
