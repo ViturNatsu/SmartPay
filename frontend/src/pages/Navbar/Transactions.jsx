@@ -29,6 +29,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { tokens } from "@/style/Theme";
 import { updateTransactionFavourite } from "@/api/wallets/walletApi";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 
 const TRANSACTION_LIMIT = 25;
 
@@ -161,129 +162,118 @@ export function Transactions() {
 
 
   return (
-    <>
-      <Navbar />
-      <Box sx={{ background: tokens.color.background.app, minHeight: "100vh", py: 4 }}>
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              background: tokens.color.background.surface,
-              border: `1px solid ${tokens.color.border.light}`,
-              borderRadius: `${tokens.borderRadius.xxl}px`,
-              boxShadow: tokens.shadow.card,
-              p: "28px",
-            }}
-          >
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 800, fontSize: 34, letterSpacing: "-0.04em", mb: 0.75 }}
-            >
-              Wallet Activity
-            </Typography>
-            <Typography sx={{ color: tokens.color.text.muted, fontSize: 15, mb: 2.5 }}>
-              View all of your wallet transactions. Select a row to see full details.
-            </Typography>
+    <BasicPageLayout
+      title="Wallet Activity"
+      subtitle={"View all of your wallet transactions. Select a row to see full details."}
+    >
+      <Box
+        sx={{
+          background: tokens.color.background.surface,
+          border: `1px solid ${tokens.color.border.light}`,
+          borderRadius: `${tokens.borderRadius.xxl}px`,
+          boxShadow: tokens.shadow.card,
+          p: "28px",
+        }}
+      >
 
-            {/* Filter Bar */}
-            <TransactionFilterBar activeFilter={activeFilter} onChange={handleFilterChange} />
+        {/* Filter Bar */}
+        <TransactionFilterBar activeFilter={activeFilter} onChange={handleFilterChange} />
 
 
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Search by merchant..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ mt: 2, mb: 2 }}
-            />
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Search by merchant..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ mt: 2, mb: 2 }}
+        />
 
 
-            {/* Error Retry button */}
-            {error && (
-              <Alert
-                severity="error"
-                sx={{ mb: 2 }}
-                action={
-                  <Button
-                    color="error"
-                    size="small"
-                    onClick={() => setRetryCount((c) => c + 1)}
-                    data-testid="retry-button"
-                  >
-                    Try again
-                  </Button>
-                }
+        {/* Error Retry button */}
+        {error && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button
+                color="error"
+                size="small"
+                onClick={() => setRetryCount((c) => c + 1)}
+                data-testid="retry-button"
               >
-                <AlertTitle>Failed to load transactions</AlertTitle>
-                {error}
-              </Alert>
-            )}
+                Try again
+              </Button>
+            }
+          >
+            <AlertTitle>Failed to load transactions</AlertTitle>
+            {error}
+          </Alert>
+        )}
 
 
 
-            {dataLoading || authLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress size={28} />
-              </Box>
-                        ) : !error && rows.length === 0 ? (
-              <Box sx={{ height: 160 }}>
-                {searchQuery ? (
-                  <Typography
-                    align="center"
-                    sx={{ mt: 6, color: tokens.color.text.muted }}
-                  >
-                    No matching transactions found.
-                  </Typography>
-                ) : (
-                  <CustomNoRowsOverlay />
-                )}
-              </Box>
+        {dataLoading || authLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress size={28} />
+          </Box>
+        ) : !error && rows.length === 0 ? (
+          <Box sx={{ height: 160 }}>
+            {searchQuery ? (
+              <Typography
+                align="center"
+                sx={{ mt: 6, color: tokens.color.text.muted }}
+              >
+                No matching transactions found.
+              </Typography>
             ) : (
-          !error && (
-                <Box>
-                  <WalletActivityTable
-                    transactions={rows}
-                    selectedId={selectedId}
-                    onSelect={handleSelect}
-                    onFavouriteToggle={handleFavouriteToggle}
-                  />
-
-                  {totalPages > 1 && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        mt: 3
-                      }}
-                    >
-                      <Pagination
-                        count={totalPages}
-                        page={currentPage + 1}
-                        onChange={handlePageChange}
-                        showFirstButton
-                        showLastButton
-                      />
-                    </Box>
-                  )}
-
-                  {totalElements > 0 && (
-                    <Typography
-                      align="center"
-                      sx={{
-                        mt: 1.5,
-                        fontSize: 14,
-                        color: tokens.color.text.muted
-                      }}
-                    >
-                      {totalElements} transaction{totalElements === 1 ? "" : "s"}
-                    </Typography>
-                  )}
-                </Box>
-              )
+              <CustomNoRowsOverlay />
             )}
           </Box>
-        </Container>
+        ) : (
+          !error && (
+            <Box>
+              <WalletActivityTable
+                transactions={rows}
+                selectedId={selectedId}
+                onSelect={handleSelect}
+                onFavouriteToggle={handleFavouriteToggle}
+              />
+
+              {totalPages > 1 && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: 3
+                  }}
+                >
+                  <Pagination
+                    count={totalPages}
+                    page={currentPage + 1}
+                    onChange={handlePageChange}
+                    showFirstButton
+                    showLastButton
+                  />
+                </Box>
+              )}
+
+              {totalElements > 0 && (
+                <Typography
+                  align="center"
+                  sx={{
+                    mt: 1.5,
+                    fontSize: 14,
+                    color: tokens.color.text.muted
+                  }}
+                >
+                  {totalElements} transaction{totalElements === 1 ? "" : "s"}
+                </Typography>
+              )}
+            </Box>
+          )
+        )}
       </Box>
-    </>
+    </BasicPageLayout>
   );
 }

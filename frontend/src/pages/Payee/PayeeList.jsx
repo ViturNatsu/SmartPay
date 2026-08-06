@@ -81,7 +81,6 @@ export default function PayeeList() {
 
   return (
     <>
-      <Navbar />
       <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
         <Container maxWidth="lg">
           <Stack spacing={3}>

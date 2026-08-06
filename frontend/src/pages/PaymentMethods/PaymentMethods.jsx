@@ -33,6 +33,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("en-US", {
     style: "currency",
@@ -188,192 +189,182 @@ export default function PaymentMethods() {
 
   return (
     <>
-      <Navbar />
-      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
-        <Container maxWidth="lg">
-          <Stack spacing={3}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                Payment Methods
-              </Typography>
-              <Typography sx={{ color: "text.secondary" }}>
-                Manage your funding sources for payments and add new bank
-                accounts when needed.
-              </Typography>
-            </Box>
-
-            <Card
-              ref={topOfDisplayRef}
-              sx={{
-                borderRadius: 2,
-                boxShadow: tokens.shadow.small,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  justifyContent="space-between"
-                  alignItems={{ xs: "stretch", sm: "center" }}
+      <BasicPageLayout
+        title="Payment Methods"
+        subtitle="Manage your funding sources for payments and add new bank accounts when needed."
+      >
+        <Stack spacing={3}>
+          <Card
+            ref={topOfDisplayRef}
+            sx={{
+              borderRadius: 2,
+              boxShadow: tokens.shadow.small,
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={{ xs: "stretch", sm: "center" }}
+              >
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    Add Payment Method
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary" }}>
+                    Select a payment method type to register a new funding
+                    source.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AccountBalanceOutlinedIcon />}
+                  onClick={handleOpenLinkBankAccount}
+                  sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
                 >
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      Add Payment Method
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary" }}>
-                      Select a payment method type to register a new funding
-                      source.
-                    </Typography>
-                  </Box>
+                  Connect Bank Account
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card
+            sx={{
+              borderRadius: 2,
+              boxShadow: tokens.shadow.small,
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                Existing Payment Methods
+              </Typography>
+
+              {loading ? (
+                <LinearProgress />
+              ) : error ? (
+                <Alert severity="error">{error}</Alert>
+              ) : activeMethods.length === 0 ? (
+                <Box
+                  sx={{
+                    border: `1px dashed ${tokens.color.border.medium}`,
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                    No payment methods yet
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary", mb: 2 }}>
+                    Add a bank account to start using it as a funding source
+                    for payments.
+                  </Typography>
                   <Button
-                    variant="contained"
-                    startIcon={<AccountBalanceOutlinedIcon />}
+                    variant="outlined"
+                    startIcon={<AddRoundedIcon />}
                     onClick={handleOpenLinkBankAccount}
-                    sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
+                    sx={{ textTransform: "none" }}
                   >
                     Connect Bank Account
                   </Button>
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card
-              sx={{
-                borderRadius: 2,
-                boxShadow: tokens.shadow.small,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Existing Payment Methods
-                </Typography>
-
-                {loading ? (
-                  <LinearProgress />
-                ) : error ? (
-                  <Alert severity="error">{error}</Alert>
-                ) : activeMethods.length === 0 ? (
-                  <Box
-                    sx={{
-                      border: `1px dashed ${tokens.color.border.medium}`,
-                      borderRadius: 2,
-                      p: 3,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                      No payment methods yet
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary", mb: 2 }}>
-                      Add a bank account to start using it as a funding source
-                      for payments.
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddRoundedIcon />}
-                      onClick={handleOpenLinkBankAccount}
-                      sx={{ textTransform: "none" }}
+                </Box>
+              ) : (
+                <Stack spacing={2}>
+                  {activeMethods.map((method) => (
+                    <Box
+                      key={method.id}
+                      sx={{
+                        border: `1px solid ${tokens.color.border.light}`,
+                        borderRadius: 2,
+                        p: 2.5,
+                      }}
                     >
-                      Connect Bank Account
-                    </Button>
-                  </Box>
-                ) : (
-                  <Stack spacing={2}>
-                    {activeMethods.map((method) => (
-                      <Box
-                        key={method.id}
-                        sx={{
-                          border: `1px solid ${tokens.color.border.light}`,
-                          borderRadius: 2,
-                          p: 2.5,
-                        }}
+                      <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={1}
+                        justifyContent="space-between"
+                        alignItems={{ xs: "flex-start", sm: "center" }}
                       >
-                        <Stack
-                          direction={{ xs: "column", sm: "row" }}
-                          spacing={1}
-                          justifyContent="space-between"
-                          alignItems={{ xs: "flex-start", sm: "center" }}
-                        >
                         {/* TODO: Display any other fields as needed */}
-                          <Box>
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {method.bankDisplayName}
-                            </Typography>
-                            <Typography sx={{ color: "text.secondary", fontVariantLigatures: "Normal"}}>
-                              {method.accountIdentifierMasked.substring(2)}
-                            </Typography>
-                            <Typography sx={{ color: "text.secondary" }}>
-                              {method.accountName}
-                            </Typography>
-                          </Box>
-                          <Stack direction="row" spacing={2} alignItems="center">
+                        <Box>
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {method.bankDisplayName}
+                          </Typography>
+                          <Typography sx={{ color: "text.secondary", fontVariantLigatures: "Normal"}}>
+                            {method.accountIdentifierMasked.substring(2)}
+                          </Typography>
+                          <Typography sx={{ color: "text.secondary" }}>
+                            {method.accountName}
+                          </Typography>
+                        </Box>
+                        <Stack direction="row" spacing={2} alignItems="center">
                           {/*<Typography sx={{ fontWeight: 600 }}>
                             Payment Method ID: {method.payment_method_id}
                           </Typography>*/}
-                          <Button 
-                            variant="outlined" 
-                            color="error" 
+                          <Button
+                            variant="outlined"
+                            color="error"
                             onClick={() => handleConfirmDialog(method.paymentMethodId)}>
                             Remove
                           </Button>
-                          </Stack>
                         </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+            </CardContent>
+          </Card>
 
-            <Box
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              mt: 4,
+            }}
+          >
+            <Button
+              onClick={() => handlePageChange(currentPageNumber - 1)}
+              disabled={pageData.first}
+              variant="outlined"
+              startIcon={<ArrowBackIosNewIcon />}
               sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                mt: 4,
+                textTransform: "none",
+                borderColor: tokens.color.brand.purple,
+                color: tokens.color.brand.purple,
+                "&:hover": {
+                  borderColor: tokens.color.brand.purpleHover,
+                  backgroundColor: tokens.color.background.purpleTint,
+                },
+                mr: 1.5,
               }}
             >
-              <Button
-                onClick={() => handlePageChange(currentPageNumber - 1)}
-                disabled={pageData.first}
-                variant="outlined"
-                startIcon={<ArrowBackIosNewIcon />}
-                sx={{
-                  textTransform: "none",
-                  borderColor: tokens.color.brand.purple,
-                  color: tokens.color.brand.purple,
-                  "&:hover": {
-                    borderColor: tokens.color.brand.purpleHover,
-                    backgroundColor: tokens.color.background.purpleTint,
-                  },
-                  mr: 1.5,
-                }}
-              >
-                Previous
-              </Button>
+              Previous
+            </Button>
 
-              <Button
-                onClick={() => handlePageChange(currentPageNumber + 1)}
-                disabled={pageData.last}
-                variant="outlined"
-                endIcon={<ArrowForwardIosIcon />}
-                sx={{
-                  textTransform: "none",
-                  borderColor: tokens.color.brand.purple,
-                  color: tokens.color.brand.purple,
-                  "&:hover": {
-                    borderColor: tokens.color.brand.purpleHover,
-                    backgroundColor: tokens.color.background.purpleTint,
-                  },
-                }}
-              >
-                Next
-              </Button>
-            </Box>
+            <Button
+              onClick={() => handlePageChange(currentPageNumber + 1)}
+              disabled={pageData.last}
+              variant="outlined"
+              endIcon={<ArrowForwardIosIcon />}
+              sx={{
+                textTransform: "none",
+                borderColor: tokens.color.brand.purple,
+                color: tokens.color.brand.purple,
+                "&:hover": {
+                  borderColor: tokens.color.brand.purpleHover,
+                  backgroundColor: tokens.color.background.purpleTint,
+                },
+              }}
+            >
+              Next
+            </Button>
+          </Box>
 
-          </Stack>
-        </Container>
-      </Box>
+        </Stack>
 
+      </BasicPageLayout>
       <OpenAccountForm
         open={openBankAccountForm}
         onClose={handleCloseBankAccount}

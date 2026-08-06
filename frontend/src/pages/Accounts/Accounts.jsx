@@ -165,7 +165,6 @@ export const Accounts = () => {
 
   return (
     <>
-      <Navbar />
       <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.background.lightGray, pb: 6 }}>
         <Container
           maxWidth="lg"
