@@ -17,6 +17,7 @@ import { getWalletByUserId, sendMoney } from "@/api/wallets/walletApi";
 import { getRailLabel, RAIL_TYPES } from "@/utils/transactionRailUtils";
 
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 const STEPS = ["Select Payee", "Enter Amount", "Review", "Done"];
 const MAX_AMOUNT = 3000;
 const MIN_AMOUNT = 0.01;
@@ -151,6 +152,36 @@ export function MakeAPayment() {
   const [submitting, setSubmitting] = useState(false);
   const [transactionId, setTransactionId] = useState(null);
 
+  const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+
+  useEffect(() => {
+    const getHeaderTypography = () => {
+
+      switch (step) {
+        case 0:
+          setTitle("Send Money");
+          setSubtitle("Choose a saved payee to send money to.");
+          break;
+        case 1:
+          setTitle(`Send to ${selectedPayee.payeeName}`);
+          setSubtitle("Enter the amount and an optional memo.");
+          break;
+
+        case 2:
+          setTitle("Confirm Transfer");
+          setSubtitle("Review the details before sending.");
+          break;
+        case 3:
+          setTitle("Success!");
+          setSubtitle(``)
+          break;
+      }
+    }
+
+    getHeaderTypography();
+  }, [step])
+
   useEffect(() => {
     if (authLoading || !tokenClaims?.userId) return;
 
@@ -256,208 +287,193 @@ export function MakeAPayment() {
     : "";
 
   return (
-    <>
-      <Box sx={{ background: tokens.color.brand.primaryBackground, minHeight: "100vh", p: { xs: 2, md: 4 } }}>
-        <Box sx={{ maxWidth: 720, mx: "auto" }}>
+    <BasicPageLayout
+      title={title}
+      subtitle={subtitle}
+    >
+      {/* Step 1: Select Payee */}
+      <StepIndicator current={step} />
 
-          {/* Step 1: Select Payee */}
-          {step === 0 && (
-            <>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>Send Money</Typography>
-              <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: 3 }}>
-                Choose a saved payee to send money to.
-              </Typography>
-              <StepIndicator current={0} />
-              <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, overflow: "hidden" }}>
-                <Box sx={{ p: "20px 24px", borderBottom: `1px solid ${tokens.color.border.light}` }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: 14, color: tokens.color.text.heading }}>Saved Payees</Typography>
-                  <Typography sx={{ fontSize: 12, color: tokens.color.text.muted, mt: 0.5 }}>Scroll to see all saved payees</Typography>
-                </Box>
+      {step === 0 && (
+        <>
+          <Card elevation={0} sx={{ border: `1px solid ${tokens.color.border.light}`, overflow: "hidden" }}>
+            <Box sx={{ p: "20px 24px", borderBottom: `1px solid ${tokens.color.border.light}` }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 14, color: tokens.color.text.heading }}>Saved Payees</Typography>
+              <Typography sx={{ fontSize: 12, color: tokens.color.text.muted, mt: 0.5 }}>Scroll to see all saved payees</Typography>
+            </Box>
 
-                {payeesLoading ? (
-                  <Box sx={{ display: "grid", placeItems: "center", p: 4 }}>
-                    <CircularProgress size={28} sx={{ color: tokens.color.brand.primary }} />
-                  </Box>
-                ) : payees.length === 0 ? (
-                  <Box sx={{ p: 4, textAlign: "center" }}>
-                    <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14 }}>You have no saved payees yet.</Typography>
-                    <Button variant="outlined" size="small"
-                      sx={{ mt: 2, borderColor: tokens.color.brand.primary, color: tokens.color.brand.primary }}
-                      onClick={() => navigate("/add-payee")}>
-                      Add a Payee
-                    </Button>
-                  </Box>
-                ) : (
-                  <Box sx={{ maxHeight: 280, overflowY: "auto" }}>
-                    {payees.map((p) => (
-                      <PayeeRow key={p.payeeId} payee={p}
-                        selected={selectedPayee?.payeeId === p.payeeId}
-                        onSelect={setSelectedPayee} />
-                    ))}
-                  </Box>
-                )}
-
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: `1px solid ${tokens.color.border.light}` }}>
-                  <Button variant="outlined" onClick={() => navigate(-1)} sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}>Cancel</Button>
-                  <Button variant="contained" disabled={!selectedPayee} onClick={() => setStep(1)}
-                    sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>
-                    Continue
-                  </Button>
-                </Box>
-              </Card>
-            </>
-          )}
-
-          {/* Step 2: Enter Amount & Memo */}
-          {step === 1 && (
-            <>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-                Send to {selectedPayee.payeeName}
-              </Typography>
-              <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: 3 }}>Enter the amount and an optional memo.</Typography>
-              <StepIndicator current={1} />
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} mb={2.5}>
-                {[
-                  { label: "Available Wallet Balance", value: walletBalance !== null ? `$${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—" },
-                  { label: "Selected Payee", value: selectedPayee.payeeName },
-                ].map(({ label, value }) => (
-                  <Box key={label} sx={{ flex: 1, borderRadius: "14px", p: "16px", background: tokens.color.background.panel, border: `1px solid ${tokens.color.border.light}` }}>
-                    <Typography sx={{ color: tokens.color.text.subdued, fontSize: 12, fontWeight: 700, mb: 0.75 }}>{label}</Typography>
-                    <Typography sx={{ fontSize: 20, fontWeight: 800 }}>{value}</Typography>
-                  </Box>
-                ))}
-              </Stack>
-
-              <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, p: "24px" }}>
-                <Stack spacing={2.5}>
-                  <TextField label="Dollar Amount" fullWidth type="number"
-                    inputProps={{ min: 0.01, max: 3000, step: 0.01 }}
-                    value={amount} onChange={handleAmountChange}
-                    error={!!amountError}
-                    helperText={amountError || "Amount must be between $0.01 and $3,000.00"}
-                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }} />
-                  <TextField label="Memo (optional)" fullWidth multiline minRows={3}
-                    value={memo} onChange={handleMemoChange}
-                    error={!!memoError}
-                    helperText={memoError || `${memo.length}/100 characters — letters, numbers, and spaces only`}
-                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }} />
-                </Stack>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 3 }}>
-                  <Button variant="outlined" onClick={() => setStep(0)} sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}>Back</Button>
-                  <Button variant="contained" onClick={handleStep2Continue}
-                    sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>Continue</Button>
-                </Box>
-              </Card>
-            </>
-          )}
-
-          {/* Step 3: Review */}
-          {step === 2 && (
-            <>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>Confirm Transfer</Typography>
-              <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: 3 }}>Review the details before sending.</Typography>
-              <StepIndicator current={2} />
-
-              <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, overflow: "hidden" }}>
-                <ConfirmRow label="Payment Type" value={getRailLabel(RAIL_TYPES.WALLET_TRANSFER)} />
-                <ConfirmRow label="Send From" value="SmartPay Wallet" />
-                <ConfirmRow label="Send To" value={`${selectedPayee.payeeName} — ${selectedPayee.email}`} />
-                <ConfirmRow label="Transfer Amount" value={formattedAmount} />
-                <ConfirmRow label="Memo" value={memo.trim() || "—"} />
-                {remainingBalance !== null && (
-                  <>
-                    <ConfirmRow
-                      label="Remaining Wallet Balance"
-                      value={`$${remainingBalance.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`}
-                    />
-
-                    {dailyLimit && (
-                      <Box sx={{ p: "20px 18px" }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                          <Typography sx={{ fontWeight: 700 }}>Daily Usage After Transfer</Typography>
-                          <Typography sx={{ fontWeight: 700 }}>
-                            ${projectedDailySpent.toFixed(2)} / ${dailyLimit.toFixed(2)}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ height: 12, borderRadius: 999, bgcolor: tokens.color.border.light, overflow: "hidden" }}>
-                          <Box
-                            sx={{
-                              width: `${dailyUsagePercent}%`,
-                              height: "100%",
-                              bgcolor: dailyUsagePercent >= 90 ? tokens.color.text.number.negative : dailyUsagePercent >= 75 ? tokens.color.status.warningBright : tokens.color.brand.primary,
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    )}
-                  </>
-                )}
-
-                {exceedsDailyLimit && (
-                  <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
-                    This transfer exceeds your wallet daily spending limit of ${dailyLimit.toFixed(2)}.
-                  </Box>
-                )}
-
-                {exceedsPerTransactionLimit && (
-                  <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
-                    This transfer exceeds your wallet per-transaction limit of ${wallet.perTransactionLimit.toFixed(2)}.
-                  </Box>
-                )}
-
-                {submitError && (
-                  <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
-                    {submitError}
-                  </Box>
-                )}
-
-
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: `1px solid ${tokens.color.border.dividerSoft}` }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => { setSubmitError(""); setStep(1); }}
-                    disabled={submitting}
-                    sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}
-                  >
-                    Back
-                  </Button>
-                  <Button variant="contained" onClick={handleTransfer}
-                    disabled={submitting || Boolean(submitError) || exceedsDailyLimit || exceedsPerTransactionLimit}
-                    sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>
-                    {submitting ? <CircularProgress size={20} sx={{ color: tokens.color.text.white }} /> : "Complete Transfer"}
-                  </Button>
-                </Box>
-              </Card>
-            </>
-          )}
-
-          {/* Step 4: Success */}
-          {step === 3 && (
-            <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, p: { xs: "40px 24px", md: "54px 44px" }, textAlign: "center" }}>
-              <Box sx={{ width: 82, height: 82, borderRadius: "50%", bgcolor: tokens.color.status.successBg, border: `1px solid ${tokens.color.status.successBorder}`, color: tokens.color.status.success, display: "grid", placeItems: "center", mx: "auto", mb: 2.5 }}>
-                <CheckCircleOutlineIcon sx={{ fontSize: 44 }} />
+            {payeesLoading ? (
+              <Box sx={{ display: "grid", placeItems: "center", p: 4 }}>
+                <CircularProgress size={28} sx={{ color: tokens.color.brand.primary }} />
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Money Sent</Typography>
-              <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: transactionId ? 1.5 : 3.5, lineHeight: 1.6 }}>
-                {formattedAmount} has been sent to {selectedPayee.payeeName} from your SmartPay wallet.
-              </Typography>
-              {transactionId && (
-                <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
-                  Transaction ID: {transactionId}
-                </Typography>
-              )}
-              <Button variant="contained" onClick={() => navigate("/home")}
-                sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover }, px: 3 }}>
-                Return to Dashboard
+            ) : payees.length === 0 ? (
+              <Box sx={{ p: 4, textAlign: "center" }}>
+                <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14 }}>You have no saved payees yet.</Typography>
+                <Button variant="outlined" size="small"
+                  sx={{ mt: 2, borderColor: tokens.color.brand.primary, color: tokens.color.brand.primary }}
+                  onClick={() => navigate("/add-payee")}>
+                  Add a Payee
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ maxHeight: 280, overflowY: "auto" }}>
+                {payees.map((p) => (
+                  <PayeeRow key={p.payeeId} payee={p}
+                    selected={selectedPayee?.payeeId === p.payeeId}
+                    onSelect={setSelectedPayee} />
+                ))}
+              </Box>
+            )}
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: `1px solid ${tokens.color.border.light}` }}>
+              <Button variant="outlined" onClick={() => navigate(-1)} sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}>Cancel</Button>
+              <Button variant="contained" disabled={!selectedPayee} onClick={() => setStep(1)}
+                sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>
+                Continue
               </Button>
-            </Card>
+            </Box>
+          </Card>
+        </>
+      )}
+
+      {/* Step 2: Enter Amount & Memo */}
+      {step === 1 && (
+        <>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} mb={2.5}>
+            {[
+              { label: "Available Wallet Balance", value: walletBalance !== null ? `$${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—" },
+              { label: "Selected Payee", value: selectedPayee.payeeName },
+            ].map(({ label, value }) => (
+              <Box key={label} sx={{ flex: 1, borderRadius: "14px", p: "16px", background: tokens.color.background.panel, border: `1px solid ${tokens.color.border.light}` }}>
+                <Typography sx={{ color: tokens.color.text.subdued, fontSize: 12, fontWeight: 700, mb: 0.75 }}>{label}</Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 800 }}>{value}</Typography>
+              </Box>
+            ))}
+          </Stack>
+
+          <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, p: "24px" }}>
+            <Stack spacing={2.5}>
+              <TextField label="Dollar Amount" fullWidth type="number"
+                inputProps={{ min: 0.01, max: 3000, step: 0.01 }}
+                value={amount} onChange={handleAmountChange}
+                error={!!amountError}
+                helperText={amountError || "Amount must be between $0.01 and $3,000.00"}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }} />
+              <TextField label="Memo (optional)" fullWidth multiline minRows={3}
+                value={memo} onChange={handleMemoChange}
+                error={!!memoError}
+                helperText={memoError || `${memo.length}/100 characters — letters, numbers, and spaces only`}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }} />
+            </Stack>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 3 }}>
+              <Button variant="outlined" onClick={() => setStep(0)} sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}>Back</Button>
+              <Button variant="contained" onClick={handleStep2Continue}
+                sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>Continue</Button>
+            </Box>
+          </Card>
+        </>
+      )}
+
+      {/* Step 3: Review */}
+      {step === 2 && (
+        <>
+          <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, overflow: "hidden" }}>
+            <ConfirmRow label="Payment Type" value={getRailLabel(RAIL_TYPES.WALLET_TRANSFER)} />
+            <ConfirmRow label="Send From" value="SmartPay Wallet" />
+            <ConfirmRow label="Send To" value={`${selectedPayee.payeeName} — ${selectedPayee.email}`} />
+            <ConfirmRow label="Transfer Amount" value={formattedAmount} />
+            <ConfirmRow label="Memo" value={memo.trim() || "—"} />
+            {remainingBalance !== null && (
+              <>
+                <ConfirmRow
+                  label="Remaining Wallet Balance"
+                  value={`$${remainingBalance.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
+                />
+
+                {dailyLimit && (
+                  <Box sx={{ p: "20px 18px" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                      <Typography sx={{ fontWeight: 700 }}>Daily Usage After Transfer</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>
+                        ${projectedDailySpent.toFixed(2)} / ${dailyLimit.toFixed(2)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ height: 12, borderRadius: 999, bgcolor: tokens.color.border.light, overflow: "hidden" }}>
+                      <Box
+                        sx={{
+                          width: `${dailyUsagePercent}%`,
+                          height: "100%",
+                          bgcolor: dailyUsagePercent >= 90 ? tokens.color.text.number.negative : dailyUsagePercent >= 75 ? tokens.color.status.warningBright : tokens.color.brand.primary,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </>
+            )}
+
+            {exceedsDailyLimit && (
+              <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
+                This transfer exceeds your wallet daily spending limit of ${dailyLimit.toFixed(2)}.
+              </Box>
+            )}
+
+            {exceedsPerTransactionLimit && (
+              <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
+                This transfer exceeds your wallet per-transaction limit of ${wallet.perTransactionLimit.toFixed(2)}.
+              </Box>
+            )}
+
+            {submitError && (
+              <Box sx={{ mx: 2, mb: 2, p: "14px 16px", borderRadius: "12px", border: `1px solid ${tokens.color.status.errorBorder}`, bgcolor: tokens.color.status.errorBg, color: tokens.color.status.error, fontSize: 13 }}>
+                {submitError}
+              </Box>
+            )}
+
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, p: "20px 24px", borderTop: `1px solid ${tokens.color.border.dividerSoft}` }}>
+              <Button
+                variant="outlined"
+                onClick={() => { setSubmitError(""); setStep(1); }}
+                disabled={submitting}
+                sx={{ borderColor: tokens.color.border.medium, color: tokens.color.text.heading }}
+              >
+                Back
+              </Button>
+              <Button variant="contained" onClick={handleTransfer}
+                disabled={submitting || Boolean(submitError) || exceedsDailyLimit || exceedsPerTransactionLimit}
+                sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover } }}>
+                {submitting ? <CircularProgress size={20} sx={{ color: tokens.color.text.white }} /> : "Complete Transfer"}
+              </Button>
+            </Box>
+          </Card>
+        </>
+      )}
+
+      {/* Step 4: Success */}
+      {step === 3 && (
+        <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, p: { xs: "40px 24px", md: "54px 44px" }, textAlign: "center" }}>
+          <Box sx={{ width: 82, height: 82, borderRadius: "50%", bgcolor: tokens.color.status.successBg, border: `1px solid ${tokens.color.status.successBorder}`, color: tokens.color.status.success, display: "grid", placeItems: "center", mx: "auto", mb: 2.5 }}>
+            <CheckCircleOutlineIcon sx={{ fontSize: 44 }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Money Sent</Typography>
+          <Typography sx={{ color: tokens.color.text.subdued, fontSize: 14, mb: transactionId ? 1.5 : 3.5, lineHeight: 1.6 }}>
+            {formattedAmount} has been sent to {selectedPayee.payeeName} from your SmartPay wallet.
+          </Typography>
+          {transactionId && (
+            <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mb: 3.5, fontFamily: "monospace" }}>
+              Transaction ID: {transactionId}
+            </Typography>
           )}
-        </Box>
-      </Box>
-    </>
+          <Button variant="contained" onClick={() => navigate("/home")}
+            sx={{ bgcolor: tokens.color.brand.primary, "&:hover": { bgcolor: tokens.color.brand.primaryHover }, px: 3 }}>
+            Return to Dashboard
+          </Button>
+        </Card>
+      )}
+    </BasicPageLayout>
   );
 }

@@ -226,7 +226,6 @@ export function Wallet() {
           elevation={0}
           sx={{
             border: `1px solid ${tokens.color.border.blueTint}`,
-            borderRadius: "22px",
             p: "28px",
             boxShadow: tokens.shadow.small,
           }}

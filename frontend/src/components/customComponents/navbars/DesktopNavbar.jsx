@@ -1,4 +1,4 @@
-import {Card} from "@mui/material";
+import {Card, Paper} from "@mui/material";
 import AppBar from "@mui/material/AppBar";
 import {tokens} from "@/style/Theme.jsx";
 import Container from "@mui/material/Container";
@@ -38,10 +38,13 @@ export const DesktopNavbar = ({
   return (
     <>
       <AppBar
-        position="static"
+        position="sticky"
         sx={{
           backgroundColor: tokens.color.nav.background,
           color: tokens.color.text.primary,
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          boxShadow: "0 2px 1px rgba(0, 0, 0, 0.08)",
         }}
       >
         <Container
@@ -198,9 +201,6 @@ export const DesktopNavbar = ({
         </Container>
       </AppBar>
 
-      <main>
-        <Outlet />
-      </main>
       <Drawer
         anchor="right"
         open={menuOpen}

@@ -76,7 +76,12 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
       }}
     >
       <DialogTitle
-        sx={{display: "flex", alignItems: "center", gap: 1, pb: 1}}>
+        sx={{display: "flex", alignItems: "center",
+          gap: 1,
+          pt: 4,
+          px: 4,
+          pb: 1
+      }}>
         <VisibilityIcon fontSize="small" color="primary" />
         Verify Your Identity
       </DialogTitle>

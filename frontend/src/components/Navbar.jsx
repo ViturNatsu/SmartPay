@@ -111,6 +111,8 @@ function isPathActive(currentPath, targetPath) {
   return currentPath === targetPath || currentPath.startsWith(targetPath + "/");
 }
 
+
+// might be better to rename as NavbarLayout
 export default function Navbar({isAdmin = false}) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // xs/sm => mobile
@@ -177,13 +179,19 @@ export default function Navbar({isAdmin = false}) {
   // -------------------------
   if (isMobile) {
     return (
-      <MobileNavbar
-        homePath={homePath}
-        items={items}
-        onNotificationClick={handleBellClick}
-        activeIndex={activeIndex}
-        notificationCount={totalNotificationCount}
-      />
+      <Box>
+        <MobileNavbar
+          homePath={homePath}
+          items={items}
+          onNotificationClick={handleBellClick}
+          activeIndex={activeIndex}
+          notificationCount={totalNotificationCount}
+        />
+
+        <main>
+          <Outlet/>
+        </main>
+      </Box>
     );
   }
 
@@ -192,14 +200,32 @@ export default function Navbar({isAdmin = false}) {
   // - center nav scrolls horizontally if tight
   // -------------------------
   return (
-    <DesktopNavbar
-      homePath={homePath}
-      items={items}
-      isPathActive={isPathActive}
-      handleBellClick={handleBellClick}
-      totalNotificationCount={totalNotificationCount}
-      logout={logout}
-      sideMenuItems={sideMenuItems}
-    />
+    <Box
+      sx={{
+        background: tokens.color.brand.primaryBackground,
+        paddingX: 2,
+        minHeight: "100vh",
+        width: "100%",
+        boxSizing: "border-box",
+        // overflowY: "auto",
+        scrollbarGutter: "stable",
+      }}
+    >
+      <DesktopNavbar
+        homePath={homePath}
+        items={items}
+        isPathActive={isPathActive}
+        handleBellClick={handleBellClick}
+        totalNotificationCount={totalNotificationCount}
+        logout={logout}
+        sideMenuItems={sideMenuItems}
+      />
+
+      <main>
+        <Outlet />
+      </main>
+
+    </Box>
+
   );
 }

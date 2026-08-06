@@ -210,7 +210,6 @@ export const dashboardSidebarCardSx = {
   alignSelf: "stretch",
   flexShrink: 0,
   boxSizing: "border-box",
-  borderRadius: "18px",
   border: `1px solid ${tokens.color.border.light}`,
   boxShadow: tokens.shadow.large,
   p: "22px",
