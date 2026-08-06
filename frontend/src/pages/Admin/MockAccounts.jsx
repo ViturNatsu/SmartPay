@@ -31,6 +31,7 @@ import {
   getUserAccounts,
   createAccount,
 } from "/src/api/accounts/accountApi.js";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 
 const formatCurrency = (value) =>
   value.toLocaleString("en-CA", {
@@ -186,8 +187,10 @@ export const MockAccounts = () => {
   }, [authLoading, tokenClaims?.userId]);
 
   return (
-    <>
-      <Navbar isAdmin />
+    <BasicPageLayout
+      title={"Mock Accounts"}
+      subtitle={"UNDER CONSTRUCTION"}
+    >
       <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.background.lightGray, pb: 6 }}>
         <Container
           maxWidth="lg"
@@ -454,7 +457,7 @@ export const MockAccounts = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </>
+    </BasicPageLayout>
   );
 };
 

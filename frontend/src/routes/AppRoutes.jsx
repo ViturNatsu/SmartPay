@@ -32,6 +32,7 @@ import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthS
 import AddUser from "../pages/Admin/AddUser";
 import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
 import RecurringPayments from "@/pages/Navbar/RecurringPayments";
+import Navbar from "@/components/Navbar.jsx";
 
 
 export default function AppRoutes() {
@@ -48,53 +49,46 @@ export default function AppRoutes() {
       <Route path="/forbidden" element={<Forbidden />} />
 
       <Route element={<ProtectedRoute requiredRole="USER"/>}>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        {/* US-09-01-28: Wallet page with withdraw funds flow */}
-        <Route path="/wallet" element={<Wallet />} />
-        <Route path="/accounts" element={<Accounts />} />
-        <Route path="/accounts/:accountId" element={<AccountDetails />} />
-        <Route path="/transactions" element={<Transactions />} />
-        <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/payment-methods" element={<PaymentMethods />} />
-        <Route path="/create-account" element={<CreateAccount />} />
-        <Route path="/view-history" element={<ViewHistory />} />
-        <Route path="/make-a-payment" element={<MakeAPayment />} />
-        <Route path="/add-payee" element={<AddPayee />} />
-        <Route path="/payees" element={<PayeeList />} />
-        <Route path="/recurring-payments" element={<RecurringPayments />} />
-        <Route
-          path="/simulatedbankauth/:selectedBank"
-          element={<SimulatedBankAuthorization />}
-        />
-        <Route
-          path="/linkbankaccount/:institutionNumber"
-          element={<LinkBankAccount />}
-        />
-        <Route path="/linkbankaccount" element={<LinkBankAccount />} />
-        <Route
-          path="/simulatedbankauthsuccess/:bankName/:institutionNumber"
-          element={<SimulatedBankAuthSuccess />}
-        ></Route>
+        <Route element={<Navbar/>}>
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/payment-methods" element={<PaymentMethods />} />
+          <Route path="/create-account" element={<CreateAccount />} />
+          <Route path="/view-history" element={<ViewHistory />} />
+          <Route path="/make-a-payment" element={<MakeAPayment />} />
+          <Route path="/add-payee" element={<AddPayee />} />
+          <Route path="/payees" element={<PayeeList />} />
+          <Route path="/recurring-payments" element={<RecurringPayments />} />
+          <Route path="/simulatedbankauth/:selectedBank" element={<SimulatedBankAuthorization />} />
+          <Route path="/linkbankaccount/:institutionNumber" element={<LinkBankAccount />}/>
+          <Route path="/linkbankaccount" element={<LinkBankAccount />} />
+          <Route path="/simulatedbankauthsuccess/:bankName/:institutionNumber" element={<SimulatedBankAuthSuccess />} />
+
+          {/*unreachable or unused*/}
+          <Route path="/accounts" element={<Accounts />} />
+        </Route>
       </Route>
 
       {/* admin-only area */}
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
-        <Route path="/admin" element={<AdminDash/>}/>
-        <Route path="/admin/dashboard" element={<AdminDash />} />
-        <Route path="/admin/mock-accounts" element={<MockAccounts />} />
-        <Route
-          path="/admin/accounts/:accountId/add-user"
-          element={<AddUser />}
-        />
-        <Route
-            path="/admin/requestManagement"
-            element={<RequestManagement />}
-        />
-        <Route path="/admin/accounts/:accountId" element={<AccountDetails/>}/>
+        <Route element={<Navbar isAdmin/>}>
+          <Route path="/admin" element={<AdminDash/>}/>
+          <Route path="/admin/dashboard" element={<AdminDash />} />
+          <Route path="/admin/mock-accounts" element={<MockAccounts />} />
+          <Route path="/admin/requestManagement" element={<RequestManagement />} />
+
+          {/*unreachable or unused*/}
+          <Route path="/admin/accounts/:accountId/add-user" element={<AddUser />} />
+          <Route path="/admin/accounts/:accountId" element={<AccountDetails/>} />
+
+        </Route>
       </Route>
+
     </Routes>
   );
 }

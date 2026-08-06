@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getWalletTransactions } from "@/api/wallets/walletApi";
 import { tokens } from "@/style/Theme";
 import { generateTransactionReceipt } from "@/utils/generateTransactionReceipt";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 
 /**
  * Transaction Details page — displays core fields for a single wallet transaction.
@@ -78,92 +79,74 @@ export function TransactionDetails() {
   };
 
   return (
-    <>
-      <Navbar />
-      <Box sx={{ background: tokens.color.background.app, minHeight: "100vh", py: 4 }}>
-        <Container maxWidth="lg">
-          <Typography sx={{ fontSize: 13, color: tokens.color.text.muted, mb: 1.75 }}>
-            Transactions / Wallet Activity / Transaction Details
-          </Typography>
+    <BasicPageLayout
+      title={"Transaction Details"}
+      subtitle="Review the details of this wallet transaction."
+    >
 
-          <Card
-            elevation={0}
-            sx={{
-              border: `1px solid ${tokens.color.border.light}`,
-              borderRadius: `${tokens.borderRadius.xxl}px`,
-              p: "28px",
-              boxShadow: tokens.shadow.card,
-            }}
-          >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 800,
-                fontSize: 34,
-                letterSpacing: "-0.04em",
-                mb: 0.75,
-              }}
+      {/*<Typography sx={{ fontSize: 13, color: tokens.color.text.muted, mb: 1.75 }}>*/}
+      {/*  Transactions / Wallet Activity / Transaction Details*/}
+      {/*</Typography>*/}
+      <Card
+        elevation={0}
+        sx={{
+          border: `1px solid ${tokens.color.border.light}`,
+          borderRadius: `${tokens.borderRadius.xxl}px`,
+          p: "28px",
+          boxShadow: tokens.shadow.card,
+        }}
+      >
+        {loading && <LinearProgress sx={{ mt: 2 }} />}
+
+        {!loading && notFound && (
+          <Box sx={{ mt: 2 }}>
+            <Typography sx={{ fontSize: 14, color: tokens.color.text.muted, mb: 2 }}>
+              Transaction not found or no longer available.
+            </Typography>
+            <Button
+              onClick={() => navigate(`/transactions?filter=${encodeURIComponent(originFilter)}`)}
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              sx={{ textTransform: "none", fontWeight: 600 }}
             >
-              Transaction Details
-            </Typography>
+              Back to Activity
+            </Button>
+          </Box>
+        )}
 
-            <Typography sx={{ color: tokens.color.text.muted, fontSize: 15, mb: 2.5 }}>
-              Review the details of this wallet transaction.
-            </Typography>
-
-            {loading && <LinearProgress sx={{ mt: 2 }} />}
-
-            {!loading && notFound && (
-              <Box sx={{ mt: 2 }}>
-                <Typography sx={{ fontSize: 14, color: tokens.color.text.muted, mb: 2 }}>
-                  Transaction not found or no longer available.
-                </Typography>
-                <Button
-                  onClick={() => navigate(`/transactions?filter=${encodeURIComponent(originFilter)}`)}
-                  variant="outlined"
-                  startIcon={<ArrowBackIcon />}
-                  sx={{ textTransform: "none", fontWeight: 600 }}
-                >
-                  Back to Activity
-                </Button>
-              </Box>
+        {!loading && transaction && (
+          <>
+            <TransactionDetailGrid transaction={transaction} />
+            {downloadError && (
+              <Alert
+                severity="error"
+                sx={{ mt: 2.5 }}
+              >
+                We couldn't generate your receipt. Please try again.
+              </Alert>
             )}
-
-            {!loading && transaction && (
-              <>
-                <TransactionDetailGrid transaction={transaction} />
-                {downloadError && (
-                  <Alert
-                    severity="error"
-                    sx={{ mt: 2.5 }}
-                  >
-                    We couldn't generate your receipt. Please try again.
-                  </Alert>
-                )}
-                <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<DownloadIcon />}
-                    onClick={handleDownload}
-                    disabled={downloading}
-                    sx={{ textTransform: "none", fontWeight: 600 }}
-                  >
-                    {downloading ? "Generating…" : "Download Receipt"}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ArrowBackIcon />}
-                    onClick={handleBack}
-                    sx={{ textTransform: "none", fontWeight: 600 }}
-                  >
-                    Back to Activity
-                  </Button>
-                </Stack>
-              </>
-            )}
-          </Card>
-        </Container>
-      </Box>
-    </>
+            <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownload}
+                disabled={downloading}
+                sx={{ textTransform: "none", fontWeight: 600 }}
+              >
+                {downloading ? "Generating…" : "Download Receipt"}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ArrowBackIcon />}
+                onClick={handleBack}
+                sx={{ textTransform: "none", fontWeight: 600 }}
+              >
+                Back to Activity
+              </Button>
+            </Stack>
+          </>
+        )}
+      </Card>
+    </BasicPageLayout>
   );
 }

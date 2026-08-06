@@ -8,6 +8,7 @@ import {Alert, Box, Card, CardContent, Snackbar, Stack, Typography} from "@mui/m
 import {batchCreatePaymentMethod} from "@/api/paymentmethods/paymentmethodApi.js";
 import Button from "@mui/material/Button";
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 function SimulatedBankAuthSuccess() {
   const {tokenClaims} = useAuth();
   const navigate = useNavigate();
@@ -138,84 +139,70 @@ function SimulatedBankAuthSuccess() {
 
 
   return (
-    <>
-      <Navbar/>
+    <BasicPageLayout
+      title={"Link Accounts"}
+      subtitle={"Select accounts to link as payment methods."}
+    >
+          <Card
+              elevation={0}
+              sx={{
+                  width: "100%",
+                  bgcolor: tokens.color.background.surface,
+                  borderRadius: "16px",
+                  border: `1px solid ${tokens.color.border.gray}`,
+                  p: 3,
+                  boxSizing: "border-box",
+                  overflow: "hidden",
+              }}
+          >
 
-        <Card
-            //ref={topOfDisplayRef}
-            sx={{
-                borderRadius: 2,
-                boxShadow: tokens.shadow.small,
-            }}
-        >
-            <CardContent sx={{ p: 3 }}>
+
+
+            <Stack
+              spacing={1.0}
+            >
+              <Box>
                 <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={2}
-                    justifyContent="space-between"
-                    alignItems={{ xs: "stretch", sm: "center" }}
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  justifySelf="right"
+                  alignItems={{ xs: "stretch", sm: "center" }}
                 >
-                    <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                            Link accounts
-                        </Typography>
-                        <Typography sx={{ color: "text.secondary" }}>
-                            Select accounts to link as payment methods.
-                        </Typography>
-                    </Box>
-                    {noAccountsToSelect
-                        ?
-                        <Button
-                            variant="contained"
-                            onClick={() => {navigate("/payment-methods")}}
-                            sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
-                        >
-                            Back
-                        </Button>
-                        :
-                        <Stack
-                            direction="row"
-                            spacing={1}
-                            sx={{ alignSelf: { xs: "stretch", sm: "auto" } }}
-                        >
-                            <Button
-                                variant="contained"
-                                onClick={() => {navigate("/payment-methods")}}
-                                sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" },
-                                    bgcolor: tokens.color.text.muted }}
-                            >
-                                Cancel
-                            </Button>
+                  {noAccountsToSelect
+                    ?
+                    <Button
+                      variant="contained"
+                      onClick={() => {navigate("/payment-methods")}}
+                      sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" } }}
+                    >
+                      Back
+                    </Button>
+                    :
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignSelf: { xs: "stretch", sm: "auto" } }}
+                    >
+                      <Button
+                        variant="contained"
+                        onClick={() => {navigate("/payment-methods")}}
+                        sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" },
+                          bgcolor: tokens.color.text.muted }}
+                      >
+                        Cancel
+                      </Button>
 
-                            <Button
-                                variant="contained"
-                                onClick={handleLinkingPaymentMethods}
-                                sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" }}}
-                            >
-                                Confirm and Link
-                            </Button>
-                        </Stack>
-                    }
+                      <Button
+                        variant="contained"
+                        onClick={handleLinkingPaymentMethods}
+                        sx={{ textTransform: "none", alignSelf: { xs: "stretch", sm: "auto" }}}
+                      >
+                        Confirm and Link
+                      </Button>
+                    </Stack>
+                  }
                 </Stack>
-            </CardContent>
-        </Card>
-
-
-        <Card
-            elevation={0}
-            sx={{
-                width: "100%",
-                bgcolor: tokens.color.background.surface,
-                borderRadius: "16px",
-                border: `1px solid ${tokens.color.border.gray}`,
-                p: 3,
-                boxSizing: "border-box",
-                overflow: "hidden",
-            }}
-        >
-
-
-            <Stack spacing={1.0}>
+              </Box>
                 {accounts.map(account => renderAccount(account, false))}
                 {disabledAccounts.map(account => renderAccount(account, true))}
             </Stack>
@@ -236,8 +223,7 @@ function SimulatedBankAuthSuccess() {
                 </Alert>
             </Snackbar>
         </Card>
-
-    </>
+    </BasicPageLayout>
   );
 }
 export default SimulatedBankAuthSuccess;

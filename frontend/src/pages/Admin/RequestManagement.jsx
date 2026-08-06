@@ -18,6 +18,7 @@ import {
     TextField, useTheme,
 } from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 
 export const RequestManagement = () => {
 
@@ -274,52 +275,37 @@ export const RequestManagement = () => {
     };
 
     return (
-    <>
-      <Navbar isAdmin/>
+    <BasicPageLayout
+        title={"Request Management"}
+        subtitle={"Admins can review all incoming card requests"}
+    >
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+              {error}
+          </Typography>
+        )}
+
 
         <Box
-            sx={(theme) => ({
-                width: "100%",
-                px: { xs: 2, md: 4 },
-                py: 3,
-                boxSizing: "border-box",
-                backgroundColor: theme.palette.background.default,
-            })}
-        >
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" sx={{mb: 1 }}>
-                    Request Management
-                </Typography>
-
-                <Typography variant="body1" color="text.secondary">
-                    Admin reviews all incoming card requests
-                </Typography>
-            </Box>
-
-            {error && (
-                <Typography color="error" sx={{ mb: 2 }}>
-                    {error}
-                </Typography>
-            )}
-
-
-            <Box sx={{ width: "100%" }}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    loading={loading}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { pageSize: 10 },
-                        },
-                    }}
-                    pageSizeOptions={[5, 10]}
-                    disableRowSelectionOnClick
-                    disableColumnMenu
-                    autoHeight
-                    sx={dataGridSx}
-                />
-            </Box>
+          sx={{
+              width: "100%",
+              padding: "2px",
+        }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              initialState={{
+                  pagination: {
+                      paginationModel: { pageSize: 10 },
+                  },
+              }}
+              pageSizeOptions={[5, 10]}
+              disableRowSelectionOnClick
+              disableColumnMenu
+              autoHeight
+              sx={dataGridSx}
+            />
         </Box>
 
         <Dialog
@@ -476,7 +462,7 @@ export const RequestManagement = () => {
 
 
 
-    </>
+    </BasicPageLayout>
   );
 };
 

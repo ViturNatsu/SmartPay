@@ -1,7 +1,10 @@
 import Navbar from "@/components/Navbar"
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 export const Reports = () => {
-    return <>
-        <Navbar />
-        <h1>Reports Page</h1>
-    </>
+    return (
+      <BasicPageLayout
+        title={"Reports Page"}
+        subtitle="UNDER CONSTRUCTION"
+      ></BasicPageLayout>
+    )
 }

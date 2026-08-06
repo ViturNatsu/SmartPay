@@ -1,13 +1,14 @@
 import React, {useState, useEffect} from "react";
 import { Navigate, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import { Box, Button, Collapse, Divider, Paper, TextField, Typography } from "@mui/material";
+import {Box, Button, Card, Collapse, Divider, Paper, TextField, Typography} from "@mui/material";
 import { createPaymentMethod } from "../../api/paymentmethods/paymentmethodApi";
 import LockIcon from "@mui/icons-material/Lock";
 import { useAuth } from "@/context/AuthContext";
 
 
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 function SimulatedBankAuthorization() {
     const { user, tokenClaims, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -61,202 +62,202 @@ function SimulatedBankAuthorization() {
     const emptyFields = (emptyUsername || emptyPassword)
 
     return (
-        <>
-        <Navbar />
-        
+      <BasicPageLayout
+        title={"Connect a Bank"}
+        subtitle={"Authorize the bank connection."}
+      >
         <Box
           sx={{
-            minHeight: "100vh",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: tokens.color.background.appBlue,
             p: 2,
           }}
         >
-            <Paper
-                elevation={2}
-                sx={{
-                    width: "100%",
-                    maxWidth: 420,
-                    borderRadius: 4,
-                    p: 4,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 2,
-                    backgroundColor: tokens.color.background.surface,
-                }}            
+          <Paper
+            elevation={2}
+            sx={{
+              width: "100%",
+              maxWidth: 420,
+              borderRadius: 4,
+              p: 4,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              backgroundColor: tokens.color.background.surface,
+            }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                border: `3px solid ${tokens.color.status.gold}`,
+                backgroundColor: tokens.color.background.lightGray,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 1,
+              }}
             >
-                <Box
-                    sx={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        border: `3px solid ${tokens.color.status.gold}`,
-                        backgroundColor: tokens.color.background.lightGray,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        mb: 1,
-                    }}
-                >
-                    <LockIcon sx={{ fontSize: 30, color: tokens.color.status.gold }} />
-                </Box>
+              <LockIcon sx={{ fontSize: 30, color: tokens.color.status.gold }} />
+            </Box>
+
+            <Typography
+              variant="h6"
+              fontWeight={700}
+              textAlign="center"
+              color="text.primary"
+            >
+              Simulated Bank Authorization (Sandbox)
+            </Typography>
+
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="text.secondary"
+              sx={{ maxWidth: 320, lineHeight: 1.6 }}
+            >
+              You selected: {selectedBank}
+            </Typography>
+
+            <Paper
+              variant="outlined"
+              sx={{
+                width: "100%",
+                borderRadius: 3,
+                overflow: "hidden",
+                border: `1px solid ${tokens.color.border.mediumGray}`,
+                mt: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  px: 2,
+                  py: 1.25,
+                }}
+              >
 
                 <Typography
-                    variant="h6"
-                    fontWeight={700}
-                    textAlign="center"
-                    color="text.primary"
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ minWidth: 90 }}
                 >
-                    Simulated Bank Authorization (Sandbox)
+                  Sandbox Username:
                 </Typography>
+                <TextField
+                  label="username"
+                  variant="standard"
+                  fullWidth
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  sx={{ ml: 1 }}
+                  error={emptyUsername}
+                  helperText={emptyUsername ? REQUIRED : ""}
+                >
+                </TextField>
+              </Box>
 
+              <Divider sx={{ borderColor: tokens.color.border.mediumGray }}></Divider>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  px: 2,
+                  py: 1.25,
+                }}
+              >
                 <Typography
-                    variant="body2"
-                    textAlign="center"
-                    color="text.secondary"
-                    sx={{ maxWidth: 320, lineHeight: 1.6 }}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ minWidth: 90 }}
                 >
-                    You selected: {selectedBank}
+                  Sandbox Password:
                 </Typography>
-
-                <Paper
-                    variant="outlined"
-                    sx={{
-                        width: "100%",
-                        borderRadius: 3,
-                        overflow: "hidden",
-                        border: `1px solid ${tokens.color.border.mediumGray}`,
-                        mt: 1,
-                    }}
+                <TextField
+                  label="password"
+                  variant="standard"
+                  fullWidth
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  sx={{ ml: 1 }}
+                  error={emptyPassword}
+                  helperText={emptyPassword ? REQUIRED : ""}
                 >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            px: 2,
-                            py: 1.25,
-                        }}
-                    >
-                        
-                        <Typography 
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ minWidth: 90 }}
-                        >
-                            Sandbox Username:
-                        </Typography>
-                        <TextField
-                            label="username"
-                            variant="standard"
-                            fullWidth
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            sx={{ ml: 1 }}
-                            error={emptyUsername}
-                            helperText={emptyUsername ? REQUIRED : ""}
-                        >
-                        </TextField>
-                    </Box>
-
-                    <Divider sx={{ borderColor: tokens.color.border.mediumGray }}></Divider>
-
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            px: 2,
-                            py: 1.25,
-                        }}
-                    >
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ minWidth: 90 }}
-                        >
-                            Sandbox Password:
-                        </Typography>
-                        <TextField
-                            label="password"
-                            variant="standard"
-                            fullWidth
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            sx={{ ml: 1 }}
-                            error={emptyPassword}
-                            helperText={emptyPassword ? REQUIRED : ""}
-                        >
-                        </TextField>
-                    </Box>
-                </Paper>
-
-                <Collapse in={invalid} sx={{ width: '100%' }}>
-                    <Typography
-                        variant="caption"
-                        sx={{
-                        color: "error.main",
-                        textAlign: "center",
-                        display: "block",
-                        mt: 1,
-                        fontWeight: 500,
-                        }}
-                    >
-                        {INVALID_CREDENTIALS_MSG}
-                    </Typography>
-                </Collapse>
-
-                <Button
-                    fullWidth
-                    variant="contained"
-                    onClick={handleSubmit}
-                    sx={{
-                        mt: 1,
-                        py: 1.6,
-                        borderRadius: 3,
-                        backgroundColor: tokens.color.brand.cyanLight,
-                        color: tokens.color.text.primary,
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        textTransform: "none",
-                        boxShadow: "none",
-                        "&:hover": {
-                        backgroundColor: tokens.color.brand.cyan,
-                        boxShadow: "none",
-                        },
-                        "&:active": {
-                        backgroundColor: tokens.color.brand.cyanDark,
-                        },
-                    }}
-                    disabled={emptyFields}
-                >
-                    Submit
-                </Button>
-
-                <Button
-                    fullWidth
-                    variant="text"
-                    onClick={() => navigate("/payment-methods")}
-                    sx={{
-                        py: 1.2,
-                        borderRadius: 3,
-                        color: "text.secondary",
-                        fontWeight: 500,
-                        fontSize: "0.95rem",
-                        textTransform: "none",
-                        "&:hover": {
-                        backgroundColor: tokens.color.background.lightGray,
-                        color: "text.primary",
-                        },
-                    }}
-                >
-                    Cancel
-                </Button>
+                </TextField>
+              </Box>
             </Paper>
+
+            <Collapse in={invalid} sx={{ width: '100%' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "error.main",
+                  textAlign: "center",
+                  display: "block",
+                  mt: 1,
+                  fontWeight: 500,
+                }}
+              >
+                {INVALID_CREDENTIALS_MSG}
+              </Typography>
+            </Collapse>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleSubmit}
+              sx={{
+                mt: 1,
+                py: 1.6,
+                borderRadius: 3,
+                backgroundColor: tokens.color.brand.cyanLight,
+                color: tokens.color.text.primary,
+                fontWeight: 700,
+                fontSize: "1rem",
+                textTransform: "none",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: tokens.color.brand.cyan,
+                  boxShadow: "none",
+                },
+                "&:active": {
+                  backgroundColor: tokens.color.brand.cyanDark,
+                },
+              }}
+              disabled={emptyFields}
+            >
+              Submit
+            </Button>
+
+            <Button
+              fullWidth
+              variant="text"
+              onClick={() => navigate("/payment-methods")}
+              sx={{
+                py: 1.2,
+                borderRadius: 3,
+                color: "text.secondary",
+                fontWeight: 500,
+                fontSize: "0.95rem",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: tokens.color.background.lightGray,
+                  color: "text.primary",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </Paper>
         </Box>
-        </>
+      </BasicPageLayout>
+
     )
 }
 

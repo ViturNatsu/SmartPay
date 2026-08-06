@@ -84,7 +84,6 @@ const AccountDetails = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <Navbar isAdmin />
       <Box
         sx={{
           flex: "1",

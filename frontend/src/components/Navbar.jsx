@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Link as RouterLink, useLocation, useNavigate} from "react-router-dom";
+import {Link as RouterLink, Outlet, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "@/context/AuthContext";
 
 import AppBar from "@mui/material/AppBar";
@@ -40,6 +40,9 @@ import {
 } from "@/components/ImportantMessages";
 
 import logo from "@/style/logo.png";
+import {Card} from "@mui/material";
+import {MobileNavbar} from "@/components/customComponents/navbars/MobileNavbar.jsx";
+import {DesktopNavbar} from "@/components/customComponents/navbars/DesktopNavbar.jsx";
 
 // Update these to match your real routes
 const userNavItems = [
@@ -114,7 +117,6 @@ export default function Navbar({isAdmin = false}) {
   const location = useLocation();
   const navigate = useNavigate();
   const {logout, tokenClaims, loading: authLoading} = useAuth();
-  const [menuOpen, setMenuOpen] = React.useState(false);
   const [totalNotificationCount, setTotalNotificationCount] = React.useState(0);
 
   React.useEffect(() => {
@@ -175,89 +177,13 @@ export default function Navbar({isAdmin = false}) {
   // -------------------------
   if (isMobile) {
     return (
-      <>
-        <AppBar
-          position="sticky"
-          color="default"
-          sx={{
-            backgroundColor: tokens.color.nav.background,
-            color: tokens.color.text.primary,
-            boxShadow: "none",
-            borderBottom: `1px solid ${tokens.color.nav.border}`,
-          }}
-        >
-          <Container maxWidth="xl">
-            <Toolbar
-              disableGutters
-              sx={{minHeight: 64, px: 2, display: "flex", alignItems: "center"}}
-            >
-              <Box
-                component={RouterLink}
-                aria-label="home"
-                to={homePath}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  textDecoration: "none",
-                  color: "inherit",
-                }}
-              >
-                <Box
-                  component="img"
-                  src={logo}
-                  alt="SmartPay Logo"
-                  sx={{height: 34, width: "auto"}}
-                />
-                <Typography sx={{fontWeight: 700, fontSize: 18}}>
-                  SmartPay
-                </Typography>
-              </Box>
-
-              <Box sx={{flexGrow: 1}} />
-
-              <IconButton
-                aria-label="notifications"
-                onClick={handleBellClick}
-                sx={{color: tokens.color.text.secondary,}}
-              >
-                <Badge badgeContent={totalNotificationCount} color="error" invisible={totalNotificationCount === 0} max={9}>
-                  <NotificationsNoneRoundedIcon />
-                </Badge>
-              </IconButton>
-
-              <Avatar alt="Alex N" sx={{width: 34, height: 34, ml: 1}} />
-            </Toolbar>
-          </Container>
-        </AppBar>
-
-        <Box
-          sx={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            borderTop: `1px solid ${tokens.color.nav.border}`,
-            backgroundColor: tokens.color.nav.background,
-            zIndex: theme.zIndex.appBar,
-          }}
-        >
-          <BottomNavigation
-            value={activeIndex}
-            onChange={(_, newValue) => navigate(navItems[newValue].path)}
-            showLabels
-          >
-            {items.map(item => (
-              <BottomNavigationAction
-                key={item.path}
-                label={item.label}
-                icon={item.icon}
-                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-              />
-            ))}
-          </BottomNavigation>
-        </Box>
-      </>
+      <MobileNavbar
+        homePath={homePath}
+        items={items}
+        onNotificationClick={handleBellClick}
+        activeIndex={activeIndex}
+        notificationCount={totalNotificationCount}
+      />
     );
   }
 
@@ -266,235 +192,14 @@ export default function Navbar({isAdmin = false}) {
   // - center nav scrolls horizontally if tight
   // -------------------------
   return (
-    <>
-      <AppBar
-        position="sticky"
-        color="default"
-        sx={{
-          backgroundColor: tokens.color.nav.background,
-          color: tokens.color.text.primary,
-          boxShadow: "none",
-          borderBottom: `1px solid ${tokens.color.nav.border}`,
-        }}
-      >
-        <Container maxWidth="xl">
-          <Toolbar
-            disableGutters
-            sx={{
-              minHeight: 72,
-              px: {xs: 2, md: 0},
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-            <Box
-              component={RouterLink}
-              to={homePath}
-              aria-label="home"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                textDecoration: "none",
-                color: "inherit",
-                flexShrink: 0,
-                pr: 1,
-              }}
-            >
-              <Box
-                component="img"
-                src={logo}
-                alt="SmartPay Logo"
-                sx={{height: 42, width: "auto"}}
-              />
-              <Typography
-                variant="h6"
-                noWrap
-                sx={{fontWeight: 700, letterSpacing: "0.02em"}}
-              >
-                SmartPay
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                flexGrow: 1,
-                minWidth: 0,
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  overflowX: "auto",
-                  whiteSpace: "nowrap",
-                  px: 1,
-                  maxWidth: "100%",
-                  "&::-webkit-scrollbar": {display: "none"},
-                  msOverflowStyle: "none",
-                  scrollbarWidth: "none",
-                }}
-              >
-                {items.map(item => {
-                  const active = isPathActive(location.pathname, item.path);
-                  return (
-                    <Button
-                      key={item.path}
-                      component={RouterLink}
-                      to={item.path}
-                      startIcon={item.icon}
-                      aria-current={active ? "page" : undefined}
-                      data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                      sx={{
-                        flexShrink: 0,
-                        textTransform: "none",
-                        fontWeight: 600,
-                        borderRadius: 2,
-                        px: 2,
-                        py: 1,
-                        backgroundColor: active
-                          ? tokens.color.brand.selected
-                          : "transparent",
-                        color: active
-                          ? tokens.color.brand.primary
-                          : tokens.color.text.secondary,
-                        "&:hover": {
-                          backgroundColor: active
-                            ? tokens.color.action.selectedHover
-                            : tokens.color.action.hover,
-                        },
-                        "& .MuiButton-startIcon": {color: "inherit"},
-                      }}
-                    >
-                      {item.label}
-                    </Button>
-                  );
-                })}
-              </Box>
-            </Box>
-
-            <IconButton
-              aria-label="menu"
-              onClick={() => setMenuOpen(prev => !prev)}
-              sx={{
-                color: tokens.color.text.secondary,
-                flexShrink: 0,
-              }}
-            >
-              <MenuRoundedIcon />
-            </IconButton>
-
-            {/* RIGHT: bell + divider + profile + logout. */}
-            <Box
-              sx={{display: "flex", alignItems: "center", gap: 2, flexShrink: 0}}
-            >
-              <IconButton
-                aria-label="notifications"
-                onClick={handleBellClick}
-                sx={{color: tokens.color.text.secondary,}}
-              >
-                <Badge badgeContent={totalNotificationCount} color="error" invisible={totalNotificationCount === 0} max={9}>
-                  <NotificationsNoneRoundedIcon />
-                </Badge>
-              </IconButton>
-
-              <Divider orientation="vertical" flexItem sx={{mx: 0.5}} />
-
-              {/* Paceholder for user's name and premium member status.
-                TODO: Grab user's name and status from the backend display it here. */}
-              <Box sx={{display: "flex", alignItems: "center", gap: 1.25}}></Box>
-
-              <IconButton
-                aria-label="logout"
-                onClick={logout}
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: tokens.color.action.danger,
-                  color: tokens.color.status.error,
-                  "&:hover": {
-                    backgroundColor: tokens.color.action.dangerHover,
-                  },
-                }}
-              >
-                <LogoutRoundedIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      <Drawer
-        anchor="right"
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 300,
-            bgcolor: tokens.color.background.surface,
-            borderLeft: `1px solid ${tokens.color.border.light}`,
-            boxShadow: tokens.shadow.elevated,
-          },
-        }}
-      >
-        <Box
-          sx={{
-            width: 300,
-            p: 3,
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              mb: 3,
-              fontWeight: 700,
-              color: tokens.color.text.primary,
-            }}
-          >
-            Menu
-          </Typography>
-
-          <List
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-            }}
-          >
-            {sideMenuItems.map(item => (
-              <ListItemButton
-                key={item.label}
-                component={RouterLink}
-                to={item.path}
-                onClick={() => setMenuOpen(false)}
-                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                sx={{
-                  borderRadius: 2,
-                  color: tokens.color.text.secondary,
-                  "&:hover": {
-                    color: tokens.color.brand.primary,
-                    backgroundColor: tokens.color.brand.primaryLight,
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 40,
-                    color: "inherit",
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
-    </>
+    <DesktopNavbar
+      homePath={homePath}
+      items={items}
+      isPathActive={isPathActive}
+      handleBellClick={handleBellClick}
+      totalNotificationCount={totalNotificationCount}
+      logout={logout}
+      sideMenuItems={sideMenuItems}
+    />
   );
 }

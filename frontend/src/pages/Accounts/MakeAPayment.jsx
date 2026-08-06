@@ -257,7 +257,6 @@ export function MakeAPayment() {
 
   return (
     <>
-      <Navbar />
       <Box sx={{ background: tokens.color.brand.primaryBackground, minHeight: "100vh", p: { xs: 2, md: 4 } }}>
         <Box sx={{ maxWidth: 720, mx: "auto" }}>
 
