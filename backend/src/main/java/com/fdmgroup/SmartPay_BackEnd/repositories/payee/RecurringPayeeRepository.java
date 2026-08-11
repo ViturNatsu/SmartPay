@@ -29,4 +29,6 @@ public interface RecurringPayeeRepository extends JpaRepository<RecurringPayee, 
     );
 
     Optional<RecurringPayee> findByPayeeIdAndOwnerId(Long payeeId, Long ownerId);
+
+    Optional<RecurringPayee> findByPayeeId(Long payeeId);
 }

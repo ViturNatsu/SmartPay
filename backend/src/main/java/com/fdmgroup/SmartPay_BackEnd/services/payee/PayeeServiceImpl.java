@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -283,7 +284,18 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayeeRepository.save(recurringPayee);
     }
 
+    @Override
+        public RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId) {
 
+            RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeId(recurringPayeeId)
+        .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+            if(!Objects.equals(recurringPayee.getOwner().getId(), ownerId)){
+                throw new RuntimeException("Recurring Payment does not belong to user.");
+            }
+            
+            return toRecurringResponseDTO(recurringPayee);
+        }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
@@ -328,4 +340,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                         ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
                 .build();
     }
+
+        
 }
