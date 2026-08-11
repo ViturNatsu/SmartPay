@@ -95,12 +95,13 @@ export default function RecurringPayments() {
         type: payee.type,
         startPaymentDate: payee.startDate,
         nextPaymentDate: payee.date,
-        status: "active",
+        status: payee.status,
         bankDisplayName: payee.paymentMethodBankDisplayName,
         account_type: payee.paymentMethodAccountType,
         account_number: payee.paymentMethodAccountNumberMasked,
       }));
 
+      console.log(mappedPayees);
       setPayees(mappedPayees);
     } catch (error) {
       setErrorMessage(
