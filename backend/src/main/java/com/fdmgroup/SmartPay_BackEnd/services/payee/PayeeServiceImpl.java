@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
@@ -297,6 +299,28 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             
             return toRecurringResponseDTO(recurringPayee);
         }
+
+    private void calculateAndSaveNextScheduledPayment(RecurringPayee recurringPayee){
+        LocalDate paymentDate = recurringPayee.getDate();
+        Schedule schedule = recurringPayee.getSchedule();
+
+
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Can't update inactive account");
+        }
+
+
+        if(schedule.equals(Schedule.MONTHLY)){
+            paymentDate = paymentDate.plus(1, ChronoUnit.MONTHS);
+        }
+        else if(schedule.equals(Schedule.YEARLY)){
+            paymentDate = paymentDate.plus(1, ChronoUnit.YEARS);
+        }
+
+
+        recurringPayee.setDate(paymentDate);
+        recurringPayeeRepository.save(recurringPayee);
+    }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
