@@ -4,6 +4,7 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,6 @@ import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExcee
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -400,5 +397,15 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorBody);
+        }
+
+        @ExceptionHandler(RecurringPayeeAlreadyPaused.class)
+        public ResponseEntity<String> handleRecurringPayeeAlreadyPaused() {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payee already paused");
+        }
+
+        @ExceptionHandler(RecurringPayeeNotPaused.class)
+        public ResponseEntity<String> handleRecurringPayeeNotPaused() {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payee not paused");
         }
 }

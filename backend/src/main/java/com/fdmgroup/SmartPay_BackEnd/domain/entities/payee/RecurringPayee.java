@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 
 import jakarta.persistence.Column;
@@ -53,4 +54,10 @@ public class RecurringPayee extends Payee{
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    @Column(name = "status", insertable = false)
+    @Enumerated(EnumType.STRING)
+    private RecurringPaymentStatus status;
+
+
 }
