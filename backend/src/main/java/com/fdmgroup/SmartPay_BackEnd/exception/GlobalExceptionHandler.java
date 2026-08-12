@@ -34,6 +34,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -353,6 +354,16 @@ public class GlobalExceptionHandler {
                 errorBody.put(STATUS, "403");
                 errorBody.put(ERROR, "Forbidden");
                 errorBody.put(MESSAGE, "Wallet Transaction does not belong to User's Wallet.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        //US 12-02-14
+        @ExceptionHandler(RecurringPayeeForbiddenAccessException.class)
+        public ResponseEntity<Map<String, String>> RecurringPayeeForbiddenAccessException(RuntimeException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "403");
+                errorBody.put(ERROR, "Forbidden");
+                errorBody.put(MESSAGE, "Recurring Payement does not belong to User.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 

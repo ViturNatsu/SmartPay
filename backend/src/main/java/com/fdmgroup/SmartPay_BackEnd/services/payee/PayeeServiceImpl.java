@@ -21,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
@@ -291,7 +292,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
             if(!Objects.equals(recurringPayee.getOwner().getId(), ownerId)){
-                throw new RuntimeException("Recurring Payment does not belong to user.");
+                throw new RecurringPayeeForbiddenAccessException("Recurring Payement does not belong to User.");
             }
             
             return toRecurringResponseDTO(recurringPayee);

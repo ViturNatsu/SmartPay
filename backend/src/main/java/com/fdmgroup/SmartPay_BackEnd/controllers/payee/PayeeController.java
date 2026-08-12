@@ -82,7 +82,7 @@ public class PayeeController {
             @AuthenticationPrincipal User authenticatedUser,
             @PathVariable Long payeeId) {
 
-        return null;
+        return ResponseEntity.ok(recurringPayeeService.getRecurringPayeeDetails(authenticatedUser.getId(), payeeId));
     }
     
     @DeleteMapping("/{payeeId}")
