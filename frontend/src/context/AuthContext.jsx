@@ -97,9 +97,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     setTokenClaims(null);
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
+    localStorage.removeItem("refresh_token");
     stopSessionMonitoringRef.current();
-  }, []); // stable — no deps that can change
-
+  }, []);
   // Expose clearAuth to the outer AuthProvider via ref
   useEffect(() => {
     if (clearAuthRef) clearAuthRef.current = clearAuth;
@@ -114,7 +114,14 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
       // } catch (error) {}
 
       if (accessToken) setAccessToken(accessToken);
-      if (refreshToken) sessionStorage.setItem("refresh_token", refreshToken);
+
+      if (refreshToken) {
+        if (localStorage.getItem("refresh_token")) {
+          localStorage.setItem("refresh_token", refreshToken);
+        } else {
+          sessionStorage.setItem("refresh_token", refreshToken);
+        }
+      }
 
       if (!accessToken) {
         setUser(null);
@@ -185,7 +192,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
     let cancelled = false;
 
     async function bootstrap() {
-      const refreshToken = sessionStorage.getItem("refresh_token");
+      const refreshToken =
+        localStorage.getItem("refresh_token") ||
+        sessionStorage.getItem("refresh_token");
 
       if (!refreshToken) {
         // No token — not logged in, just stop showing the loading state
@@ -212,7 +221,11 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
           setAccessToken(res.accessToken);
 
           if (res.refreshToken) {
-            sessionStorage.setItem("refresh_token", res.refreshToken);
+            if (localStorage.getItem("refresh_token")) {
+              localStorage.setItem("refresh_token", res.refreshToken);
+            } else {
+              sessionStorage.setItem("refresh_token", res.refreshToken);
+            }
           }
 
           const claims = decodeJwtPayload(res.accessToken);
@@ -246,7 +259,9 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
           console.error("Bootstrap refresh failed:", err);
 
 
-          const stillHasRefreshToken = sessionStorage.getItem("refresh_token");
+          const stillHasRefreshToken =
+            localStorage.getItem("refresh_token") ||
+            sessionStorage.getItem("refresh_token");
           const currentAccessToken = getAccessToken();
 
           consecutiveRefreshFailures++;
@@ -278,7 +293,11 @@ const AuthProviderInner = ({ children, clearAuthRef }) => {
                 setAccessToken(retryRes.accessToken);
 
                 if (retryRes.refreshToken) {
-                  sessionStorage.setItem("refresh_token", retryRes.refreshToken);
+                  if (localStorage.getItem("refresh_token")) {
+                    localStorage.setItem("refresh_token", retryRes.refreshToken);
+                  } else {
+                    sessionStorage.setItem("refresh_token", retryRes.refreshToken);
+                  }
                 }
 
                 const claims = decodeJwtPayload(retryRes.accessToken);
@@ -452,6 +471,7 @@ export const AuthProvider = ({ children }) => {
       // Fallback if ref not yet set (shouldn't happen in practice)
       clearAccessToken();
       sessionStorage.removeItem("refresh_token");
+      localStorage.removeItem("refresh_token");
     }
 
     if (!onPublicPage) {
