@@ -13,6 +13,7 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
+import { visuallyHidden } from "@mui/utils";
 import MailIcon from "@mui/icons-material/Mail";
 import PasswordIcon from "@mui/icons-material/Key";
 import BankIcon from "@mui/icons-material/AccountBalance";
@@ -33,6 +34,7 @@ export const Login = () => {
   const [passwordError, setPasswordError] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
 
   // Check sessionStorage for signout reason (set by handleSessionExpired or cross-tab logout).
   // Router state won't work because ProtectedRoute's <Navigate> overwrites it.
@@ -99,7 +101,13 @@ export const Login = () => {
 
     try {
       await login({ email, password });
-      navigate(`/verify?email=${encodeURIComponent(email)}&type=login`, { replace: true });
+      navigate(
+        `/verify?email=${encodeURIComponent(email)}&type=login`,
+        {
+          replace: true,
+          state: { rememberMe },
+        }
+      );
     } catch (err) {
       const status = err?.status ?? err?.response?.status;
 
@@ -283,6 +291,9 @@ export const Login = () => {
                           ) : (
                             <VisibilityIcon />
                           )}
+                          <Box component="span" sx={visuallyHidden}>
+                            {showPassword ? "Hide password" : "Show password"}
+                          </Box>
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -291,7 +302,13 @@ export const Login = () => {
               />
               <FormControlLabel
                 sx={{ mb: 2, userSelect: "none" }}
-                control={<Checkbox size="small" />}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                }
                 label={
                   <Typography component="span" sx={{ fontSize: 13, color: "text.secondary" }}>
                     Remember me for 30 days
