@@ -253,6 +253,28 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new InvalidRecurringPayeeException("No changes were detected");
         }
 
+        LocalDate today = LocalDate.now();
+
+        if (payeeRequestDTO.getDate().isBefore(today)) {
+            throw new InvalidRecurringPayeeException(
+                "Past payment dates are not allowed"
+            );
+        }
+
+        if (payeeRequestDTO.getEndDate() != null
+                && payeeRequestDTO.getEndDate().isBefore(today)) {
+            throw new InvalidRecurringPayeeException(
+                "Past end dates are not allowed"
+            );
+        }
+
+        if (payeeRequestDTO.getEndDate() != null
+                && !payeeRequestDTO.getEndDate().isAfter(payeeRequestDTO.getDate())) {
+            throw new InvalidRecurringPayeeException(
+                "End Date must be after Payment Date"
+            );
+        }
+
         if (payeeRequestDTO.getEndDate() != null
                 && payeeRequestDTO.getEndDate().compareTo(payeeRequestDTO.getDate()) <= 0) {
             throw new InvalidRecurringPayeeException(

@@ -11,8 +11,8 @@ import {
  *
  * @param {{ id: number, name: string, amount: string, schedule: string, date: string }} payee
  */
-export default function RecurringPayeeCard({ payee }) {
-  console.log("Payee received by card:", payee);
+export default function RecurringPayeeCard({ payee, onEdit, onCancel, }) {
+  const isCancelled = payee.status === "CANCELLED";
 
   return (
     <Card sx={{ p: tokens.card.padding, mb: 2 }}>
@@ -29,17 +29,27 @@ export default function RecurringPayeeCard({ payee }) {
       </Typography>
 
       <Typography variant="body2">
-        Due {formatRecurringDate(payee.date)} • {formatRecurringSchedule(payee.schedule)}
+        Due {formatRecurringDate(payee.date)} •{" "} {formatRecurringSchedule(payee.schedule)}
+      </Typography>
+
+      <Typography variant="body2">
+        Status: {isCancelled ? "Cancelled" : "Active"}
       </Typography>
 
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
         <Button variant="contained" size="small">
           View
         </Button>
-        <Button variant="outlined" size="small">
+        <Button variant="outlined" size="small"
+          onClick={() => onEdit(payee)}
+          disabled={isCancelled}
+        >
           Edit
         </Button>
-        <Button variant="outlined" size="small">
+        <Button variant="outlined" size="small"
+          onClick={() => onCancel(payee)}
+          disabled={isCancelled}
+        >
           Cancel
         </Button>
       </Stack>

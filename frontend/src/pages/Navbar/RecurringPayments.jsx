@@ -27,9 +27,13 @@ import {filterItemsByName} from "@/utils/recurringPaymentsSearchUtils";
 import {
   addRecurringPayee,
   getRecurringPayees,
+  updateRecurringPayee,
+  cancelRecurringPayee,
 } from "@/api/recurringPayment/recurringPayeeApi";
 import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
+import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
+import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -40,6 +44,9 @@ const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 export default function RecurringPayments() {
   const {activeTab, handleTabChange} = useRecurringPaymentsTab();
   const {tokenClaims} = useAuth();
+
+  const [editingPayee, setEditingPayee] = useState(null);
+  const [cancellingPayee, setCancellingPayee] = useState(null);
 
   const [subscriptionsSearchQuery, setSubscriptionsSearchQuery] = useState("");
   const [billsSearchQuery, setBillsSearchQuery] = useState("");
@@ -96,12 +103,12 @@ export default function RecurringPayments() {
         startPaymentDate: payee.startDate,
         nextPaymentDate: payee.date,
         status: payee.status,
+        paymentMethodId: payee.paymentMethodId,
         bankDisplayName: payee.paymentMethodBankDisplayName,
         account_type: payee.paymentMethodAccountType,
         account_number: payee.paymentMethodAccountNumberMasked,
       }));
 
-      console.log(mappedPayees);
       setPayees(mappedPayees);
     } catch (error) {
       setErrorMessage(
@@ -110,6 +117,79 @@ export default function RecurringPayments() {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEditRecurringPayee = payee => {
+    setEditingPayee(payee);
+  };
+
+  const handleSaveRecurringPayee = async changes => {
+    if (!editingPayee) {
+      return;
+    }
+
+    setErrorMessage("");
+
+    const payload = {
+      payeeName: editingPayee.name,
+      recipientIdentifier: editingPayee.accountNumber,
+      amount: changes.amount,
+      schedule: editingPayee.schedule,
+      date: changes.date,
+      endDate: changes.endDate,
+      type: editingPayee.type,
+      paymentMethodId: editingPayee.paymentMethodId,
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      await updateRecurringPayee(editingPayee.id, payload);
+
+      await loadRecurringPayees();
+
+      setEditingPayee(null);
+      setSuccessMessage("Recurring payment updated successfully.");
+    } catch (error) {
+      setErrorMessage(
+        error?.data?.message ||
+        error?.message ||
+        "Unable to update recurring payment.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelRecurringPayee = payee => {
+    setCancellingPayee(payee);
+  };
+  
+  const handleConfirmCancelRecurringPayee = async () => {
+    if (!cancellingPayee) {
+      return;
+    }
+
+    setErrorMessage("");
+
+    try {
+      setIsSubmitting(true);
+
+      await cancelRecurringPayee(cancellingPayee.id);
+
+      await loadRecurringPayees();
+
+      setCancellingPayee(null);
+      setSuccessMessage("Recurring payment cancelled successfully.");
+    } catch (error) {
+      setErrorMessage(
+        error?.data?.message ||
+        error?.message ||
+        "Unable to cancel recurring payment.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -701,6 +781,8 @@ export default function RecurringPayments() {
                         <RecurringSubscriptionCard
                           key={subscription.id}
                           subscription={subscription}
+                          onEdit={handleEditRecurringPayee}
+                          onCancel={handleCancelRecurringPayee}
                         />
                       ))}
                     </Stack>
@@ -717,6 +799,8 @@ export default function RecurringPayments() {
                         <RecurringPayeeCard
                           key={payee.id}
                           payee={payee}
+                          onEdit={handleEditRecurringPayee}
+                          onCancel={handleCancelRecurringPayee}
                         />
                       ))}
                     </Stack>
@@ -724,6 +808,20 @@ export default function RecurringPayments() {
               </CardContent>
             </Card>
           </Stack>
+          <RecurringPaymentEditDialog
+            open={Boolean(editingPayee)}
+            payee={editingPayee}
+            onClose={() => setEditingPayee(null)}
+            onSave={handleSaveRecurringPayee}
+            isSaving={isSubmitting}
+          />
+          <RecurringPaymentCancelDialog
+            open={Boolean(cancellingPayee)}
+            payee={cancellingPayee}
+            onClose={() => setCancellingPayee(null)}
+            onConfirm={handleConfirmCancelRecurringPayee}
+            isCancelling={isSubmitting}
+          />
     </BasicPageLayout>
   );
 }
