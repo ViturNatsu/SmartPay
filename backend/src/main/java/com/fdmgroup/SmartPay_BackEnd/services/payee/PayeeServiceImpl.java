@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
@@ -283,7 +285,18 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayeeRepository.save(recurringPayee);
     }
 
+    @Override
+        public RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId) {
 
+            RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeId(recurringPayeeId)
+        .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+            if(!Objects.equals(recurringPayee.getOwner().getId(), ownerId)){
+                throw new RecurringPayeeForbiddenAccessException("Recurring Payement does not belong to User.");
+            }
+            
+            return toRecurringResponseDTO(recurringPayee);
+        }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
@@ -328,4 +341,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                         ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
                 .build();
     }
+
+        
 }

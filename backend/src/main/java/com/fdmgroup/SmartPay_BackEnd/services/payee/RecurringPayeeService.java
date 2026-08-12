@@ -17,4 +17,6 @@ public interface RecurringPayeeService {
     void cancelRecurringPayee(Long ownerId, Long payeeId);
 
     void reactivateRecurringPayee(Long ownerId, Long payeeId);
+
+    RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId);
 }
