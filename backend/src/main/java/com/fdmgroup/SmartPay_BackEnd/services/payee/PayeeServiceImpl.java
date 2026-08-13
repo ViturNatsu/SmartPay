@@ -140,6 +140,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         Double recurringAmount=recurringPayeeRequestDTO.getAmount();
         LocalDate date = recurringPayeeRequestDTO.getDate();
         LocalDate endDate = recurringPayeeRequestDTO.getEndDate();
+
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
                 
@@ -175,11 +176,49 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (recipient.getId().equals(ownerId)) {
             throw new InvalidRecurringPayeeException("Cannot add yourself as a payee");
         }
-        
-        if (recurringAmount<1){
-            throw new InvalidRecurringPayeeException("Minimum amount is 1.00$");
+
+        if (recurringAmount == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Amount is required"
+            );
         }
 
+        if (recurringAmount < 1) {
+            throw new InvalidRecurringPayeeException(
+                    "Minimum amount is $1.00"
+            );
+        }
+
+        if (recurringAmount > 10000) {
+            throw new InvalidRecurringPayeeException(
+                    "Maximum amount is $10,000.00"
+            );
+        }
+
+        if (date == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date is required"
+            );
+        }
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(date)) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be before payment date"
+            );
+        }
+        
         boolean duplicateRecurringPayee =
             recurringPayeeRepository
                     .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
@@ -246,15 +285,58 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if(!recurringPayee.isActive()){
             throw new InvalidRecurringPayeeException("Can't update inactive account");
         }
-        if(recurringPayee.getDate().equals(payeeRequestDTO.getDate()) 
-            && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())
-            && recurringPayee.getEndDate().equals(payeeRequestDTO.getEndDate())){
-            throw new InvalidRecurringPayeeException("No changes were detected");
+
+        Double amount = payeeRequestDTO.getAmount();
+        LocalDate date = payeeRequestDTO.getDate();
+        LocalDate endDate = payeeRequestDTO.getEndDate();
+
+        if (amount == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Amount is required"
+            );
         }
 
-        if(payeeRequestDTO.getEndDate().compareTo(payeeRequestDTO.getDate())<=-1){
-            throw new InvalidRecurringPayeeException("End Date can't be before Payment Date");
+        if (amount < 1) {
+            throw new InvalidRecurringPayeeException(
+                    "Minimum amount is $1.00"
+            );
         }
+
+        if (amount > 10000) {
+            throw new InvalidRecurringPayeeException(
+                    "Maximum amount is $10,000.00"
+            );
+        }
+        
+        if (date == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date is required"
+            );
+        }
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(date)) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be before payment date"
+            );
+        }
+
+        if (Objects.equals(recurringPayee.getDate(), payeeRequestDTO.getDate())
+            && Objects.equals(recurringPayee.getAmount(), payeeRequestDTO.getAmount())
+            && Objects.equals(recurringPayee.getEndDate(), payeeRequestDTO.getEndDate())) {
+        throw new InvalidRecurringPayeeException("No changes were detected");
+    }
 
         recurringPayee.setDate(payeeRequestDTO.getDate());
         recurringPayee.setAmount(payeeRequestDTO.getAmount());
