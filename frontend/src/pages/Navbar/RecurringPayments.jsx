@@ -265,7 +265,9 @@ export default function RecurringPayments() {
     } else if (Number.isNaN(amountValue)) {
       newErrors.amount = "Amount must be a valid number.";
     } else if (amountValue < 1) {
-      newErrors.amount = "Amount must be greater than 1.";
+      newErrors.amount = "Amount must be at least $1.00.";
+    } else if (amountValue > 10000) {
+      newErrors.amount = "Amount cannot exceed $10,000.00.";
     } else if (!/^\d+(\.\d{1,3})?$/.test(formData.amount.trim())) {
       newErrors.amount = "Amount can have a maximum of 3 decimal places.";
     }
@@ -368,7 +370,9 @@ export default function RecurringPayments() {
     } else if (Number.isNaN(amountValue)) {
       newErrors.amount = "Amount must be a valid number.";
     } else if (amountValue < 1) {
-      newErrors.amount = "Amount must be greater than 1.";
+      newErrors.amount = "Amount must be at least $1.00.";
+    } else if (amountValue > 10000) {
+      newErrors.amount = "Amount cannot exceed $10,000.00.";
     } else if (!/^\d+(\.\d{1,3})?$/.test(subscriptionFormData.amount.trim())) {
       newErrors.amount = "Amount can have a maximum of 3 decimal places.";
     }
