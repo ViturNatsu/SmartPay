@@ -189,6 +189,46 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    @Transactional
+    public void debitRecurringPayment(long userId, double amount, String counterpartyName,
+            LocalDate processingDate) {
+        if (amount < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
+        }
+
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+        resetDailySpendIfNeeded(wallet, processingDate);
+
+        if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
+            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet per-transaction limit of $"
+                    + String.format("%.2f", wallet.getPerTransactionLimit()));
+        }
+        if (wallet.getDailySpendingLimit() != null
+                && wallet.getDailySpentAmount() + amount > wallet.getDailySpendingLimit()) {
+            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet daily spending limit of $"
+                    + String.format("%.2f", wallet.getDailySpendingLimit()));
+        }
+        if (wallet.getBalance() == null || amount > wallet.getBalance()) {
+            throw new InsufficientFundsException("Insufficient wallet balance");
+        }
+
+        wallet.setBalance(wallet.getBalance() - amount);
+        wallet.setDailySpentAmount(wallet.getDailySpentAmount() + amount);
+        wallet.setDailySpentDate(processingDate);
+        Wallet savedWallet = walletRepository.save(wallet);
+        recordTransaction(savedWallet, WalletTransactionType.PURCHASES, amount,
+                counterpartyName, RailType.DEBIT_CARD);
+    }
+
+    private void resetDailySpendIfNeeded(Wallet wallet, LocalDate processingDate) {
+        if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(processingDate)
+                || wallet.getDailySpentAmount() == null) {
+            wallet.setDailySpentDate(processingDate);
+            wallet.setDailySpentAmount(0.0);
+        }
+    }
+
+    @Override
     public WalletTransactionPageDTO getTransactions(long userId, int page, int limit, Boolean favourite, String search) {
         int pageNumber = Math.max(page, 0);
         int pageSize = Math.min(Math.max(limit, 1), 50);

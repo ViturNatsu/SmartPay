@@ -29,6 +29,7 @@ public class RecurringPayeeResponseDTO {
     private LocalDate date;
     private RecurringPaymentType type;
     private LocalDate endDate;
+    private LocalDate lastProcessedDate;
     private LocalDate startDate;
     private Long paymentMethodId;
     private String paymentMethodBankDisplayName;

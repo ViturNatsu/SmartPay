@@ -49,6 +49,9 @@ public class RecurringPayee extends Payee{
     @Column(name="end_date", nullable=true)
     private LocalDate endDate;
 
+    @Column(name = "last_processed_date")
+    private LocalDate lastProcessedDate;
+
     @Column(name = "dateCreated", nullable=false)
     private LocalDateTime createdAt;
 

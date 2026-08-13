@@ -319,6 +319,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 .date(recurringPayee.getDate())
                 .type(recurringPayee.getType())
                 .endDate(recurringPayee.getEndDate())
+                .lastProcessedDate(recurringPayee.getLastProcessedDate())
                 .startDate(recurringPayee.getCreatedAt() != null ? recurringPayee.getCreatedAt().toLocalDate() : null)
                 .paymentMethodId(paymentMethod != null ? paymentMethod.getPaymentMethodId() : null)
                 .paymentMethodBankDisplayName(paymentMethod != null ? paymentMethod.getBankDisplayName() : null)

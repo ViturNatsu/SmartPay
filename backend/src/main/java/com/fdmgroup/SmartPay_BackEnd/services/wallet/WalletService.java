@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.util.List;
+import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,13 @@ public interface WalletService {
      * updated balance.
      */
     WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request);
+
+    /**
+     * Applies a recurring purchase through the wallet debit path. This method is
+     * intended for backend payment processing, not a user-facing controller.
+     */
+    void debitRecurringPayment(long userId, double amount, String counterpartyName,
+            LocalDate processingDate);
 
     WalletResponseDTO loadFunds(long userId, LoadWalletRequestDTO request);
 
