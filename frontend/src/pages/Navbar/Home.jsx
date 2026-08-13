@@ -18,6 +18,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
+import {RecurringPaymentsCardLayout} from "@/components/card/RecurringPaymentsCardLayout.jsx";
 export const Home = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -94,6 +95,7 @@ export const Home = () => {
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
               <TransactionsActivityFeed refreshKey={walletRefreshKey} />
+              <RecurringPaymentsCardLayout></RecurringPaymentsCardLayout>
             </Stack>
           </Box>
 
@@ -123,7 +125,9 @@ export const Home = () => {
               <QuickActions onLoadWallet={() => setLoadWalletOpen(true)} />
               <LinkedAccountsPanel />
               <ImportantMessages />
+
             </Stack>
+
           </Box>
         </Box>
       </BasicPageLayout>
