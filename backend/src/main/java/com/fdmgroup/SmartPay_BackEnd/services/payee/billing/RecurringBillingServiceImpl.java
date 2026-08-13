@@ -136,10 +136,10 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         }
 
         switch (schedule) {
-                case WEEKLY -> paymentDate.plusWeeks(1);
-                case BIWEEKLY -> paymentDate.plusWeeks(2);
-                case MONTHLY -> paymentDate.plusMonths(1);
-                case YEARLY -> paymentDate.plusYears(1);
+                case WEEKLY -> paymentDate = paymentDate.plusWeeks(1);
+                case BIWEEKLY -> paymentDate = paymentDate.plusWeeks(2);
+                case MONTHLY -> paymentDate = paymentDate.plusMonths(1);
+                case YEARLY -> paymentDate = paymentDate.plusYears(1);
         }
 
         recurringPayee.setDate(paymentDate);
