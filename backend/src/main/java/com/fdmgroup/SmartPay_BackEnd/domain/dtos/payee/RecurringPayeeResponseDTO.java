@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,7 @@ public class RecurringPayeeResponseDTO {
     private RecurringPaymentType type;
     private LocalDate endDate;
     private LocalDate startDate;
+    private RecurringPaymentStatus status;
     private Long paymentMethodId;
     private String paymentMethodBankDisplayName;
     private String paymentMethodAccountType;
