@@ -12,7 +12,9 @@ export const RecurringPaymentsCardLayout = () => {
   const {handlers, state } = useRecurringPayeesData()
 
   useEffect(() => {
-    handlers.getRecurringPayeesData().then(r => console.log(r));
+    handlers.getRecurringPayeesData()
+      .then(r => console.log(r))
+      .catch(e => console.log(e));
   }, [])
 
   return (
@@ -51,7 +53,7 @@ export const RecurringPaymentsCardLayout = () => {
                 href="/recurring-payments"
                 underline="hover"
               >
-                Manage All -->
+                {"Manage All -->\n"}
               </Link>
             </Typography>
           </Stack>
@@ -96,7 +98,7 @@ export const RecurringPaymentsCardLayout = () => {
                   href="/recurring-payments"
                   underline="hover"
                 >
-                  Set one up -->
+                  {"Set one up -->"}
                 </Link>
               </Typography>
 
