@@ -31,3 +31,28 @@ export async function deleteRecurringPayee(payeeId) {
     throw handleAxiosError(err);
   }
 }
+
+export async function updateRecurringPayee(payeeId, payload) {
+  try {
+    const res = await axiosInstance.put(
+      `${RECURRING_PAYEE_URL}/${payeeId}`,
+      payload,
+    );
+
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function cancelRecurringPayee(payeeId) {
+  try {
+    const res = await axiosInstance.put(
+      `${RECURRING_PAYEE_URL}/cancel/${payeeId}`,
+    );
+
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}

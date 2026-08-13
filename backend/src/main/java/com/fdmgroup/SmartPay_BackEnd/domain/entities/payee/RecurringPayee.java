@@ -3,6 +3,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 
@@ -55,6 +56,10 @@ public class RecurringPayee extends Payee{
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RecurringPaymentStatus status = RecurringPaymentStatus.ACTIVE;
 
     @PrePersist
     protected void onCreate() {
