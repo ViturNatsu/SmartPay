@@ -395,28 +395,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             return toRecurringResponseDTO(recurringPayee);
         }
 
-    private void calculateAndSaveNextScheduledPayment(RecurringPayee recurringPayee){
-        LocalDate paymentDate = recurringPayee.getDate();
-        Schedule schedule = recurringPayee.getSchedule();
-
-
-        if(!recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Can't update inactive account");
-        }
-
-
-        if(schedule.equals(Schedule.MONTHLY)){
-            paymentDate = paymentDate.plus(1, ChronoUnit.MONTHS);
-        }
-        else if(schedule.equals(Schedule.YEARLY)){
-            paymentDate = paymentDate.plus(1, ChronoUnit.YEARS);
-        }
-
-
-        recurringPayee.setDate(paymentDate);
-        recurringPayeeRepository.save(recurringPayee);
-    }
-
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
                 .map(Customer::getPhoneNumber)

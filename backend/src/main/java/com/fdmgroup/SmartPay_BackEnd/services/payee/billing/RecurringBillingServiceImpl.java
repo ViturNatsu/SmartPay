@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee.billing;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,6 +14,8 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringBillingChargeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 
@@ -98,6 +101,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
         ChargeExecutionResult result = paymentProviderClient.executeCharge(request);
         markCompleted(charge, result.getWalletTransactionId());
+        calculateAndSaveNextScheduledPayment(recurringPayee);
         return BillingChargeOutcome.CHARGED;
     }
 
@@ -122,5 +126,24 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         charge.setStatus(RecurringBillingStatus.IN_PROGRESS);
         charge.setProviderReferenceId(chargeId);
         return charge;
+    }
+
+    private void calculateAndSaveNextScheduledPayment(RecurringPayee recurringPayee){
+        LocalDate paymentDate = recurringPayee.getDate();
+        Schedule schedule = recurringPayee.getSchedule();
+
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Can't update inactive account");
+        }
+
+        if(schedule.equals(Schedule.MONTHLY)){
+            paymentDate = paymentDate.plus(1, ChronoUnit.MONTHS);
+        }
+        else if(schedule.equals(Schedule.YEARLY)){
+            paymentDate = paymentDate.plus(1, ChronoUnit.YEARS);
+        }
+
+        recurringPayee.setDate(paymentDate);
+        recurringPayeeRepository.save(recurringPayee);
     }
 }
