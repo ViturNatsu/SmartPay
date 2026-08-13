@@ -51,6 +51,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentReposito
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 
 @ExtendWith(MockitoExtension.class)
 class PayeeServiceTest {
@@ -422,6 +423,7 @@ class PayeeServiceTest {
         assertEquals(100.0, result.getAmount());
         assertEquals(Schedule.MONTHLY, result.getSchedule());
         assertEquals(LocalDate.now().plusDays(1), result.getDate());
+        assertEquals(RecurringPaymentStatus.ACTIVE, result.getStatus());
 
         verify(recurringPayeeRepository).save(any(RecurringPayee.class));
     }
