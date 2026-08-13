@@ -34,6 +34,7 @@ public class SecurityConfig {
                         "/api/v*/password-reset/**",
                         "/api/v*/auth/**",
                         "/api/v*/otp/**",
+                        "/api/v*/internal/recurring-payments/**",
                         "/actuator/**",
                         "/error/**"
         };
