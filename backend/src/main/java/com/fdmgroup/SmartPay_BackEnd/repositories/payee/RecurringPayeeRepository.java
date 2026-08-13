@@ -47,4 +47,8 @@ public interface RecurringPayeeRepository extends JpaRepository<RecurringPayee, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select recurringPayee from RecurringPayee recurringPayee where recurringPayee.payeeId = :payeeId")
     Optional<RecurringPayee> findByPayeeIdForProcessing(@Param("payeeId") Long payeeId);
+
+    Optional<RecurringPayee> findByPayeeId(Long payeeId);
+
+    List<RecurringPayee> findByActiveTrue();
 }
