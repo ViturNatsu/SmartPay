@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
@@ -31,7 +32,8 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
     @Override
     public void processDuePaymentsForDate(LocalDate processingDate) {
-        List<RecurringPayee> activePayees = recurringPayeeRepository.findByActiveTrue();
+        List<RecurringPayee> activePayees = recurringPayeeRepository
+                .findByActiveTrueAndStatus(RecurringPaymentStatus.ACTIVE);
         for (RecurringPayee payee : activePayees) {
             RecurringBillingScheduleUtil.resolveDueBillingCycleDate(payee, processingDate)
                     .ifPresent(cycleDate -> {
