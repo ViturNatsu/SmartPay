@@ -53,7 +53,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
         walletService.debitRecurringPayment(payment.getOwner().getId(), payment.getAmount(),
                 payment.getPayeeName(), invocationDate);
         payment.setLastProcessedDate(invocationDate);
-        payment.setDate(calcNextPaymentDate(payment.getDate(), payment.getSchedule(), invocationDate));
+        payment.setDate(nextDateAfter(payment.getDate(), payment.getSchedule(), invocationDate));
         recurringPayeeRepository.save(payment);
         processedCount.incrementAndGet();
     }
@@ -65,7 +65,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
                 && (payment.getEndDate() == null || !payment.getEndDate().isBefore(invocationDate));
     }
 
-    private LocalDate calcNextPaymentDate(LocalDate scheduledDate, Schedule schedule, LocalDate invocationDate) {
+    private LocalDate nextDateAfter(LocalDate scheduledDate, Schedule schedule, LocalDate invocationDate) {
         LocalDate nextDate = scheduledDate;
         while (!nextDate.isAfter(invocationDate)) {
             nextDate = switch (schedule) {
