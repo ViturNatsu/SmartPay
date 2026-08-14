@@ -3,10 +3,12 @@ package com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,11 +27,6 @@ public class RecurringPayeeRequestDTO {
     @NotBlank
     private String payeeName;
 
-    @NotBlank
-    @Pattern(
-        regexp = "^\\d{8}$",
-        message = "Account number must be exactly 8 digits."
-    )
     private String recipientIdentifier;
 
     @JsonProperty("amount")
@@ -49,10 +46,29 @@ public class RecurringPayeeRequestDTO {
 
     @NotNull(message = "Recurring payment type is required")
     private RecurringPaymentType type;
-    
+
     @JsonProperty("endDate")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @NotNull
     private LocalDate endDate;
+
+    private Long paymentMethodId;
+
+    @JsonIgnore
+    @AssertTrue(message = "Account number must be exactly 8 digits.")
+    private boolean isRecipientIdentifierValidForType() {
+        if (type != RecurringPaymentType.BILL) {
+            return true;
+        }
+        return recipientIdentifier != null && recipientIdentifier.matches("^\\d{8}$");
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "A payment method is required for subscriptions.")
+    private boolean isPaymentMethodValidForType() {
+        if (type != RecurringPaymentType.SUBSCRIPTION) {
+            return true;
+        }
+        return paymentMethodId != null;
+    }
 
 }

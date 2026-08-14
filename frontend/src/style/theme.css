@@ -18,4 +18,10 @@
   --sp-border-medium-gray: #E0E0E0;
 
   --sp-background-light-gray: #F5F5F5;
+
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
 }

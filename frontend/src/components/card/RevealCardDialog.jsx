@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useCallback} from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,12 +9,15 @@ import {
   Typography,
   Alert,
   Link,
-  Box, CircularProgress,
+  Box, CircularProgress, Stack,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import {OtpInputField} from "@/components/customComponents/input/OtpInputField.jsx";
 import {useOtpVerify} from "@/hooks/OtpHooks/OtpVerify/OtpVerifyBase/useOtpVerify.js";
 import {useCardRevealOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useCardRevealOtpRequest.js";
+import {WarningAmberRounded} from "@mui/icons-material";
+import {useTheme} from "@mui/material/styles";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 /**
  * OTP verification dialog for revealing card details.
@@ -31,7 +34,7 @@ import {useCardRevealOtpRequest} from "@/hooks/OtpHooks/OtpRequests/useCardRevea
  */
 export function RevealCardDialog({open, email, onSuccess, onClose}) {
 
-  const payload = {email: email, type: "reveal-card"};
+  const theme = useTheme();
 
 
   const [code, setCode] = useState("");
@@ -41,56 +44,99 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
   // Hook for handling OTP Verify
   const otpVerifyObject = useOtpVerify();
 
-  const handleClose = () => {
+  const handleReset = () => {
     setCode("");
     otpVerifyObject.handlers.reset();
     cardRevealRequestObject.handlers.reset();
-    onClose();
-  };
-
-  const getPayload = () => {
-    return {
-      "email": email,
-      "code": code,
-      "type": "reveal-card",
-    }
   }
 
-  // Send OTP as soon as the dialog opens
-  useEffect(() => {
-    if (!open || !email) return;
-
-    const temp = async () => {
-      await cardRevealRequestObject.handlers.handleOtpRequest(payload);
-    }
-
-    temp().catch(console.error);
-
-  }, [open]);
-
+  // optimization
+  const getPayload = useCallback(() => ({
+    email,
+    code,
+    type: "reveal-card",
+  }), [email, code]);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{display: "flex", alignItems: "center", gap: 1, pb: 1}}>
-        <LockOutlinedIcon fontSize="small" color="primary" />
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            width: "100%",
+            borderRadius: 4,
+          },
+        },
+        transition: {
+          onExited: handleReset,
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{display: "flex", alignItems: "center",
+          gap: 1,
+          pt: 4,
+          px: 4,
+          pb: 1
+      }}>
+        <VisibilityIcon fontSize="small" color="primary" />
         Verify Your Identity
       </DialogTitle>
 
-      <DialogContent>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            gap: 2,
-          }}
+      <DialogContent
+        sx={{
+          px: 6,
+          pb: 0,
+        }}
+      >
+
+        <Stack
+          spacing={3}
         >
           <Typography
             align="left"
-            sx={{fontSize: 13.5, lineHeight: 1.5}}>
+          >
             This action will briefly display sensitive card detail information.
           </Typography>
+
+          {!cardRevealRequestObject.state.isSent &&
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5,
+                p: 2.5,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.main,
+                backgroundColor: theme.palette.warning.light,
+              }}
+            >
+              <WarningAmberRounded
+                sx={{
+                  mt: 0.2,
+                  flexShrink: 0,
+                }}
+              />
+
+              <Typography
+                sx={{
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                }}
+              >
+                The Card Reveal functionality will allow you to see your active card details.
+
+                <br />
+                <br />
+
+                Ensure that only you are able to see your active card details.
+              </Typography>
+            </Box>}
+
 
           <OtpInputField
             messageFluff={"view your card details"}
@@ -102,26 +148,91 @@ export function RevealCardDialog({open, email, onSuccess, onClose}) {
             payload={getPayload()}
           />
 
-        </Box>
+        </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
-        <Button variant="outlined" onClick={handleClose} disabled={otpVerifyObject.state.isVerifying}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          disabled={otpVerifyObject.state.isVerifying || code.length !== 7}
-          onClick={()=>{
-            otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(r => {
-            otpVerifyObject.handlers.reset();
-            onSuccess();
-            onClose();
-          })}}
+      {!cardRevealRequestObject.state.isSent &&
+        <DialogActions
+          sx={{
+            px: 4,
+            pb: 4,
+          }}
         >
-          {otpVerifyObject.state.isVerifying ? "Verifying..." : "Verify"}
-        </Button>
-      </DialogActions>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              cardRevealRequestObject.handlers
+                .handleOtpRequest(getPayload())
+                .catch(console.error);
+            }}
+            disabled={
+              cardRevealRequestObject.state.isRequesting ||
+              cardRevealRequestObject.state.error
+            }
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            {cardRevealRequestObject.state.isRequesting ? (
+              <CircularProgress
+                size={24}
+                thickness={5}
+                sx={{ color: "inherit" }}
+              />
+            ) : (
+              "Send Verification Code"
+            )}
+          </Button>
+
+        </DialogActions>
+      }
+
+      {cardRevealRequestObject.state.isSent &&
+        <DialogActions
+          sx={{
+            px: 4,
+            pb: 4,
+          }}
+        >
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={onClose}
+            disabled={otpVerifyObject.state.isVerifying}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={otpVerifyObject.state.isVerifying || code.length !== 7}
+            onClick={()=>{
+              otpVerifyObject.handlers.sendOtpVerify(getPayload()).then(r => {
+                otpVerifyObject.handlers.reset();
+                onSuccess();
+                onClose();
+              })}}
+            sx={{
+              minHeight: 52,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            {otpVerifyObject.state.isVerifying ? "Verifying..." : "Verify"}
+          </Button>
+        </DialogActions>
+      }
     </Dialog>
   );
 }

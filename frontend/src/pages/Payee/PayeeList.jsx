@@ -25,6 +25,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getPayees, deletePayee } from "@/api/payee/payeeApi";
 
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 export default function PayeeList() {
   const { tokenClaims, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -80,144 +81,134 @@ export default function PayeeList() {
   };
 
   return (
-    <>
-      <Navbar />
-      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
-        <Container maxWidth="lg">
-          <Stack spacing={3}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                Manage Payees
-              </Typography>
-              <Typography sx={{ color: "text.secondary" }}>
-                View and manage the people you send money to.
-              </Typography>
-            </Box>
-
-            <Card
-              sx={{
-                borderRadius: 2,
-                boxShadow: tokens.shadow.small,
-              }}
+    <BasicPageLayout
+      title={"Manage Payees"}
+      subtitle={"View and manage the people you send money to."}
+    >
+      <Stack spacing={3}>
+        <Card
+          sx={{
+            borderRadius: 2,
+            boxShadow: tokens.shadow.small,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              justifyContent="space-between"
+              alignItems={{ xs: "stretch", sm: "center" }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  justifyContent="space-between"
-                  alignItems={{ xs: "stretch", sm: "center" }}
-                >
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      Add Payee
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary" }}>
-                      Add a new recipient to send money quickly and easily.
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    startIcon={<PersonAddAlt1OutlinedIcon />}
-                    onClick={() => navigate("/add-payee")}
-                    sx={{
-                      textTransform: "none",
-                      alignSelf: { xs: "stretch", sm: "auto" },
-                    }}
-                  >
-                    Add Payee
-                  </Button>
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card
-              sx={{
-                borderRadius: 2,
-                boxShadow: tokens.shadow.small,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                  Your Payees
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Add Payee
                 </Typography>
+                <Typography sx={{ color: "text.secondary" }}>
+                  Add a new recipient to send money quickly and easily.
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<PersonAddAlt1OutlinedIcon />}
+                onClick={() => navigate("/add-payee")}
+                sx={{
+                  textTransform: "none",
+                  alignSelf: { xs: "stretch", sm: "auto" },
+                }}
+              >
+                Add Payee
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
 
-                {loading ? (
-                  <LinearProgress />
-                ) : error ? (
-                  <Alert severity="error">{error}</Alert>
-                ) : payees.length === 0 ? (
+        <Card
+          sx={{
+            borderRadius: 2,
+            boxShadow: tokens.shadow.small,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Your Payees
+            </Typography>
+
+            {loading ? (
+              <LinearProgress />
+            ) : error ? (
+              <Alert severity="error">{error}</Alert>
+            ) : payees.length === 0 ? (
+              <Box
+                sx={{
+                  border: `1px dashed ${tokens.color.border.medium}`,
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: "center",
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, mb: 1 }}
+                >
+                  No payees yet
+                </Typography>
+                <Typography sx={{ color: "text.secondary", mb: 2 }}>
+                  Add a payee to start sending money.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<AddRoundedIcon />}
+                  onClick={() => navigate("/add-payee")}
+                  sx={{ textTransform: "none" }}
+                >
+                  Add Payee
+                </Button>
+              </Box>
+            ) : (
+              <Stack spacing={2}>
+                {payees.map((payee) => (
                   <Box
+                    key={payee.payeeId}
                     sx={{
-                      border: `1px dashed ${tokens.color.border.medium}`,
+                      border: `1px solid ${tokens.color.border.light}`,
                       borderRadius: 2,
-                      p: 3,
-                      textAlign: "center",
+                      p: 2.5,
                     }}
                   >
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ fontWeight: 600, mb: 1 }}
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1}
+                      justifyContent="space-between"
+                      alignItems={{ xs: "flex-start", sm: "center" }}
                     >
-                      No payees yet
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary", mb: 2 }}>
-                      Add a payee to start sending money.
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddRoundedIcon />}
-                      onClick={() => navigate("/add-payee")}
-                      sx={{ textTransform: "none" }}
-                    >
-                      Add Payee
-                    </Button>
-                  </Box>
-                ) : (
-                  <Stack spacing={2}>
-                    {payees.map((payee) => (
-                      <Box
-                        key={payee.payeeId}
-                        sx={{
-                          border: `1px solid ${tokens.color.border.light}`,
-                          borderRadius: 2,
-                          p: 2.5,
-                        }}
-                      >
-                        <Stack
-                          direction={{ xs: "column", sm: "row" }}
-                          spacing={1}
-                          justifyContent="space-between"
-                          alignItems={{ xs: "flex-start", sm: "center" }}
-                        >
-                          <Box>
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {payee.payeeName}
-                            </Typography>
-                            <Typography sx={{ color: "text.secondary" }}>
-                              {payee.firstName} {payee.lastName}
-                            </Typography>
-                            <Typography sx={{ color: "text.secondary" }}>
-                              {payee.email}
-                            </Typography>
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={() => handleConfirmDialog(payee.payeeId)}
-                            sx={{ textTransform: "none" }}
-                          >
-                            Delete
-                          </Button>
-                        </Stack>
+                      <Box>
+                        <Typography sx={{ fontWeight: 600 }}>
+                          {payee.payeeName}
+                        </Typography>
+                        <Typography sx={{ color: "text.secondary" }}>
+                          {payee.firstName} {payee.lastName}
+                        </Typography>
+                        <Typography sx={{ color: "text.secondary" }}>
+                          {payee.email}
+                        </Typography>
                       </Box>
-                    ))}
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
-          </Stack>
-        </Container>
-      </Box>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleConfirmDialog(payee.payeeId)}
+                        sx={{ textTransform: "none" }}
+                      >
+                        Delete
+                      </Button>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
+
 
       <Dialog
         open={openConfirmDialog}
@@ -267,6 +258,6 @@ export default function PayeeList() {
           Payee deleted successfully!
         </Alert>
       </Snackbar>
-    </>
+    </BasicPageLayout>
   );
 }

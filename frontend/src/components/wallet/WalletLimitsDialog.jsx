@@ -17,7 +17,7 @@ import {
   updateDailySpendingLimit,
   updatePerTransactionLimit,
 } from "@/api/wallets/walletApi";
-
+import { validateSpendingLimit } from "@/utils/validateSpendingLimit";
 
 const STEPS = {
   EDIT: "EDIT",
@@ -95,43 +95,22 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             setStep(STEPS.EDIT);
         }
     }, [open]);
-    
-  const validateLimit = (enabled, value, label) => {
-    if (!enabled) return null;
-
-    if (value === "") {
-        return `${label} is required when enabled.`;
-    }
-
-    const numberValue = Number(value);
-
-    if (Number.isNaN(numberValue)) {
-        return `${label} must be a valid number.`;
-    }
-
-    if (numberValue <= 0) {
-        return `${label} must be greater than $0.00.`;
-    }
-
-    return null;
-    };
 
   const handleSave = async () => {
-    const dailyError = validateLimit(
-    dailyLimitEnabled,
-    dailyLimit,
-    "Daily spending limit"
-    );
+    const dailyError = dailyLimitEnabled
+        ? validateSpendingLimit(dailyLimit, "Daily spending limit")
+        : null;
     if (dailyError) {
       setError(dailyError);
       return;
     }
 
-    const perTransactionError = validateLimit(
-    perTransactionLimitEnabled,
-    perTransactionLimit,
-    "Per-transaction limit"
-    );
+    const perTransactionError = perTransactionLimitEnabled
+        ? validateSpendingLimit(
+            perTransactionLimit,
+            "Per-transaction limit"
+        )
+        : null;
     if (perTransactionError) {
       setError(perTransactionError);
       return;
@@ -462,7 +441,14 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 onChange={(e) => setDailyLimit(e.target.value)}
                 fullWidth
                 disabled={!dailyLimitEnabled}
-                helperText="Must be greater than $0.00 and within allowed system thresholds."
+                slotProps={{
+                    htmlInput: {
+                        min: 1,
+                        max: 10000,
+                        step: "0.01",
+                    },
+                }}
+                helperText="Enter a value between $1.00 and $10,000.00."
             />
 
             <TextField
@@ -519,7 +505,14 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 onChange={(e) => setPerTransactionLimit(e.target.value)}
                 fullWidth
                 disabled={!perTransactionLimitEnabled}
-                helperText="Any one transaction cannot exceed this amount."
+                slotProps={{
+                    htmlInput: {
+                        min: 1,
+                        max: 10000,
+                        step: "0.01",
+                    },
+                }}
+                helperText="Enter a value between $1.00 and $10,000.00."
             />
 
             <TextField
@@ -562,21 +555,20 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
             <Button
                 variant="contained"
                 onClick={() => {
-                    const dailyError = validateLimit(
-                        dailyLimitEnabled,
-                        dailyLimit,
-                        "Daily spending limit"
-                    );
+                    const dailyError = dailyLimitEnabled
+                        ? validateSpendingLimit(dailyLimit, "Daily spending limit")
+                        : null;
                     if (dailyError) {
                         setError(dailyError);
                         return;
                     }
 
-                    const perTransactionError = validateLimit(
-                        perTransactionLimitEnabled,
-                        perTransactionLimit,
-                        "Per-transaction limit"
-                    );
+                    const perTransactionError = perTransactionLimitEnabled
+                        ? validateSpendingLimit(
+                            perTransactionLimit,
+                            "Per-transaction limit"
+                        )
+                        : null;
                     if (perTransactionError) {
                         setError(perTransactionError);
                         return;

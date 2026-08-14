@@ -27,12 +27,6 @@ import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethod
 import {useWalletData} from "@/hooks/useWalletData.js";
 import {useCardReveal} from "@/utils/useCardReveal.js";
 import WalletLimitsDialog from "@/components/wallet/WalletLimitsDialog";
-import {formatString} from "@/utils/stringFormaters/formatString.js";
-import {formatDate} from "@/utils/stringFormaters/formatDate.js";
-import {theme} from "@/style/Theme.jsx";
-import {LockOpen, LockOutlined} from "@mui/icons-material";
-import LockIcon from "@mui/icons-material/Lock";
-import {CustomButton} from "@/components/customComponents/CustomButton.jsx";
 import {LockCardOtpDialog} from "@/components/customComponents/dialogs/LockCardOtpDialog.jsx";
 import {AlertSnackbar} from "@/components/customComponents/snackbar/AlertSnackbar.jsx";
 import {LockCardRedirectDialog} from "@/components/customComponents/dialogs/LockCardRedirectDialog.jsx";
@@ -40,6 +34,7 @@ import {LockButton} from "@/components/customComponents/buttons/LockButton.jsx";
 
 import { tokens } from "@/style/Theme.jsx";
 import {RequestNewCardDialog} from "@/components/customComponents/dialogs/RequestNewCardDialog.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 /**
  * Wallet page — Scenario 1
  *
@@ -219,292 +214,277 @@ export function Wallet() {
 
   return (
     <>
-      <Navbar />
-      <Box sx={{background: tokens.color.brand.primaryBackground, minHeight: "100vh", py: 4}}>
-        <Container maxWidth="lg">
-          {/* Page header */}
-          <Box sx={{mb: 3}}>
-            <Typography
-              variant="h4"
-              sx={{fontWeight: 800, mb: 0.75, letterSpacing: "-0.04em"}}
-            >
-              Wallet
-            </Typography>
-            <Typography sx={{color: tokens.color.text.heading, fontSize: 15}}>
-              Manage your SmartPay wallet, view your balance and load funds to
-              send money or make payments.
-            </Typography>
-          </Box>
+      <BasicPageLayout
+        title={"Wallet"}
+        subtitle={"Manage your SmartPay wallet, view your balance and load funds to send money or make payments."}
+      >
+        {/*commented out because position is undecided*/}
+        {/*{isLoading && <LinearProgress sx={{mb: 2}} />}*/}
 
-          {isLoading && <LinearProgress sx={{mb: 2}} />}
-
-          {/* Main wallet panel */}
-          <Card
-            elevation={0}
-            sx={{
-              border: `1px solid ${tokens.color.border.blueTint}`,
-              borderRadius: "22px",
-              p: "28px",
-              boxShadow: tokens.shadow.small,
-            }}
+        {/* Main wallet panel */}
+        <Card
+          elevation={0}
+          sx={{
+            border: `1px solid ${tokens.color.border.blueTint}`,
+            p: "28px",
+            boxShadow: tokens.shadow.small,
+          }}
+        >
+          <Stack
+            direction={{xs: "column", md: "row"}}
+            spacing={16}
+            alignItems={{md: "flex-start"}}
           >
-            <Stack
-              direction={{xs: "column", md: "row"}}
-              spacing={16}
-              alignItems={{md: "flex-start"}}
-            >
 
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 2,
-                  padding: "24px",
-                }}
-              >
-                <VirtualCardDisplay
-                  card={card}
-                  user={user}
-                  isRevealed={isRevealed}
-                  onRevealClick={() => {
-                    if (isRevealed) {
-                      mask();
-                    } else {
-                      setRevealDialogOpen(true);
-                    }
-                  }}
-                />
-
-                <LockButton
-                  onClick={() => setLockCardDialogOpen(true)}
-                  status={card?.cardStatus === "ACTIVE"}
-                />
-              </Box>
-
-              {/* Balance info + actions */}
-              <Box sx={{flex: 1}}>
-                <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 800,
-                    color: tokens.color.text.mutedBlue,
-                    textTransform: "uppercase",
-                    letterSpacing: ".08em",
-                    mb: 0.75,
-                  }}
-                >
-                  Wallet Balance
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 44,
-                    fontWeight: 900,
-                    letterSpacing: "-0.05em",
-                    mb: 1.75,
-                  }}
-                >
-                  {formattedBalance}
-                </Typography>
-
-                <Divider sx={{mb: 2.25}} />
-
-                <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue, mb: 0.5}}>
-                  Available Balance
-                </Typography>
-                <Typography sx={{fontSize: 21, fontWeight: 800, mb: 3}}>
-                  {formattedBalance}
-                </Typography>
-
-                {/* Action buttons — Scenario 1: Withdraw Funds visible alongside Load Wallet */}
-                <Stack direction="row" spacing={1.5} sx={{mb: 3.5}}>
-                  <Button
-                    variant="contained"
-                    startIcon={<SouthWestIcon />}
-                    onClick={() => setLoadWalletOpen(true)}
-                    disabled={paymentMethods.length === 0}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 800,
-                      bgcolor: tokens.color.brand.primary,
-                      "&:hover": {bgcolor: tokens.color.brand.primaryHover},
-                      boxShadow: tokens.shadow.primary,
-                    }}
-                  >
-                    Load Wallet
-                  </Button>
-
-                  {/* Withdraw Funds — opens the multi-step dialog */}
-                  <Button
-                    variant="outlined"
-                    startIcon={<NorthEastIcon />}
-                    onClick={async () => {
-                      await fetchWallet();
-                      setWithdrawOpen(true);
-                    }}
-                    disabled={balance <= 0 || paymentMethods.length === 0}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 800,
-                      borderColor: tokens.color.brand.primaryMid,
-                      color: tokens.color.brand.primaryHover,
-                      bgcolor: tokens.color.brand.primaryLight,
-                      "&:hover": {bgcolor: tokens.color.brand.primaryLighter, borderColor: tokens.color.brand.primaryHover},
-                    }}
-                  >
-                    Withdraw Funds
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    startIcon={<SettingsIcon />}
-                    onClick={() => setWalletLimitsOpen(true)}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 800,
-                      borderColor: tokens.color.brand.primaryMid,
-                      color: tokens.color.brand.primary,
-                      bgcolor: tokens.color.background.surface,
-                      "&:hover": {
-                        bgcolor: tokens.color.brand.primaryBackground,
-                        borderColor: tokens.color.brand.primaryHover,
-                      },
-                    }}
-                  >
-                    Wallet Limits
-                  </Button>
-                </Stack>
-
-                {/* No linked accounts message when Withdraw is unavailable */}
-                {!pmLoading && paymentMethods.length === 0 && (
-                  <Typography sx={{fontSize: 13, color: tokens.color.text.subdued}}>
-                    Link a bank account in Payment Methods to load funds and
-                    withdraw.
-                  </Typography>
-                )}
-
-                {/* Recent wallet activity */}
-                <Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 2,
-                    }}
-                  >
-                    <Typography sx={{fontSize: 16, fontWeight: 900}}>
-                      Recent Wallet Activity
-                    </Typography>
-                    <Typography
-                      component={RouterLink}
-                      to="/transactions"
-                      sx={{
-                        color: tokens.color.brand.primary,
-                        fontSize: 13,
-                        fontWeight: 800,
-                        textDecoration: "none",
-                        "&:hover": {textDecoration: "underline"},
-                      }}
-                    >
-                      View all transactions →
-                    </Typography>
-                  </Box>
-
-                  {txLoading ? (
-                    <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
-                      Loading activity...
-                    </Typography>
-                  ) : transactions.length === 0 ? (
-                    <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
-                      No wallet activity yet. Load funds to see your first
-                      transaction.
-                    </Typography>
-                  ) : (
-                    <Stack spacing={1.5}>
-                      {transactions.map(tx => (
-                        <Box
-                          key={tx.transactionId}
-                          onClick={() => navigate(`/transactions/${tx.transactionId}`)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              navigate(`/transactions/${tx.transactionId}`);
-                            }
-                          }}
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            py: 1.25,
-                            borderBottom: `1px solid ${tokens.color.border.divider}`,
-                            cursor: "pointer",
-                            borderRadius: 1,
-                            "&:hover": { background: tokens.color.background.hover },
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              sx={{
-                                fontSize: 14,
-                                fontWeight: 700,
-                                color: tokens.color.text.title,
-                              }}
-                            >
-                              {tx.description}
-                            </Typography>
-                            <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
-                              {formatTransactionDate(tx.createdAt)}
-                            </Typography>
-                          </Box>
-                          <Box sx={{textAlign: "right"}}>
-                            <Typography
-                              sx={{
-                                fontSize: 14,
-                                fontWeight: 800,
-                                color:
-                                  ( tx.type === "LOAD" || tx.type === "DEPOSIT") ? tokens.color.status.success : tokens.color.text.number.negative,
-                              }}
-                            >
-                              {formatTransactionAmount(tx.type, tx.amount)}
-                            </Typography>
-                            <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
-                              {tx.status ?? "Completed"}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Stack>
-                  )}
-                </Box>
-              </Box>
-            </Stack>
-          </Card>
-
-          {/* Request new virtual card — entry point (wireframe Step 1) */}
-          <Box sx={{display: "flex", justifyContent: "flex-end", mt: 2.5}}>
-            <Button
-              variant="outlined"
-              onClick={() => setCardRequestDialogOpen(true)}
+            <Box
               sx={{
-                textTransform: "none",
-                fontWeight: 900,
-                borderColor: tokens.color.status.errorBorder,
-                color: tokens.color.status.error,
-                backgroundColor: tokens.color.status.errorBg,
-                height: 48,
-                px: 3,
-                "&:hover": {backgroundColor: tokens.color.status.errorBgHover, borderColor: tokens.color.status.errorBgHover},
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                padding: "24px",
               }}
             >
-              ⚠ Request New Card
-            </Button>
-          </Box>
+              <VirtualCardDisplay
+                card={card}
+                user={user}
+                isRevealed={isRevealed}
+                onRevealClick={() => {
+                  if (isRevealed) {
+                    mask();
+                  } else {
+                    setRevealDialogOpen(true);
+                  }
+                }}
+              />
 
-        </Container>
-      </Box>
+              <LockButton
+                onClick={() => setLockCardDialogOpen(true)}
+                status={card?.cardStatus === "ACTIVE"}
+              />
+            </Box>
+
+            {/* Balance info + actions */}
+            <Box sx={{flex: 1}}>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: tokens.color.text.mutedBlue,
+                  textTransform: "uppercase",
+                  letterSpacing: ".08em",
+                  mb: 0.75,
+                }}
+              >
+                Wallet Balance
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 44,
+                  fontWeight: 900,
+                  letterSpacing: "-0.05em",
+                  mb: 1.75,
+                }}
+              >
+                {formattedBalance}
+              </Typography>
+
+              <Divider sx={{mb: 2.25}} />
+
+              <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue, mb: 0.5}}>
+                Available Balance
+              </Typography>
+              <Typography sx={{fontSize: 21, fontWeight: 800, mb: 3}}>
+                {formattedBalance}
+              </Typography>
+
+              {/* Action buttons — Scenario 1: Withdraw Funds visible alongside Load Wallet */}
+              <Stack direction="row" spacing={1.5} sx={{mb: 3.5}}>
+                <Button
+                  variant="contained"
+                  startIcon={<SouthWestIcon />}
+                  onClick={() => setLoadWalletOpen(true)}
+                  disabled={paymentMethods.length === 0}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 800,
+                    bgcolor: tokens.color.brand.primary,
+                    "&:hover": {bgcolor: tokens.color.brand.primaryHover},
+                    boxShadow: tokens.shadow.primary,
+                  }}
+                >
+                  Load Wallet
+                </Button>
+
+                {/* Withdraw Funds — opens the multi-step dialog */}
+                <Button
+                  variant="outlined"
+                  startIcon={<NorthEastIcon />}
+                  onClick={async () => {
+                    await fetchWallet();
+                    setWithdrawOpen(true);
+                  }}
+                  disabled={balance <= 0 || paymentMethods.length === 0}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 800,
+                    borderColor: tokens.color.brand.primaryMid,
+                    color: tokens.color.brand.primaryHover,
+                    bgcolor: tokens.color.brand.primaryLight,
+                    "&:hover": {bgcolor: tokens.color.brand.primaryLighter, borderColor: tokens.color.brand.primaryHover},
+                  }}
+                >
+                  Withdraw Funds
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<SettingsIcon />}
+                  onClick={() => setWalletLimitsOpen(true)}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 800,
+                    borderColor: tokens.color.brand.primaryMid,
+                    color: tokens.color.brand.primary,
+                    bgcolor: tokens.color.background.surface,
+                    "&:hover": {
+                      bgcolor: tokens.color.brand.primaryBackground,
+                      borderColor: tokens.color.brand.primaryHover,
+                    },
+                  }}
+                >
+                  Wallet Limits
+                </Button>
+              </Stack>
+
+              {/* No linked accounts message when Withdraw is unavailable */}
+              {!pmLoading && paymentMethods.length === 0 && (
+                <Typography sx={{fontSize: 13, color: tokens.color.text.subdued}}>
+                  Link a bank account in Payment Methods to load funds and
+                  withdraw.
+                </Typography>
+              )}
+
+              {/* Recent wallet activity */}
+              <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Typography sx={{fontSize: 16, fontWeight: 900}}>
+                    Recent Wallet Activity
+                  </Typography>
+                  <Typography
+                    component={RouterLink}
+                    to="/transactions"
+                    sx={{
+                      color: tokens.color.brand.primary,
+                      fontSize: 13,
+                      fontWeight: 800,
+                      textDecoration: "none",
+                      "&:hover": {textDecoration: "underline"},
+                    }}
+                  >
+                    View all transactions →
+                  </Typography>
+                </Box>
+
+                {txLoading ? (
+                  <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
+                    Loading activity...
+                  </Typography>
+                ) : transactions.length === 0 ? (
+                  <Typography sx={{fontSize: 13, color: tokens.color.text.mutedBlue}}>
+                    No wallet activity yet. Load funds to see your first
+                    transaction.
+                  </Typography>
+                ) : (
+                  <Stack spacing={1.5}>
+                    {transactions.map(tx => (
+                      <Box
+                        key={tx.transactionId}
+                        onClick={() => navigate(`/transactions/${tx.transactionId}`)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            navigate(`/transactions/${tx.transactionId}`);
+                          }
+                        }}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          py: 1.25,
+                          borderBottom: `1px solid ${tokens.color.border.divider}`,
+                          cursor: "pointer",
+                          borderRadius: 1,
+                          "&:hover": { background: tokens.color.background.hover },
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: 14,
+                              fontWeight: 700,
+                              color: tokens.color.text.title,
+                            }}
+                          >
+                            {tx.description}
+                          </Typography>
+                          <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
+                            {formatTransactionDate(tx.createdAt)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{textAlign: "right"}}>
+                          <Typography
+                            sx={{
+                              fontSize: 14,
+                              fontWeight: 800,
+                              color:
+                                ( tx.type === "LOAD" || tx.type === "DEPOSIT") ? tokens.color.status.success : tokens.color.text.number.negative,
+                            }}
+                          >
+                            {formatTransactionAmount(tx.type, tx.amount)}
+                          </Typography>
+                          <Typography sx={{fontSize: 12, color: tokens.color.text.mutedBlue}}>
+                            {tx.status ?? "Completed"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+        </Card>
+
+        {/* Request new virtual card — entry point (wireframe Step 1) */}
+        <Box sx={{display: "flex", justifyContent: "flex-end", mt: 2.5}}>
+          <Button
+            variant="outlined"
+            onClick={() => setCardRequestDialogOpen(true)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 900,
+              borderColor: tokens.color.status.errorBorder,
+              color: tokens.color.status.error,
+              backgroundColor: tokens.color.status.errorBg,
+              height: 48,
+              px: 3,
+              "&:hover": {backgroundColor: tokens.color.status.errorBgHover, borderColor: tokens.color.status.errorBgHover},
+            }}
+          >
+            ⚠ Request New Card
+          </Button>
+        </Box>
+      </BasicPageLayout>
 
       <RevealCardDialog
         open={revealDialogOpen}
@@ -530,6 +510,8 @@ export function Wallet() {
         }}
       ></LockCardOtpDialog>
 
+      {/*This is an unused dialog.*/}
+      {/*This is related to the OTP links attached to the email sent to the user. Redirects from that link are not currently supported for actions other than loggin in*/}
       <LockCardRedirectDialog
         cardStatus={card?.cardStatus}
         open={lockCardRedirectDialogOpen}

@@ -5,11 +5,14 @@ import java.time.LocalDateTime;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
@@ -44,11 +47,22 @@ public class RecurringPayee extends Payee{
     @Column(name = "date", nullable=false)
     private LocalDate date;
 
-    @Column(name="end_date", nullable=false)
+    @Column(name="end_date", nullable=true)
     private LocalDate endDate;
+
+    @Column(name = "last_processed_date")
+    private LocalDate lastProcessedDate;
 
     @Column(name = "dateCreated", nullable=false)
     private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id")
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RecurringPaymentStatus status = RecurringPaymentStatus.ACTIVE;
 
     @PrePersist
     protected void onCreate() {

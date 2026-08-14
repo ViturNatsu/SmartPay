@@ -100,6 +100,11 @@ public class WalletServiceImpl implements WalletService {
         double amount = request.getAmount();
         double accountBalance = account.getBalance() != null ? account.getBalance() : 0.0;
 
+        System.out.println("Requested amount = " + request.getAmount());
+        System.out.println("Account balance = " + account.getBalance());
+        System.out.println("Payment method id = " + paymentMethod.getPaymentMethodId());
+        System.out.println("Account id = " + account.getAccountNumber());
+
         if (accountBalance < amount) {
             throw new InsufficientFundsException(INSUFFICIENT_BANK_FUNDS_MESSAGE);
         }
@@ -126,8 +131,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
-        if (request.getAmount() == null || request.getAmount() <= 0) {
-            throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
+        if (request.getAmount() == null || request.getAmount() < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
         }
 
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
@@ -181,6 +186,46 @@ public class WalletServiceImpl implements WalletService {
         response.setAmount(request.getAmount());
         response.setCreatedAt(tx.getCreatedAt());
         return response;
+    }
+
+    @Override
+    @Transactional
+    public void debitRecurringPayment(long userId, double amount, String counterpartyName,
+            LocalDate processingDate) {
+        if (amount < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
+        }
+
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+        resetDailySpendIfNeeded(wallet, processingDate);
+
+        if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
+            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet per-transaction limit of $"
+                    + String.format("%.2f", wallet.getPerTransactionLimit()));
+        }
+        if (wallet.getDailySpendingLimit() != null
+                && wallet.getDailySpentAmount() + amount > wallet.getDailySpendingLimit()) {
+            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet daily spending limit of $"
+                    + String.format("%.2f", wallet.getDailySpendingLimit()));
+        }
+        if (wallet.getBalance() == null || amount > wallet.getBalance()) {
+            throw new InsufficientFundsException("Insufficient wallet balance");
+        }
+
+        wallet.setBalance(wallet.getBalance() - amount);
+        wallet.setDailySpentAmount(wallet.getDailySpentAmount() + amount);
+        wallet.setDailySpentDate(processingDate);
+        Wallet savedWallet = walletRepository.save(wallet);
+        recordTransaction(savedWallet, WalletTransactionType.PURCHASES, amount,
+                counterpartyName, RailType.DEBIT_CARD);
+    }
+
+    private void resetDailySpendIfNeeded(Wallet wallet, LocalDate processingDate) {
+        if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(processingDate)
+                || wallet.getDailySpentAmount() == null) {
+            wallet.setDailySpentDate(processingDate);
+            wallet.setDailySpentAmount(0.0);
+        }
     }
 
     @Override
@@ -247,8 +292,8 @@ public class WalletServiceImpl implements WalletService {
 
         LocalDate today = LocalDate.now();
 
-        if (amount == null || amount <= 0) {
-            throw new InvalidWithdrawAmountException("Amount must be greater than $0.00");
+        if (amount == null || amount < 1) {
+            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
         }
 
         if (senderWallet.getBalance() < amount) {
@@ -337,8 +382,13 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getDailySpendingLimit() <= 0) {
-            throw new InvalidWithdrawAmountException("Daily spending limit must be greater than $0.00");
+        if (request.getDailySpendingLimit() < 1) {
+            throw new InvalidWithdrawAmountException("Daily spending limit must be at least $1.00");
+        }
+
+        if (request.getDailySpendingLimit() > 10000) {
+            throw new InvalidWithdrawAmountException(
+                "Daily spending limit cannot exceed $10,000.00");
         }
 
         wallet.setDailySpendingLimit(request.getDailySpendingLimit());
@@ -355,8 +405,14 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getPerTransactionLimit() <= 0) {
-            throw new WalletLimitExceededException("Per-transaction limit must be greater than $0.00");
+        if (request.getPerTransactionLimit() < 1) {
+            throw new WalletLimitExceededException("Per-transaction limit must be at least $1.00");
+        }
+
+        if (request.getPerTransactionLimit() > 10000) {
+            throw new WalletLimitExceededException(
+                "Per-transaction limit cannot exceed $10,000.00"
+            );
         }
 
         wallet.setPerTransactionLimit(request.getPerTransactionLimit());

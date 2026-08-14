@@ -43,8 +43,10 @@ const determineMessageFluff = (typeParameter) => {
 
 
 export const VerifyOtp = () => {
+  const location = useLocation();
+  const rememberMe = location.state?.rememberMe ?? false;
 
-  // Get the current URL's parameters. This is done to determine if the page was accessed through a re-direct link.
+  // Get the current URL's parameters...
   const [searchParams] = useSearchParams();
 
   const emailParam = searchParams.get("email");
@@ -82,6 +84,7 @@ export const VerifyOtp = () => {
           email: emailParam,
           code: codeParam,
           type: typeParam,
+          rememberMe: rememberMe,
         }
       )
     }
@@ -153,6 +156,7 @@ export const VerifyOtp = () => {
                 email: emailParam,
                 code: otp,
                 type: typeParam,
+                rememberMe: rememberMe,
               }).then( async (res) => {
                 switch (typeParam) {
                   case "login": {

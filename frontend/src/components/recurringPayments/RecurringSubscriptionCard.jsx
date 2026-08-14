@@ -13,10 +13,11 @@ import RecurringPaymentDetail from "./RecurringPaymentDetail";
  *
  * @param {{ id: number, name: string, amount: string, schedule: string, nextPaymentDate: string }} subscription
  */
-export default function RecurringSubscriptionCard({ subscription }) {
+export default function RecurringSubscriptionCard({ subscription, onEdit, onCancel, }) {
 
   // State manage for recurring payment pop-up
   const [viewDetail, setviewDetail] = useState(false);
+  const isCancelled = subscription.status === "CANCELLED";
 
   return (
     <Card sx={{ p: tokens.card.padding, mb: 2 }}>
@@ -33,14 +34,24 @@ export default function RecurringSubscriptionCard({ subscription }) {
         {formatRecurringSchedule(subscription.schedule)}
       </Typography>
 
+      <Typography variant="body2">
+        Status: {isCancelled ? "Cancelled" : "Active"}
+      </Typography>
+
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
         <Button variant="contained" size="small" onClick={() => setviewDetail(true)}>
           View
         </Button>
-        <Button variant="outlined" size="small">
+        <Button variant="outlined" size="small"
+          onClick={() => onEdit(subscription)}
+          disabled={isCancelled}
+        >
           Edit
         </Button>
-        <Button variant="outlined" size="small">
+        <Button variant="outlined" size="small"
+          onClick={() => onCancel(subscription)}
+          disabled={isCancelled}
+        >
           Cancel
         </Button>
       </Stack>

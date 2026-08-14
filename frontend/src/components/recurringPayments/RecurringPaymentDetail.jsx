@@ -42,7 +42,7 @@ export default function RecurringPaymentDetail({
 }) {
   if (!subscription) return null;
 
-  const accountNumber = subscription.account_number?.slice(-4);
+  const accountNumber = subscription.account_number;
   const statusColor = STATUS_COLOR[subscription.status] ?? "default";
 
   return (
@@ -87,7 +87,7 @@ export default function RecurringPaymentDetail({
         <Section title="Payment Method">
           <Typography>{subscription.bankDisplayName}</Typography>
           <Typography>{subscription.account_type}</Typography>
-          {accountNumber && <Typography>****{accountNumber}</Typography>}
+          {accountNumber && <Typography>{accountNumber}</Typography>}
         </Section>
       </DialogContent>
 

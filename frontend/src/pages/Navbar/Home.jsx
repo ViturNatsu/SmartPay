@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { Box, Stack, Typography } from "@mui/material";
+import {Alert, Box, Button, Card, CardContent, Container, LinearProgress, Stack, Typography} from "@mui/material";
 import QuickActions from "@/components/QuickActions";
 import ImportantMessages, {
   IMPORTANT_MESSAGES_PANEL_ID,
@@ -13,6 +13,12 @@ import { useAuth } from "@/context/AuthContext";
 import WalletBalance from "@/components/WalletBalance";
 
 import { tokens } from "@/style/Theme.jsx";
+import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
+import {RecurringPaymentsCardLayout} from "@/components/card/RecurringPaymentsCardLayout.jsx";
 export const Home = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -65,29 +71,16 @@ export const Home = () => {
 
   return (
     <>
-      <Navbar />
-      <Box
-        sx={{
-          background: tokens.color.brand.primaryBackground,
-          minHeight: "100vh",
-          width: "100%",
-          p: { xs: 2, md: 2.5 },
-        }}
+      <BasicPageLayout
+        title={`Welcome, ${user?.firstName}!`}
+        subtitle={"Here's your financial overview for today"}
       >
-        <Typography component="h1" variant="h4" sx={{ mb: 0.5 }}>
-          Welcome, {user?.firstName}!
-        </Typography>
-        <Typography sx={{ mb: 3, color: tokens.color.text.secondary }}>
-          Here&apos;s your financial overview for today
-        </Typography>
-
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column", lg: "row" },
             gap: { xs: 3, lg: 5 },
             maxWidth: 1460,
-            mx: "auto",
             alignItems: { xs: "stretch", lg: "flex-start" },
           }}
         >
@@ -102,6 +95,7 @@ export const Home = () => {
             <Stack spacing={2}>
               <WalletBalance refreshKey={walletRefreshKey} />
               <TransactionsActivityFeed refreshKey={walletRefreshKey} />
+              <RecurringPaymentsCardLayout></RecurringPaymentsCardLayout>
             </Stack>
           </Box>
 
@@ -131,10 +125,12 @@ export const Home = () => {
               <QuickActions onLoadWallet={() => setLoadWalletOpen(true)} />
               <LinkedAccountsPanel />
               <ImportantMessages />
+
             </Stack>
+
           </Box>
         </Box>
-      </Box>
+      </BasicPageLayout>
 
       <LoadWalletDialog
         open={loadWalletOpen}

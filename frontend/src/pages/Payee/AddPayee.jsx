@@ -19,6 +19,7 @@ import SuccessCard from "../../components/SuccessCard";
 import { useNavigate } from "react-router-dom";
 
 import { tokens } from "@/style/Theme.jsx";
+import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 const AddPayee = () => {
   const navigate = useNavigate();
   const [recipientName, setRecipientName] = useState("");
@@ -82,198 +83,187 @@ const AddPayee = () => {
   };
 
   return (
-    <div>
-      <Navbar />
 
-      <Box sx={{ minHeight: "100vh", bgcolor: tokens.color.brand.primaryBackground, py: 4 }}>
-        {!payeeSaved ? (
-          <Container maxWidth="md">
-            <Stack spacing={3}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                  Add a Payee
-                </Typography>
-                <Typography sx={{ color: "text.secondary" }}>
-                  Enter the recipient details below to save them as a payee for
-                  future SmartPay transfers.
-                </Typography>
-              </Box>
 
-              <Card
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: tokens.shadow.smallDark,
-                }}
-              >
-                <CardContent
-                  sx={{ p: 3, display: "flex", justifyContent: "center" }}
-                >
-                  <Box sx={{ m: 2, width: "100%" }}>
-                    <Grid container spacing={3}>
-                      <Grid size={12}>
-                        <FormControl fullWidth>
-                          <FormLabel>
-                            <Typography
-                              variant="subtitle1"
-                              sx={{ fontWeight: 600, mb: 0.5 }}
-                            >
-                              Payee Name
-                            </Typography>
-                          </FormLabel>
+    <BasicPageLayout
+      title="Add a Payee"
+      subtitle="Enter the recipient details below to save them as a payee for future SmartPay transfers."
+    >
+      {!payeeSaved ? (
+        <Stack spacing={3}>
+          <Card
+            sx={{
+              borderRadius: 2,
+              boxShadow: tokens.shadow.smallDark,
+            }}
+          >
+            <CardContent
+              sx={{ p: 3, display: "flex", justifyContent: "center" }}
+            >
+              <Box sx={{ m: 2, width: "100%" }}>
+                <Grid container spacing={3}>
+                  <Grid size={12}>
+                    <FormControl fullWidth>
+                      <FormLabel>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 600, mb: 0.5 }}
+                        >
+                          Payee Name
+                        </Typography>
+                      </FormLabel>
 
-                          <TextField
-                            id="recipientName"
-                            name="recipientName"
-                            type="text"
-                            placeholder="John Smith"
-                            required
-                            fullWidth
-                            variant="outlined"
-                            value={recipientName}
-                            onChange={(e) => setRecipientName(e.target.value)}
-                            error={recipientNameErr ? true : false}
-                            helperText={
-                              recipientNameErr ? recipientNameErr : " "
-                            }
-                            slotProps={{
-                              formHelperText: {
-                                sx: {
-                                  height: 20,
-                                  margin: 0,
+                      <TextField
+                        id="recipientName"
+                        name="recipientName"
+                        type="text"
+                        placeholder="John Smith"
+                        required
+                        fullWidth
+                        variant="outlined"
+                        value={recipientName}
+                        onChange={(e) => setRecipientName(e.target.value)}
+                        error={recipientNameErr ? true : false}
+                        helperText={
+                          recipientNameErr ? recipientNameErr : " "
+                        }
+                        slotProps={{
+                          formHelperText: {
+                            sx: {
+                              height: 20,
+                              margin: 0,
 
-                                  px: "12px",
-                                },
-                              },
-                            }}
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                height: 56,
-                              },
-                            }}
-                          ></TextField>
-                        </FormControl>
-                      </Grid>
-                      <Grid size={12}>
-                        <FormControl fullWidth sx={{ height: 100 }}>
-                          <FormLabel>
-                            <Typography
-                              variant="subtitle1"
-                              sx={{ fontWeight: 600, mb: 0.5 }}
-                            >
-                              Payee Email or Phone Number
-                            </Typography>
-                          </FormLabel>
-
-                          <TextField
-                            id="recipientIdentifier"
-                            name="recipientIdentifier"
-                            type="text"
-                            placeholder="Test@example.com or 4161234567"
-                            required
-                            fullWidth
-                            variant="outlined"
-                            value={recipientIdentifier}
-                            onChange={(e) =>
-                              setRecipientIdentifier(e.target.value)
-                            }
-                            error={recipientErr ? true : false}
-                            helperText={recipientErr ? recipientErr : " "}
-                            slotProps={{
-                              formHelperText: {
-                                sx: {
-                                  height: 20,
-                                  margin: 0,
-
-                                  px: "12px",
-                                },
-                              },
-                            }}
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: "12px",
-                                height: 56,
-                              },
-                            }}
-                          ></TextField>
-                        </FormControl>
-                      </Grid>
-
-                      <Grid
-                        size={12}
+                              px: "12px",
+                            },
+                          },
+                        }}
                         sx={{
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          gap: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                            height: 56,
+                          },
+                        }}
+                      ></TextField>
+                    </FormControl>
+                  </Grid>
+                  <Grid size={12}>
+                    <FormControl fullWidth sx={{ height: 100 }}>
+                      <FormLabel>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: 600, mb: 0.5 }}
+                        >
+                          Payee Email or Phone Number
+                        </Typography>
+                      </FormLabel>
+
+                      <TextField
+                        id="recipientIdentifier"
+                        name="recipientIdentifier"
+                        type="text"
+                        placeholder="Test@example.com or 4161234567"
+                        required
+                        fullWidth
+                        variant="outlined"
+                        value={recipientIdentifier}
+                        onChange={(e) =>
+                          setRecipientIdentifier(e.target.value)
+                        }
+                        error={recipientErr ? true : false}
+                        helperText={recipientErr ? recipientErr : " "}
+                        slotProps={{
+                          formHelperText: {
+                            sx: {
+                              height: 20,
+                              margin: 0,
+
+                              px: "12px",
+                            },
+                          },
+                        }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "12px",
+                            height: 56,
+                          },
+                        }}
+                      ></TextField>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid
+                    size={12}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: 2,
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      onClick={()=> navigate(-1)}
+                      sx={{
+                        height: 44,
+                        minWidth: "111px",
+
+
+                        boxShadow: tokens.shadow.grey,
+                        "&:hover": {
+                          boxShadow: tokens.shadow.greyHover,
+                        },
+                        borderRadius: "12px",
+                        border: `1px solid ${tokens.color.border.grayLight}`,
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle"
+                        sx={{
+                          fontWeight: 750,
+                          color: tokens.color.text.black,
+                          textTransform: "none",
                         }}
                       >
-                        <Button
-                          variant="outlined"
-                          onClick={()=> navigate(-1)}
-                          sx={{
-                            height: 44,
-                            minWidth: "111px",
-                           
+                        Cancel
+                      </Typography>
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleSavePayee}
+                      sx={{
+                        height: 44,
+                        minWidth: "111px",
+                        background:
+                        tokens.color.button.gradientBg,
 
-                            boxShadow: tokens.shadow.grey,
-                            "&:hover": {
-                              boxShadow: tokens.shadow.greyHover,
-                            },
-                            borderRadius: "12px",
-                            border: `1px solid ${tokens.color.border.grayLight}`,
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle"
-                            sx={{
-                              fontWeight: 750,
-                              color: tokens.color.text.black,
-                              textTransform: "none",
-                            }}
-                          >
-                            Cancel
-                          </Typography>
-                        </Button>
-                        <Button
-                          variant="contained"
-                          onClick={handleSavePayee}
-                          sx={{
-                            height: 44,
-                            minWidth: "111px",
-                            background:
-                              tokens.color.button.gradientBg,
-
-                            boxShadow: tokens.shadow.cyan,
-                            borderRadius: "12px",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle"
-                            sx={{ fontWeight: 750, textTransform: "none" }}
-                          >
-                            Save Payee
-                          </Typography>
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Stack>
-          </Container>
-        ) : (
-          <SuccessCard
-            data={savedPayee?.payeeName}
-            primaryButtonText={"Send Money"}
-            onPrimaryClick={() => navigate("/make-a-payment")}
-            title={successTitle}
-            message={successMessage}
-            secondaryButtonText={""}
-            onSecondaryClick={""}
-          />
-        )}
-      </Box>
-    </div>
+                        boxShadow: tokens.shadow.cyan,
+                        borderRadius: "12px",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle"
+                        sx={{ fontWeight: 750, textTransform: "none" }}
+                      >
+                        Save Payee
+                      </Typography>
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
+            </CardContent>
+          </Card>
+        </Stack>
+      ) : (
+        <SuccessCard
+          data={savedPayee?.payeeName}
+          primaryButtonText={"Send Money"}
+          onPrimaryClick={() => navigate("/make-a-payment")}
+          title={successTitle}
+          message={successMessage}
+          secondaryButtonText={""}
+          onSecondaryClick={""}
+        />
+      )}
+    </BasicPageLayout>
   );
 };
 

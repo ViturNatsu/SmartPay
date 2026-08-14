@@ -23,4 +23,5 @@ public interface RecurringPayeeService {
     void resumeRecurringPayee(Long ownerId, Long payeeId);
 
 
+    RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId);
 }

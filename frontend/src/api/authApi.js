@@ -23,7 +23,9 @@ export async function login(payload) {
 
 export async function logout(reason) {
   try {
-    const refreshToken = sessionStorage.getItem("refresh_token");
+    const refreshToken =
+      localStorage.getItem("refresh_token") ||
+      sessionStorage.getItem("refresh_token");
     if (refreshToken) {
       const body = reason ? { reason } : {};
       await axiosInstance.post(`${AUTH_URL}/logout`, body, {
@@ -32,9 +34,11 @@ export async function logout(reason) {
     }
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
+    localStorage.removeItem("refresh_token");
   } catch (err) {
     clearAccessToken();
     sessionStorage.removeItem("refresh_token");
+    localStorage.removeItem("refresh_token");
 
     // 401 means the session was already invalidated (e.g. logged out from
     // another tab). This is not an error — just clear local state quietly.
@@ -74,7 +78,13 @@ export async function sendVerifyCode(payload) {
     }
 
     if (refreshToken) {
-      sessionStorage.setItem("refresh_token", refreshToken);
+      if (payload.rememberMe) {
+        localStorage.setItem("refresh_token", refreshToken);
+        sessionStorage.removeItem("refresh_token");
+      } else {
+        sessionStorage.setItem("refresh_token", refreshToken);
+        localStorage.removeItem("refresh_token");
+      }
     }
 
     return res.data;
@@ -123,7 +133,9 @@ export async function register(payload) {
 
 export async function refreshTokens() {
   try {
-    const refreshToken = sessionStorage.getItem("refresh_token");
+    const refreshToken =
+      localStorage.getItem("refresh_token") ||
+      sessionStorage.getItem("refresh_token");
     if (!refreshToken) return null;
 
     const res = await axiosInstance.post(
@@ -138,7 +150,13 @@ export async function refreshTokens() {
     const { accessToken, refreshToken: newRefreshToken } = res.data;
 
     if (accessToken) setAccessToken(accessToken);
-    if (newRefreshToken) sessionStorage.setItem("refresh_token", newRefreshToken);
+    if (newRefreshToken) {
+      if (localStorage.getItem("refresh_token")) {
+        localStorage.setItem("refresh_token", newRefreshToken);
+      } else {
+        sessionStorage.setItem("refresh_token", newRefreshToken);
+      }
+    }
 
     return res.data;
   } catch (err) {

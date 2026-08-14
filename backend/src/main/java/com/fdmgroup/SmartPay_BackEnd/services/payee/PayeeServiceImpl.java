@@ -2,8 +2,10 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
@@ -20,34 +22,51 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.CustomerRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
+import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
+import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
+
+    // Subscriptions are billed to SmartPay's own seeded merchant account rather than a
+    // peer-to-peer recipient (see DataBaseInitializer) — this mirrors how the Bills form
+    // already hardcodes this same account number client-side, moved server-side so the
+    // frontend no longer needs to know a "merchant account" magic value.
+    private static final String SUBSCRIPTION_MERCHANT_ACCOUNT_NUMBER = "99990001";
 
     private final PayeeRepository payeeRepository;
     private final RecurringPayeeRepository recurringPayeeRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
-    
+    private final PaymentRepository paymentRepository;
+    private final MaskingUtil maskingUtil;
+
     public PayeeServiceImpl(
             PayeeRepository payeeRepository,
             RecurringPayeeRepository recurringPayeeRepository,
             UserRepository userRepository,
             CustomerRepository customerRepository,
-            AccountRepository accountRepository
+            AccountRepository accountRepository,
+            PaymentRepository paymentRepository,
+            MaskingUtil maskingUtil
     ) {
         this.payeeRepository = payeeRepository;
         this.recurringPayeeRepository = recurringPayeeRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.accountRepository = accountRepository;
+        this.paymentRepository = paymentRepository;
+        this.maskingUtil = maskingUtil;
     }
 
     @Override
@@ -113,10 +132,13 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
     @Override
     public RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO recurringPayeeRequestDTO) {
         String recurringPayeeName = recurringPayeeRequestDTO.getPayeeName();
-        String recipientIdentifier = recurringPayeeRequestDTO.getRecipientIdentifier();
+        String recipientIdentifier = recurringPayeeRequestDTO.getType() == RecurringPaymentType.SUBSCRIPTION
+                ? SUBSCRIPTION_MERCHANT_ACCOUNT_NUMBER
+                : recurringPayeeRequestDTO.getRecipientIdentifier();
         Double recurringAmount=recurringPayeeRequestDTO.getAmount();
         LocalDate date = recurringPayeeRequestDTO.getDate();
         LocalDate endDate = recurringPayeeRequestDTO.getEndDate();
+
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Owner not found"));
                 
@@ -152,11 +174,49 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (recipient.getId().equals(ownerId)) {
             throw new InvalidRecurringPayeeException("Cannot add yourself as a payee");
         }
-        
-        if (recurringAmount<1){
-            throw new InvalidRecurringPayeeException("Minimum amount is 1.00$");
+
+        if (recurringAmount == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Amount is required"
+            );
         }
 
+        if (recurringAmount < 1) {
+            throw new InvalidRecurringPayeeException(
+                    "Minimum amount is $1.00"
+            );
+        }
+
+        if (recurringAmount > 10000) {
+            throw new InvalidRecurringPayeeException(
+                    "Maximum amount is $10,000.00"
+            );
+        }
+
+        if (date == null) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date is required"
+            );
+        }
+
+        if (date.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "Payment date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(LocalDate.now())) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be in the past"
+            );
+        }
+
+        if (endDate != null && endDate.isBefore(date)) {
+            throw new InvalidRecurringPayeeException(
+                    "End date cannot be before payment date"
+            );
+        }
+        
         boolean duplicateRecurringPayee =
             recurringPayeeRepository
                     .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
@@ -185,6 +245,19 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayee.setSchedule(recurringPayeeRequestDTO.getSchedule());
         recurringPayee.setDate(date);
         recurringPayee.setEndDate(endDate);
+
+        if (recurringPayeeRequestDTO.getType() == RecurringPaymentType.SUBSCRIPTION) {
+            PaymentMethod paymentMethod = paymentRepository
+                    .findByPaymentMethodIdAndUser_Id(recurringPayeeRequestDTO.getPaymentMethodId(), ownerId)
+                    .orElseThrow(() -> new PaymentMethodNotFoundException("Payment method not found"));
+
+            if (!Boolean.TRUE.equals(paymentMethod.getActive())) {
+                throw new InvalidRecurringPayeeException("Payment method is not active");
+            }
+
+            recurringPayee.setPaymentMethod(paymentMethod);
+        }
+
         recurringPayeeRepository.save(recurringPayee);
         return toRecurringResponseDTO(recurringPayee);
     }
@@ -207,18 +280,71 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerId(recurringPayeeId, ownerId)
             .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
-        if(!recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Can't update inactive account");
+        if(recurringPayee.getStatus() != RecurringPaymentStatus.ACTIVE){
+            throw new InvalidRecurringPayeeException("Only active recurring payments can be updated");
         }
-        if(recurringPayee.getDate().equals(payeeRequestDTO.getDate()) 
-            && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())
-            && recurringPayee.getEndDate().equals(payeeRequestDTO.getEndDate())){
+
+        if (recurringPayee.getDate().equals(payeeRequestDTO.getDate())
+                && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())
+                && Objects.equals(
+                    recurringPayee.getEndDate(),
+                    payeeRequestDTO.getEndDate()
+                )) {
             throw new InvalidRecurringPayeeException("No changes were detected");
         }
 
-        if(payeeRequestDTO.getEndDate().compareTo(payeeRequestDTO.getDate())<=-1){
-            throw new InvalidRecurringPayeeException("End Date can't be before Payment Date");
+        Double amount = payeeRequestDTO.getAmount();
+        LocalDate today = LocalDate.now();
+
+        if(amount != null)
+        {
+            if (amount < 1) {
+                throw new InvalidRecurringPayeeException(
+                        "Minimum amount is $1.00"
+                );
+            }
+
+            if (amount > 10000) {
+                throw new InvalidRecurringPayeeException(
+                        "Maximum amount is $10,000.00"
+                );
+            }
         }
+
+        if (payeeRequestDTO.getDate().isBefore(today)) {
+            throw new InvalidRecurringPayeeException(
+                "Past payment dates are not allowed"
+            );
+        }
+
+        
+        if (payeeRequestDTO.getEndDate() != null
+                && payeeRequestDTO.getEndDate().isBefore(today)) {
+            throw new InvalidRecurringPayeeException(
+                "Past end dates are not allowed"
+            );
+        }
+
+        if (payeeRequestDTO.getEndDate() != null
+                && !payeeRequestDTO.getEndDate().isAfter(payeeRequestDTO.getDate())) {
+            throw new InvalidRecurringPayeeException(
+                "End Date must be after Payment Date"
+            );
+        }
+
+        if (payeeRequestDTO.getEndDate() != null
+                && payeeRequestDTO.getEndDate().compareTo(payeeRequestDTO.getDate()) <= 0) {
+            throw new InvalidRecurringPayeeException(
+                "End Date must be after Payment Date"
+            );
+        }
+
+
+        if (Objects.equals(recurringPayee.getDate(), payeeRequestDTO.getDate())
+            && Objects.equals(recurringPayee.getAmount(), payeeRequestDTO.getAmount())
+            && Objects.equals(recurringPayee.getEndDate(), payeeRequestDTO.getEndDate())) {
+        throw new InvalidRecurringPayeeException("No changes were detected");
+    }
 
         recurringPayee.setDate(payeeRequestDTO.getDate());
         recurringPayee.setAmount(payeeRequestDTO.getAmount());
@@ -232,10 +358,11 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerId(payeeId, ownerId)
         .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
-        if(!recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
+        if(recurringPayee.getStatus() != RecurringPaymentStatus.ACTIVE){
+            throw new InvalidRecurringPayeeException("Only active recurring payments can be cancelled");
         }
-        recurringPayee.setActive(false);
+
+        recurringPayee.setStatus(RecurringPaymentStatus.CANCELLED);
         recurringPayeeRepository.save(recurringPayee);
     }
 
@@ -251,7 +378,18 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayeeRepository.save(recurringPayee);
     }
 
+    @Override
+        public RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId) {
 
+            RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeId(recurringPayeeId)
+        .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+            if(!Objects.equals(recurringPayee.getOwner().getId(), ownerId)){
+                throw new RecurringPayeeForbiddenAccessException("Recurring Payement does not belong to User.");
+            }
+            
+            return toRecurringResponseDTO(recurringPayee);
+        }
 
     private PayeeResponseDTO toResponseDTO(Payee payee) {
         String phoneNumber = customerRepository.findByUser(payee.getRecipient())
@@ -270,20 +408,33 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         String phoneNumber = customerRepository.findByUser(recurringPayee.getRecipient())
                 .map(Customer::getPhoneNumber)
                 .orElse(null);
-        return new RecurringPayeeResponseDTO(
-                recurringPayee.getPayeeId(),
-                recurringPayee.getPayeeName(),
-                recurringPayee.getRecipient().getId(),
-                recurringPayee.getAccountNumber(),
-                recurringPayee.getRecipient().getFirstName(),
-                recurringPayee.getRecipient().getLastName(),
-                recurringPayee.getRecipient().getEmail(),
-                phoneNumber,
-                recurringPayee.getSchedule(),
-                recurringPayee.getAmount(),
-                recurringPayee.getDate(),
-                recurringPayee.getType(),
-                recurringPayee.getEndDate());
+
+        PaymentMethod paymentMethod = recurringPayee.getPaymentMethod();
+
+        return RecurringPayeeResponseDTO.builder()
+                .payeeId(recurringPayee.getPayeeId())
+                .payeeName(recurringPayee.getPayeeName())
+                .recipientId(recurringPayee.getRecipient().getId())
+                .recipientIdentifier(recurringPayee.getAccountNumber())
+                .firstName(recurringPayee.getRecipient().getFirstName())
+                .lastName(recurringPayee.getRecipient().getLastName())
+                .email(recurringPayee.getRecipient().getEmail())
+                .phoneNumber(phoneNumber)
+                .schedule(recurringPayee.getSchedule())
+                .amount(recurringPayee.getAmount())
+                .date(recurringPayee.getDate())
+                .type(recurringPayee.getType())
+                .status(recurringPayee.getStatus())
+                .endDate(recurringPayee.getEndDate())
+                .lastProcessedDate(recurringPayee.getLastProcessedDate())
+                .startDate(recurringPayee.getCreatedAt() != null ? recurringPayee.getCreatedAt().toLocalDate() : null)
+                .paymentMethodId(paymentMethod != null ? paymentMethod.getPaymentMethodId() : null)
+                .paymentMethodBankDisplayName(paymentMethod != null ? paymentMethod.getBankDisplayName() : null)
+                .paymentMethodAccountType(paymentMethod != null && paymentMethod.getAccount() != null
+                        ? paymentMethod.getAccount().getAccountType().name() : null)
+                .paymentMethodAccountNumberMasked(paymentMethod != null && paymentMethod.getAccount() != null
+                        ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
+                .build();
     }
 
 

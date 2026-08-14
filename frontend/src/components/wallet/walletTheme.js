@@ -15,7 +15,7 @@ export const WALLET_COLORS = {
   warningText: tokens.color.status.warningText,
 };
 
-export const MIN_LOAD_AMOUNT = 5;
+export const MIN_LOAD_AMOUNT = 1;
 export const MAX_LOAD_AMOUNT = 10000;
 
 export function formatMoney(value) {

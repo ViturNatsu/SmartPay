@@ -45,6 +45,7 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState("");
   const lastRequestRef = useRef(null);
+  const [resent, setResent] = useState(false);
 
   const {
     timeLeft,
@@ -82,6 +83,7 @@ export const useOtpRequest = ({requestAPI} = {}) => {
   };
 
   const handleResend = async () => {
+    setResent(true);
     if (isRequesting || timeLeft > 0) return;
     if (!lastRequestRef.current) return;
 

@@ -1,6 +1,6 @@
 import {
   Box,
-  Button,
+  Button, CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,6 +16,8 @@ import { OtpInputField } from "@/components/customComponents/input/OtpInputField
 import { WarningAmberRounded } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { useCardLockOtpRequest } from "@/hooks/OtpHooks/OtpRequests/useCardLockOtpRequest.js";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -60,15 +62,12 @@ export const LockCardOtpDialog = ({
     type: "CARD_UNLOCK",
   };
 
+  const getPayload = () => (isActive(cardStatus) ? lockPayload : unlockPayload);
+
   const handleReset = () => {
     cardLockRequestObject.handlers.reset();
     otpVerifyObject.handlers.reset();
     setOtp("");
-  };
-
-  const handleClose = () => {
-    handleReset();
-    onClose();
   };
 
   const handleConfirm = () => {
@@ -96,9 +95,9 @@ export const LockCardOtpDialog = ({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
-      fullWidth
+      onClose={onClose}
       maxWidth="sm"
+      fullWidth
       slotProps={{
         paper: {
           sx: {
@@ -107,20 +106,24 @@ export const LockCardOtpDialog = ({
             borderRadius: 4,
           },
         },
+        transition: {
+          onExited: handleReset,
+        },
       }}
     >
 
 
       <DialogTitle
         sx={{
-          textAlign: "left",
-          fontSize: 28,
-          fontWeight: 800,
-          px: 4,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
           pt: 4,
-          pb: 2,
-        }}
+          px: 4,
+          pb: 1
+      }}
       >
+        <LockOutlinedIcon fontSize="small" color="primary" />
         {isActive(cardStatus)
           ? "Lock Virtual Card"
           : "Unlock Virtual Card"}
@@ -128,29 +131,29 @@ export const LockCardOtpDialog = ({
 
       <DialogContent
         sx={{
-          px: 4,
-          pt: 1,
-          pb: isOtpSent ? 1 : 4,
+          px: 8,
+          pb: 0,
         }}
       >
 
-        {!isOtpSent && (
-          <Stack spacing={3}>
-            {/* Description */}
+        <Stack spacing={3}>
+          {/* Description */}
 
-            <Typography
-              sx={{
-                fontSize: 16,
-                lineHeight: 1.6,
-                color: "text.primary",
-              }}
-            >
-              {isActive(cardStatus)
-                ? "This action will lock the card. A locked card cannot be used until it is unlocked again."
-                : "This action will unlock the card. Unlocked cards are active, and may be used until they are locked or expired."}
-            </Typography>
+          <Typography
+            sx={{
+              fontSize: 16,
+              lineHeight: 1.6,
+              color: "text.primary",
+            }}
+          >
+            {isActive(cardStatus)
+              ? "This action will lock the card. A locked card cannot be used until it is unlocked again."
+              : "This action will unlock the card. Unlocked cards are active, and may be used until they are locked or expired."}
+          </Typography>
 
-            {/* Warning */}
+          {/* Warning */}
+
+          {!isOtpSent && (
 
             <Box
               sx={{
@@ -187,30 +190,8 @@ export const LockCardOtpDialog = ({
                 a request for a card renewal.
               </Typography>
             </Box>
+          )}
 
-
-            <OtpInputField
-              messageFluff={
-                isActive(cardStatus)
-                  ? "lock your card"
-                  : "unlock your card"
-              }
-              emailTarget={email}
-              otpRequestObject={cardLockRequestObject}
-              otpVerifyObject={otpVerifyObject}
-              value={otp}
-              onChange={setOtp}
-              payload={
-                isActive(cardStatus)
-                  ? lockPayload
-                  : unlockPayload
-              }
-            />
-          </Stack>
-        )}
-
-
-        {isOtpSent && (
           <OtpInputField
             messageFluff={
               isActive(cardStatus)
@@ -222,51 +203,33 @@ export const LockCardOtpDialog = ({
             otpVerifyObject={otpVerifyObject}
             value={otp}
             onChange={setOtp}
-            payload={
-              isActive(cardStatus)
-                ? lockPayload
-                : unlockPayload
-            }
+            payload={getPayload()}
           />
-        )}
+        </Stack>
+
+
       </DialogContent>
-
-
-      {isOtpSent && (
         <DialogActions
           sx={{
-            display: "flex",
-            gap: 2,
             px: 4,
-            pt: 2,
             pb: 4,
-
-            "& > :not(style) ~ :not(style)": {
-              ml: 0,
-            },
+            position: "sticky",
           }}
         >
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleClose}
-            disabled={otpVerifyObject.state.isVerifying}
-            sx={{
-              minHeight: 52,
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 700,
-            }}
-          >
-            Cancel
-          </Button>
 
+        {!isOtpSent && (
           <Button
             fullWidth
-            loading={otpVerifyObject.state.isVerifying}
             variant="contained"
-            disabled={otp.length !== 7}
-            onClick={handleConfirm}
+            onClick={() => {
+              cardLockRequestObject.handlers
+                .handleOtpRequest(getPayload())
+                .catch(console.error);
+            }}
+            disabled={
+              cardLockRequestObject.state.isRequesting ||
+              cardLockRequestObject.state.error
+            }
             sx={{
               minHeight: 52,
               borderRadius: 2,
@@ -274,12 +237,55 @@ export const LockCardOtpDialog = ({
               fontWeight: 700,
             }}
           >
-            {isActive(cardStatus)
-              ? "Confirm Lock"
-              : "Confirm Unlock"}
+            {cardLockRequestObject.state.isRequesting ? (
+              <CircularProgress
+                size={24}
+                thickness={5}
+                sx={{ color: "inherit" }}
+              />
+            ) : (
+              "Send Verification Code"
+            )}
           </Button>
-        </DialogActions>
-      )}
+        )}
+
+        {isOtpSent && (
+          <>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={onClose}
+              disabled={otpVerifyObject.state.isVerifying}
+              sx={{
+                minHeight: 52,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              fullWidth
+              loading={otpVerifyObject.state.isVerifying}
+              variant="contained"
+              disabled={otp.length !== 7}
+              onClick={handleConfirm}
+              sx={{
+                minHeight: 52,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+              }}
+            >
+              {isActive(cardStatus)
+                ? "Confirm Lock"
+                : "Confirm Unlock"}
+            </Button>
+          </>
+        )}
+      </DialogActions>
     </Dialog>
   );
 };
