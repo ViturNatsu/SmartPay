@@ -14,7 +14,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharg
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringBillingChargeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 
@@ -130,10 +129,6 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     private void calculateAndSaveNextScheduledPayment(RecurringPayee recurringPayee){
         LocalDate paymentDate = recurringPayee.getDate();
         Schedule schedule = recurringPayee.getSchedule();
-
-        if(!recurringPayee.isActive()){
-            throw new InvalidRecurringPayeeException("Can't update inactive account");
-        }
 
         switch (schedule) {
                 case WEEKLY -> paymentDate = paymentDate.plusWeeks(1);
