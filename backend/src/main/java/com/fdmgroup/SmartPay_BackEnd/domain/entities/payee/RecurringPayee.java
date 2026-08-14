@@ -69,9 +69,9 @@ public class RecurringPayee extends Payee{
         this.createdAt = LocalDateTime.now();
     }
 
-    @Column(name = "status", insertable = false)
-    @Enumerated(EnumType.STRING)
-    private RecurringPaymentStatus status;
+//    @Column(name = "status", insertable = false)
+//    @Enumerated(EnumType.STRING)
+//    private RecurringPaymentStatus status;
 
 
 }
