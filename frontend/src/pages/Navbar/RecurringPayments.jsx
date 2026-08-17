@@ -34,6 +34,7 @@ import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPag
 import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
+import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -78,6 +79,7 @@ export default function RecurringPayments() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [viewingItem, setViewingItem] = useState(null);
 
   const loadRecurringPayees = async () => {
     setIsLoading(true);
@@ -181,6 +183,7 @@ export default function RecurringPayments() {
       await loadRecurringPayees();
 
       setCancellingPayee(null);
+      setViewingItem(null);
       setSuccessMessage("Recurring payment cancelled successfully.");
     } catch (error) {
       setErrorMessage(
@@ -789,6 +792,7 @@ export default function RecurringPayments() {
                           subscription={subscription}
                           onEdit={handleEditRecurringPayee}
                           onCancel={handleCancelRecurringPayee}
+                          onView={setViewingItem}
                         />
                       ))}
                     </Stack>
@@ -807,6 +811,7 @@ export default function RecurringPayments() {
                           payee={payee}
                           onEdit={handleEditRecurringPayee}
                           onCancel={handleCancelRecurringPayee}
+                          onView={setViewingItem}
                         />
                       ))}
                     </Stack>
@@ -827,6 +832,12 @@ export default function RecurringPayments() {
             onClose={() => setCancellingPayee(null)}
             onConfirm={handleConfirmCancelRecurringPayee}
             isCancelling={isSubmitting}
+          />
+          <RecurringPaymentDetail
+            open={Boolean(viewingItem)}
+            item={viewingItem}
+            onClose={() => setViewingItem(null)}
+            onCancelPayment={() => setCancellingPayee(viewingItem)}
           />
     </BasicPageLayout>
   );

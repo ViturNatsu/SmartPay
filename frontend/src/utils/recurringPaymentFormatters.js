@@ -27,3 +27,14 @@ export function formatRecurringDateWithYear(date) {
     year: "numeric"
   });
 }
+
+export function maskAccountNumber(value) {
+    if (!value) return "—";
+    const digits = String(value).replace(/\D/g, "");
+    return digits.length > 4 ? `••••${digits.slice(-4)}` : value;
+}
+
+export function formatStatus(status) {
+  if (!status) return "—";
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
