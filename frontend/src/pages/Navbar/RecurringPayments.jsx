@@ -605,7 +605,9 @@ export default function RecurringPayments() {
 
     <BasicPageLayout
       title={"Recurring Payments"}
-      subtitle={"Manage your subscriptions and recurring bill payments."}
+      subtitle={
+        "Manage your subscriptions and recurring bill payments. Select view to see full details."
+      }
     >
       <Stack spacing={3}>
         {/* Top section: controls and add payee */}

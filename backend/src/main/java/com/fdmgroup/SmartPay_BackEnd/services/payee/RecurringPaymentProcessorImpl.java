@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
@@ -65,7 +66,8 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
                 && payment.isActive()
                 && payment.getStatus() == RecurringPaymentStatus.ACTIVE
                 && !payment.getDate().isAfter(invocationDate)
-                && (payment.getEndDate() == null || !payment.getEndDate().isBefore(invocationDate));
+                && (payment.getEndDate() == null || !payment.getEndDate().isBefore(invocationDate)
+                && (payment.getStatus() != RecurringPaymentStatus.PAUSED && payment.getStatus() != RecurringPaymentStatus.CANCELLED));
     }
 
     private LocalDate nextDateAfter(LocalDate scheduledDate, Schedule schedule, LocalDate invocationDate) {
