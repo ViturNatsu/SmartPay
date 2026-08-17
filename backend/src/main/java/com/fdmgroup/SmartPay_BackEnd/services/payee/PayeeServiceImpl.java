@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
@@ -20,11 +23,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
@@ -441,5 +439,38 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 .build();
     }
 
-        
+
+
+    @Override
+    @Transactional
+    public void pauseRecurringPayee(Long ownerId, Long payeeId) {
+
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+                .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(recurringPayee.getStatus() == RecurringPaymentStatus.PAUSED){
+            throw new RecurringPayeeAlreadyPaused("Payee already paused");
+        }
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
+        }
+        recurringPayee.setStatus(RecurringPaymentStatus.PAUSED);
+    }
+
+
+    @Override
+    @Transactional
+    public void resumeRecurringPayee(Long ownerId, Long payeeId) {
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+                .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(recurringPayee.getStatus() != RecurringPaymentStatus.PAUSED){
+            throw new RecurringPayeeNotPaused("Payee not paused");
+        }
+
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
+        }
+        recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
+    }
 }

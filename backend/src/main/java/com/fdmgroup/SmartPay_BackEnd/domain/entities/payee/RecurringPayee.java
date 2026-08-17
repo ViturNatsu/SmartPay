@@ -68,4 +68,10 @@ public class RecurringPayee extends Payee{
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+//    @Column(name = "status", insertable = false)
+//    @Enumerated(EnumType.STRING)
+//    private RecurringPaymentStatus status;
+
+
 }
