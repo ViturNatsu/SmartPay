@@ -64,7 +64,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
                 && payment.isActive()
                 && !payment.getDate().isAfter(invocationDate)
                 && (payment.getEndDate() == null || !payment.getEndDate().isBefore(invocationDate)
-                && (payment.getStatus() != RecurringPaymentStatus.PAUSED || payment.getStatus() != RecurringPaymentStatus.CANCELLED));
+                && (payment.getStatus() != RecurringPaymentStatus.PAUSED && payment.getStatus() != RecurringPaymentStatus.CANCELLED));
     }
 
     private LocalDate nextDateAfter(LocalDate scheduledDate, Schedule schedule, LocalDate invocationDate) {
