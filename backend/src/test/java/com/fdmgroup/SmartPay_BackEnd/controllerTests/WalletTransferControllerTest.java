@@ -1,7 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.controllerTests;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
@@ -22,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RequestCounter;
 import com.fdmgroup.SmartPay_BackEnd.controllers.wallet.WalletController;
@@ -73,7 +74,7 @@ class WalletTransferControllerTest {
 
     @Test
     void transfer_returns200_whenTransferIsValid() throws Exception {
-        when(walletService.transfer(anyLong(), anyLong(), anyDouble(), any()))
+        when(walletService.transfer(anyLong(), anyLong(), any(BigDecimal.class), any()))
                 .thenReturn(new WalletResponseDTO());
 
         mockMvc.perform(post("/api/v1/wallets/1/transfer")
@@ -88,7 +89,12 @@ class WalletTransferControllerTest {
                         """))
                 .andExpect(status().isOk());
 
-        verify(walletService).transfer(1L, 2L, 75.00, "Dinner split");
+        verify(walletService).transfer(
+                1L,
+                2L,
+                new BigDecimal("75.00"),
+                "Dinner split"
+        );
     }
 
     @Test
@@ -104,7 +110,7 @@ class WalletTransferControllerTest {
                         """))
                 .andExpect(status().isForbidden());
 
-        verify(walletService, never()).transfer(anyLong(), anyLong(), anyDouble(), any());
+        verify(walletService, never()).transfer(anyLong(), anyLong(), any(BigDecimal.class), any());
     }
 
     @Test
@@ -129,7 +135,7 @@ class WalletTransferControllerTest {
                 .content("""
                         {
                           "recipientUserId": 2,
-                          "amount": 3001.00
+                          "amount": 10001.00
                         }
                         """))
                 .andExpect(status().isUnprocessableEntity());
@@ -168,7 +174,7 @@ class WalletTransferControllerTest {
     @Test
     void transfer_returns422_whenInsufficientFunds() throws Exception {
         doThrow(new InsufficientFundsException("Insufficient wallet balance to complete this transfer."))
-                .when(walletService).transfer(anyLong(), anyLong(), anyDouble(), any());
+                .when(walletService).transfer(anyLong(), anyLong(), any(BigDecimal.class), any());
 
         mockMvc.perform(post("/api/v1/wallets/1/transfer")
                 .principal(auth)
@@ -184,7 +190,7 @@ class WalletTransferControllerTest {
 
     @Test
     void transfer_returns200_whenMemoIsAbsent() throws Exception {
-        when(walletService.transfer(anyLong(), anyLong(), anyDouble(), isNull()))
+        when(walletService.transfer(anyLong(), anyLong(), any(BigDecimal.class), isNull()))
                 .thenReturn(new WalletResponseDTO());
 
         mockMvc.perform(post("/api/v1/wallets/1/transfer")

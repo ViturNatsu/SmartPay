@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
@@ -26,7 +27,7 @@ public class RecurringPayeeResponseDTO {
     private String email;
     private String phoneNumber;
     private Schedule schedule;
-    private Double amount;
+    private BigDecimal amount;
     private LocalDate date;
     private RecurringPaymentType type;
     private LocalDate endDate;
