@@ -122,7 +122,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         charge.setIdempotencyKey(idempotencyKey);
         charge.setRecurringPayee(recurringPayee);
         charge.setBillingCycleDate(billingCycleDate);
-        charge.setAmount(recurringPayee.getAmount());
+        charge.setAmount(recurringPayee.getAmount().doubleValue());
         charge.setStatus(RecurringBillingStatus.IN_PROGRESS);
         charge.setProviderReferenceId(chargeId);
         return charge;

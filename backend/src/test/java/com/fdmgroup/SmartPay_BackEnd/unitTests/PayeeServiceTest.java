@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -384,7 +386,7 @@ class PayeeServiceTest {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
         dto.setRecipientIdentifier("99990001");
-        dto.setAmount(100.0);
+        dto.setAmount(new BigDecimal("100.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
@@ -401,7 +403,7 @@ class PayeeServiceTest {
                 1L,
                 "99990001",
                 "My Buddy",
-                100.0,
+                new BigDecimal("100.00"),
                 Schedule.MONTHLY,
                 dto.getDate()))
         .thenReturn(false);
@@ -420,7 +422,7 @@ class PayeeServiceTest {
         assertEquals("Bob", result.getFirstName());
         assertEquals("Jones", result.getLastName());
         assertEquals("bob@example.com", result.getEmail());
-        assertEquals(100.0, result.getAmount());
+        assertEquals(new BigDecimal("100.00"), result.getAmount());
         assertEquals(Schedule.MONTHLY, result.getSchedule());
         assertEquals(LocalDate.now().plusDays(1), result.getDate());
         assertEquals(RecurringPaymentStatus.ACTIVE, result.getStatus());
@@ -434,7 +436,7 @@ class PayeeServiceTest {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
         dto.setRecipientIdentifier(accountNumber);
-        dto.setAmount(100.0);
+        dto.setAmount(new BigDecimal("100.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
@@ -453,7 +455,7 @@ class PayeeServiceTest {
                         1L,
                         accountNumber,
                         "My Buddy",
-                        100.0,
+                        new BigDecimal("100.00"),
                         Schedule.MONTHLY,
                         dto.getDate()))
                 .thenReturn(false);
@@ -480,7 +482,7 @@ class PayeeServiceTest {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
         dto.setRecipientIdentifier("4165551234");
-        dto.setAmount(-100.0);
+        dto.setAmount(new BigDecimal("-100.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
@@ -494,7 +496,7 @@ class PayeeServiceTest {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("My Buddy");
         dto.setRecipientIdentifier("bob@example.com");
-        dto.setAmount(100.0);
+        dto.setAmount(new BigDecimal("100.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
 
@@ -531,7 +533,7 @@ class PayeeServiceTest {
     void addRecurringPayee_shouldUseServerAssignedMerchantAccount_whenTypeIsSubscription() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("Netflix");
-        dto.setAmount(15.0);
+        dto.setAmount(new BigDecimal("15.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
         dto.setType(RecurringPaymentType.SUBSCRIPTION);
@@ -547,7 +549,7 @@ class PayeeServiceTest {
 
         when(recurringPayeeRepository
                 .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
-                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                        1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
                 .thenReturn(false);
 
         PaymentMethod paymentMethod = new PaymentMethod();
@@ -580,7 +582,7 @@ class PayeeServiceTest {
     void addRecurringPayee_shouldThrowPaymentMethodNotFoundException_whenPaymentMethodMissing() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("Netflix");
-        dto.setAmount(15.0);
+        dto.setAmount(new BigDecimal("15.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
         dto.setType(RecurringPaymentType.SUBSCRIPTION);
@@ -596,7 +598,7 @@ class PayeeServiceTest {
 
         when(recurringPayeeRepository
                 .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
-                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                        1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
                 .thenReturn(false);
 
         when(paymentRepository.findByPaymentMethodIdAndUser_Id(999L, 1L))
@@ -612,7 +614,7 @@ class PayeeServiceTest {
     void addRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenPaymentMethodInactive() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("Netflix");
-        dto.setAmount(15.0);
+        dto.setAmount(new BigDecimal("15.00"));
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
         dto.setType(RecurringPaymentType.SUBSCRIPTION);
@@ -628,7 +630,7 @@ class PayeeServiceTest {
 
         when(recurringPayeeRepository
                 .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
-                        1L, "99990001", "Netflix", 15.0, Schedule.MONTHLY, dto.getDate()))
+                        1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
                 .thenReturn(false);
 
         PaymentMethod inactivePaymentMethod = new PaymentMethod();
@@ -652,7 +654,7 @@ class PayeeServiceTest {
         recurringPayee1.setOwner(owner);
         recurringPayee1.setRecipient(recipient);
         recurringPayee1.setPayeeName("Buddy 1");
-        recurringPayee1.setAmount(50.0);
+        recurringPayee1.setAmount(new BigDecimal("50.00"));
         recurringPayee1.setSchedule(Schedule.MONTHLY);
         recurringPayee1.setDate(LocalDate.now().plusDays(1));
 
@@ -661,7 +663,7 @@ class PayeeServiceTest {
         recurringPayee2.setOwner(owner);
         recurringPayee2.setRecipient(recipient);
         recurringPayee2.setPayeeName("Buddy 2");
-        recurringPayee2.setAmount(75.0);
+        recurringPayee2.setAmount(new BigDecimal("75.00"));
         recurringPayee2.setSchedule(Schedule.YEARLY);
         recurringPayee2.setDate(LocalDate.now().plusDays(2));
         when(recurringPayeeRepository.findByOwnerIdAndActiveTrue(1L)).thenReturn(List.of(recurringPayee1, recurringPayee2));
@@ -698,7 +700,7 @@ class PayeeServiceTest {
         recurringPayee.setRecipient(recipient);
         recurringPayee.setPayeeName("My Buddy");
         recurringPayee.setActive(true);
-        recurringPayee.setAmount(100.0);
+        recurringPayee.setAmount(new BigDecimal("100.00"));
         recurringPayee.setSchedule(Schedule.MONTHLY);
         recurringPayee.setDate(LocalDate.now().plusDays(1));
 
