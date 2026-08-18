@@ -72,7 +72,7 @@ public class WalletController {
     })
     public ResponseEntity<WalletResponseDTO> updateDailySpendingLimit(
             @PathVariable long userId,
-            @RequestBody WalletDailyLimitRequestDTO request,
+            @Valid @RequestBody WalletDailyLimitRequestDTO request,
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();
@@ -97,7 +97,7 @@ public class WalletController {
     })
     public ResponseEntity<WithdrawResponseDTO> withdrawFunds(
             @PathVariable long userId,
-            @RequestBody WithdrawRequestDTO request,
+            @Valid @RequestBody WithdrawRequestDTO request,
             Authentication authentication) {
         User principalUser = (User) authentication.getPrincipal();
         if (!principalUser.getId().equals(userId)) {
@@ -165,7 +165,7 @@ public class WalletController {
     })
     public ResponseEntity<WalletResponseDTO> updatePerTransactionLimit(
             @PathVariable long userId,
-            @RequestBody WalletPerTransactionLimitRequestDTO request,
+            @Valid @RequestBody WalletPerTransactionLimitRequestDTO request,
             Authentication authentication) {
 
         User principalUser = (User) authentication.getPrincipal();

@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.entities.payee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -36,9 +37,14 @@ public class RecurringPayee extends Payee{
     @Column(name = "account_number", nullable = false)
     private String accountNumber;
 
-    @Column(name = "amount", nullable=false)
+    @Column(
+        name = "amount",
+        nullable = false,
+        precision = 7,
+        scale = 2
+    )
     @Positive
-    private Double amount;
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule", nullable=false)

@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -146,7 +148,7 @@ class RecurringPaymentProcessorTest {
         payment.setPayeeId(id);
         payment.setOwner(owner);
         payment.setPayeeName("Internet");
-        payment.setAmount(25.0);
+        payment.setAmount(new BigDecimal("25.00"));
         payment.setSchedule(Schedule.MONTHLY);
         payment.setDate(date);
         payment.setActive(true);

@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -29,7 +31,7 @@ public interface RecurringPayeeRepository extends JpaRepository<RecurringPayee, 
             Long ownerId,
             String accountNumber,
             String payeeName,
-            Double amount,
+            BigDecimal amount,
             Schedule schedule,
             LocalDate date
     );

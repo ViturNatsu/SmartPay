@@ -5,7 +5,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
@@ -53,7 +52,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
             return;
         }
 
-        walletService.debitRecurringPayment(payment.getOwner().getId(), payment.getAmount(),
+        walletService.debitRecurringPayment(payment.getOwner().getId(), payment.getAmount().doubleValue(),
                 payment.getPayeeName(), invocationDate);
         payment.setLastProcessedDate(invocationDate);
         payment.setDate(nextDateAfter(payment.getDate(), payment.getSchedule(), invocationDate));

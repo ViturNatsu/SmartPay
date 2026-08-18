@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.util.List;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
@@ -75,7 +76,7 @@ public interface WalletService {
      */
     WalletResponseDTO updatePerTransactionLimit(long userId, WalletPerTransactionLimitRequestDTO request);
 
-    WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, Double amount, String memo);
+    WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, BigDecimal amount, String memo);
 
     WalletTransactionDTO changeWalletTransactionFavouriteStatus(long userId, String walletTransactionId, boolean isFavourite);
 }
