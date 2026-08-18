@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
@@ -131,9 +132,19 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WithdrawResponseDTO withdrawFunds(long userId, WithdrawRequestDTO request) {
-        if (request.getAmount() == null || request.getAmount() < 1) {
+        BigDecimal amount = request.getAmount();
+
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
         }
+
+        if (amount.scale() > 2) {
+            throw new InvalidWithdrawAmountException(
+                "Amount cannot have more than 2 decimal places"
+            );
+        }
+
+        double amountValue = amount.doubleValue();
 
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
 
@@ -144,20 +155,20 @@ public class WalletServiceImpl implements WalletService {
         }
 
         if (wallet.getPerTransactionLimit() != null
-                && request.getAmount() > wallet.getPerTransactionLimit()) {
+                && amountValue > wallet.getPerTransactionLimit()) {
             throw new InvalidWithdrawAmountException(
                     "This transaction exceeds your wallet per-transaction limit of $"
                             + String.format("%.2f", wallet.getPerTransactionLimit()));
         }
 
         if (wallet.getDailySpendingLimit() != null
-                && wallet.getDailySpentAmount() + request.getAmount() > wallet.getDailySpendingLimit()) {
+                && wallet.getDailySpentAmount() + amountValue > wallet.getDailySpendingLimit()) {
             throw new InvalidWithdrawAmountException(
                     "This transaction exceeds your wallet daily spending limit of $"
                             + String.format("%.2f", wallet.getDailySpendingLimit()));
         }
 
-        if (request.getAmount() > wallet.getBalance()) {
+        if (amountValue > wallet.getBalance()) {
             throw new InsufficientFundsException(
                 "You cannot withdraw more than the Wallet balance of $"
                 + String.format("%.2f", wallet.getBalance()));
@@ -171,19 +182,19 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidWithdrawAmountException("Selected payment method is not active");
         }
 
-        wallet.setBalance(wallet.getBalance() - request.getAmount());
-        wallet.setDailySpentAmount(wallet.getDailySpentAmount() + request.getAmount());
+        wallet.setBalance(wallet.getBalance() - amountValue);
+        wallet.setDailySpentAmount(wallet.getDailySpentAmount() + amountValue);
         wallet.setDailySpentDate(today);
         Wallet savedWallet = walletRepository.save(wallet);
 
         maybeNotifyLowBalance(userId, savedWallet.getBalance());
 
-        WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, request.getAmount(), paymentMethod, RailType.BANK_TRANSFER);
+        WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, amountValue, paymentMethod, RailType.BANK_TRANSFER);
 
         WithdrawResponseDTO response = new WithdrawResponseDTO();
         response.setTransactionId(tx.getTransactionId());
         response.setNewBalance(savedWallet.getBalance());
-        response.setAmount(request.getAmount());
+        response.setAmount(amountValue);
         response.setCreatedAt(tx.getCreatedAt());
         return response;
     }
@@ -286,18 +297,30 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, Double amount, String memo) {
+    public WalletResponseDTO transfer(Long senderUserId, Long recipientUserId, BigDecimal amount, String memo) {
         Wallet senderWallet = walletRepository.findByUserId(senderUserId)
                 .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
 
         LocalDate today = LocalDate.now();
 
-        if (amount == null || amount < 1) {
-            throw new InvalidWithdrawAmountException("Amount must be at least $1.00");
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new InvalidWithdrawAmountException(
+                "Amount must be at least $1.00"
+            );
         }
 
-        if (senderWallet.getBalance() < amount) {
-            throw new InsufficientFundsException("Insufficient wallet balance");
+        if (amount.compareTo(new BigDecimal("10000.00")) > 0) {
+            throw new InvalidWithdrawAmountException(
+                "Amount cannot exceed $10,000.00"
+            );
+        }
+
+        double amountValue = amount.doubleValue();
+
+        if (senderWallet.getBalance() < amountValue) {
+            throw new InsufficientFundsException(
+                "Insufficient wallet balance"
+            );
         }
 
         if (senderWallet.getDailySpentDate() == null
@@ -307,14 +330,15 @@ public class WalletServiceImpl implements WalletService {
         }
 
         if (senderWallet.getPerTransactionLimit() != null
-                && amount > senderWallet.getPerTransactionLimit()) {
+                && amountValue > senderWallet.getPerTransactionLimit()) {
             throw new InvalidWithdrawAmountException(
                     "This transfer exceeds your wallet per-transaction limit of $"
                             + String.format("%.2f", senderWallet.getPerTransactionLimit()));
         }
 
         if (senderWallet.getDailySpendingLimit() != null
-                && senderWallet.getDailySpentAmount() + amount > senderWallet.getDailySpendingLimit()) {
+                && senderWallet.getDailySpentAmount() + amountValue
+                        > senderWallet.getDailySpendingLimit()) {
             throw new InvalidWithdrawAmountException(
                     "This transfer exceeds your wallet daily spending limit of $"
                             + String.format("%.2f", senderWallet.getDailySpendingLimit()));
@@ -323,14 +347,22 @@ public class WalletServiceImpl implements WalletService {
         Wallet recipientWallet = walletRepository.findByUserId(recipientUserId)
                 .orElseGet(() -> createWallet(recipientUserId));
 
-        senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
-        senderWallet.setDailySpentAmount(senderWallet.getDailySpentAmount() + amount);
+        senderWallet.setBalance(
+            Math.round((senderWallet.getBalance() - amountValue) * 100.0) / 100.0
+        );
+
+        senderWallet.setDailySpentAmount(
+            senderWallet.getDailySpentAmount() + amountValue
+        );
+
         senderWallet.setDailySpentDate(today);
         Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
         maybeNotifyLowBalance(senderUserId, savedSenderWallet.getBalance());
 
-        recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
+        recipientWallet.setBalance(
+            Math.round((recipientWallet.getBalance() + amountValue) * 100.0) / 100.0
+        );
         Wallet savedRecipientWallet = walletRepository.save(recipientWallet);
 
         User senderUser = senderWallet.getUser();
@@ -351,12 +383,12 @@ public class WalletServiceImpl implements WalletService {
 
         
 
-        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amount, depositCounterparty, RailType.WALLET_TRANSFER);
-        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amount ,transferCounterparty, RailType.WALLET_TRANSFER);
+        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amountValue, depositCounterparty, RailType.WALLET_TRANSFER);
+        WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amountValue ,transferCounterparty, RailType.WALLET_TRANSFER);
 
         notificationService.createNotification(
                 senderUserId, NotificationType.SUCCESS, "Payment successful",
-                "$" + String.format("%.2f", amount) + " sent to " + transferCounterparty);
+                "$" + String.format("%.2f", amountValue) + " sent to " + transferCounterparty);
 
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
@@ -382,16 +414,16 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getDailySpendingLimit() < 1) {
+        if (request.getDailySpendingLimit().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidWithdrawAmountException("Daily spending limit must be at least $1.00");
         }
 
-        if (request.getDailySpendingLimit() > 10000) {
+        if (request.getDailySpendingLimit().compareTo(new BigDecimal("10000.00")) > 0) {
             throw new InvalidWithdrawAmountException(
                 "Daily spending limit cannot exceed $10,000.00");
         }
 
-        wallet.setDailySpendingLimit(request.getDailySpendingLimit());
+        wallet.setDailySpendingLimit(request.getDailySpendingLimit().doubleValue());
         return mapToDto(walletRepository.save(wallet));
     }
 
@@ -405,17 +437,17 @@ public class WalletServiceImpl implements WalletService {
             return mapToDto(walletRepository.save(wallet));
         }
 
-        if (request.getPerTransactionLimit() < 1) {
+        if (request.getPerTransactionLimit().compareTo(BigDecimal.ONE) < 0) {
             throw new WalletLimitExceededException("Per-transaction limit must be at least $1.00");
         }
 
-        if (request.getPerTransactionLimit() > 10000) {
+        if (request.getPerTransactionLimit().compareTo(new BigDecimal("10000.00")) > 0) {
             throw new WalletLimitExceededException(
                 "Per-transaction limit cannot exceed $10,000.00"
             );
         }
 
-        wallet.setPerTransactionLimit(request.getPerTransactionLimit());
+        wallet.setPerTransactionLimit(request.getPerTransactionLimit().doubleValue());
         return mapToDto(walletRepository.save(wallet));
     }
 

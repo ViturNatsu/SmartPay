@@ -68,7 +68,9 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, onRefreshWallet, wallet
   }, [open]);
 
   // ── Derived values ────────────────────────────────────────────────────────
-  const parsedAmount    = parseFloat(amountInput.replace(/^\$/, "")) || 0;
+  const parsedAmount = Number(
+    amountInput.replace(/^\$/, "").trim()
+  ) || 0;
   const remainingBalance = walletBalance - parsedAmount;
   const selectedMethod  = paymentMethods.find((m) => m.paymentMethodId === selectedMethodId);
   const dailyLimit = wallet?.dailySpendingLimit;
@@ -101,8 +103,17 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, onRefreshWallet, wallet
   };
 
   const handleConfirm = async () => {
+    const error = validateWithdrawAmount(amountInput, walletBalance);
+
+    if (error) {
+      setValidationError(error);
+      setStep(STEPS.DETAILS);
+      return;
+    }
+
     setSubmitting(true);
     setApiError(null);
+
     try {
       const result = await withdrawFromWallet(Number(tokenClaims.userId), {
         paymentMethodId: selectedMethodId,
@@ -113,9 +124,7 @@ function WithdrawFundsDialog({ open, onClose, onSuccess, onRefreshWallet, wallet
       await onRefreshWallet?.();
       onSuccess?.(result);
       setStep(STEPS.SUCCESS);
-
     } catch (err) {
-      // Surface the backend error message inline (Scenarios 7 & 8)
       setApiError(err?.message || "An error occurred. Please try again.");
       setStep(STEPS.DETAILS);
     } finally {

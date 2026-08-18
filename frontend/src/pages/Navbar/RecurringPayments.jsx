@@ -261,18 +261,20 @@ export default function RecurringPayments() {
       newErrors.accountNumber = "Account Number is required.";
     }
 
-    const amountValue = Number(formData.amount);
-
     if (!formData.amount) {
       newErrors.amount = "Amount is required.";
-    } else if (Number.isNaN(amountValue)) {
-      newErrors.amount = "Amount must be a valid number.";
-    } else if (amountValue < 1) {
-      newErrors.amount = "Amount must be at least $1.00.";
-    } else if (amountValue > 10000) {
-      newErrors.amount = "Amount cannot exceed $10,000.00.";
-    } else if (!/^\d+(\.\d{1,3})?$/.test(formData.amount.trim())) {
-      newErrors.amount = "Amount can have a maximum of 3 decimal places.";
+    } else if (!/^\d+(\.\d{1,2})?$/.test(formData.amount.trim())) {
+      newErrors.amount = "Amount can have a maximum of 2 decimal places.";
+    } else {
+      const amountValue = Number(formData.amount);
+
+      if (Number.isNaN(amountValue)) {
+        newErrors.amount = "Amount must be a valid number.";
+      } else if (amountValue < 1) {
+        newErrors.amount = "Amount must be at least $1.00.";
+      } else if (amountValue > 10000) {
+        newErrors.amount = "Amount cannot exceed $10,000.00.";
+      }
     }
 
     if (!formData.schedule) {
@@ -366,18 +368,20 @@ export default function RecurringPayments() {
       newErrors.name = "Subscription name cannot contain special characters.";
     }
 
-    const amountValue = Number(subscriptionFormData.amount);
-
     if (!subscriptionFormData.amount) {
       newErrors.amount = "Amount is required.";
-    } else if (Number.isNaN(amountValue)) {
-      newErrors.amount = "Amount must be a valid number.";
-    } else if (amountValue < 1) {
-      newErrors.amount = "Amount must be at least $1.00.";
-    } else if (amountValue > 10000) {
-      newErrors.amount = "Amount cannot exceed $10,000.00.";
-    } else if (!/^\d+(\.\d{1,3})?$/.test(subscriptionFormData.amount.trim())) {
-      newErrors.amount = "Amount can have a maximum of 3 decimal places.";
+    } else if (!/^\d+(\.\d{1,2})?$/.test(subscriptionFormData.amount.trim())) {
+      newErrors.amount = "Amount can have a maximum of 2 decimal places.";
+    } else {
+      const amountValue = Number(subscriptionFormData.amount);
+
+      if (Number.isNaN(amountValue)) {
+        newErrors.amount = "Amount must be a valid number.";
+      } else if (amountValue < 1) {
+        newErrors.amount = "Amount must be at least $1.00.";
+      } else if (amountValue > 10000) {
+        newErrors.amount = "Amount cannot exceed $10,000.00.";
+      }
     }
 
     if (!subscriptionFormData.schedule) {
@@ -558,7 +562,8 @@ export default function RecurringPayments() {
     formData.name.trim() &&
     formData.accountNumber.trim() &&
     formData.amount &&
-    Number(formData.amount) > 0 &&
+    Number(formData.amount) >= 1  &&
+    Number(formData.amount) <= 10000 &&
     formData.schedule &&
     formData.date &&
     formData.endDate;
@@ -566,7 +571,8 @@ export default function RecurringPayments() {
   const isSubscriptionFormComplete =
     subscriptionFormData.name.trim() &&
     subscriptionFormData.amount &&
-    Number(subscriptionFormData.amount) > 0 &&
+    Number(subscriptionFormData.amount) >= 1 &&
+    Number(subscriptionFormData.amount) <= 10000 &&
     subscriptionFormData.schedule &&
     subscriptionFormData.date &&
     subscriptionFormData.paymentMethodId;

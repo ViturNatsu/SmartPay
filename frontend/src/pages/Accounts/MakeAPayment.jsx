@@ -19,8 +19,8 @@ import { getRailLabel, RAIL_TYPES } from "@/utils/transactionRailUtils";
 import { tokens } from "@/style/Theme.jsx";
 import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 const STEPS = ["Select Payee", "Enter Amount", "Review", "Done"];
-const MAX_AMOUNT = 3000;
-const MIN_AMOUNT = 0.01;
+const MAX_AMOUNT = 10000;
+const MIN_AMOUNT = 1.00;
 const MAX_MEMO = 100;
 const MEMO_PATTERN = /^[A-Za-z0-9 ]*$/;
 
@@ -196,12 +196,31 @@ export function MakeAPayment() {
   }, [authLoading, tokenClaims?.userId]);
 
   const validateAmount = (val) => {
-    const num = parseFloat(val);
-    if (!val || isNaN(num)) return "Please enter an amount";
-    if (num < MIN_AMOUNT) return "Amount must be at least $0.01";
-    if (num > MAX_AMOUNT) return "Amount cannot exceed $3,000.00";
-    if (walletBalance !== null && num > walletBalance)
+    const value = String(val).trim();
+
+    if (!value) {
+      return "Please enter an amount";
+    }
+
+    // Only allow numbers with a maximum of 2 decimal places
+    if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+      return "Amount must be a valid number with no more than 2 decimal places";
+    }
+
+    const num = Number(value);
+
+    if (num < MIN_AMOUNT) {
+      return "Amount must be at least $1.00";
+    }
+
+    if (num > MAX_AMOUNT) {
+      return "Amount cannot exceed $10,000.00";
+    }
+
+    if (walletBalance !== null && num > walletBalance) {
       return `Amount cannot exceed your wallet balance of $${walletBalance.toFixed(2)}`;
+    }
+
     return "";
   };
 
@@ -233,20 +252,35 @@ export function MakeAPayment() {
   };
 
   const handleTransfer = async () => {
+    const validationError = validateAmount(amount);
+
+    if (validationError) {
+      setSubmitError(validationError);
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
+
     try {
       const result = await sendMoney(
         Number(tokenClaims.userId),
         selectedPayee.recipientId,
-        parseFloat(parseFloat(amount).toFixed(2)),
+        Number(amount),
         memo.trim() || null
       );
+
       setTransactionId(result?.transactionId ?? null);
-      setWalletBalance((prev) => Math.round((prev - parseFloat(amount)) * 100) / 100);
+
+      setWalletBalance(
+        (prev) => Math.round((prev - Number(amount)) * 100) / 100
+      );
+
       setStep(3);
     } catch (err) {
-      setSubmitError(err?.message ?? "Transfer failed. Please try again.");
+      setSubmitError(
+        err?.message ?? "Transfer failed. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -354,10 +388,10 @@ export function MakeAPayment() {
           <Card elevation={0} sx={{ borderRadius: "18px", border: `1px solid ${tokens.color.border.light}`, p: "24px" }}>
             <Stack spacing={2.5}>
               <TextField label="Dollar Amount" fullWidth type="number"
-                inputProps={{ min: 0.01, max: 3000, step: 0.01 }}
+                inputProps={{ min: 1.00, max: 10000, step: 0.01 }}
                 value={amount} onChange={handleAmountChange}
                 error={!!amountError}
-                helperText={amountError || "Amount must be between $0.01 and $3,000.00"}
+                helperText={amountError || "Amount must be between $1.00 and $10,000.00"}
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }} />
               <TextField label="Memo (optional)" fullWidth multiline minRows={3}
                 value={memo} onChange={handleMemoChange}

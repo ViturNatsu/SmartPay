@@ -111,19 +111,38 @@ export default function LoadWalletDialog({ open, onClose, onSuccess }) {
     (pm) => String(pm.paymentMethodId) === selectedId,
   );
 
-  const numericAmount = parseFloat(amount);
+  const hasValidPrecision = /^\d+(\.\d{1,2})?$/.test(amount.trim());
+
+  const numericAmount = Number(amount);
+
   const isValidAmount =
-    !Number.isNaN(numericAmount) &&
+    amount.trim() !== "" &&
+    hasValidPrecision &&
+    Number.isFinite(numericAmount) &&
     numericAmount >= MIN_LOAD_AMOUNT &&
     numericAmount <= MAX_LOAD_AMOUNT;
 
   const validationMessage = useMemo(() => {
     if (amount === "") return "";
-    if (!isValidAmount) {
-      return `Amount must be between ${formatMoney(MIN_LOAD_AMOUNT)} and ${formatMoney(MAX_LOAD_AMOUNT)}.`;
+
+    if (!hasValidPrecision) {
+      return "Amount cannot have more than 2 decimal places.";
     }
+
+    if (!Number.isFinite(numericAmount)) {
+      return "Amount must be a valid number.";
+    }
+
+    if (numericAmount < MIN_LOAD_AMOUNT) {
+      return `Amount must be at least ${formatMoney(MIN_LOAD_AMOUNT)}.`;
+    }
+
+    if (numericAmount > MAX_LOAD_AMOUNT) {
+      return `Amount cannot exceed ${formatMoney(MAX_LOAD_AMOUNT)}.`;
+    }
+
     return "";
-  }, [amount, isValidAmount]);
+  }, [amount, hasValidPrecision, numericAmount]);
 
   const handleClose = () => {
     onClose();
