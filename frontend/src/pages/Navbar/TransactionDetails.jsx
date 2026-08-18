@@ -50,8 +50,8 @@ export function TransactionDetails() {
       setLoading(true);
       setNotFound(false);
       try {
-        const data = await getWalletTransactions(tokenClaims.userId, 50);
-        const list = Array.isArray(data) ? data : [];
+        const data = await getWalletTransactions(tokenClaims.userId, 0, 50);
+        const list = data.transactions ?? [];
         const match = list.find((tx) => tx.transactionId === transactionId);
         if (match) {
           setTransaction(match);
