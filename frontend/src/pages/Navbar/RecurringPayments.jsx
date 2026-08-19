@@ -610,6 +610,38 @@ export default function RecurringPayments() {
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
   const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
+  const [billFilters, setBillFilters] = useState({
+        billStatus:[],
+        billSchedule:[]
+  });
+
+  const clearBillFilters = (event)=>{
+    event.preventDefault();
+    setBillFilters({
+        billStatus:[],
+        billSchedule:[]
+  });
+  }
+
+  const toggleBillFilter = ()=>{
+      setBillFilters( prev=>{
+          
+      
+      });
+  }
+
+  const filterBillsByCategory = useMemo(()=>{
+    if(billFilters.billStatus.length===0 && billFilters.billSchedule.length===0){
+      return billsList;
+    }
+
+    return billsList.filter(payee =>{
+      billFilters.billStatus.includes(payee.status) && billFilters.billSchedule(payee.schedule)
+    }
+    );
+
+  }, [billsList, billFilters]);
+
   return (
 
     <BasicPageLayout
