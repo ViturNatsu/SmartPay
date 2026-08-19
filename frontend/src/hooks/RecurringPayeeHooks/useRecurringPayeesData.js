@@ -3,7 +3,6 @@ import {getRecurringPayees} from "@/api/recurringPayment/recurringPayeeApi.js";
 
 export const useRecurringPayeesData = () => {
 
-  const [data, setData] = useState(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -13,9 +12,7 @@ export const useRecurringPayeesData = () => {
     setError(null);
 
     try {
-      const data =  await getRecurringPayees();
-      setData(data);
-      return data;
+      return await getRecurringPayees();
     }
     catch (err) {
       setError(err?.response?.data?.message || err.message || "Something went wrong");
@@ -33,7 +30,6 @@ export const useRecurringPayeesData = () => {
     state: {
       isRequesting,
       error,
-      data
     },
   };
 }
