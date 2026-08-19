@@ -6,6 +6,8 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Getter
 @Builder
 public class RecurringChargeRequest {
@@ -16,4 +18,5 @@ public class RecurringChargeRequest {
     private final Long recipientUserId;
     private final Double amount;
     private final String providerReferenceId;
+    private final LocalDate processingDate;
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO
 import lombok.AllArgsConstructor;
 import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
+
 
 @Service
 @AllArgsConstructor
@@ -208,20 +210,21 @@ public class WalletServiceImpl implements WalletService {
         }
 
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
+        RecurringChargeValidationUtil.validate(wallet, amount, processingDate);
         resetDailySpendIfNeeded(wallet, processingDate);
 
-        if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
-            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet per-transaction limit of $"
-                    + String.format("%.2f", wallet.getPerTransactionLimit()));
-        }
-        if (wallet.getDailySpendingLimit() != null
-                && wallet.getDailySpentAmount() + amount > wallet.getDailySpendingLimit()) {
-            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet daily spending limit of $"
-                    + String.format("%.2f", wallet.getDailySpendingLimit()));
-        }
-        if (wallet.getBalance() == null || amount > wallet.getBalance()) {
-            throw new InsufficientFundsException("Insufficient wallet balance");
-        }
+//        if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
+//            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet per-transaction limit of $"
+//                    + String.format("%.2f", wallet.getPerTransactionLimit()));
+//        }
+//        if (wallet.getDailySpendingLimit() != null
+//                && wallet.getDailySpentAmount() + amount > wallet.getDailySpendingLimit()) {
+//            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet daily spending limit of $"
+//                    + String.format("%.2f", wallet.getDailySpendingLimit()));
+//        }
+//        if (wallet.getBalance() == null || amount > wallet.getBalance()) {
+//            throw new InsufficientFundsException("Insufficient wallet balance");
+//        }
 
         wallet.setBalance(wallet.getBalance() - amount);
         wallet.setDailySpentAmount(wallet.getDailySpentAmount() + amount);

@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
@@ -29,6 +32,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     private final RecurringPayeeRepository recurringPayeeRepository;
     private final RecurringBillingChargeRepository chargeRepository;
     private final PaymentProviderClient paymentProviderClient;
+    private final TransactionExecutor transactionExecutor;
 
     @Override
     public void processDuePaymentsForDate(LocalDate processingDate) {
@@ -38,12 +42,13 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
             RecurringBillingScheduleUtil.resolveDueBillingCycleDate(payee, processingDate)
                     .ifPresent(cycleDate -> {
                         try {
-                            processDuePayment(payee, cycleDate);
+                            processDuePayment(payee, cycleDate, processingDate);
                         } catch (RuntimeException ex) {
                             log.warn(
-                                    "Recurring billing failed for payee {} cycle {}: {}",
+                                    "Recurring billing failed for payee {} cycle {} on processing date {}: {}",
                                     payee.getPayeeId(),
                                     cycleDate,
+                                    processingDate,
                                     ex.getMessage());
                         }
                     });
@@ -51,30 +56,35 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     }
 
     @Override
-    @Transactional
-    public BillingChargeOutcome processDuePayment(RecurringPayee recurringPayee, LocalDate billingCycleDate) {
+    public BillingChargeOutcome processDuePayment(RecurringPayee payee, LocalDate cycleDate) {
+        return processDuePayment(payee, cycleDate, LocalDate.now());
+    }
+
+
+    private BillingChargeOutcome processDuePayment(RecurringPayee recurringPayee, LocalDate billingCycleDate,  LocalDate processingDate) {
         String idempotencyKey = RecurringBillingScheduleUtil.buildIdempotencyKey(
                 recurringPayee.getPayeeId(),
                 billingCycleDate);
 
         Optional<RecurringBillingCharge> existing = chargeRepository.findByIdempotencyKey(idempotencyKey);
         if (existing.isPresent()) {
-            return handleExistingCharge(existing.get(), recurringPayee);
+            return handleExistingCharge(existing.get(), recurringPayee, processingDate);
         }
 
         RecurringBillingCharge charge = createInProgressCharge(recurringPayee, billingCycleDate, idempotencyKey);
         try {
             chargeRepository.saveAndFlush(charge);
         } catch (DataIntegrityViolationException ex) {
-            return processDuePayment(recurringPayee, billingCycleDate);
+            return processDuePayment(recurringPayee, billingCycleDate, processingDate);
         }
 
-        return executeAndComplete(charge, recurringPayee);
+        return executeAndComplete(charge, recurringPayee, processingDate);
     }
 
     private BillingChargeOutcome handleExistingCharge(
             RecurringBillingCharge charge,
-            RecurringPayee recurringPayee) {
+            RecurringPayee recurringPayee,
+            LocalDate processingDate) {
         if (charge.getStatus() == RecurringBillingStatus.COMPLETED) {
             return BillingChargeOutcome.ALREADY_COMPLETED;
         }
@@ -84,12 +94,13 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
             return BillingChargeOutcome.RECOVERED_AFTER_CRASH;
         }
 
-        return executeAndComplete(charge, recurringPayee);
+        return executeAndComplete(charge, recurringPayee, processingDate);
     }
 
     private BillingChargeOutcome executeAndComplete(
             RecurringBillingCharge charge,
-            RecurringPayee recurringPayee) {
+            RecurringPayee recurringPayee,
+            LocalDate processingDate) {
         RecurringChargeRequest request = RecurringChargeRequest.builder()
                 .recurringPayee(recurringPayee)
                 .type(recurringPayee.getType())
@@ -97,17 +108,35 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                 .recipientUserId(recurringPayee.getRecipient().getId())
                 .amount(charge.getAmount())
                 .providerReferenceId(charge.getProviderReferenceId())
+                .processingDate(processingDate)
                 .build();
-
-        ChargeExecutionResult result = paymentProviderClient.executeCharge(request);
-        markCompleted(charge, result.getWalletTransactionId());
-        calculateAndSaveNextScheduledPayment(recurringPayee);
-        return BillingChargeOutcome.CHARGED;
+        try {
+            transactionExecutor.execute(() -> {
+                ChargeExecutionResult result = paymentProviderClient.executeCharge(request);
+                markCompleted(charge, result.getWalletTransactionId());
+                calculateAndSaveNextScheduledPayment(recurringPayee);
+            });
+            return BillingChargeOutcome.CHARGED;
+        } catch (InsufficientFundsException | InvalidWithdrawAmountException ex) {
+            log.warn(
+                    "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
+                    recurringPayee.getPayeeId(),
+                    charge.getBillingCycleDate(),
+                    processingDate,
+                    ex.getMessage());
+            markFailed(charge);
+            return BillingChargeOutcome.FAILED;
+        }
     }
 
     private void markCompleted(RecurringBillingCharge charge, String walletTransactionId) {
         charge.setStatus(RecurringBillingStatus.COMPLETED);
         charge.setWalletTransactionId(walletTransactionId);
+        chargeRepository.save(charge);
+    }
+
+    private void markFailed(RecurringBillingCharge charge) {
+        charge.setStatus(RecurringBillingStatus.FAILED);
         chargeRepository.save(charge);
     }
 
