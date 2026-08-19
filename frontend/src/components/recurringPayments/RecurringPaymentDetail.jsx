@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -11,12 +12,14 @@ import {
   formatRecurringAmount,
   formatRecurringDateWithYear,
   formatRecurringSchedule,
+  maskAccountNumber,
+  formatStatus
 } from "@/utils/recurringPaymentFormatters";
 
 const STATUS_COLOR = {
-  active: "success.main",
-  paused: "warning.main",
-  cancelled: "error.main",
+  ACTIVE: "success.main",
+  PAUSED: "warning.main",
+  CANCELLED: "error.main",
 };
 
 function Section({ title, children }) {
@@ -33,17 +36,73 @@ function Section({ title, children }) {
   );
 }
 
+function DetailRow({ label, value }) {
+  return (
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      sx={{ mt: tokens.spacing.xs }}
+    >
+      <Typography variant="body2" sx={{ color: tokens.color.text.subdued }}>
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ color: tokens.color.text.primary }}>
+        {value}
+      </Typography>
+    </Stack>
+  );
+}
+
+function EmptyPaymentMethod({ onAddPaymentMethod }) {
+  return (
+    <Box
+      sx={{
+        mt: tokens.spacing.sm,
+        p: tokens.spacing.md,
+        border: `1px dashed ${tokens.color.border.grayLight}`,
+        borderRadius: `${tokens.borderRadius.medium}px`,
+        backgroundColor: tokens.color.background.stack,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: tokens.typography.fontSize.extraSmall,
+          color: tokens.color.text.subdued,
+          mb: tokens.spacing.sm,
+        }}
+      >
+        No payment method linked to this bill
+      </Typography>
+      <Button
+        size="small"
+        onClick={onAddPaymentMethod}
+        sx={{
+          fontSize: tokens.typography.fontSize.extraSmall,
+          color: tokens.color.brand.primary,
+          border: `1px solid ${tokens.color.brand.primary}`,
+          backgroundColor: tokens.color.background.surface,
+        }}
+      >
+        + Add Payment Method
+      </Button>
+    </Box>
+  );
+}
+
 export default function RecurringPaymentDetail({
   open,
   onClose,
   onCancelPayment,
   onManageFunding,
-  subscription,
+  onAddPaymentMethod,
+  item
 }) {
-  if (!subscription) return null;
+  if (!item) return null;
 
-  const accountNumber = subscription.account_number;
-  const statusColor = STATUS_COLOR[subscription.status] ?? "default";
+  const statusColor = STATUS_COLOR[item.status] ?? "default";
+  const isSubscription = item.type === "SUBSCRIPTION";
+  const hasPaymentMethod = Boolean(item.paymentMethodId || item.bankDisplayName);
+  const isCancelled = item.status === "CANCELLED";
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
@@ -52,7 +111,7 @@ export default function RecurringPaymentDetail({
           variant="h6"
           sx={{ color: tokens.color.text.title, lineHeight: 1.3 }}
         >
-          {subscription.name}
+          {formatStatus(item.name)}
         </Typography>
 
         <Typography sx={{ color: tokens.color.text.primary }}>
@@ -62,33 +121,55 @@ export default function RecurringPaymentDetail({
             fontWeight={tokens.typography.fontWeight.bold}
             sx={{ color: statusColor }}
           >
-            {formatStatus(subscription.status)}
+            {formatStatus(item.status)}
           </Typography>
         </Typography>
 
         <Section title="Schedule">
           <Typography>
-            Payments every: {formatRecurringSchedule(subscription.schedule)}
+            Payments every: {formatRecurringSchedule(item.schedule)}
           </Typography>
           <Typography>
-            Start Date: {formatRecurringDateWithYear(subscription.startPaymentDate)}
+            Start Date: {formatRecurringDateWithYear(item.startPaymentDate)}
           </Typography>
         </Section>
 
         <Section title="Billing Details">
           <Typography>
-            Next Payment Date: {formatRecurringDateWithYear(subscription.nextPaymentDate)}
+            Next Payment Date: {formatRecurringDateWithYear(item.nextPaymentDate)}
           </Typography>
           <Typography>
-            Next Amount: ${formatRecurringAmount(subscription.amount)}
+            Next Amount: ${formatRecurringAmount(item.amount)}
           </Typography>
         </Section>
 
-        <Section title="Payment Method">
-          <Typography>{subscription.bankDisplayName}</Typography>
-          <Typography>{subscription.account_type}</Typography>
-          {accountNumber && <Typography>{accountNumber}</Typography>}
-        </Section>
+        {isSubscription ? (
+            <Section title="Payment Method">
+              <Typography>{item.bankDisplayName}</Typography>
+              <Typography>{formatStatus(item.account_type)}</Typography>
+              {item.account_number && <Typography>{item.account_number.substring(2)}</Typography>}
+            </Section>
+          ) : (
+            <Section title="Biller Details">
+              <DetailRow label="Biller Name:" value={item.name} />
+              <DetailRow label="Account / Reference #:" value={maskAccountNumber(item.accountNumber)} />
+              {item.category && <DetailRow label="Category:" value={item.category} />}
+              <DetailRow label="Category:" value={"Utilities"}></DetailRow>
+              
+
+              {hasPaymentMethod ? (
+                <Stack sx={{ mt: tokens.spacing.sm }}>
+                  <Typography variant="body2">{item.bankDisplayName}</Typography>
+                  <Typography variant="body2">{item.account_type}</Typography>
+                  {item.account_number && (
+                    <Typography variant="body2">{item.account_number}</Typography>
+                  )}
+                </Stack>
+              ) : (
+                <EmptyPaymentMethod onAddPaymentMethod={onAddPaymentMethod} />
+              )}
+            </Section>
+          )}
       </DialogContent>
 
       <DialogActions
@@ -99,21 +180,18 @@ export default function RecurringPaymentDetail({
           pb: tokens.spacing.md,
         }}
       >
-        <Button variant="outlined" size="small" onClick={onCancelPayment}>
+        <Button variant="outlined" size="small" onClick={onCancelPayment} disabled={isCancelled}>
           Cancel
         </Button>
-        <Button variant="outlined" size="small" onClick={onManageFunding}>
-          Manage Funding
-        </Button>
+        {isSubscription && (
+          <Button variant="outlined" size="small" onClick={onManageFunding}>
+            Manage Funding
+          </Button>
+        )}
         <Button variant="outlined" size="small" onClick={onClose}>
           Close
         </Button>
       </DialogActions>
     </Dialog>
   );
-}
-
-function formatStatus(status) {
-  if (!status) return "—";
-  return status.charAt(0).toUpperCase() + status.slice(1);
 }

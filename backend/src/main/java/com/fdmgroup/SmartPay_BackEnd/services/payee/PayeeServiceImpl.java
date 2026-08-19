@@ -1,12 +1,16 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
@@ -16,13 +20,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
@@ -35,7 +35,6 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.Utility.MaskingUtil;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
-import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
@@ -137,7 +136,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         String recipientIdentifier = recurringPayeeRequestDTO.getType() == RecurringPaymentType.SUBSCRIPTION
                 ? SUBSCRIPTION_MERCHANT_ACCOUNT_NUMBER
                 : recurringPayeeRequestDTO.getRecipientIdentifier();
-        Double recurringAmount=recurringPayeeRequestDTO.getAmount();
+        BigDecimal recurringAmount=recurringPayeeRequestDTO.getAmount();
         LocalDate date = recurringPayeeRequestDTO.getDate();
         LocalDate endDate = recurringPayeeRequestDTO.getEndDate();
 
@@ -183,13 +182,13 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             );
         }
 
-        if (recurringAmount < 1) {
+        if (recurringAmount.compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidRecurringPayeeException(
                     "Minimum amount is $1.00"
             );
         }
 
-        if (recurringAmount > 10000) {
+        if (recurringAmount.compareTo(new BigDecimal("10000.00")) > 0) {
             throw new InvalidRecurringPayeeException(
                     "Maximum amount is $10,000.00"
             );
@@ -287,7 +286,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         }
 
         if (recurringPayee.getDate().equals(payeeRequestDTO.getDate())
-                && recurringPayee.getAmount().equals(payeeRequestDTO.getAmount())
+                && recurringPayee.getAmount().compareTo(payeeRequestDTO.getAmount()) == 0
                 && Objects.equals(
                     recurringPayee.getEndDate(),
                     payeeRequestDTO.getEndDate()
@@ -295,20 +294,20 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new InvalidRecurringPayeeException("No changes were detected");
         }
 
-        Double amount = payeeRequestDTO.getAmount();
+        BigDecimal amount = payeeRequestDTO.getAmount();
         LocalDate today = LocalDate.now();
 
         if(amount != null)
         {
-            if (amount < 1) {
+            if (amount.compareTo(BigDecimal.ONE) < 0) {
                 throw new InvalidRecurringPayeeException(
-                        "Minimum amount is $1.00"
+                    "Minimum amount is $1.00"
                 );
             }
 
-            if (amount > 10000) {
+            if (amount.compareTo(new BigDecimal("10000.00")) > 0) {
                 throw new InvalidRecurringPayeeException(
-                        "Maximum amount is $10,000.00"
+                    "Maximum amount is $10,000.00"
                 );
             }
         }
@@ -428,6 +427,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 .type(recurringPayee.getType())
                 .status(recurringPayee.getStatus())
                 .endDate(recurringPayee.getEndDate())
+                .lastProcessedDate(recurringPayee.getLastProcessedDate())
                 .startDate(recurringPayee.getCreatedAt() != null ? recurringPayee.getCreatedAt().toLocalDate() : null)
                 .paymentMethodId(paymentMethod != null ? paymentMethod.getPaymentMethodId() : null)
                 .paymentMethodBankDisplayName(paymentMethod != null ? paymentMethod.getBankDisplayName() : null)
@@ -438,5 +438,38 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 .build();
     }
 
-        
+
+
+    @Override
+    @Transactional
+    public void pauseRecurringPayee(Long ownerId, Long payeeId) {
+
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+                .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(recurringPayee.getStatus() == RecurringPaymentStatus.PAUSED){
+            throw new RecurringPayeeAlreadyPaused("Payee already paused");
+        }
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
+        }
+        recurringPayee.setStatus(RecurringPaymentStatus.PAUSED);
+    }
+
+
+    @Override
+    @Transactional
+    public void resumeRecurringPayee(Long ownerId, Long payeeId) {
+        RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
+                .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
+
+        if(recurringPayee.getStatus() != RecurringPaymentStatus.PAUSED){
+            throw new RecurringPayeeNotPaused("Payee not paused");
+        }
+
+        if(!recurringPayee.isActive()){
+            throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
+        }
+        recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
+    }
 }

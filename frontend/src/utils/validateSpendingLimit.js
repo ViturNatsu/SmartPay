@@ -22,7 +22,13 @@ export function validateSpendingLimit(
     return `${fieldName} is required.`;
   }
 
-  const parsedValue = Number(rawValue);
+  const value = String(rawValue).trim();
+  
+  if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+    return `${fieldName} cannot have more than 2 decimal places.`;
+  }
+
+  const parsedValue = Number(value);
 
   if (!Number.isFinite(parsedValue)) {
     return `${fieldName} must be a valid numeric value.`;

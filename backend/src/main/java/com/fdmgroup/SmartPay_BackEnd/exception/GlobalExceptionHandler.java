@@ -4,6 +4,7 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -411,5 +412,15 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorBody);
+        }
+
+        @ExceptionHandler(RecurringPayeeAlreadyPaused.class)
+        public ResponseEntity<String> handleRecurringPayeeAlreadyPaused() {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payee already paused");
+        }
+
+        @ExceptionHandler(RecurringPayeeNotPaused.class)
+        public ResponseEntity<String> handleRecurringPayeeNotPaused() {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payee not paused");
         }
 }

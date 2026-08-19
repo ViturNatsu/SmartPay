@@ -1,22 +1,18 @@
 import { Button, Card, Stack, Typography } from "@mui/material";
-import { useState } from "react";
 import { tokens } from "@/style/Theme";
 import {
   formatRecurringAmount,
   formatRecurringDate,
   formatRecurringSchedule,
 } from "@/utils/recurringPaymentFormatters";
-import RecurringPaymentDetail from "./RecurringPaymentDetail";
 
 /**
  * Displays a single subscription recurring payment.
  *
  * @param {{ id: number, name: string, amount: string, schedule: string, nextPaymentDate: string }} subscription
  */
-export default function RecurringSubscriptionCard({ subscription, onEdit, onCancel, }) {
+export default function RecurringSubscriptionCard({ subscription, onView, onEdit, onCancel }) {
 
-  // State manage for recurring payment pop-up
-  const [viewDetail, setviewDetail] = useState(false);
   const isCancelled = subscription.status === "CANCELLED";
 
   return (
@@ -39,7 +35,7 @@ export default function RecurringSubscriptionCard({ subscription, onEdit, onCanc
       </Typography>
 
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>
-        <Button variant="contained" size="small" onClick={() => setviewDetail(true)}>
+        <Button variant="contained" size="small" onClick={() => onView(subscription)}>
           View
         </Button>
         <Button variant="outlined" size="small"
@@ -55,12 +51,6 @@ export default function RecurringSubscriptionCard({ subscription, onEdit, onCanc
           Cancel
         </Button>
       </Stack>
-
-       <RecurringPaymentDetail
-          open={viewDetail}
-          onClose={() => setviewDetail(false)}
-          subscription={subscription}
-        />
 
     </Card>
   );
