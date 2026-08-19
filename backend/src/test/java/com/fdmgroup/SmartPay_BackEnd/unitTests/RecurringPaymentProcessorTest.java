@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
@@ -58,7 +61,8 @@ class RecurringPaymentProcessorTest {
     void chargesDueActivePaymentAndAdvancesItsNextPaymentDate() {
         runTransactionsImmediately();
         RecurringPayee payment = duePayment(1L, LocalDate.of(2026, 8, 12));
-        when(recurringPayeeRepository.findDuePaymentIds(invocationDate)).thenReturn(List.of(1L));
+        when(recurringPayeeRepository.findDuePaymentIds(invocationDate, RecurringPaymentStatus.ACTIVE))
+                .thenReturn(List.of(1L));
         when(recurringPayeeRepository.findByPayeeIdForProcessing(1L)).thenReturn(Optional.of(payment));
 
         int processed = processor.processDuePayments(invocationDate).getProcessedCount();
@@ -72,7 +76,8 @@ class RecurringPaymentProcessorTest {
 
     @Test
     void ignoresPaymentsThatAreNotDue() {
-        when(recurringPayeeRepository.findDuePaymentIds(invocationDate)).thenReturn(List.of());
+        when(recurringPayeeRepository.findDuePaymentIds(invocationDate, RecurringPaymentStatus.ACTIVE))
+                .thenReturn(List.of());
 
         int processed = processor.processDuePayments(invocationDate).getProcessedCount();
 
@@ -86,7 +91,25 @@ class RecurringPaymentProcessorTest {
         runTransactionsImmediately();
         RecurringPayee payment = duePayment(1L, invocationDate);
         payment.setActive(false);
-        when(recurringPayeeRepository.findDuePaymentIds(invocationDate)).thenReturn(List.of(1L));
+        when(recurringPayeeRepository.findDuePaymentIds(invocationDate, RecurringPaymentStatus.ACTIVE))
+                .thenReturn(List.of(1L));
+        when(recurringPayeeRepository.findByPayeeIdForProcessing(1L)).thenReturn(Optional.of(payment));
+
+        int processed = processor.processDuePayments(invocationDate).getProcessedCount();
+
+        assertEquals(0, processed);
+        verify(walletService, never()).debitRecurringPayment(anyLong(), anyDouble(),
+                any(String.class), any(LocalDate.class));
+        verify(recurringPayeeRepository, never()).save(payment);
+    }
+
+    @Test
+    void skipsCancelledPaymentThatWasDueBeforeCancellation() {
+        runTransactionsImmediately();
+        RecurringPayee payment = duePayment(1L, invocationDate);
+        payment.setStatus(RecurringPaymentStatus.CANCELLED);
+        when(recurringPayeeRepository.findDuePaymentIds(invocationDate, RecurringPaymentStatus.ACTIVE))
+                .thenReturn(List.of(1L));
         when(recurringPayeeRepository.findByPayeeIdForProcessing(1L)).thenReturn(Optional.of(payment));
 
         int processed = processor.processDuePayments(invocationDate).getProcessedCount();
@@ -103,7 +126,8 @@ class RecurringPaymentProcessorTest {
         RecurringPayee failedPayment = duePayment(1L, invocationDate);
         RecurringPayee successfulPayment = duePayment(2L, invocationDate);
         successfulPayment.setPayeeName("Phone");
-        when(recurringPayeeRepository.findDuePaymentIds(invocationDate)).thenReturn(List.of(1L, 2L));
+        when(recurringPayeeRepository.findDuePaymentIds(invocationDate, RecurringPaymentStatus.ACTIVE))
+                .thenReturn(List.of(1L, 2L));
         when(recurringPayeeRepository.findByPayeeIdForProcessing(1L)).thenReturn(Optional.of(failedPayment));
         when(recurringPayeeRepository.findByPayeeIdForProcessing(2L)).thenReturn(Optional.of(successfulPayment));
         doThrow(new InsufficientFundsException("Insufficient wallet balance"))
@@ -124,10 +148,11 @@ class RecurringPaymentProcessorTest {
         payment.setPayeeId(id);
         payment.setOwner(owner);
         payment.setPayeeName("Internet");
-        payment.setAmount(25.0);
+        payment.setAmount(new BigDecimal("25.00"));
         payment.setSchedule(Schedule.MONTHLY);
         payment.setDate(date);
         payment.setActive(true);
+        payment.setStatus(RecurringPaymentStatus.ACTIVE);
         return payment;
     }
 }

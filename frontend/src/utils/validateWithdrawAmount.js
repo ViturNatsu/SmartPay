@@ -10,16 +10,30 @@
  * @returns {string|null}
  */
 export function validateWithdrawAmount(rawValue, walletBalance) {
-  if (!rawValue || rawValue.trim() === "") return "Please enter an amount.";
+  if (!rawValue || rawValue.trim() === "") {
+    return "Please enter an amount.";
+  }
 
-  // Allow the user to type with or without a leading "$"
   const stripped = rawValue.replace(/^\$/, "").trim();
+
+  // Validate raw precision BEFORE Number conversion
+  if (!/^\d+(\.\d{1,2})?$/.test(stripped)) {
+    return "Amount cannot have more than 2 decimal places.";
+  }
+
   const parsed = Number(stripped);
 
-  if (isNaN(parsed) || stripped === "") return "Enter a valid currency format (e.g. 50.00)";
-  if (parsed < 1) return "Amount must be at least $1.00";
-  if (parsed > walletBalance)
+  if (!Number.isFinite(parsed)) {
+    return "Enter a valid currency format (e.g. 50.00)";
+  }
+
+  if (parsed < 1) {
+    return "Amount must be at least $1.00";
+  }
+
+  if (parsed > walletBalance) {
     return `You cannot withdraw more than the Wallet balance ($${walletBalance.toFixed(2)})`;
+  }
 
   return null;
 }

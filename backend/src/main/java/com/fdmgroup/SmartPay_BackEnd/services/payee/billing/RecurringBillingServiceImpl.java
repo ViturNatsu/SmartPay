@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringBillingChargeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
 
@@ -30,7 +32,8 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
     @Override
     public void processDuePaymentsForDate(LocalDate processingDate) {
-        List<RecurringPayee> activePayees = recurringPayeeRepository.findByActiveTrue();
+        List<RecurringPayee> activePayees = recurringPayeeRepository
+                .findByActiveTrueAndStatus(RecurringPaymentStatus.ACTIVE);
         for (RecurringPayee payee : activePayees) {
             RecurringBillingScheduleUtil.resolveDueBillingCycleDate(payee, processingDate)
                     .ifPresent(cycleDate -> {
@@ -98,6 +101,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
         ChargeExecutionResult result = paymentProviderClient.executeCharge(request);
         markCompleted(charge, result.getWalletTransactionId());
+        calculateAndSaveNextScheduledPayment(recurringPayee);
         return BillingChargeOutcome.CHARGED;
     }
 
@@ -118,9 +122,24 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         charge.setIdempotencyKey(idempotencyKey);
         charge.setRecurringPayee(recurringPayee);
         charge.setBillingCycleDate(billingCycleDate);
-        charge.setAmount(recurringPayee.getAmount());
+        charge.setAmount(recurringPayee.getAmount().doubleValue());
         charge.setStatus(RecurringBillingStatus.IN_PROGRESS);
         charge.setProviderReferenceId(chargeId);
         return charge;
+    }
+
+    private void calculateAndSaveNextScheduledPayment(RecurringPayee recurringPayee){
+        LocalDate paymentDate = recurringPayee.getDate();
+        Schedule schedule = recurringPayee.getSchedule();
+
+        switch (schedule) {
+                case WEEKLY -> paymentDate = paymentDate.plusWeeks(1);
+                case BIWEEKLY -> paymentDate = paymentDate.plusWeeks(2);
+                case MONTHLY -> paymentDate = paymentDate.plusMonths(1);
+                case YEARLY -> paymentDate = paymentDate.plusYears(1);
+        }
+
+        recurringPayee.setDate(paymentDate);
+        recurringPayeeRepository.save(recurringPayee);
     }
 }

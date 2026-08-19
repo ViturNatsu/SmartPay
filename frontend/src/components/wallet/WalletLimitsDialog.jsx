@@ -68,12 +68,12 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
     const dailyLimitDisplay =
     !dailyLimitEnabled
         ? "No daily limit"
-        : `${formatCurrency(Number(dailyLimit))} per day`;
+        : `${formatCurrency(dailyLimit)} per day`;
 
     const perTransactionLimitDisplay =
     !perTransactionLimitEnabled
         ? "No per-transaction limit"
-        : `${formatCurrency(Number(perTransactionLimit))} per transaction`;
+        : `${formatCurrency(perTransactionLimit)} per transaction`;
         
     useEffect(() => {
         if (open && wallet && !saved) {
@@ -125,14 +125,14 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
 
       updatedWallet = await updateDailySpendingLimit(userId, {
         dailySpendingLimit:
-           !dailyLimitEnabled ? null : Number(dailyLimit),
+           !dailyLimitEnabled ? null : dailyLimit.trim(),
       });
 
       updatedWallet = await updatePerTransactionLimit(userId, {
         perTransactionLimit:
             !perTransactionLimitEnabled
                 ? null
-                : Number(perTransactionLimit),
+                : perTransactionLimit.trim(),
       });
 
       onSuccess(updatedWallet);
@@ -438,7 +438,18 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 label="Daily Spending Limit"
                 type="number"
                 value={dailyLimit}
-                onChange={(e) => setDailyLimit(e.target.value)}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setDailyLimit(value);
+
+                    if (dailyLimitEnabled && value !== "") {
+                        setError(
+                        validateSpendingLimit(value, "Daily spending limit")
+                        );
+                    } else {
+                        setError(null);
+                    }
+                }}
                 fullWidth
                 disabled={!dailyLimitEnabled}
                 slotProps={{
@@ -502,7 +513,18 @@ function WalletLimitsDialog({ open, onClose, onSuccess, wallet, userId, paymentM
                 label="Per-Transaction Limit"
                 type="number"
                 value={perTransactionLimit}
-                onChange={(e) => setPerTransactionLimit(e.target.value)}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setPerTransactionLimit(value);
+
+                    if (perTransactionLimitEnabled && value !== "") {
+                        setError(
+                        validateSpendingLimit(value, "Per-transaction limit")
+                        );
+                    } else {
+                        setError(null);
+                    }
+                }}
                 fullWidth
                 disabled={!perTransactionLimitEnabled}
                 slotProps={{

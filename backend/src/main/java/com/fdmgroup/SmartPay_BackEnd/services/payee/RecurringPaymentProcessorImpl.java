@@ -9,6 +9,7 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPaymentProcessResultDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
@@ -32,7 +33,8 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
 
     @Override
     public RecurringPaymentProcessResultDTO processDuePayments(LocalDate invocationDate) {
-        List<Long> duePaymentIds = recurringPayeeRepository.findDuePaymentIds(invocationDate);
+        List<Long> duePaymentIds = recurringPayeeRepository.findDuePaymentIds(
+                invocationDate, RecurringPaymentStatus.ACTIVE);
         AtomicInteger processedCount = new AtomicInteger();
 
         for (Long paymentId : duePaymentIds) {
@@ -51,7 +53,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
             return;
         }
 
-        walletService.debitRecurringPayment(payment.getOwner().getId(), payment.getAmount(),
+        walletService.debitRecurringPayment(payment.getOwner().getId(), payment.getAmount().doubleValue(),
                 payment.getPayeeName(), invocationDate);
         payment.setLastProcessedDate(invocationDate);
         payment.setDate(nextDateAfter(payment.getDate(), payment.getSchedule(), invocationDate));
@@ -62,6 +64,7 @@ public class RecurringPaymentProcessorImpl implements RecurringPaymentProcessor 
     private boolean isDueAndActive(RecurringPayee payment, LocalDate invocationDate) {
         return payment != null
                 && payment.isActive()
+                && payment.getStatus() == RecurringPaymentStatus.ACTIVE
                 && !payment.getDate().isAfter(invocationDate)
                 && (payment.getEndDate() == null || !payment.getEndDate().isBefore(invocationDate)
                 && (payment.getStatus() != RecurringPaymentStatus.PAUSED && payment.getStatus() != RecurringPaymentStatus.CANCELLED));

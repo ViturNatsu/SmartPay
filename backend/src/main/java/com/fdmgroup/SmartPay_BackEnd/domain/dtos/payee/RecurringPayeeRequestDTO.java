@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -13,6 +14,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Digits;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,8 +34,14 @@ public class RecurringPayeeRequestDTO {
     @JsonProperty("amount")
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false,
-            message = "Amount must be positive.")
-    private Double amount;
+            message = "Amount must be positive."
+        )
+    @Digits(
+        integer = 5,
+        fraction = 2,
+        message = "Amount cannot have more than 2 decimal places."
+        )
+    private BigDecimal amount;
 
     @JsonProperty("schedule")
     @NotNull

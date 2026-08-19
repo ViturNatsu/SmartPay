@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,7 +72,7 @@ class RecurringBillingServiceTest {
         payee.setOwner(owner);
         payee.setRecipient(recipient);
         payee.setPayeeName("Netflix");
-        payee.setAmount(15.99);
+        payee.setAmount(new BigDecimal("15.99"));
         payee.setType(RecurringPaymentType.SUBSCRIPTION);
         payee.setSchedule(Schedule.MONTHLY);
         payee.setDate(LocalDate.of(2026, 1, 15));
@@ -216,7 +218,7 @@ class RecurringBillingServiceTest {
         charge.setIdempotencyKey(idempotencyKey());
         charge.setRecurringPayee(payee);
         charge.setBillingCycleDate(cycleDate);
-        charge.setAmount(payee.getAmount());
+        charge.setAmount(payee.getAmount().doubleValue());
         charge.setStatus(status);
         charge.setProviderReferenceId(chargeId);
         return charge;

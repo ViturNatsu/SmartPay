@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
+import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,7 +99,7 @@ class WalletTransferServiceTest {
 
     @Test
     void transfer_debitsSourceAndCreditsRecipient_whenBalanceSufficient() {
-        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+        walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
         assertEquals(125.00, senderWallet.getBalance());
         assertEquals(125.00, recipientWallet.getBalance());
@@ -106,7 +107,7 @@ class WalletTransferServiceTest {
 
     @Test
     void transfer_savesBothWallets_whenTransferSucceeds() {
-        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+        walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
         verify(walletRepository, times(2)).save(any(Wallet.class));
     }
@@ -114,20 +115,20 @@ class WalletTransferServiceTest {
     @Test
     void transfer_throwsInsufficientFunds_whenBalanceTooLow() {
         assertThrows(InsufficientFundsException.class,
-                () -> walletService.transfer(1L, 2L, 250.00, null));
+                () -> walletService.transfer(1L, 2L, new BigDecimal("250.00"), null));
     }
 
     @Test
     void transfer_throwsInsufficientFunds_withoutSavingAnything_whenBalanceTooLow() {
         assertThrows(InsufficientFundsException.class,
-                () -> walletService.transfer(1L, 2L, 250.00, null));
+                () -> walletService.transfer(1L, 2L, new BigDecimal("250.00"), null));
 
         verify(walletRepository, never()).save(any(Wallet.class));
     }
 
     @Test
     void transfer_succeedsWhenAmountEqualsExactBalance() {
-        walletService.transfer(1L, 2L, 200.00, null);
+        walletService.transfer(1L, 2L, new BigDecimal("200.00"), null);
 
         assertEquals(0.00, senderWallet.getBalance());
         assertEquals(250.00, recipientWallet.getBalance());
@@ -138,7 +139,7 @@ class WalletTransferServiceTest {
         senderWallet.setBalance(100.00);
         recipientWallet.setBalance(0.00);
 
-        walletService.transfer(1L, 2L, 33.33, null);
+        walletService.transfer(1L, 2L, new BigDecimal("33.33"), null);
 
         assertEquals(66.67, senderWallet.getBalance());
         assertEquals(33.33, recipientWallet.getBalance());
@@ -146,12 +147,12 @@ class WalletTransferServiceTest {
 
     @Test
     void transfer_worksWithNullMemo() {
-        assertDoesNotThrow(() -> walletService.transfer(1L, 2L, 10.00, null));
+        assertDoesNotThrow(() -> walletService.transfer(1L, 2L, new BigDecimal("10.00"), null));
     }
 
     @Test
     void transfer_recordsWalletTransferRailForSenderAndRecipientTransactions() {
-        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+        walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
         ArgumentCaptor<WalletTransaction> transactionCaptor =
                 ArgumentCaptor.forClass(WalletTransaction.class);
@@ -163,7 +164,7 @@ class WalletTransferServiceTest {
 
     @Test
     void transfer_createsSuccessNotification_whenTransferSucceeds() {
-        walletService.transfer(1L, 2L, 75.00, "Dinner split");
+        walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
         verify(notificationService, times(1))
                 .createNotification(eq(1L), eq(NotificationType.SUCCESS), anyString(), anyString());
@@ -173,7 +174,7 @@ class WalletTransferServiceTest {
     void transfer_createsLowBalanceWarning_whenResultingBalanceBelowThreshold() {
         senderWallet.setBalance(300.00);
 
-        walletService.transfer(1L, 2L, 100.00, null);
+        walletService.transfer(1L, 2L, new BigDecimal("100.00"), null);
 
         verify(notificationService, times(1))
                 .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
@@ -184,7 +185,7 @@ class WalletTransferServiceTest {
         senderWallet.setBalance(300.00);
         when(notificationService.hasActiveOfType(1L, NotificationType.WARNING)).thenReturn(true);
 
-        walletService.transfer(1L, 2L, 100.00, null);
+        walletService.transfer(1L, 2L, new BigDecimal("100.00"), null);
 
         verify(notificationService, never())
                 .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
