@@ -1,20 +1,18 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +52,9 @@ class RecurringBillingServiceTest {
     @Mock
     private PaymentProviderClient paymentProviderClient;
 
+    @Mock
+    private TransactionExecutor transactionExecutor;
+
     @InjectMocks
     private RecurringBillingServiceImpl billingService;
 
@@ -77,6 +78,12 @@ class RecurringBillingServiceTest {
         payee.setSchedule(Schedule.MONTHLY);
         payee.setDate(LocalDate.of(2026, 1, 15));
         payee.setActive(true);
+
+        lenient().doAnswer(invocation -> {
+            Runnable action = invocation.getArgument(0);
+            action.run();
+            return null;
+        }).when(transactionExecutor).execute(any(Runnable.class));
     }
 
     @Test
@@ -235,5 +242,69 @@ class RecurringBillingServiceTest {
         } catch (IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    @Test
+    @DisplayName("US 12-02-09: insufficient funds marks billing charge as failed")
+    void insufficientFundsMarksBillingChargeAsFailed() {
+        LocalDate originalPaymentDate = payee.getDate();
+
+        when(chargeRepository.findByIdempotencyKey(idempotencyKey()))
+                .thenReturn(Optional.empty());
+        when(chargeRepository.saveAndFlush(any(RecurringBillingCharge.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(chargeRepository.save(any(RecurringBillingCharge.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentProviderClient.executeCharge(any()))
+                .thenThrow(new InsufficientFundsException("Insufficient wallet balance"));
+
+        BillingChargeOutcome outcome = billingService.processDuePayment(payee, cycleDate);
+
+        assertEquals(BillingChargeOutcome.FAILED, outcome);
+        verify(chargeRepository).save(argThat(charge ->
+                charge.getStatus() == RecurringBillingStatus.FAILED));
+        assertEquals(originalPaymentDate, payee.getDate());
+        verify(recurringPayeeRepository, never()).save(any(RecurringPayee.class));
+    }
+
+    @Test
+    @DisplayName("US 12-02-09: spending limit rejection marks billing charge as failed")
+    void spendingLimitRejectionMarksBillingChargeAsFailed() {
+        LocalDate originalPaymentDate = payee.getDate();
+
+        when(chargeRepository.findByIdempotencyKey(idempotencyKey()))
+                .thenReturn(Optional.empty());
+        when(chargeRepository.saveAndFlush(any(RecurringBillingCharge.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(chargeRepository.save(any(RecurringBillingCharge.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentProviderClient.executeCharge(any()))
+                .thenThrow(new InvalidWithdrawAmountException("Recurring charge exceeds spending limit"));
+
+        BillingChargeOutcome outcome = billingService.processDuePayment(payee, cycleDate);
+
+        assertEquals(BillingChargeOutcome.FAILED, outcome);
+        verify(chargeRepository).save(argThat(charge ->
+                charge.getStatus() == RecurringBillingStatus.FAILED));
+        assertEquals(originalPaymentDate, payee.getDate());
+        verify(recurringPayeeRepository, never()).save(any(RecurringPayee.class));
+    }
+
+    @Test
+    @DisplayName("US 12-02-09: technical failures are not marked as business failures")
+    void technicalFailureIsNotMarkedAsFailed() {
+        when(chargeRepository.findByIdempotencyKey(idempotencyKey()))
+                .thenReturn(Optional.empty());
+        when(chargeRepository.saveAndFlush(any(RecurringBillingCharge.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentProviderClient.executeCharge(any()))
+                .thenThrow(new IllegalStateException("Provider temporarily unavailable"));
+
+        assertThrows(IllegalStateException.class,
+                () -> billingService.processDuePayment(payee, cycleDate));
+        verify(chargeRepository, never())
+                .save(any(RecurringBillingCharge.class));
+        verify(recurringPayeeRepository, never())
+                .save(any(RecurringPayee.class));
     }
 }
