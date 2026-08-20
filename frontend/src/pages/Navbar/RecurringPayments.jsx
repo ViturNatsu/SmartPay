@@ -35,10 +35,6 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
-import {
-  formatRecurringSchedule,
-  formatStatus
-} from "@/utils/recurringPaymentFormatters";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -604,66 +600,84 @@ export default function RecurringPayments() {
   const filteredPayees = useMemo(() => {
     const normalizedQuery = billsSearchQuery.trim().toLowerCase();
 
-    // if (!normalizedQuery) {
-    //   return billsList;
-    // }
-
-    if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && !normalizedQuery) {
+    if (!normalizedQuery) {
       return billsList;
     }
 
-    if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && normalizedQuery) {
-      return billsList.filter(payee =>
-        String(payee.name ?? "")
-          .trim()
-          .toLowerCase()
-          .includes(normalizedQuery),
-      );
-    }
-
-    if (billFilters.status.length === 0) {
-      if (!normalizedQuery) {
-        return billsList.filter(payee =>
-          billFilters.schedule.includes(String(payee.schedule))
-        );
-      }
-
-      return billsList.filter(payee =>
-        billFilters.schedule.includes(String(payee.schedule))
-        &&
-        String(payee.name ?? "")
-          .trim()
-          .toLowerCase()
-          .includes(normalizedQuery),
-      );
-    }
-
-    if (billFilters.schedule.length === 0) {
-
-      if (!normalizedQuery) {
-        return billsList.filter(payee =>
-          billFilters.status.includes(String(payee.status))
-        );
-      }
-      return billsList.filter(payee =>
-        billFilters.status.includes(String(payee.status))
-        &&
-        String(payee.name ?? "")
-          .trim()
-          .toLowerCase()
-          .includes(normalizedQuery),
-      );
-    }
-
     return billsList.filter(payee =>
-      billFilters.status.includes(String(payee.status)) && billFilters.schedule.includes(String(payee.schedule))
-      &&
       String(payee.name ?? "")
         .trim()
         .toLowerCase()
         .includes(normalizedQuery),
     );
-  }, [billsList, billsSearchQuery, billFilters]);
+  }, [billsList, billsSearchQuery]);
+
+  // const filteredPayees = useMemo(() => {
+  //   const normalizedQuery = billsSearchQuery.trim().toLowerCase();
+
+  //   // if (!normalizedQuery) {
+  //   //   return billsList;
+  //   // }
+
+  //   if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && !normalizedQuery) {
+  //     return billsList;
+  //   }
+
+  //   //Filter only by search bar
+  //   if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && normalizedQuery) {
+  //     return billsList.filter(payee =>
+  //       String(payee.name ?? "")
+  //         .trim()
+  //         .toLowerCase()
+  //         .includes(normalizedQuery),
+  //     );
+  //   }
+
+  //   //Filter only by Schedule
+  //   if (billFilters.status.length === 0) {
+  //     if (!normalizedQuery) {
+  //       return billsList.filter(payee =>
+  //         billFilters.schedule.includes(String(payee.schedule))
+  //       );
+  //     }
+
+  //     return billsList.filter(payee =>
+  //       billFilters.schedule.includes(String(payee.schedule))
+  //       &&
+  //       String(payee.name ?? "")
+  //         .trim()
+  //         .toLowerCase()
+  //         .includes(normalizedQuery),
+  //     );
+  //   }
+
+  //   //Filter only by Status
+  //   if (billFilters.schedule.length === 0) {
+
+  //     if (!normalizedQuery) {
+  //       return billsList.filter(payee =>
+  //         billFilters.status.includes(String(payee.status))
+  //       );
+  //     }
+  //     return billsList.filter(payee =>
+  //       billFilters.status.includes(String(payee.status))
+  //       &&
+  //       String(payee.name ?? "")
+  //         .trim()
+  //         .toLowerCase()
+  //         .includes(normalizedQuery),
+  //     );
+  //   }
+
+  //   return billsList.filter(payee =>
+  //     billFilters.status.includes(String(payee.status)) && billFilters.schedule.includes(String(payee.schedule))
+  //     &&
+  //     String(payee.name ?? "")
+  //       .trim()
+  //       .toLowerCase()
+  //       .includes(normalizedQuery),
+  //   );
+  // }, [billsList, billsSearchQuery, billFilters]);
 
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
   const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
@@ -692,6 +706,32 @@ export default function RecurringPayments() {
 
     });
   }
+
+  const filterBillsByCategoryAndName = useMemo(() => {
+    const filteredBills = filteredPayees;
+
+    if (billFilters.status.length === 0 && billFilters.schedule.length === 0) {
+      return filteredBills;
+    }
+
+    if (billFilters.schedule.length === 0) {
+      return filteredBills.filter(payee =>
+        billFilters.status.includes(String(payee.status))
+      );
+    }
+
+    if (billFilters.status.length === 0) {
+      return filteredBills.filter(payee =>
+        billFilters.schedule.includes(String(payee.schedule))
+      );
+    }
+
+    return filteredBills.filter(payee =>
+      billFilters.status.includes(String(payee.status)) &&
+      billFilters.schedule.includes(String(payee.schedule))
+    )
+
+  }, [billFilters, billsList, billsSearchQuery])
 
   return (
 
@@ -870,8 +910,7 @@ export default function RecurringPayments() {
                 variant="contained"
                 onClick={() => {
                   //Enter Filter Here
-                  toggleBillFilter("schedule", "MONTHLY");
-                  //console.log(billFilters);
+                  toggleBillFilter("status", "ACTIVE");
                 }}
                 sx={{
                   alignSelf: { xs: "stretch", sm: "auto" },
@@ -922,11 +961,11 @@ export default function RecurringPayments() {
             {activeTab === "bills" &&
               (billsList.length === 0 ? (
                 <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
-              ) : filteredPayees.length === 0 && hasBillsSearch ? (
+              ) : filterBillsByCategoryAndName.length === 0 && hasBillsSearch ? (
                 <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
               ) : (
                 <Stack spacing={2}>
-                  {filteredPayees.map(payee => (
+                  {filterBillsByCategoryAndName.map(payee => (
                     <RecurringPayeeCard
                       key={payee.id}
                       payee={payee}
