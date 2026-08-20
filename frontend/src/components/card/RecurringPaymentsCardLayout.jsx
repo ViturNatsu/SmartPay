@@ -4,16 +4,22 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import {RecurringPaymentsCardEntry} from "@/components/recurringPayments/CardEntry/RecurringPaymentsCardEntry.jsx";
 import {useRecurringPayeesData} from "@/hooks/RecurringPayeeHooks/useRecurringPayeesData.js";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 export const RecurringPaymentsCardLayout = () => {
 
   const theme = useTheme();
+  const [data, setData] = useState(null);
   const {handlers, state } = useRecurringPayeesData()
 
   useEffect(() => {
     handlers.getRecurringPayeesData()
-      .then(r => console.log(r))
+      .then( result => {
+        const sortedData = [...result].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+        setData(sortedData);
+      })
       .catch(e => console.log(e));
   }, [])
 
@@ -69,8 +75,8 @@ export const RecurringPaymentsCardLayout = () => {
             pb: 0.5,
           }}
         >
-          {state.data?.length > 0 ? (
-            state.data.map((item) => (
+          {data?.length > 0 ? (
+            data.map((item) => (
               <RecurringPaymentsCardEntry
                 key={item.payeeId}
                 payeeName={item.payeeName}
