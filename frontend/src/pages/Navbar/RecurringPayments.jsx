@@ -562,8 +562,8 @@ export default function RecurringPayments() {
     formData.name.trim() &&
     formData.accountNumber.trim() &&
     formData.amount &&
-    Number(formData.amount) >= 1  &&
-    Number(formData.amount) <= 10000 &&
+    // Number(formData.amount) >= 1  &&
+    // Number(formData.amount) <= 10000 &&
     formData.schedule &&
     formData.date &&
     formData.endDate;
@@ -571,8 +571,8 @@ export default function RecurringPayments() {
   const isSubscriptionFormComplete =
     subscriptionFormData.name.trim() &&
     subscriptionFormData.amount &&
-    Number(subscriptionFormData.amount) >= 1 &&
-    Number(subscriptionFormData.amount) <= 10000 &&
+    // Number(subscriptionFormData.amount) >= 1 &&
+    // Number(subscriptionFormData.amount) <= 10000 &&
     subscriptionFormData.schedule &&
     subscriptionFormData.date &&
     subscriptionFormData.paymentMethodId;
