@@ -10,6 +10,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  Input,
+  InputLabel,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -35,6 +37,7 @@ import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmeth
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
+import { FilterAltOutlined} from "@mui/icons-material";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -85,6 +88,24 @@ export default function RecurringPayments() {
     status: [],
     schedule: []
   });
+
+  const statusOptions = [
+    "ACTIVE",
+    "PAUSED",
+    "CANCELLED",
+    "ACTION REQUIRED"
+  ];
+
+  const scheduleOptions = [
+    "MONTHLY",
+    "YEARLY"
+  ];
+
+  const [showBillFilters, setShowBillFilters] = useState(false);
+  const billFilterCount =
+    billFilters.status.length +
+    billFilters.schedule.length;
+  //const [billFilterCount, setBillFilterCount] = useState(0);
 
   const loadRecurringPayees = async () => {
     setIsLoading(true);
@@ -612,73 +633,6 @@ export default function RecurringPayments() {
     );
   }, [billsList, billsSearchQuery]);
 
-  // const filteredPayees = useMemo(() => {
-  //   const normalizedQuery = billsSearchQuery.trim().toLowerCase();
-
-  //   // if (!normalizedQuery) {
-  //   //   return billsList;
-  //   // }
-
-  //   if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && !normalizedQuery) {
-  //     return billsList;
-  //   }
-
-  //   //Filter only by search bar
-  //   if (billFilters.status.length === 0 && billFilters.schedule.length === 0 && normalizedQuery) {
-  //     return billsList.filter(payee =>
-  //       String(payee.name ?? "")
-  //         .trim()
-  //         .toLowerCase()
-  //         .includes(normalizedQuery),
-  //     );
-  //   }
-
-  //   //Filter only by Schedule
-  //   if (billFilters.status.length === 0) {
-  //     if (!normalizedQuery) {
-  //       return billsList.filter(payee =>
-  //         billFilters.schedule.includes(String(payee.schedule))
-  //       );
-  //     }
-
-  //     return billsList.filter(payee =>
-  //       billFilters.schedule.includes(String(payee.schedule))
-  //       &&
-  //       String(payee.name ?? "")
-  //         .trim()
-  //         .toLowerCase()
-  //         .includes(normalizedQuery),
-  //     );
-  //   }
-
-  //   //Filter only by Status
-  //   if (billFilters.schedule.length === 0) {
-
-  //     if (!normalizedQuery) {
-  //       return billsList.filter(payee =>
-  //         billFilters.status.includes(String(payee.status))
-  //       );
-  //     }
-  //     return billsList.filter(payee =>
-  //       billFilters.status.includes(String(payee.status))
-  //       &&
-  //       String(payee.name ?? "")
-  //         .trim()
-  //         .toLowerCase()
-  //         .includes(normalizedQuery),
-  //     );
-  //   }
-
-  //   return billsList.filter(payee =>
-  //     billFilters.status.includes(String(payee.status)) && billFilters.schedule.includes(String(payee.schedule))
-  //     &&
-  //     String(payee.name ?? "")
-  //       .trim()
-  //       .toLowerCase()
-  //       .includes(normalizedQuery),
-  //   );
-  // }, [billsList, billsSearchQuery, billFilters]);
-
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
   const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
@@ -781,6 +735,84 @@ export default function RecurringPayments() {
                     Bills
                   </ToggleButton>
                 </ToggleButtonGroup>
+
+                </Stack>
+
+                <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={{ xs: "stretch", sm: "center" }}
+              >
+
+                {activeTab === "bills" && (
+                  <div className="filter-container">
+                    <Button
+                      variant="contained"
+                      onClick={() => setShowBillFilters(prev => !prev)}
+                      sx={{
+                        alignSelf: { xs: "stretch", sm: "auto" },
+                      }}
+                    >
+                      <FilterAltOutlined size={16} />
+                      Filter
+
+                      {billFilterCount > 0 &&
+                        <span>
+                          {billFilterCount}
+                        </span>
+                      }
+                    </Button>
+
+                    {showBillFilters &&
+                      <Box className="filter-menu"
+                      sx={{ p: tokens.layout.pagePadding, mb: 5 }}>
+
+                        <Typography variant="body2">Status</Typography>
+                        {statusOptions.map(status => (
+
+                          <InputLabel
+                            key={status}
+                          >
+                            <Input
+                              type="checkbox"
+                              checked={billFilters.status.includes(status)}
+                              onChange={() => toggleBillFilter("status", status)}
+                            />
+                            {status}
+                          </InputLabel>
+                        ))}
+
+                        <div className="divider" />
+
+                        <Typography variant="body2">Recurring period</Typography>
+                        {scheduleOptions.map(period => (
+
+                          <InputLabel
+                            key={period}
+                          >
+                            <Input
+                              type="checkbox"
+                              checked={billFilters.schedule.includes(period)}
+                              onChange={() => toggleBillFilter("schedule", period)}
+                            />
+                            {period}
+                          </InputLabel>
+                        ))}
+
+                        <div className="divider" />
+                        <Button
+                          variant="outlined"
+                          onClick={() => clearBillFilters()}
+                          sx={{
+                            alignSelf: { xs: "stretch", sm: "auto" },
+                          }}>
+                          Clear filters
+                        </Button>
+                      </Box>
+                    }
+                  </div>
+                )}
 
                 {activeTab === "bills" && (
                   <Button
@@ -905,12 +937,12 @@ export default function RecurringPayments() {
               />
             )}
 
-            {activeTab === "bills" && (
+            {/* {activeTab === "bills" && (
               <Button
                 variant="contained"
                 onClick={() => {
                   //Enter Filter Here
-                  toggleBillFilter("status", "ACTIVE");
+                  setShowBillFilters(prev => !prev);
                 }}
                 sx={{
                   alignSelf: { xs: "stretch", sm: "auto" },
@@ -920,7 +952,65 @@ export default function RecurringPayments() {
               </Button>
             )}
 
-            {activeTab === "bills" && (
+            {activeTab==="bills" && showBillFilters && (
+              <div className="filter-dropdown">
+
+                <h4>Status</h4>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={billFilters.status.includes("ACTIVE")}
+                    onChange={() => toggleBillFilter("status", "ACTIVE")}
+                  />
+                  Active
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={billFilters.status.includes("CANCELLED")}
+                    onChange={() => toggleBillFilter("status", "CANCELLED")}
+                  />
+                  Canceled
+                </label>
+
+                <hr />
+
+                <h4>Schedule</h4>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={billFilters.schedule.includes("MONTHLY")}
+                    onChange={() => toggleBillFilter("schedule", "MONTHLY")}
+                  />
+                  Monthly
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={billFilters.schedule.includes("YEARLY")}
+                    onChange={() => toggleBillFilter("schedule", "YEARLY")}
+                  />
+                  Yearly
+                </label>
+
+                <hr />
+
+                <button
+                  onClick={() =>
+                    clearBillFilters()
+                  }
+                >
+                  Clear Filters
+                </button>
+
+              </div>
+            )} */}
+
+            {/* {activeTab === "bills" && (
               <Button
                 variant="contained"
                 onClick={() => {
@@ -934,7 +1024,7 @@ export default function RecurringPayments() {
               >
                 Clear Filter
               </Button>
-            )}
+            )} */}
 
             {activeTab === "subscriptions" &&
               (subscriptionsList.length === 0 ? (
