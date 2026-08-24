@@ -344,8 +344,8 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if (Objects.equals(recurringPayee.getDate(), payeeRequestDTO.getDate())
             && Objects.equals(recurringPayee.getAmount(), payeeRequestDTO.getAmount())
             && Objects.equals(recurringPayee.getEndDate(), payeeRequestDTO.getEndDate())) {
-        throw new InvalidRecurringPayeeException("No changes were detected");
-    }
+            throw new InvalidRecurringPayeeException("No changes were detected");
+        }
 
         recurringPayee.setDate(payeeRequestDTO.getDate());
         recurringPayee.setAmount(payeeRequestDTO.getAmount());
