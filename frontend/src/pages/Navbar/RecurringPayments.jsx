@@ -11,8 +11,8 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import {  LocalizationProvider  } from "@mui/x-date-pickers/LocalizationProvider";
-import {  AdapterDayjs  } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCard";
 import RecurringPayeeForm from "@/components/recurringPayments/RecurringPayeeForm";
 import RecurringSubscriptionCard from "@/components/recurringPayments/RecurringSubscriptionCard";
@@ -30,14 +30,14 @@ import {
   updateRecurringPayee,
   cancelRecurringPayee,
 } from "@/api/recurringPayment/recurringPayeeApi";
-import {  BasicPageLayout  } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
-import {  getPaymentMethodsForUserWithId  } from "@/api/paymentmethods/paymentmethodApi";
+import { BasicPageLayout } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
+import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
 import { FilterAltOutlined } from "@mui/icons-material";
 import RecurringBillFilterMenu from "../../components/recurringPayments/RecurringBillFilterMenu";
-import { FilterPopover } from '../../components/customComponents/FilterTab.jsx';
+import RecurringSubscriptionFilterMenu from "../../components/recurringPayments/CardEntry/RecurringSubscriptionFilterMenu.jsx";
 
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
@@ -87,10 +87,11 @@ export default function RecurringPayments() {
 
   const [filters, setFilters] = useState({
     status: [],
-    recurringPeriod: []
+    schedule: []
   });
 
   const [filterOpen, setFilterOpen] = useState(false);
+  const subscriptionFilterCount = filters.status.length + filters.schedule.length;
 
   const [billFilters, setBillFilters] = useState({
     status: [],
@@ -239,7 +240,7 @@ export default function RecurringPayments() {
   }, [tokenClaims?.userId]);
 
   const handleInputChange = event => {
-    const {  name, value  } = event.target;
+    const { name, value } = event.target;
 
     setFormData(prev => ({
       ...prev,
@@ -253,7 +254,7 @@ export default function RecurringPayments() {
   };
 
   const handleSubscriptionInputChange = event => {
-    const {  name, value  } = event.target;
+    const { name, value } = event.target;
 
     setSubscriptionFormData(prev => ({
       ...prev,
@@ -324,7 +325,7 @@ export default function RecurringPayments() {
 
       today.setHours(0, 0, 0, 0);
 
-      if (selectedDate <= paymentDate)  {
+      if (selectedDate <= paymentDate) {
         newErrors.endDate =
           "End date must be after next payment date for recurring payments.";
       }
@@ -336,20 +337,20 @@ export default function RecurringPayments() {
     }
 
     const duplicateRecurringPayee = billsList.some((payee) => {
-        const sameName =
-          String(payee.name ?? "").trim().toLowerCase() ===
-          formData.name.trim().toLowerCase();
+      const sameName =
+        String(payee.name ?? "").trim().toLowerCase() ===
+        formData.name.trim().toLowerCase();
 
-        const sameAccountNumber =
-          String(payee.accountNumber ?? "").trim().toLowerCase() ===
-          formData.accountNumber.trim().toLowerCase();
+      const sameAccountNumber =
+        String(payee.accountNumber ?? "").trim().toLowerCase() ===
+        formData.accountNumber.trim().toLowerCase();
 
-        const sameAmount =
-          Number(payee.amount) === Number(formData.amount);
+      const sameAmount =
+        Number(payee.amount) === Number(formData.amount);
 
-        const sameSchedule =
-          String(payee.schedule ?? "").trim().toUpperCase() ===
-          formData.schedule.trim().toUpperCase();
+      const sameSchedule =
+        String(payee.schedule ?? "").trim().toUpperCase() ===
+        formData.schedule.trim().toUpperCase();
 
       const sameDate =
         String(payee.date ?? "") === formData.date;
@@ -357,20 +358,20 @@ export default function RecurringPayments() {
       const sameEndDate =
         String(payee.endDate ?? "") === formData.endDate;
 
-        return (
-          sameName &&
-          sameAccountNumber &&
-          sameAmount &&
-          sameSchedule &&
-          sameDate &&
-          sameEndDate
-        );
-      });
+      return (
+        sameName &&
+        sameAccountNumber &&
+        sameAmount &&
+        sameSchedule &&
+        sameDate &&
+        sameEndDate
+      );
+    });
 
-      if (duplicateRecurringPayee) {
-        newErrors.name =
-          "An identical recurring payment already exists.";
-      }
+    if (duplicateRecurringPayee) {
+      newErrors.name =
+        "An identical recurring payment already exists.";
+    }
 
     setErrors(newErrors);
 
@@ -607,36 +608,61 @@ export default function RecurringPayments() {
     [payees],
   );
 
-  // const filteredSubscriptions = useMemo(
-  //   () => filterItemsByName(subscriptionsList, subscriptionsSearchQuery),
-  //   [subscriptionsList, subscriptionsSearchQuery],
-  // );
-
-  const filteredSubscriptions = useMemo(() => {
-  const searchedSubscriptions = filterItemsByName(
-    subscriptionsList,
-    subscriptionsSearchQuery
+  const filteredSubscriptions = useMemo(
+    () => filterItemsByName(subscriptionsList, subscriptionsSearchQuery),
+    [subscriptionsList, subscriptionsSearchQuery],
   );
 
-  return searchedSubscriptions.filter((subscription) => {
-    const matchesStatus =
-      filters.status.length === 0 ||
-      filters.status.includes(subscription.status);
+  const filterSubscriptionsByCategoryAndName = useMemo(() => {
+    const filteredSubs = filteredSubscriptions;
 
-    const matchesRecurringPeriod =
-      filters.recurringPeriod.length === 0 ||
-      filters.recurringPeriod.includes(subscription.schedule);
+    if (filters.status.length === 0 && filters.schedule.length === 0) {
+      return filteredSubs;
+    }
 
-    return matchesStatus && matchesRecurringPeriod;
-  });
-}, [
-  subscriptionsList,
-  subscriptionsSearchQuery,
-  filters
-]);
+    if (filters.schedule.length === 0) {
+      return filteredSubs.filter(payee =>
+        filters.status.some(status => status.toLowerCase() === String(payee.status).toLowerCase())
+      );
+    }
 
+    if (filters.status.length === 0) {
+      return filteredSubs.filter(payee =>
+        filters.schedule.some(schedule => schedule.toLowerCase() === String(payee.schedule).toLowerCase())
+      );
+    }
 
-   const filteredPayees = useMemo(() => {
+    return filteredSubs.filter(payee =>
+      filters.status.some(status => status.toLowerCase() === String(payee.status).toLowerCase()) &&
+      filters.schedule.some(schedule => schedule.toLowerCase() === String(payee.schedule).toLowerCase())
+    )
+
+  }, [subscriptionsList, subscriptionsSearchQuery, filters]);
+
+  // const filteredSubscriptions = useMemo(() => {
+  //   const searchedSubscriptions = filterItemsByName(
+  //     subscriptionsList,
+  //     subscriptionsSearchQuery
+  //   );
+
+  //   return searchedSubscriptions.filter((subscription) => {
+  //     const matchesStatus =
+  //       filters.status.length === 0 ||
+  //       filters.status.includes(subscription.status);
+
+  //     const matchesRecurringPeriod =
+  //       filters.recurringPeriod.length === 0 ||
+  //       filters.recurringPeriod.includes(subscription.schedule);
+
+  //     return matchesStatus && matchesRecurringPeriod;
+  //   });
+  // }, [
+  //   subscriptionsList,
+  //   subscriptionsSearchQuery,
+  //   filters
+  // ]);
+
+  const filteredPayees = useMemo(() => {
     const normalizedQuery = billsSearchQuery.trim().toLowerCase();
 
     if (!normalizedQuery) {
@@ -705,30 +731,30 @@ export default function RecurringPayments() {
 
   }, [billFilters, billsList, billsSearchQuery])
 
-
   const statusOptions = ['Active', 'Paused', 'Cancelled'];
   const periodOptions = ['Monthly', 'Yearly'];
 
-
   const handleFilterChange = (category, value) => {
-    setFilters((prev) => {
-      const currentValues = prev[category];
+    setFilters(prev => {
 
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter((item) => item !== value)
-        : [...currentValues, value];
+      const selected = prev[category];
+
+      const updated = selected.includes(value)
+        ? selected.filter(v => v !== value)
+        : [...selected, value];
 
       return {
         ...prev,
-        [category]: newValues
+        [category]: updated
       };
+
     });
   };
 
   const clearFilters = () => {
     setFilters({
       status: [],
-      recurringPeriod: []
+      schedule: []
     });
   };
 
@@ -751,10 +777,10 @@ export default function RecurringPayments() {
             zIndex: 2,
           }}
         >
-          <CardContent sx={{  p: 3  }}>
+          <CardContent sx={{ p: 3 }}>
             <Stack spacing={2}>
               <Box>
-                <Typography variant="h6" sx={{  fontWeight: 600, mb: 0.5  }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
                   Manage Recurring Payments
                 </Typography>
 
@@ -764,10 +790,10 @@ export default function RecurringPayments() {
               </Box>
 
               <Stack
-                direction={{  xs: "column", sm: "row"  }}
+                direction={{ xs: "column", sm: "row" }}
                 spacing={2}
                 justifyContent="space-between"
-                alignItems={{  xs: "stretch", sm: "center"  }}
+                alignItems={{ xs: "stretch", sm: "center" }}
               >
                 <ToggleButtonGroup
                   value={activeTab}
@@ -848,19 +874,188 @@ export default function RecurringPayments() {
                     Add New Payee
                   </Button>
                 )}
-                {activeTab === "bills" && (
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setShowForm(prev => !prev);
-                      setErrors({});
-                    }}
-                    sx={{
-                      alignSelf: { xs: "stretch", sm: "auto" },
-                    }}
-                  >
-                    Add New Payee
-                  </Button>
+
+              </Stack>
+
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={{ xs: "stretch", sm: "center" }}
+              >
+
+                {activeTab === "subscriptions" && (
+                  <div className="subscription-filter-container">
+                    <Button
+                      variant="contained"
+                      onClick={() => setFilterOpen(prev => !prev)}
+                      sx={{
+                        alignSelf: { xs: "stretch", sm: "auto" },
+                        gap: "8px",
+                      }}
+                    >
+
+                      <svg width={22} height={22} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      </svg>
+                      Filter
+
+                      {subscriptionFilterCount > 0 &&
+                        <span
+                          style={{
+                            background: "white",
+                            color: tokens.color.button.primaryBg,
+                            borderRadius: "999px",
+                            padding: "2px 7px",
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            lineHeight: 1
+                          }}>
+                          {subscriptionFilterCount}
+                        </span>
+                      }
+                    </Button>
+
+                    {filterOpen &&
+                      <RecurringSubscriptionFilterMenu subFilters={filters}
+                        toggleSubFilter={handleFilterChange}
+                        clearSubFilters={clearFilters}
+                      ></RecurringSubscriptionFilterMenu>
+                    }
+                  </div>
+                  // <div className="filter-container" style={{ position: 'relative', width: "fit-content" }}>
+                  //   <button
+                  //     style={{
+                  //       backgroundColor: '#0e7490', // Adjust hex to match your exact teal
+                  //       color: '#ffffff',
+                  //       borderRadius: '9999px',
+                  //       padding: '8px 20px',
+                  //       border: 'none',
+                  //       fontWeight: '600',
+                  //       cursor: 'pointer',
+                  //       width: 'fit-content'
+                  //     }} onClick={() => setFilterOpen(!filterOpen)}
+                  //   >
+                  //     Filter
+                  //   </button>
+                  //   {filterOpen && (
+                  //     <div className="filter-menu" style={{
+                  //       position: "absolute",
+                  //       top: "calc(100% + 8px)", // 8px gap below the button
+                  //       left: 0,
+                  //       background: "white",
+                  //       borderRadius: "8px",
+                  //       padding: "16px",
+                  //       width: "350px",
+                  //       boxShadow: "0 4px 15px rgba(0, 0, 0, 0.15)",
+                  //       zIndex: "10"
+                  //     }}>
+                  //       {/* 1. STATUS SECTION */}
+                  //       <div style={{ marginBottom: '12px' }}>
+                  //         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+                  //           Status
+                  //         </Typography>
+                  //         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                  //           {/* Loop through Statuses */}
+                  //           {statusOptions.map((status) => (
+                  //             <label
+                  //               key={status}
+                  //               style={{
+                  //                 display: 'flex',
+                  //                 alignItems: 'center',
+                  //                 gap: '10px',
+                  //                 cursor: 'pointer',
+                  //                 fontSize: '14px',
+                  //                 color: '#374151',
+                  //               }}
+                  //             >
+                  //               <input
+                  //                 type="checkbox"
+                  //                 style={{
+                  //                   width: '16px',
+                  //                   height: '16px',
+                  //                   borderRadius: '4px',
+                  //                   border: '1px solid #d1d5db',
+                  //                   accentColor: '#0e7490',
+                  //                   cursor: 'pointer',
+                  //                 }}
+                  //                 checked={filters.status.includes(status)}
+                  //                 onChange={() => handleFilterChange('status', status)}
+                  //               />
+                  //               <span>{status}</span>
+                  //             </label>
+                  //           ))}
+
+                  //         </div>
+                  //       </div>
+
+                  //       <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '12px 0' }} />
+
+                  //       {/* 2. RECURRING PERIOD SECTION */}
+                  //       <div style={{ marginBottom: '16px' }}>
+                  //         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+                  //           Recurring period
+                  //         </Typography>
+                  //         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                  //           {/* Loop through Periods */}
+                  //           {periodOptions.map((period) => (
+
+                  //             <label
+                  //               key={period}
+                  //               style={{
+                  //                 display: 'flex',
+                  //                 alignItems: 'center',
+                  //                 gap: '10px',
+                  //                 cursor: 'pointer',
+                  //                 fontSize: '14px',
+                  //                 color: '#374151',
+                  //               }}
+                  //             >
+                  //               <input
+                  //                 type="checkbox"
+                  //                 style={{
+                  //                   width: '16px',
+                  //                   height: '16px',
+                  //                   borderRadius: '4px',
+                  //                   border: '1px solid #d1d5db',
+                  //                   accentColor: '#0e7490',
+                  //                   cursor: 'pointer',
+                  //                 }}
+                  //                 checked={filters.recurringPeriod.includes(period)}
+                  //                 onChange={() => handleFilterChange('recurringPeriod', period)}
+                  //               />
+                  //               <span>{period}</span>
+                  //             </label>
+                  //           ))}
+
+                  //         </div>
+                  //       </div>
+
+                  //       {/* 3. CLEAR FILTERS BUTTON */}
+                  //       <button
+                  //         type="button"
+                  //         style={{
+                  //           width: '100%',
+                  //           padding: '8px 16px',
+                  //           border: '1px solid #e5e7eb',
+                  //           borderRadius: '12px',
+                  //           fontWeight: '600',
+                  //           fontSize: '14px',
+                  //           color: '#1f2937',
+                  //           backgroundColor: '#ffffff',
+                  //           cursor: 'pointer',
+                  //           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  //         }}
+                  //         onClick={clearFilters}
+                  //       >
+                  //         Clear filters
+                  //       </button>
+                  //     </div>
+                  //   )}
+
+                  // </div>
                 )}
 
                 {activeTab === "subscriptions" && (
@@ -877,141 +1072,8 @@ export default function RecurringPayments() {
                     ＋ Add Subscription
                   </Button>
                 )}
+
               </Stack>
-
-              <div className="filter-container" style={{ position: 'relative', width: "fit-content" }}>
-                <button
-                  style={{
-                    backgroundColor: '#0e7490', // Adjust hex to match your exact teal
-                    color: '#ffffff',
-                    borderRadius: '9999px',
-                    padding: '8px 20px',
-                    border: 'none',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    width: 'fit-content'
-                  }} onClick={() => setFilterOpen(!filterOpen)}
-                >
-                  Filter
-                </button>
-                {filterOpen && (
-                  <div className="filter-menu" style={{
-                    position: "absolute",
-                    top: "calc(100% + 8px)", // 8px gap below the button
-                    left: 0,
-                    background: "white",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    width: "350px",
-                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.15)",
-                    zIndex: "10"
-                  }}>
-                    {/* 1. STATUS SECTION */}
-                    <div style={{ marginBottom: '12px' }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
-                        Status
-                      </Typography>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                        {/* Loop through Statuses */}
-                        {statusOptions.map((status) => (
-                          <label
-                            key={status}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              color: '#374151',
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '4px',
-                                border: '1px solid #d1d5db',
-                                accentColor: '#0e7490',
-                                cursor: 'pointer',
-                              }}
-                              checked={filters.status.includes(status)}
-                              onChange={() => handleFilterChange('status', status)}
-                            />
-                            <span>{status}</span>
-                          </label>
-                        ))}
-
-                      </div>
-                    </div>
-
-                    <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '12px 0' }} />
-
-                    {/* 2. RECURRING PERIOD SECTION */}
-                    <div style={{ marginBottom: '16px' }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
-                        Recurring period
-                      </Typography>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                        {/* Loop through Periods */}
-                        {periodOptions.map((period) => (
-
-                          <label
-                            key={period}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              color: '#374151',
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '4px',
-                                border: '1px solid #d1d5db',
-                                accentColor: '#0e7490',
-                                cursor: 'pointer',
-                              }}
-                              checked={filters.recurringPeriod.includes(period)}
-                              onChange={() => handleFilterChange('recurringPeriod', period)}
-                            />
-                            <span>{period}</span>
-                          </label>
-                        ))}
-
-                      </div>
-                    </div>
-
-                    {/* 3. CLEAR FILTERS BUTTON */}
-                    <button
-                      type="button"
-                      style={{
-                        width: '100%',
-                        padding: '8px 16px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        fontWeight: '600',
-                        fontSize: '14px',
-                        color: '#1f2937',
-                        backgroundColor: '#ffffff',
-                        cursor: 'pointer',
-                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                      }}
-                      onClick={clearFilters}
-                    >
-                      Clear filters
-                    </button>
-                  </div>
-                )}
-
-              </div>
 
 
 
@@ -1090,8 +1152,8 @@ export default function RecurringPayments() {
             boxShadow: tokens.shadow.small,
           }}
         >
-          <CardContent sx={{  p: 3  }}>
-            <Typography variant="h6" sx={{  fontWeight: 600, mb: 2  }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               {activeTab === "subscriptions"
                 ? "Existing Subscriptions"
                 : "Existing Bill Payees"}
@@ -1136,28 +1198,7 @@ export default function RecurringPayments() {
                 />
               ) : (
                 <Stack spacing={2}>
-                  {filteredSubscriptions.map(subscription => (
-                    <RecurringSubscriptionCard
-                      key={subscription.id}
-                      subscription={subscription}
-                      onEdit={handleEditRecurringPayee}
-                      onCancel={handleCancelRecurringPayee}
-                      onView={setViewingItem}
-                    />
-                  ))}
-                </Stack>
-              ))}
-            {activeTab === "subscriptions" &&
-              (subscriptionsList.length === 0 ? (
-                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-              ) : filteredSubscriptions.length === 0 &&
-                hasSubscriptionsSearch ? (
-                <RecurringEmptyState
-                  message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
-                />
-              ) : (
-                <Stack spacing={2}>
-                  {filteredSubscriptions.map(subscription => (
+                  {filterSubscriptionsByCategoryAndName.map(subscription => (
                     <RecurringSubscriptionCard
                       key={subscription.id}
                       subscription={subscription}
