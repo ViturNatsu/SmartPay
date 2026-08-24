@@ -11,8 +11,8 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
-import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCard";
 import RecurringPayeeForm from "@/components/recurringPayments/RecurringPayeeForm";
 import RecurringSubscriptionCard from "@/components/recurringPayments/RecurringSubscriptionCard";
@@ -20,21 +20,23 @@ import RecurringSubscriptionForm from "@/components/recurringPayments/RecurringS
 import RecurringEmptyState from "@/components/recurringPayments/RecurringEmptyState";
 import RecurringPaymentsSearchBar from "@/components/recurringPayments/RecurringPaymentsSearchBar";
 import Navbar from "@/components/Navbar";
-import {tokens} from "@/style/Theme";
-import {useAuth} from "@/context/AuthContext";
-import {useRecurringPaymentsTab} from "@/utils/useRecurringPaymentsTab";
-import {filterItemsByName} from "@/utils/recurringPaymentsSearchUtils";
+import { tokens } from "@/style/Theme";
+import { useAuth } from "@/context/AuthContext";
+import { useRecurringPaymentsTab } from "@/utils/useRecurringPaymentsTab";
+import { filterItemsByName } from "@/utils/recurringPaymentsSearchUtils";
 import {
   addRecurringPayee,
   getRecurringPayees,
   updateRecurringPayee,
   cancelRecurringPayee,
 } from "@/api/recurringPayment/recurringPayeeApi";
-import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
-import {getPaymentMethodsForUserWithId} from "@/api/paymentmethods/paymentmethodApi";
+import { BasicPageLayout } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
+import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
+import { FilterPopover } from '../../components/customComponents/FilterTab.jsx';
+
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -43,8 +45,8 @@ const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
 const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
 export default function RecurringPayments() {
-  const {activeTab, handleTabChange} = useRecurringPaymentsTab();
-  const {tokenClaims} = useAuth();
+  const { activeTab, handleTabChange } = useRecurringPaymentsTab();
+  const { tokenClaims } = useAuth();
 
   const [editingPayee, setEditingPayee] = useState(null);
   const [cancellingPayee, setCancellingPayee] = useState(null);
@@ -81,6 +83,16 @@ export default function RecurringPayments() {
   const [errorMessage, setErrorMessage] = useState("");
   const [viewingItem, setViewingItem] = useState(null);
 
+
+  const [filters, setFilters] = useState({
+    status: [],
+    recurringPeriod: []
+  });
+
+  const [filterOpen, setFilterOpen] = useState(false);
+
+
+
   const loadRecurringPayees = async () => {
     setIsLoading(true);
     setErrorMessage("");
@@ -115,7 +127,7 @@ export default function RecurringPayments() {
     } catch (error) {
       setErrorMessage(
         error?.message ||
-          "Unable to load recurring payees. Please try again.",
+        "Unable to load recurring payees. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -167,7 +179,7 @@ export default function RecurringPayments() {
   const handleCancelRecurringPayee = payee => {
     setCancellingPayee(payee);
   };
-  
+
   const handleConfirmCancelRecurringPayee = async () => {
     if (!cancellingPayee) {
       return;
@@ -217,7 +229,7 @@ export default function RecurringPayments() {
   }, [tokenClaims?.userId]);
 
   const handleInputChange = event => {
-    const {name, value} = event.target;
+    const { name, value } = event.target;
 
     setFormData(prev => ({
       ...prev,
@@ -231,7 +243,7 @@ export default function RecurringPayments() {
   };
 
   const handleSubscriptionInputChange = event => {
-    const {name, value} = event.target;
+    const { name, value } = event.target;
 
     setSubscriptionFormData(prev => ({
       ...prev,
@@ -304,7 +316,7 @@ export default function RecurringPayments() {
 
       today.setHours(0, 0, 0, 0);
 
-      if (selectedDate <= paymentDate){
+      if (selectedDate <= paymentDate) {
         newErrors.endDate =
           "End date must be after next payment date for recurring payments.";
       }
@@ -316,41 +328,41 @@ export default function RecurringPayments() {
     }
 
     const duplicateRecurringPayee = billsList.some((payee) => {
-    const sameName =
-      String(payee.name ?? "").trim().toLowerCase() ===
-      formData.name.trim().toLowerCase();
+      const sameName =
+        String(payee.name ?? "").trim().toLowerCase() ===
+        formData.name.trim().toLowerCase();
 
-    const sameAccountNumber =
-      String(payee.accountNumber ?? "").trim().toLowerCase() ===
-      formData.accountNumber.trim().toLowerCase();
+      const sameAccountNumber =
+        String(payee.accountNumber ?? "").trim().toLowerCase() ===
+        formData.accountNumber.trim().toLowerCase();
 
-    const sameAmount =
-      Number(payee.amount) === Number(formData.amount);
+      const sameAmount =
+        Number(payee.amount) === Number(formData.amount);
 
-    const sameSchedule =
-      String(payee.schedule ?? "").trim().toUpperCase() ===
-      formData.schedule.trim().toUpperCase();
+      const sameSchedule =
+        String(payee.schedule ?? "").trim().toUpperCase() ===
+        formData.schedule.trim().toUpperCase();
 
-    const sameDate =
-      String(payee.date ?? "") === formData.date;
-    
-    const sameEndDate =
-      String(payee.endDate ?? "") === formData.endDate;
+      const sameDate =
+        String(payee.date ?? "") === formData.date;
 
-    return (
-      sameName &&
-      sameAccountNumber &&
-      sameAmount &&
-      sameSchedule &&
-      sameDate &&
-      sameEndDate
-    );
-  });
+      const sameEndDate =
+        String(payee.endDate ?? "") === formData.endDate;
 
-  if (duplicateRecurringPayee) {
-    newErrors.name =
-      "An identical recurring payment already exists.";
-  }
+      return (
+        sameName &&
+        sameAccountNumber &&
+        sameAmount &&
+        sameSchedule &&
+        sameDate &&
+        sameEndDate
+      );
+    });
+
+    if (duplicateRecurringPayee) {
+      newErrors.name =
+        "An identical recurring payment already exists.";
+    }
 
     setErrors(newErrors);
 
@@ -562,7 +574,7 @@ export default function RecurringPayments() {
     formData.name.trim() &&
     formData.accountNumber.trim() &&
     formData.amount &&
-    Number(formData.amount) >= 1  &&
+    Number(formData.amount) >= 1 &&
     Number(formData.amount) <= 10000 &&
     formData.schedule &&
     formData.date &&
@@ -587,12 +599,36 @@ export default function RecurringPayments() {
     [payees],
   );
 
-  const filteredSubscriptions = useMemo(
-    () => filterItemsByName(subscriptionsList, subscriptionsSearchQuery),
-    [subscriptionsList, subscriptionsSearchQuery],
+  // const filteredSubscriptions = useMemo(
+  //   () => filterItemsByName(subscriptionsList, subscriptionsSearchQuery),
+  //   [subscriptionsList, subscriptionsSearchQuery],
+  // );
+
+  const filteredSubscriptions = useMemo(() => {
+  const searchedSubscriptions = filterItemsByName(
+    subscriptionsList,
+    subscriptionsSearchQuery
   );
 
- const filteredPayees = useMemo(() => {
+  return searchedSubscriptions.filter((subscription) => {
+    const matchesStatus =
+      filters.status.length === 0 ||
+      filters.status.includes(subscription.status);
+
+    const matchesRecurringPeriod =
+      filters.recurringPeriod.length === 0 ||
+      filters.recurringPeriod.includes(subscription.schedule);
+
+    return matchesStatus && matchesRecurringPeriod;
+  });
+}, [
+  subscriptionsList,
+  subscriptionsSearchQuery,
+  filters
+]);
+
+
+  const filteredPayees = useMemo(() => {
     const normalizedQuery = billsSearchQuery.trim().toLowerCase();
 
     if (!normalizedQuery) {
@@ -610,6 +646,33 @@ export default function RecurringPayments() {
   const hasBillsSearch = billsSearchQuery.trim().length > 0;
   const hasSubscriptionsSearch = subscriptionsSearchQuery.trim().length > 0;
 
+
+  const statusOptions = ['Active', 'Paused', 'Cancelled'];
+  const periodOptions = ['Monthly', 'Yearly'];
+
+
+  const handleFilterChange = (category, value) => {
+    setFilters((prev) => {
+      const currentValues = prev[category];
+
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter((item) => item !== value)
+        : [...currentValues, value];
+
+      return {
+        ...prev,
+        [category]: newValues
+      };
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: [],
+      recurringPeriod: []
+    });
+  };
+
   return (
 
     <BasicPageLayout
@@ -624,25 +687,28 @@ export default function RecurringPayments() {
           sx={{
             borderRadius: 2,
             boxShadow: tokens.shadow.small,
+            overflow: "visible",
+            position: "relative",
+            zIndex: 2,
           }}
         >
-          <CardContent sx={{p: 3}}>
+          <CardContent sx={{ p: 3 }}>
             <Stack spacing={2}>
               <Box>
-                <Typography variant="h6" sx={{fontWeight: 600, mb: 0.5}}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
                   Manage Recurring Payments
                 </Typography>
 
-                <Typography sx={{color: tokens.color.text.muted}}>
+                <Typography sx={{ color: tokens.color.text.muted }}>
                   Select a category or add a new bill payee.
                 </Typography>
               </Box>
 
               <Stack
-                direction={{xs: "column", sm: "row"}}
+                direction={{ xs: "column", sm: "row" }}
                 spacing={2}
                 justifyContent="space-between"
-                alignItems={{xs: "stretch", sm: "center"}}
+                alignItems={{ xs: "stretch", sm: "center" }}
               >
                 <ToggleButtonGroup
                   value={activeTab}
@@ -659,36 +725,171 @@ export default function RecurringPayments() {
                   </ToggleButton>
                 </ToggleButtonGroup>
 
-              {activeTab === "bills" && (
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setShowForm(prev => !prev);
-                    setErrors({});
-                  }}
-                  sx={{
-                          alignSelf: {xs: "stretch", sm: "auto"},
-                  }}
-                >
-                  Add New Payee
-                </Button>
-              )}
+                {activeTab === "bills" && (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setShowForm(prev => !prev);
+                      setErrors({});
+                    }}
+                    sx={{
+                      alignSelf: { xs: "stretch", sm: "auto" },
+                    }}
+                  >
+                    Add New Payee
+                  </Button>
+                )}
 
-              {activeTab === "subscriptions" && (
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setShowForm(prev => !prev);
-                    setSubscriptionErrors({});
-                  }}
-                  sx={{
-                          alignSelf: {xs: "stretch", sm: "auto"},
-                  }}
+                {activeTab === "subscriptions" && (
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setShowForm(prev => !prev);
+                      setSubscriptionErrors({});
+                    }}
+                    sx={{
+                      alignSelf: { xs: "stretch", sm: "auto" },
+                    }}
+                  >
+                    ＋ Add Subscription
+                  </Button>
+                )}
+              </Stack>
+
+              <div className="filter-container" style={{ position: 'relative', width: "fit-content" }}>
+                <button
+                  style={{
+                    backgroundColor: '#0e7490', // Adjust hex to match your exact teal
+                    color: '#ffffff',
+                    borderRadius: '9999px',
+                    padding: '8px 20px',
+                    border: 'none',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    width: 'fit-content'
+                  }} onClick={() => setFilterOpen(!filterOpen)}
                 >
-                  ＋ Add Subscription
-                </Button>
-              )}
-            </Stack>
+                  Filter
+                </button>
+                {filterOpen && (
+                  <div className="filter-menu" style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)", // 8px gap below the button
+                    left: 0,
+                    background: "white",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    width: "350px",
+                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.15)",
+                    zIndex: "10"
+                  }}>
+                    {/* 1. STATUS SECTION */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+                        Status
+                      </Typography>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                        {/* Loop through Statuses */}
+                        {statusOptions.map((status) => (
+                          <label
+                            key={status}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              color: '#374151',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '4px',
+                                border: '1px solid #d1d5db',
+                                accentColor: '#0e7490',
+                                cursor: 'pointer',
+                              }}
+                              checked={filters.status.includes(status)}
+                              onChange={() => handleFilterChange('status', status)}
+                            />
+                            <span>{status}</span>
+                          </label>
+                        ))}
+
+                      </div>
+                    </div>
+
+                    <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '12px 0' }} />
+
+                    {/* 2. RECURRING PERIOD SECTION */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
+                        Recurring period
+                      </Typography>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+                        {/* Loop through Periods */}
+                        {periodOptions.map((period) => (
+
+                          <label
+                            key={period}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              color: '#374151',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '4px',
+                                border: '1px solid #d1d5db',
+                                accentColor: '#0e7490',
+                                cursor: 'pointer',
+                              }}
+                              checked={filters.recurringPeriod.includes(period)}
+                              onChange={() => handleFilterChange('recurringPeriod', period)}
+                            />
+                            <span>{period}</span>
+                          </label>
+                        ))}
+
+                      </div>
+                    </div>
+
+                    {/* 3. CLEAR FILTERS BUTTON */}
+                    <button
+                      type="button"
+                      style={{
+                        width: '100%',
+                        padding: '8px 16px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        color: '#1f2937',
+                        backgroundColor: '#ffffff',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                      }}
+                      onClick={clearFilters}
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+
+              </div>
+
 
 
               {activeTab === "bills" && showForm && (
@@ -705,27 +906,27 @@ export default function RecurringPayments() {
                 </LocalizationProvider>
               )}
 
-                {activeTab === "subscriptions" && showForm && (
-                  <RecurringSubscriptionForm
-                    formData={subscriptionFormData}
-                    errors={subscriptionErrors}
-                    isFormComplete={isSubscriptionFormComplete}
-                    isSubmitting={isSubmitting}
-                    paymentMethods={paymentMethods}
-                    onInputChange={handleSubscriptionInputChange}
-                    onConfirm={handleConfirmSubscription}
-                    onCancel={resetSubscriptionForm}
-                  />
-                )}
+              {activeTab === "subscriptions" && showForm && (
+                <RecurringSubscriptionForm
+                  formData={subscriptionFormData}
+                  errors={subscriptionErrors}
+                  isFormComplete={isSubscriptionFormComplete}
+                  isSubmitting={isSubmitting}
+                  paymentMethods={paymentMethods}
+                  onInputChange={handleSubscriptionInputChange}
+                  onConfirm={handleConfirmSubscription}
+                  onCancel={resetSubscriptionForm}
+                />
+              )}
 
-                {errorMessage && (
-                  <Alert
-                    severity="error"
-                    onClose={() => setErrorMessage("")}
-                  >
-                    {errorMessage}
-                  </Alert>
-                )}
+              {errorMessage && (
+                <Alert
+                  severity="error"
+                  onClose={() => setErrorMessage("")}
+                >
+                  {errorMessage}
+                </Alert>
+              )}
 
               {successMessage && (
                 <Alert
@@ -746,8 +947,8 @@ export default function RecurringPayments() {
             boxShadow: tokens.shadow.small,
           }}
         >
-          <CardContent sx={{p: 3}}>
-            <Typography variant="h6" sx={{fontWeight: 600, mb: 2}}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
               {activeTab === "subscriptions"
                 ? "Existing Subscriptions"
                 : "Existing Bill Payees"}
@@ -782,69 +983,69 @@ export default function RecurringPayments() {
               />
             )}
 
-                {activeTab === "subscriptions" &&
-                  (subscriptionsList.length === 0 ? (
-                    <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-                  ) : filteredSubscriptions.length === 0 &&
-                    hasSubscriptionsSearch ? (
-                    <RecurringEmptyState
-                      message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
+            {activeTab === "subscriptions" &&
+              (subscriptionsList.length === 0 ? (
+                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+              ) : filteredSubscriptions.length === 0 &&
+                hasSubscriptionsSearch ? (
+                <RecurringEmptyState
+                  message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
+                />
+              ) : (
+                <Stack spacing={2}>
+                  {filteredSubscriptions.map(subscription => (
+                    <RecurringSubscriptionCard
+                      key={subscription.id}
+                      subscription={subscription}
+                      onEdit={handleEditRecurringPayee}
+                      onCancel={handleCancelRecurringPayee}
+                      onView={setViewingItem}
                     />
-                  ) : (
-                    <Stack spacing={2}>
-                      {filteredSubscriptions.map(subscription => (
-                        <RecurringSubscriptionCard
-                          key={subscription.id}
-                          subscription={subscription}
-                          onEdit={handleEditRecurringPayee}
-                          onCancel={handleCancelRecurringPayee}
-                          onView={setViewingItem}
-                        />
-                      ))}
-                    </Stack>
                   ))}
+                </Stack>
+              ))}
 
-                {activeTab === "bills" &&
-                  (billsList.length === 0 ? (
-                    <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
-                  ) : filteredPayees.length === 0 && hasBillsSearch ? (
-                    <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
-                  ) : (
-                    <Stack spacing={2}>
-                      {filteredPayees.map(payee => (
-                        <RecurringPayeeCard
-                          key={payee.id}
-                          payee={payee}
-                          onEdit={handleEditRecurringPayee}
-                          onCancel={handleCancelRecurringPayee}
-                          onView={setViewingItem}
-                        />
-                      ))}
-                    </Stack>
+            {activeTab === "bills" &&
+              (billsList.length === 0 ? (
+                <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
+              ) : filteredPayees.length === 0 && hasBillsSearch ? (
+                <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
+              ) : (
+                <Stack spacing={2}>
+                  {filteredPayees.map(payee => (
+                    <RecurringPayeeCard
+                      key={payee.id}
+                      payee={payee}
+                      onEdit={handleEditRecurringPayee}
+                      onCancel={handleCancelRecurringPayee}
+                      onView={setViewingItem}
+                    />
                   ))}
-              </CardContent>
-            </Card>
-          </Stack>
-          <RecurringPaymentEditDialog
-            open={Boolean(editingPayee)}
-            payee={editingPayee}
-            onClose={() => setEditingPayee(null)}
-            onSave={handleSaveRecurringPayee}
-            isSaving={isSubmitting}
-          />
-          <RecurringPaymentCancelDialog
-            open={Boolean(cancellingPayee)}
-            payee={cancellingPayee}
-            onClose={() => setCancellingPayee(null)}
-            onConfirm={handleConfirmCancelRecurringPayee}
-            isCancelling={isSubmitting}
-          />
-          <RecurringPaymentDetail
-            open={Boolean(viewingItem)}
-            item={viewingItem}
-            onClose={() => setViewingItem(null)}
-            onCancelPayment={() => setCancellingPayee(viewingItem)}
-          />
+                </Stack>
+              ))}
+          </CardContent>
+        </Card>
+      </Stack>
+      <RecurringPaymentEditDialog
+        open={Boolean(editingPayee)}
+        payee={editingPayee}
+        onClose={() => setEditingPayee(null)}
+        onSave={handleSaveRecurringPayee}
+        isSaving={isSubmitting}
+      />
+      <RecurringPaymentCancelDialog
+        open={Boolean(cancellingPayee)}
+        payee={cancellingPayee}
+        onClose={() => setCancellingPayee(null)}
+        onConfirm={handleConfirmCancelRecurringPayee}
+        isCancelling={isSubmitting}
+      />
+      <RecurringPaymentDetail
+        open={Boolean(viewingItem)}
+        item={viewingItem}
+        onClose={() => setViewingItem(null)}
+        onCancelPayment={() => setCancellingPayee(viewingItem)}
+      />
     </BasicPageLayout>
   );
 }
