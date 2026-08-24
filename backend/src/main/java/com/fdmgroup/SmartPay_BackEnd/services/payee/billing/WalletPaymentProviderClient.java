@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,14 +67,20 @@ public class WalletPaymentProviderClient implements PaymentProviderClient {
         Wallet senderWallet = walletRepository.findByUserId(request.getOwnerUserId())
                 .orElseThrow(() -> new IllegalStateException("Sender wallet not found"));
         double amount = request.getAmount();
-        if (senderWallet.getBalance() == null || senderWallet.getBalance() < amount) {
-            throw new InsufficientFundsException("Insufficient wallet balance for recurring bill payment");
-        }
+//        if (senderWallet.getBalance() == null || senderWallet.getBalance() < amount) {
+//            throw new InsufficientFundsException("Insufficient wallet balance for recurring bill payment");
+//        }
+        LocalDate processingDate = request.getProcessingDate();
+
+        RecurringChargeValidationUtil.validate(senderWallet, amount, processingDate);
+        resetDailySpendIfNeeded(senderWallet, processingDate);
 
         Wallet recipientWallet = walletRepository.findByUserId(request.getRecipientUserId())
                 .orElseThrow(() -> new IllegalStateException("Recipient wallet not found"));
 
         senderWallet.setBalance(Math.round((senderWallet.getBalance() - amount) * 100.0) / 100.0);
+        senderWallet.setDailySpentAmount(senderWallet.getDailySpentAmount() + amount);
+        senderWallet.setDailySpentDate(processingDate);
         walletRepository.save(senderWallet);
 
         recipientWallet.setBalance(Math.round((recipientWallet.getBalance() + amount) * 100.0) / 100.0);
@@ -157,5 +164,12 @@ public class WalletPaymentProviderClient implements PaymentProviderClient {
 
     public static String toTransactionId(String providerReferenceId) {
         return RECURRING_TXN_PREFIX + providerReferenceId;
+    }
+
+    private void resetDailySpendIfNeeded(Wallet wallet, LocalDate processingDate) {
+        if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(processingDate)) {
+            wallet.setDailySpentAmount(0.0);
+            wallet.setDailySpentDate(processingDate);
+        }
     }
 }
