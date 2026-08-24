@@ -40,7 +40,6 @@ export default function RecurringBillFilterMenu({ billFilters, toggleBillFilter,
                 <InputLabel
                     key={status}
                     sx={{
-                        // mb: 0.5,
                         display: "flex",
                         alignItems: "center",
                         gap: "10px",
