@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.notification;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .toList();
 
         long totalCount = notificationRepository.countByUser_IdAndDismissedFalse(userId);
+        long unreadCount = notificationRepository.countByUser_IdAndReadFalse(userId);
 
-        return new NotificationListResponseDTO(dtos, totalCount);
+        return new NotificationListResponseDTO(dtos, totalCount, unreadCount);
     }
 
     @Override
@@ -75,6 +77,25 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         notification.setDismissed(true);
+        notification.setRead(true);
+        notification.setReadAt(Instant.now());
+        notificationRepository.save(notification);
+    }
+
+    @Override
+    public void markNotificationAsRead(Long userId, Long notificationId){
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotificationNotFoundException("Notification not found"));
+
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new NotificationNotFoundException("Notification not found");
+        }
+
+        if(notification.isRead()){
+            throw new RuntimeException("Notification already marked as read");
+        }
+        notification.setRead(true);
+        notification.setReadAt(Instant.now());
         notificationRepository.save(notification);
     }
 
@@ -84,7 +105,9 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getType(),
                 notification.getTitle(),
                 notification.getDetail(),
-                notification.getCreatedAt()
+                notification.getCreatedAt(),
+                notification.isRead(),
+                notification.getReadAt()
         );
     }
 }
