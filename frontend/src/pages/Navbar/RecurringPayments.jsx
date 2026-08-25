@@ -291,7 +291,7 @@ export default function RecurringPayments({view}) {
 
     setEditingPayee(null);
     setCancellingPayee(null);
-    setViewingItem(null);
+    setViewingId(null);
 
 
     setFormData({
