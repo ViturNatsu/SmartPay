@@ -20,6 +20,30 @@ export async function getRecurringPayees() {
   }
 }
 
+export async function pauseRecurringPayee(payeeId) {
+  try {
+    const res = await axiosInstance.put(
+      `${RECURRING_PAYEE_URL}/pause/${payeeId}`,
+    );
+
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
+export async function resumeRecurringPayee(payeeId, nextPaymentDate) {
+  try {
+    const { data } = await axiosInstance.put(
+      `${RECURRING_PAYEE_URL}/resume/${payeeId}`,
+      nextPaymentDate ? { nextPaymentDate } : {},
+    );
+    return data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function deleteRecurringPayee(payeeId) {
   try {
     const res = await axiosInstance.delete(
