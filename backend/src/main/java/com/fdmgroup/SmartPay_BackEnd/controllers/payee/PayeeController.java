@@ -128,15 +128,15 @@ public class PayeeController {
     }
 
 
-    @PutMapping("/recurring/pause/{ownerId}/{payeeId}")
-    public ResponseEntity<Void> pauseRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long ownerId, @PathVariable Long payeeId){
+    @PutMapping("/recurring/pause/{payeeId}")
+    public ResponseEntity<Void> pauseRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long payeeId){
         recurringPayeeService.pauseRecurringPayee(autehnticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
 
 
-    @PutMapping("/recurring/resume/{ownerId}/{payeeId}")
-    public ResponseEntity<Void> resumeRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long ownerId, @PathVariable Long payeeId){
+    @PutMapping("/recurring/resume/{payeeId}")
+    public ResponseEntity<Void> resumeRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long payeeId){
         recurringPayeeService.resumeRecurringPayee(autehnticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
