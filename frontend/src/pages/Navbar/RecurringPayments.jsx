@@ -46,8 +46,13 @@ const BILLS_EMPTY_MESSAGE = "No bills found.";
 const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
 const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
-export default function RecurringPayments() {
-  const {  activeTab, handleTabChange  } = useRecurringPaymentsTab();
+export default function RecurringPayments({view}) {
+  const {
+    activeTab: tabFromHook,
+    handleTabChange
+  } = useRecurringPaymentsTab();
+
+  const activeTab = view ?? tabFromHook;
   const {  tokenClaims  } = useAuth();
 
   const [editingPayee, setEditingPayee] = useState(null);
@@ -238,6 +243,51 @@ export default function RecurringPayments() {
   useEffect(() => {
     loadPaymentMethods();
   }, [tokenClaims?.userId]);
+
+  useEffect(() => {
+    setSubscriptionsSearchQuery("");
+    setBillsSearchQuery("");
+
+    setShowForm(false);
+    setErrors({});
+    setSubscriptionErrors({});
+
+    setBillFilters({
+      status: [],
+      schedule: [],
+    });
+
+    setFilters({
+      status: [],
+      schedule: [],
+    });
+
+    setShowBillFilters(false);
+    setFilterOpen(false);
+
+    setEditingPayee(null);
+    setCancellingPayee(null);
+    setViewingItem(null);
+
+
+    setFormData({
+      name: "",
+      accountNumber: "99990001",
+      amount: "",
+      schedule: "",
+      date: "",
+      endDate: "",
+    });
+
+    setSubscriptionFormData({
+      name: "",
+      amount: "",
+      schedule: "",
+      date: "",
+      paymentMethodId: "",
+    });
+  }, [view]);
+  
 
   const handleInputChange = event => {
     const {name, value} = event.target;
@@ -735,9 +785,19 @@ export default function RecurringPayments() {
   return (
 
     <BasicPageLayout
-      title={"Recurring Payments"}
+      title={
+        view === "subscriptions"
+          ? "Subscriptions"
+          : view === "bills"
+            ? "Bills"
+            : "Recurring Payments"
+      }
       subtitle={
-        "Manage your subscriptions and recurring bill payments. Select view to see full details."
+        view === "subscriptions"
+          ? "Manage your recurring subscriptions."
+          : view === "bills"
+            ? "Manage and pay your recurring bills."
+            : "Manage your subscriptions and recurring bill payments. Select view to see full details."
       }
     >
       <Stack spacing={3}>
@@ -769,20 +829,22 @@ export default function RecurringPayments() {
                 justifyContent="space-between"
                 alignItems={{xs: "stretch", sm: "center"}}
               >
-                <ToggleButtonGroup
-                  value={activeTab}
-                  exclusive
-                  onChange={handleTabChange}
-                  aria-label="Recurring payment categories"
-                >
-                  <ToggleButton value="subscriptions">
-                    Subscriptions
-                  </ToggleButton>
+                {!view && (
+                  <ToggleButtonGroup
+                    value={activeTab}
+                    exclusive
+                    onChange={handleTabChange}
+                    aria-label="Recurring payment categories"
+                  >
+                    <ToggleButton value="subscriptions">
+                      Subscriptions
+                    </ToggleButton>
 
-                  <ToggleButton value="bills">
-                    Bills
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                    <ToggleButton value="bills">
+                      Bills
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                )}
 
               </Stack>
 
