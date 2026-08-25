@@ -30,8 +30,8 @@ import {
   updateRecurringPayee,
   cancelRecurringPayee,
 } from "@/api/recurringPayment/recurringPayeeApi";
-import { BasicPageLayout } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
-import { getPaymentMethodsForUserWithId } from "@/api/paymentmethods/paymentmethodApi";
+import {  BasicPageLayout  } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
+import {  getPaymentMethodsForUserWithId  } from "@/api/paymentmethods/paymentmethodApi";
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
@@ -47,8 +47,8 @@ const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
 const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
 export default function RecurringPayments() {
-  const { activeTab, handleTabChange } = useRecurringPaymentsTab();
-  const { tokenClaims } = useAuth();
+  const {  activeTab, handleTabChange  } = useRecurringPaymentsTab();
+  const {  tokenClaims  } = useAuth();
 
   const [editingPayee, setEditingPayee] = useState(null);
   const [cancellingPayee, setCancellingPayee] = useState(null);
@@ -639,29 +639,6 @@ export default function RecurringPayments() {
 
   }, [subscriptionsList, subscriptionsSearchQuery, filters]);
 
-  // const filteredSubscriptions = useMemo(() => {
-  //   const searchedSubscriptions = filterItemsByName(
-  //     subscriptionsList,
-  //     subscriptionsSearchQuery
-  //   );
-
-  //   return searchedSubscriptions.filter((subscription) => {
-  //     const matchesStatus =
-  //       filters.status.length === 0 ||
-  //       filters.status.includes(subscription.status);
-
-  //     const matchesRecurringPeriod =
-  //       filters.recurringPeriod.length === 0 ||
-  //       filters.recurringPeriod.includes(subscription.schedule);
-
-  //     return matchesStatus && matchesRecurringPeriod;
-  //   });
-  // }, [
-  //   subscriptionsList,
-  //   subscriptionsSearchQuery,
-  //   filters
-  // ]);
-
   const filteredPayees = useMemo(() => {
     const normalizedQuery = billsSearchQuery.trim().toLowerCase();
 
@@ -730,9 +707,6 @@ export default function RecurringPayments() {
     )
 
   }, [billFilters, billsList, billsSearchQuery])
-
-  const statusOptions = ['Active', 'Paused', 'Cancelled'];
-  const periodOptions = ['Monthly', 'Yearly'];
 
   const handleFilterChange = (category, value) => {
     setFilters(prev => {
@@ -874,7 +848,6 @@ export default function RecurringPayments() {
                     Add New Payee
                   </Button>
                 )}
-
               </Stack>
 
               <Stack
@@ -923,139 +896,6 @@ export default function RecurringPayments() {
                       ></RecurringSubscriptionFilterMenu>
                     }
                   </div>
-                  // <div className="filter-container" style={{ position: 'relative', width: "fit-content" }}>
-                  //   <button
-                  //     style={{
-                  //       backgroundColor: '#0e7490', // Adjust hex to match your exact teal
-                  //       color: '#ffffff',
-                  //       borderRadius: '9999px',
-                  //       padding: '8px 20px',
-                  //       border: 'none',
-                  //       fontWeight: '600',
-                  //       cursor: 'pointer',
-                  //       width: 'fit-content'
-                  //     }} onClick={() => setFilterOpen(!filterOpen)}
-                  //   >
-                  //     Filter
-                  //   </button>
-                  //   {filterOpen && (
-                  //     <div className="filter-menu" style={{
-                  //       position: "absolute",
-                  //       top: "calc(100% + 8px)", // 8px gap below the button
-                  //       left: 0,
-                  //       background: "white",
-                  //       borderRadius: "8px",
-                  //       padding: "16px",
-                  //       width: "350px",
-                  //       boxShadow: "0 4px 15px rgba(0, 0, 0, 0.15)",
-                  //       zIndex: "10"
-                  //     }}>
-                  //       {/* 1. STATUS SECTION */}
-                  //       <div style={{ marginBottom: '12px' }}>
-                  //         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
-                  //           Status
-                  //         </Typography>
-                  //         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                  //           {/* Loop through Statuses */}
-                  //           {statusOptions.map((status) => (
-                  //             <label
-                  //               key={status}
-                  //               style={{
-                  //                 display: 'flex',
-                  //                 alignItems: 'center',
-                  //                 gap: '10px',
-                  //                 cursor: 'pointer',
-                  //                 fontSize: '14px',
-                  //                 color: '#374151',
-                  //               }}
-                  //             >
-                  //               <input
-                  //                 type="checkbox"
-                  //                 style={{
-                  //                   width: '16px',
-                  //                   height: '16px',
-                  //                   borderRadius: '4px',
-                  //                   border: '1px solid #d1d5db',
-                  //                   accentColor: '#0e7490',
-                  //                   cursor: 'pointer',
-                  //                 }}
-                  //                 checked={filters.status.includes(status)}
-                  //                 onChange={() => handleFilterChange('status', status)}
-                  //               />
-                  //               <span>{status}</span>
-                  //             </label>
-                  //           ))}
-
-                  //         </div>
-                  //       </div>
-
-                  //       <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '12px 0' }} />
-
-                  //       {/* 2. RECURRING PERIOD SECTION */}
-                  //       <div style={{ marginBottom: '16px' }}>
-                  //         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>
-                  //           Recurring period
-                  //         </Typography>
-                  //         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                  //           {/* Loop through Periods */}
-                  //           {periodOptions.map((period) => (
-
-                  //             <label
-                  //               key={period}
-                  //               style={{
-                  //                 display: 'flex',
-                  //                 alignItems: 'center',
-                  //                 gap: '10px',
-                  //                 cursor: 'pointer',
-                  //                 fontSize: '14px',
-                  //                 color: '#374151',
-                  //               }}
-                  //             >
-                  //               <input
-                  //                 type="checkbox"
-                  //                 style={{
-                  //                   width: '16px',
-                  //                   height: '16px',
-                  //                   borderRadius: '4px',
-                  //                   border: '1px solid #d1d5db',
-                  //                   accentColor: '#0e7490',
-                  //                   cursor: 'pointer',
-                  //                 }}
-                  //                 checked={filters.recurringPeriod.includes(period)}
-                  //                 onChange={() => handleFilterChange('recurringPeriod', period)}
-                  //               />
-                  //               <span>{period}</span>
-                  //             </label>
-                  //           ))}
-
-                  //         </div>
-                  //       </div>
-
-                  //       {/* 3. CLEAR FILTERS BUTTON */}
-                  //       <button
-                  //         type="button"
-                  //         style={{
-                  //           width: '100%',
-                  //           padding: '8px 16px',
-                  //           border: '1px solid #e5e7eb',
-                  //           borderRadius: '12px',
-                  //           fontWeight: '600',
-                  //           fontSize: '14px',
-                  //           color: '#1f2937',
-                  //           backgroundColor: '#ffffff',
-                  //           cursor: 'pointer',
-                  //           boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                  //         }}
-                  //         onClick={clearFilters}
-                  //       >
-                  //         Clear filters
-                  //       </button>
-                  //     </div>
-                  //   )}
-
-                  // </div>
                 )}
 
                 {activeTab === "subscriptions" && (
@@ -1191,7 +1031,7 @@ export default function RecurringPayments() {
             {activeTab === "subscriptions" &&
               (subscriptionsList.length === 0 ? (
                 <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-              ) : filteredSubscriptions.length === 0 &&
+              ) : filterSubscriptionsByCategoryAndName.length === 0 &&
                 hasSubscriptionsSearch ? (
                 <RecurringEmptyState
                   message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
