@@ -848,14 +848,6 @@ export default function RecurringPayments() {
                     Add New Payee
                   </Button>
                 )}
-              </Stack>
-
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={2}
-                justifyContent="space-between"
-                alignItems={{ xs: "stretch", sm: "center" }}
-              >
 
                 {activeTab === "subscriptions" && (
                   <div className="subscription-filter-container">
@@ -943,27 +935,7 @@ export default function RecurringPayments() {
                   onCancel={resetSubscriptionForm}
                 />
               )}
-              {activeTab === "subscriptions" && showForm && (
-                <RecurringSubscriptionForm
-                  formData={subscriptionFormData}
-                  errors={subscriptionErrors}
-                  isFormComplete={isSubscriptionFormComplete}
-                  isSubmitting={isSubmitting}
-                  paymentMethods={paymentMethods}
-                  onInputChange={handleSubscriptionInputChange}
-                  onConfirm={handleConfirmSubscription}
-                  onCancel={resetSubscriptionForm}
-                />
-              )}
 
-              {errorMessage && (
-                <Alert
-                  severity="error"
-                  onClose={() => setErrorMessage("")}
-                >
-                  {errorMessage}
-                </Alert>
-              )}
               {errorMessage && (
                 <Alert
                   severity="error"
