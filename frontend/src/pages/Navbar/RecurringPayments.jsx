@@ -11,8 +11,8 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import {  LocalizationProvider  } from "@mui/x-date-pickers/LocalizationProvider";
+import {  AdapterDayjs  } from "@mui/x-date-pickers/AdapterDayjs";
 import RecurringPayeeCard from "@/components/recurringPayments/RecurringPayeeCard";
 import RecurringPayeeForm from "@/components/recurringPayments/RecurringPayeeForm";
 import RecurringSubscriptionCard from "@/components/recurringPayments/RecurringSubscriptionCard";
@@ -20,10 +20,10 @@ import RecurringSubscriptionForm from "@/components/recurringPayments/RecurringS
 import RecurringEmptyState from "@/components/recurringPayments/RecurringEmptyState";
 import RecurringPaymentsSearchBar from "@/components/recurringPayments/RecurringPaymentsSearchBar";
 import Navbar from "@/components/Navbar";
-import { tokens } from "@/style/Theme";
-import { useAuth } from "@/context/AuthContext";
-import { useRecurringPaymentsTab } from "@/utils/useRecurringPaymentsTab";
-import { filterItemsByName } from "@/utils/recurringPaymentsSearchUtils";
+import {  tokens  } from "@/style/Theme";
+import {  useAuth  } from "@/context/AuthContext";
+import {  useRecurringPaymentsTab  } from "@/utils/useRecurringPaymentsTab";
+import {  filterItemsByName  } from "@/utils/recurringPaymentsSearchUtils";
 import {
   addRecurringPayee,
   getRecurringPayees,
@@ -85,14 +85,6 @@ export default function RecurringPayments() {
   const [errorMessage, setErrorMessage] = useState("");
   const [viewingItem, setViewingItem] = useState(null);
 
-  const [filters, setFilters] = useState({
-    status: [],
-    schedule: []
-  });
-
-  const [filterOpen, setFilterOpen] = useState(false);
-  const subscriptionFilterCount = filters.status.length + filters.schedule.length;
-
   const [billFilters, setBillFilters] = useState({
     status: [],
     schedule: []
@@ -102,6 +94,14 @@ export default function RecurringPayments() {
   const billFilterCount =
     billFilters.status.length +
     billFilters.schedule.length;
+
+  const [filters, setFilters] = useState({
+    status: [],
+    schedule: []
+  });
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const subscriptionFilterCount = filters.status.length + filters.schedule.length;
 
   const loadRecurringPayees = async () => {
     setIsLoading(true);
@@ -137,7 +137,7 @@ export default function RecurringPayments() {
     } catch (error) {
       setErrorMessage(
         error?.message ||
-        "Unable to load recurring payees. Please try again.",
+          "Unable to load recurring payees. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -240,7 +240,7 @@ export default function RecurringPayments() {
   }, [tokenClaims?.userId]);
 
   const handleInputChange = event => {
-    const { name, value } = event.target;
+    const {name, value} = event.target;
 
     setFormData(prev => ({
       ...prev,
@@ -254,7 +254,7 @@ export default function RecurringPayments() {
   };
 
   const handleSubscriptionInputChange = event => {
-    const { name, value } = event.target;
+    const {name, value} = event.target;
 
     setSubscriptionFormData(prev => ({
       ...prev,
@@ -325,7 +325,7 @@ export default function RecurringPayments() {
 
       today.setHours(0, 0, 0, 0);
 
-      if (selectedDate <= paymentDate) {
+      if (selectedDate <= paymentDate){
         newErrors.endDate =
           "End date must be after next payment date for recurring payments.";
       }
@@ -337,41 +337,41 @@ export default function RecurringPayments() {
     }
 
     const duplicateRecurringPayee = billsList.some((payee) => {
-      const sameName =
-        String(payee.name ?? "").trim().toLowerCase() ===
-        formData.name.trim().toLowerCase();
+    const sameName =
+      String(payee.name ?? "").trim().toLowerCase() ===
+      formData.name.trim().toLowerCase();
 
-      const sameAccountNumber =
-        String(payee.accountNumber ?? "").trim().toLowerCase() ===
-        formData.accountNumber.trim().toLowerCase();
+    const sameAccountNumber =
+      String(payee.accountNumber ?? "").trim().toLowerCase() ===
+      formData.accountNumber.trim().toLowerCase();
 
-      const sameAmount =
-        Number(payee.amount) === Number(formData.amount);
+    const sameAmount =
+      Number(payee.amount) === Number(formData.amount);
 
-      const sameSchedule =
-        String(payee.schedule ?? "").trim().toUpperCase() ===
-        formData.schedule.trim().toUpperCase();
+    const sameSchedule =
+      String(payee.schedule ?? "").trim().toUpperCase() ===
+      formData.schedule.trim().toUpperCase();
 
-      const sameDate =
-        String(payee.date ?? "") === formData.date;
+    const sameDate =
+      String(payee.date ?? "") === formData.date;
+    
+    const sameEndDate =
+      String(payee.endDate ?? "") === formData.endDate;
 
-      const sameEndDate =
-        String(payee.endDate ?? "") === formData.endDate;
+    return (
+      sameName &&
+      sameAccountNumber &&
+      sameAmount &&
+      sameSchedule &&
+      sameDate &&
+      sameEndDate
+    );
+  });
 
-      return (
-        sameName &&
-        sameAccountNumber &&
-        sameAmount &&
-        sameSchedule &&
-        sameDate &&
-        sameEndDate
-      );
-    });
-
-    if (duplicateRecurringPayee) {
-      newErrors.name =
-        "An identical recurring payment already exists.";
-    }
+  if (duplicateRecurringPayee) {
+    newErrors.name =
+      "An identical recurring payment already exists.";
+  }
 
     setErrors(newErrors);
 
@@ -751,23 +751,23 @@ export default function RecurringPayments() {
             zIndex: 2,
           }}
         >
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{p: 3}}>
             <Stack spacing={2}>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                <Typography variant="h6" sx={{fontWeight: 600, mb: 0.5}}>
                   Manage Recurring Payments
                 </Typography>
 
-                <Typography sx={{ color: tokens.color.text.muted }}>
+                <Typography sx={{color: tokens.color.text.muted}}>
                   Select a category or add a new bill payee.
                 </Typography>
               </Box>
 
               <Stack
-                direction={{ xs: "column", sm: "row" }}
+                direction={{xs: "column", sm: "row"}}
                 spacing={2}
                 justifyContent="space-between"
-                alignItems={{ xs: "stretch", sm: "center" }}
+                alignItems={{xs: "stretch", sm: "center"}}
               >
                 <ToggleButtonGroup
                   value={activeTab}
@@ -992,8 +992,8 @@ export default function RecurringPayments() {
             boxShadow: tokens.shadow.small,
           }}
         >
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          <CardContent sx={{p: 3}}>
+            <Typography variant="h6" sx={{fontWeight: 600, mb: 2}}>
               {activeTab === "subscriptions"
                 ? "Existing Subscriptions"
                 : "Existing Bill Payees"}
