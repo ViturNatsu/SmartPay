@@ -85,6 +85,8 @@ export const tokens = {
       warningBorder: "#FDBA74",
       warningText: "#C2410C",
       warningBright: "#F59E0B",
+      cancelled: "#737b87",
+      cancelledBg: "#F1F5F9",
       gold: "#C8A84B",
     },
     button: {
@@ -200,6 +202,13 @@ export const tokens = {
     padding: 2,
     actionGap: 1,
   },
+
+  dialog: {
+  detailWidth: "xs",
+  confirmWidth: 360,
+  confirmOffset: "12vh",
+  },
+  
 };
 
 /** Shared layout styles for dashboard right-sidebar cards (Quick Actions, Linked Accounts, etc.) */
@@ -248,6 +257,10 @@ export const theme = createTheme({
     warning: {
       main: tokens.color.status.warning,
       light: tokens.color.status.warningBg,
+    },
+    cancelled: {
+      main: tokens.color.status.cancelled,
+      light: tokens.color.status.cancelledBg,
     },
     divider: tokens.color.border.light,
   },
@@ -370,6 +383,10 @@ export const theme = createTheme({
         standardWarning: {
           backgroundColor: tokens.color.status.warningBg,
           color: tokens.color.status.warning,
+        },
+        standardCancelled: {
+          backgroundColor: tokens.color.status.cancelledBg,
+          color: tokens.color.status.cancelled,
         },
       },
     },
