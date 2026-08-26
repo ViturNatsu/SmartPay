@@ -68,9 +68,10 @@ export function Transfers() {
                 zIndex: 1,
             }}
         >
-            <Button
-        sx={optionButtonSx}
-        onClick={() => navigate("/make-a-payment")}
+        
+        <Button
+            sx={optionButtonSx}
+            onClick={() => navigate("/make-a-payment")}
         >
             <Stack direction="row" spacing={2} alignItems="center">
                 <SendRoundedIcon
