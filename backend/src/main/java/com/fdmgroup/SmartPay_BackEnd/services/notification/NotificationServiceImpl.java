@@ -14,6 +14,7 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationListResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.notification.NotificationRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
@@ -77,8 +78,10 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         notification.setDismissed(true);
-        notification.setRead(true);
-        notification.setReadAt(Instant.now());
+        if(!notification.isRead()){
+            notification.setRead(true);
+            notification.setReadAt(Instant.now());
+        }
         notificationRepository.save(notification);
     }
 
@@ -92,7 +95,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         if(notification.isRead()){
-            throw new RuntimeException("Notification already marked as read");
+            throw new IllgealNotificationException("Notification already marked as read");
         }
         notification.setRead(true);
         notification.setReadAt(Instant.now());

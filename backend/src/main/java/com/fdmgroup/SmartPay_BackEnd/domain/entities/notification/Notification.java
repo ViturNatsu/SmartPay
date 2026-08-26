@@ -59,7 +59,7 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
-    @Column(name = "read_at", updatable = false)
+    @Column(name = "read_at")
     private Instant readAt;
 
     @PrePersist
