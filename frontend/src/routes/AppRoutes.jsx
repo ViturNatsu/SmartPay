@@ -33,7 +33,7 @@ import AddUser from "../pages/Admin/AddUser";
 import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
 import RecurringPayments from "@/pages/Navbar/RecurringPayments";
 import Navbar from "@/components/Navbar.jsx";
-
+import {Transfers} from "@/pages/Navbar/Transfers";
 
 export default function AppRoutes() {
   return (
@@ -53,6 +53,7 @@ export default function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/wallet" element={<Wallet />} />
+          <Route path="/transfers" element={<Transfers />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
           <Route path="/reports" element={<Reports />} />
@@ -64,6 +65,8 @@ export default function AppRoutes() {
           <Route path="/add-payee" element={<AddPayee />} />
           <Route path="/payees" element={<PayeeList />} />
           <Route path="/recurring-payments" element={<RecurringPayments />} />
+          <Route path="/subscriptions" element={<RecurringPayments view="subscriptions" />} />
+          <Route path="/bills" element={<RecurringPayments view="bills" />} />
           <Route path="/simulatedbankauth/:selectedBank" element={<SimulatedBankAuthorization />} />
           <Route path="/linkbankaccount/:institutionNumber" element={<LinkBankAccount />}/>
           <Route path="/linkbankaccount" element={<LinkBankAccount />} />
