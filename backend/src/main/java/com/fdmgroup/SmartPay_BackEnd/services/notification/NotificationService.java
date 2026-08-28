@@ -12,4 +12,6 @@ public interface NotificationService {
     boolean hasActiveOfType(Long userId, NotificationType type);
 
     void dismissNotification(Long userId, Long notificationId);
+
+    void markNotificationAsRead(Long userId, Long notificationId);
 }
