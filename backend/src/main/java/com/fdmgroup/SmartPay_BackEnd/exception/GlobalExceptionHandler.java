@@ -4,7 +4,6 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,12 +29,15 @@ import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessExcept
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeAlreadyPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeNotPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -366,6 +368,16 @@ public class GlobalExceptionHandler {
                 errorBody.put(ERROR, "Forbidden");
                 errorBody.put(MESSAGE, "Recurring Payement does not belong to User.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        //US-NOTIF-BE-05
+        @ExceptionHandler(IllgealNotificationException.class)
+        public ResponseEntity<Map<String, String>> handleIllegalNotificationException(IllgealNotificationException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         /**

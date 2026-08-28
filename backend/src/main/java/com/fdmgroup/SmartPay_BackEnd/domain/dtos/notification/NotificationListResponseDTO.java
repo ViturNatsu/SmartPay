@@ -13,4 +13,5 @@ public class NotificationListResponseDTO {
 
     private List<NotificationResponseDTO> notifications;
     private long totalCount;
+    private long unreadCount;
 }

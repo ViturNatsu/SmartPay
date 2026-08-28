@@ -56,6 +56,12 @@ public class Notification {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "is_read", nullable = false)
+    private boolean read = false;
+
+    @Column(name = "read_at")
+    private Instant readAt;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
