@@ -18,6 +18,7 @@ import {CreateAccount} from "@/pages/Accounts/CreateAccount";
 import AddPayee from "@/pages/Payee/AddPayee";
 import PayeeList from "@/pages/Payee/PayeeList"
 import {MakeAPayment} from "@/pages/Accounts/MakeAPayment";
+import {SendMoney} from "@/pages/Accounts/SendMoney";
 import {ViewHistory} from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";
 import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
@@ -62,6 +63,7 @@ export default function AppRoutes() {
           <Route path="/create-account" element={<CreateAccount />} />
           <Route path="/view-history" element={<ViewHistory />} />
           <Route path="/make-a-payment" element={<MakeAPayment />} />
+          <Route path="/send-money" element={<SendMoney />} />
           <Route path="/add-payee" element={<AddPayee />} />
           <Route path="/payees" element={<PayeeList />} />
           <Route path="/recurring-payments" element={<RecurringPayments />} />
