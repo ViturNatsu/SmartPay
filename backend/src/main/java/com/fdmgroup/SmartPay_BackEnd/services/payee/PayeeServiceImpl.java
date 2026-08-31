@@ -119,7 +119,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
     @Override
     public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
-        List<Payee> payees = payeeRepository.findByOwnerIdAndActiveTrue(ownerId);
+        List<Payee> payees = payeeRepository.findRegularPayeesByOwnerId(ownerId);
         return payees.stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
