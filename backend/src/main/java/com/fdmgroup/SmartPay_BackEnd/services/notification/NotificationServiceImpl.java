@@ -1,5 +1,6 @@
 package com.fdmgroup.SmartPay_BackEnd.services.notification;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationListResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.notification.NotificationRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
@@ -45,8 +47,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .toList();
 
         long totalCount = notificationRepository.countByUser_IdAndDismissedFalse(userId);
+        long unreadCount = notificationRepository.countByUser_IdAndReadFalse(userId);
 
-        return new NotificationListResponseDTO(dtos, totalCount);
+        return new NotificationListResponseDTO(dtos, totalCount, unreadCount);
     }
 
     @Override
@@ -75,6 +78,27 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         notification.setDismissed(true);
+        if(!notification.isRead()){
+            notification.setRead(true);
+            notification.setReadAt(Instant.now());
+        }
+        notificationRepository.save(notification);
+    }
+
+    @Override
+    public void markNotificationAsRead(Long userId, Long notificationId){
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotificationNotFoundException("Notification not found"));
+
+        if (!notification.getUser().getId().equals(userId)) {
+            throw new NotificationNotFoundException("Notification not found");
+        }
+
+        if(notification.isRead()){
+            throw new IllgealNotificationException("Notification already marked as read");
+        }
+        notification.setRead(true);
+        notification.setReadAt(Instant.now());
         notificationRepository.save(notification);
     }
 
@@ -84,7 +108,9 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getType(),
                 notification.getTitle(),
                 notification.getDetail(),
-                notification.getCreatedAt()
+                notification.getCreatedAt(),
+                notification.isRead(),
+                notification.getReadAt()
         );
     }
 }
