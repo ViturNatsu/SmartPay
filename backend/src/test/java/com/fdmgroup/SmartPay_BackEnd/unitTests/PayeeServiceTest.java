@@ -315,7 +315,7 @@ class PayeeServiceTest {
                 .payeeName("Buddy 2")
                 .build();
 
-        when(payeeRepository.findByOwnerIdAndActiveTrue(1L)).thenReturn(List.of(payee1, payee2));
+        when(payeeRepository.findRegularPayeesByOwnerId(1L)).thenReturn(List.of(payee1, payee2));
 
         List<PayeeResponseDTO> result = payeeService.getPayeesForUser(1L);
 
@@ -324,19 +324,19 @@ class PayeeServiceTest {
         assertEquals("Buddy 1", result.get(0).getPayeeName());
         assertEquals("Buddy 2", result.get(1).getPayeeName());
 
-        verify(payeeRepository).findByOwnerIdAndActiveTrue(1L);
+        verify(payeeRepository).findRegularPayeesByOwnerId(1L);
     }
 
     @Test
     void getPayeesForUser_shouldReturnEmptyList_whenNoPayeesExist() {
-        when(payeeRepository.findByOwnerIdAndActiveTrue(1L)).thenReturn(Collections.emptyList());
+        when(payeeRepository.findRegularPayeesByOwnerId(1L)).thenReturn(Collections.emptyList());
 
         List<PayeeResponseDTO> result = payeeService.getPayeesForUser(1L);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        verify(payeeRepository).findByOwnerIdAndActiveTrue(1L);
+        verify(payeeRepository).findRegularPayeesByOwnerId(1L);
     }
 
     // deletePayee Tests
