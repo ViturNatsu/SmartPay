@@ -51,6 +51,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.ScheduleDateRequiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidScheduleDateException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPaymentMethodException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -378,6 +381,34 @@ public class GlobalExceptionHandler {
                 errorBody.put(ERROR, "Bad Request");
                 errorBody.put(MESSAGE, ex.getMessage());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        // US-RECUR-FE-07
+        @ExceptionHandler(ScheduleDateRequiredException.class)
+        public ResponseEntity<Map<String, String>> handleScheduleDateRequired(ScheduleDateRequiredException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        @ExceptionHandler(InvalidScheduleDateException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidScheduleDate(InvalidScheduleDateException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "400");
+                errorBody.put(ERROR, "Bad Request");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        @ExceptionHandler(InvalidPaymentMethodException.class)
+        public ResponseEntity<Map<String, String>> handleInvalidPaymentMethod(InvalidPaymentMethodException ex) {
+                Map<String, String> errorBody = new HashMap<>();
+                errorBody.put(STATUS, "422");
+                errorBody.put(ERROR, "Unprocessable Entity");
+                errorBody.put(MESSAGE, ex.getMessage());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
         /**
