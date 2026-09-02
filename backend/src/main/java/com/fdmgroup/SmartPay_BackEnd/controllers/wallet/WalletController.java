@@ -185,14 +185,30 @@ public class WalletController {
     })
     public ResponseEntity<WalletTransactionDTO> updateTransactionIsFavourite(@PathVariable long userId,
         @PathVariable String transactionId, 
-        @RequestParam(defaultValue="false") boolean isFavourite,
+        @RequestParam(defaultValue="false") String isFavourite,
         Authentication authentication){
 
         User principalUser = (User) authentication.getPrincipal();
         if (!principalUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
-        return ResponseEntity.ok(walletService.changeWalletTransactionFavouriteStatus(userId, transactionId,isFavourite));
+
+        if (!isFavourite.equalsIgnoreCase("true")
+                && !isFavourite.equalsIgnoreCase("false")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "isFavourite must be either true or false"
+            );
+        }
+
+      boolean favourite = Boolean.parseBoolean(isFavourite);
+
+      return ResponseEntity.ok(
+            walletService.changeWalletTransactionFavouriteStatus(
+                userId,
+                transactionId,
+                favourite
+            )
+      );
     }
 }
