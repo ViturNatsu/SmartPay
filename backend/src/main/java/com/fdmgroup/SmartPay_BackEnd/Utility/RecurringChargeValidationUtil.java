@@ -13,12 +13,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
+@Service
 @RequiredArgsConstructor
-public final class RecurringChargeValidationUtil {
+public class RecurringChargeValidationUtil {
 
-    private static CardRequestService cardRequestService;
+    private final CardRequestService cardRequestService;
 
-    public static void validate(Wallet wallet, double amount, LocalDate processingDate) {
+    public void validate(Wallet wallet, double amount, LocalDate processingDate) {
         validatePerTransactionLimit(wallet, amount);
         validateDailySpendingLimit(wallet, amount, processingDate);
         validateAvailableBalance(wallet, amount);
@@ -26,7 +27,7 @@ public final class RecurringChargeValidationUtil {
         validateCardHasNoPendingReplacement(wallet);
     }
 
-    private static void validatePerTransactionLimit(Wallet wallet, double amount) {
+    private void validatePerTransactionLimit(Wallet wallet, double amount) {
         if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
             throw new InvalidWithdrawAmountException(
                     "This transaction exceeds your wallet per-transaction limit of $"
@@ -36,7 +37,7 @@ public final class RecurringChargeValidationUtil {
         }
     }
 
-    private static void validateDailySpendingLimit(Wallet wallet, double amount, LocalDate processingDate) {
+    private void validateDailySpendingLimit(Wallet wallet, double amount, LocalDate processingDate) {
         if (wallet.getDailySpendingLimit() == null) {
             return;
         }
@@ -49,13 +50,13 @@ public final class RecurringChargeValidationUtil {
         }
     }
 
-    private static void validateAvailableBalance(Wallet wallet, double amount) {
+    private void validateAvailableBalance(Wallet wallet, double amount) {
         if (wallet.getBalance() == null || amount > wallet.getBalance()) {
             throw new InsufficientFundsException("Insufficient wallet balance");
         }
     }
 
-    private static double getDailySpentAmountForDate(Wallet wallet, LocalDate processingDate) {
+    private double getDailySpentAmountForDate(Wallet wallet, LocalDate processingDate) {
         if (wallet.getDailySpentDate() == null || !wallet.getDailySpentDate().equals(processingDate)) {
             return 0.0;
         }
@@ -63,7 +64,7 @@ public final class RecurringChargeValidationUtil {
         return wallet.getDailySpentAmount();
     }
 
-    private static void validateCardIsNotLocked(Wallet wallet) {
+    private void validateCardIsNotLocked(Wallet wallet) {
         Card card = wallet.getCard();
         CardStatus status = card.getStatus();
 
@@ -74,7 +75,7 @@ public final class RecurringChargeValidationUtil {
 
     }
 
-    private static void validateCardHasNoPendingReplacement(Wallet wallet) {
+    private void validateCardHasNoPendingReplacement(Wallet wallet) {
 
         if(cardRequestService.CardHasPendingRequest(wallet.getCard())){
             throw new IllegalCardChargeException("Card has a pending charge request", 1);
