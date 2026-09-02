@@ -23,8 +23,8 @@ public class RecurringChargeValidationUtil {
         validatePerTransactionLimit(wallet, amount);
         validateDailySpendingLimit(wallet, amount, processingDate);
         validateAvailableBalance(wallet, amount);
-        validateCardIsNotLocked(wallet);
         validateCardHasNoPendingReplacement(wallet);
+        validateCardIsNotLocked(wallet);
     }
 
     private void validatePerTransactionLimit(Wallet wallet, double amount) {
