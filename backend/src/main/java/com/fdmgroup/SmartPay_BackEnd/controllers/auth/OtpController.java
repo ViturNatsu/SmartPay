@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -104,9 +106,6 @@ public class OtpController {
                 String refreshToken = jwtSessionService.createRefreshToken(user);
 
                 sessionService.generateNewSession(user, refreshToken);
-
-                notificationService.createNotification(
-                        user.getId(), NotificationType.SECURITY, "New sign-in detected", null);
 
                 // Wallet logic for non admins
                 if(user.getRole().equals(Role.USER)){

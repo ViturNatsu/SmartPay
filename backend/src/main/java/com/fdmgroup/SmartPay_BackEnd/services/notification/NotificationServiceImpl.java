@@ -1,9 +1,12 @@
 package com.fdmgroup.SmartPay_BackEnd.services.notification;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationValidationUtil;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,13 +26,13 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-    private static final Map<NotificationType, Integer> PRIORITY_BY_TYPE = new EnumMap<>(NotificationType.class);
-    static {
-        PRIORITY_BY_TYPE.put(NotificationType.SECURITY, 0);
-        PRIORITY_BY_TYPE.put(NotificationType.WARNING, 1);
-        PRIORITY_BY_TYPE.put(NotificationType.SUCCESS, 2);
-        PRIORITY_BY_TYPE.put(NotificationType.INFO, 3);
-    }
+//    private static final Map<NotificationType, Integer> PRIORITY_BY_TYPE = new EnumMap<>(NotificationType.class);
+//    static {
+//        PRIORITY_BY_TYPE.put(NotificationType.SECURITY, 0);
+//        PRIORITY_BY_TYPE.put(NotificationType.WARNING, 1);
+//        PRIORITY_BY_TYPE.put(NotificationType.SUCCESS, 2);
+//        PRIORITY_BY_TYPE.put(NotificationType.INFO, 3);
+//    }
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
@@ -38,7 +41,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationListResponseDTO getNotificationsForUser(Long userId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.unsorted());
         List<Notification> notifications = notificationRepository
-                .findByUser_IdAndDismissedFalseOrderByPriorityAscCreatedAtDesc(userId, pageable);
+                .findActiveNotificationsByUserId(userId, pageable);
 
         List<NotificationResponseDTO> dtos = notifications.stream()
                 .map(this::toResponseDTO)
@@ -50,13 +53,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void createNotification(Long userId, NotificationType type, String title, String detail) {
+    public void createNotification(NotificationCreateRequestDTO request) {
+        NotificationValidationUtil.validate(request);
+
         Notification notification = new Notification();
-        notification.setUser(userRepository.getReferenceById(userId));
-        notification.setType(type);
-        notification.setTitle(title);
-        notification.setDetail(detail);
-        notification.setPriority(PRIORITY_BY_TYPE.get(type));
+        notification.setUser(userRepository.getReferenceById(request.getUserId()));
+        notification.setType(request.getType());
+        notification.setTitle(request.getTitle());
+        notification.setDetail(request.getDetail());
+        notification.setTier(request.getTier());
+        notification.setRelatedEntityType(request.getRelatedEntityType());
+        notification.setRelatedEntityId(request.getRelatedEntityId());
+
         notificationRepository.save(notification);
     }
 
@@ -75,6 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         notification.setDismissed(true);
+        notification.setDismissedAt(Instant.now());
         notificationRepository.save(notification);
     }
 
@@ -84,6 +93,13 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getType(),
                 notification.getTitle(),
                 notification.getDetail(),
+                notification.getTier(),
+                notification.getRead(),
+                notification.getReadAt(),
+                notification.getDismissed(),
+                notification.getDismissedAt(),
+                notification.getRelatedEntityType(),
+                notification.getRelatedEntityId(),
                 notification.getCreatedAt()
         );
     }

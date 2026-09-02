@@ -4,6 +4,7 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.InvalidNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -304,6 +305,11 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(NotificationNotFoundException.class)
         public ResponseEntity<ExceptionShapeDTO> handleNotificationNotFound(NotificationNotFoundException ex) {
                 return errorResponseBuilder(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+
+        @ExceptionHandler(InvalidNotificationException.class)
+        public ResponseEntity<ExceptionShapeDTO> handleInvalidNotification(InvalidNotificationException ex) {
+            return errorResponseBuilder(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
 
 

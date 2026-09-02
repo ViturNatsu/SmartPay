@@ -1,19 +1,17 @@
 package com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification;
 
-import java.time.Instant;
-
 import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class NotificationResponseDTO {
-
-    private Long id;
+public class NotificationCreateRequestDTO {
+    private Long userId;
 
     private NotificationType type;
 
@@ -23,14 +21,6 @@ public class NotificationResponseDTO {
 
     private Integer tier;
 
-    private Boolean read;
-    private Instant readAt;
-
-    private Boolean dismissed;
-    private Instant dismissedAt;
-
     private String relatedEntityType;
     private String relatedEntityId;
-
-    private Instant createdAt;
 }

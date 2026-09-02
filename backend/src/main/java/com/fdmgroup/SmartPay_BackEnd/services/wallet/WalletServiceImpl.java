@@ -8,7 +8,9 @@ import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -389,9 +391,18 @@ public class WalletServiceImpl implements WalletService {
         recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amountValue, depositCounterparty, RailType.WALLET_TRANSFER);
         WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amountValue ,transferCounterparty, RailType.WALLET_TRANSFER);
 
-        notificationService.createNotification(
-                senderUserId, NotificationType.SUCCESS, "Payment successful",
-                "$" + String.format("%.2f", amountValue) + " sent to " + transferCounterparty);
+        NotificationCreateRequestDTO successNotification = new NotificationCreateRequestDTO();
+        successNotification.setUserId(senderUserId);
+        successNotification.setType(NotificationType.SUCCESS);
+        successNotification.setTitle("Payment successful");
+        successNotification.setDetail("$" + String.format("%.2f", amountValue) + " sent to " + transferCounterparty);
+        // TODO: confirm tier for successful transfer
+        successNotification.setTier(NotificationTier.T3.getValue());
+        //TODO: set related entity
+        successNotification.setRelatedEntityType("WALLET_TRANSACTION");
+        successNotification.setRelatedEntityId(transferTx.getId().toString());
+
+        notificationService.createNotification(successNotification);
 
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
@@ -401,9 +412,16 @@ public class WalletServiceImpl implements WalletService {
     private void maybeNotifyLowBalance(long userId, Double balance) {
         if (balance != null && balance < LOW_BALANCE_THRESHOLD
                 && !notificationService.hasActiveOfType(userId, NotificationType.WARNING)) {
-            notificationService.createNotification(
-                    userId, NotificationType.WARNING, "Low wallet balance",
-                    "Below $" + LOW_BALANCE_THRESHOLD.intValue());
+
+            NotificationCreateRequestDTO lowBalanceNotification = new NotificationCreateRequestDTO();
+            lowBalanceNotification.setUserId(userId);
+            lowBalanceNotification.setType(NotificationType.WARNING);
+            lowBalanceNotification.setTitle("Low wallet balance");
+            lowBalanceNotification.setDetail("Below $" + LOW_BALANCE_THRESHOLD.intValue());
+            // TODO: Confirm tier assignment for low wallet balance notification
+            lowBalanceNotification.setTier(NotificationTier.T2.getValue());
+
+            notificationService.createNotification(lowBalanceNotification);
         }
     }
 

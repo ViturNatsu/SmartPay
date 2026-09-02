@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.system.AuditLog;
 import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.IntegrationTestHelper;
+import com.fdmgroup.SmartPay_BackEnd.repositories.notification.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +65,9 @@ public class OTPIntegrationTest {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     private User user;
 
     @Autowired
@@ -113,6 +119,21 @@ public class OTPIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(jsonPath("$.refreshToken").exists());
+
+        AuditLog loginAudit = auditLogRepository.findAll().stream()
+                .filter(log -> log.getEventType() == EventType.LOGIN)
+                .filter(log -> AuditLog.OTP_VERIFICATION_PASSED
+                        .equals(log.getEventStatus()))
+                .findFirst()
+                .orElseThrow();
+
+        Notification signInNotification = notificationRepository.findAll().stream()
+                        .filter(notification -> "New sign-in detected".equals(notification.getTitle()))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals("AUDIT_LOG", signInNotification.getRelatedEntityType());
+        assertEquals(loginAudit.getLogId().toString(), signInNotification.getRelatedEntityId());
 
         Otp updated = otpRepository.findByEmailAndOtpType("test@test.com", EventType.LOGIN).get();
         assertEquals(0, updated.getAttemptsPerOtp());
