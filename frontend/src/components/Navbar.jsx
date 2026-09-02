@@ -58,6 +58,11 @@ const userNavItems = [
     icon: <SwapHorizRoundedIcon />,
   },
   {label: "Wallet", path: "/wallet", icon: <CreditCardRoundedIcon />},
+  {
+    label: "Transfers",
+    path: "/transfers",
+    icon: <SwapHorizRoundedIcon />,
+  },
 ];
 
 const adminNavItems = [

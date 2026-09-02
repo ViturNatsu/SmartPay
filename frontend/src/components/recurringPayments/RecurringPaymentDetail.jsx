@@ -6,6 +6,7 @@ import {
   DialogContent,
   Stack,
   Typography,
+  IconButton
 } from "@mui/material";
 import { tokens } from "@/style/Theme";
 import {
@@ -15,11 +16,12 @@ import {
   maskAccountNumber,
   formatStatus
 } from "@/utils/recurringPaymentFormatters";
+import CloseIcon from "@mui/icons-material/Close";
 
 const STATUS_COLOR = {
   ACTIVE: "success.main",
   PAUSED: "warning.main",
-  CANCELLED: "error.main",
+  CANCELLED: "cancelled.main",
 };
 
 function Section({ title, children }) {
@@ -92,38 +94,58 @@ function EmptyPaymentMethod({ onAddPaymentMethod }) {
 export default function RecurringPaymentDetail({
   open,
   onClose,
-  onCancelPayment,
-  onManageFunding,
   onAddPaymentMethod,
-  item
+  onToggleStatus,
+  item,
 }) {
   if (!item) return null;
 
-  const statusColor = STATUS_COLOR[item.status] ?? "default";
+  const statusColor = STATUS_COLOR[item.status] ?? "text.primary";
   const isSubscription = item.type === "SUBSCRIPTION";
   const hasPaymentMethod = Boolean(item.paymentMethodId || item.bankDisplayName);
   const isCancelled = item.status === "CANCELLED";
+  const isPaused = item.status === "PAUSED";
+  const nextPaymentText = isCancelled
+  ? "—"
+  : isPaused
+    ? (item.pausedOverSixMonths
+        ? "Schedule date required"
+        : "No payment scheduled while paused")
+    : formatRecurringDateWithYear(item.nextPaymentDate);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogContent sx={{ pb: tokens.spacing.sm }}>
-        <Typography
-          variant="h6"
-          sx={{ color: tokens.color.text.title, lineHeight: 1.3 }}
-        >
-          {formatStatus(item.name)}
-        </Typography>
-
-        <Typography sx={{ color: tokens.color.text.primary }}>
-          Status:{" "}
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Box>
           <Typography
-            component="span"
-            fontWeight={tokens.typography.fontWeight.bold}
-            sx={{ color: statusColor }}
+            variant="h6"
+            sx={{ color: tokens.color.text.title, lineHeight: 1.3 }}
           >
-            {formatStatus(item.status)}
+            {item.name}
           </Typography>
-        </Typography>
+
+          <Typography sx={{ color: tokens.color.text.primary }}>
+            Status:{" "}
+            <Typography
+              component="span"
+              fontWeight={tokens.typography.fontWeight.bold}
+              sx={{ color: statusColor }}
+            >
+              {formatStatus(item.status)}
+            </Typography>
+          </Typography>
+        </Box>
+
+        <IconButton
+          onClick={onClose}
+          aria-label="Close"
+          size="small"
+          sx={{ mt: -0.5, mr: -1 }}
+        >
+        <CloseIcon fontSize="small" />
+        </IconButton>
+        </Stack>
 
         <Section title="Schedule">
           <Typography>
@@ -135,9 +157,7 @@ export default function RecurringPaymentDetail({
         </Section>
 
         <Section title="Billing Details">
-          <Typography>
-            Next Payment Date: {formatRecurringDateWithYear(item.nextPaymentDate)}
-          </Typography>
+          <Typography>Next Payment Date: {nextPaymentText}</Typography>
           <Typography>
             Next Amount: ${formatRecurringAmount(item.amount)}
           </Typography>
@@ -153,9 +173,11 @@ export default function RecurringPaymentDetail({
             <Section title="Biller Details">
               <DetailRow label="Biller Name:" value={item.name} />
               <DetailRow label="Account / Reference #:" value={maskAccountNumber(item.accountNumber)} />
-              {item.category && <DetailRow label="Category:" value={item.category} />}
-              <DetailRow label="Category:" value={"Utilities"}></DetailRow>
-              
+              {item.category ? (
+                <DetailRow label="Category:" value={item.category} />
+              ) : (
+                <DetailRow label="Category:" value="—" />
+              )}
 
               {hasPaymentMethod ? (
                 <Stack sx={{ mt: tokens.spacing.sm }}>
@@ -180,12 +202,17 @@ export default function RecurringPaymentDetail({
           pb: tokens.spacing.md,
         }}
       >
-        <Button variant="outlined" size="small" onClick={onCancelPayment} disabled={isCancelled}>
-          Cancel
-        </Button>
-        {isSubscription && (
-          <Button variant="outlined" size="small" onClick={onManageFunding}>
-            Manage Funding
+        {!isCancelled && (
+          <Button
+            size="small"
+            variant={isPaused ? "contained" : "outlined"}
+            onClick={onToggleStatus}
+            sx={isPaused ? undefined : {
+              color: tokens.color.status.warning,
+              borderColor: tokens.color.status.warning,
+            }}
+          >
+            {isPaused ? "Resume" : "Pause"}
           </Button>
         )}
         <Button variant="outlined" size="small" onClick={onClose}>

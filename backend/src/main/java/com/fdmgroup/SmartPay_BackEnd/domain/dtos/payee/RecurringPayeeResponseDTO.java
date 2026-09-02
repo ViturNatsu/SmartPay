@@ -2,6 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
@@ -38,4 +39,6 @@ public class RecurringPayeeResponseDTO {
     private String paymentMethodBankDisplayName;
     private String paymentMethodAccountType;
     private String paymentMethodAccountNumberMasked;
+    private LocalDate pausedDate;
+    private boolean pausedOverSixMonths;
 }

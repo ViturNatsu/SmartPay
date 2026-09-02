@@ -18,4 +18,6 @@ public class NotificationResponseDTO {
     private String title;
     private String detail;
     private Instant createdAt;
+    private boolean read;
+    private Instant readAt;
 }

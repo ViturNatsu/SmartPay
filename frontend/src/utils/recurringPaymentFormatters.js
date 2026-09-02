@@ -1,3 +1,10 @@
+const SCHEDULE_SUFFIX = {
+  WEEKLY: "/wk",
+  BIWEEKLY: "/2wks",
+  MONTHLY: "/mo",
+  YEARLY: "/yr",
+};
+
 export function formatRecurringAmount(amount) {
   return Number(amount).toFixed(2);
 }
@@ -37,4 +44,10 @@ export function maskAccountNumber(value) {
 export function formatStatus(status) {
   if (!status) return "—";
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
+
+export function formatAmountWithSchedule(amount, schedule) {
+  const formattedAmount = formatRecurringAmount(amount);
+  const suffix = SCHEDULE_SUFFIX[schedule?.toUpperCase()] || "";
+  return `${formattedAmount}${suffix}`;
 }
