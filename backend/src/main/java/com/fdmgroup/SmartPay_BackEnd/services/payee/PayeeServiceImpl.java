@@ -2,21 +2,28 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import jakarta.transaction.Transactional;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
@@ -119,7 +126,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
     @Override
     public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
-        List<Payee> payees = payeeRepository.findByOwnerIdAndActiveTrue(ownerId);
+        List<Payee> payees = payeeRepository.findRegularPayeesByOwnerId(ownerId);
         return payees.stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
@@ -435,6 +442,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                         ? paymentMethod.getAccount().getAccountType().name() : null)
                 .paymentMethodAccountNumberMasked(paymentMethod != null && paymentMethod.getAccount() != null
                         ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
+                .pausedDate(recurringPayee.getPausedDate())
+                .pausedOverSixMonths(recurringPayee.getPausedDate() != null &&
+                        Period.between(recurringPayee.getPausedDate(), LocalDate.now(ZoneOffset.UTC)).toTotalMonths() > 6)
                 .build();
     }
 
@@ -454,12 +464,13 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
         }
         recurringPayee.setStatus(RecurringPaymentStatus.PAUSED);
+        recurringPayee.setPausedDate(LocalDate.now(ZoneOffset.UTC));
     }
 
 
     @Override
     @Transactional
-    public void resumeRecurringPayee(Long ownerId, Long payeeId) {
+    public void resumeRecurringPayee(Long ownerId, Long payeeId, ResumeRecurringPayeeRequestDTO resumeRequestDTO) {
         RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
                 .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
@@ -470,6 +481,31 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if(!recurringPayee.isActive()){
             throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
         }
+        PaymentMethod paymentMethod = recurringPayee.getPaymentMethod();
+
+        if (paymentMethod == null || !Boolean.TRUE.equals(paymentMethod.getActive())) {
+            throw new InvalidPaymentMethodException("A valid payment method is required to resume this payment");
+        }
+
+        LocalDateTime today = LocalDateTime.now(ZoneOffset.UTC);
+        boolean overSixMonths = recurringPayee.getPausedDate() != null
+                && Period.between(recurringPayee.getPausedDate(), today.toLocalDate()).toTotalMonths() > 6;
+
+        LocalDate nextPaymentDate = resumeRequestDTO != null ? resumeRequestDTO.getNextPaymentDate() : null;
+
+        if (overSixMonths) {
+            if (nextPaymentDate == null) {
+                throw new ScheduleDateRequiredException("A new schedule date is required to resume this payment");
+            }
+            if (!nextPaymentDate.isAfter(today.toLocalDate())) {
+                throw new InvalidScheduleDateException("Schedule date must be in the future");
+            }
+            recurringPayee.setDate(nextPaymentDate);
+        } else {
+            recurringPayee.setDate(RecurringBillingScheduleUtil.resolveResumeCycleDate(recurringPayee, today));
+        }
+
         recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
+        recurringPayee.setPausedDate(null);
     }
 }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,16 +30,23 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.Customer;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPaymentMethodException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidScheduleDateException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeAlreadyPaused;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeNotPaused;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.ScheduleDateRequiredException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
@@ -315,7 +323,7 @@ class PayeeServiceTest {
                 .payeeName("Buddy 2")
                 .build();
 
-        when(payeeRepository.findByOwnerIdAndActiveTrue(1L)).thenReturn(List.of(payee1, payee2));
+        when(payeeRepository.findRegularPayeesByOwnerId(1L)).thenReturn(List.of(payee1, payee2));
 
         List<PayeeResponseDTO> result = payeeService.getPayeesForUser(1L);
 
@@ -324,19 +332,19 @@ class PayeeServiceTest {
         assertEquals("Buddy 1", result.get(0).getPayeeName());
         assertEquals("Buddy 2", result.get(1).getPayeeName());
 
-        verify(payeeRepository).findByOwnerIdAndActiveTrue(1L);
+        verify(payeeRepository).findRegularPayeesByOwnerId(1L);
     }
 
     @Test
     void getPayeesForUser_shouldReturnEmptyList_whenNoPayeesExist() {
-        when(payeeRepository.findByOwnerIdAndActiveTrue(1L)).thenReturn(Collections.emptyList());
+        when(payeeRepository.findRegularPayeesByOwnerId(1L)).thenReturn(Collections.emptyList());
 
         List<PayeeResponseDTO> result = payeeService.getPayeesForUser(1L);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        verify(payeeRepository).findByOwnerIdAndActiveTrue(1L);
+        verify(payeeRepository).findRegularPayeesByOwnerId(1L);
     }
 
     // deletePayee Tests
@@ -732,5 +740,273 @@ class PayeeServiceTest {
                 () -> payeeService.deleteRecurringPayee(1L, 100L));
 
         verify(recurringPayeeRepository, never()).save(any());
+    }
+
+    // pauseRecurringPayee / resumeRecurringPayee Tests
+
+    private RecurringPayee buildRecurringPayee(RecurringPaymentStatus status, LocalDate pausedDate,
+            LocalDate date, PaymentMethod paymentMethod) {
+        return buildRecurringPayee(status, pausedDate, date, Schedule.MONTHLY, paymentMethod);
+    }
+
+    private RecurringPayee buildRecurringPayee(RecurringPaymentStatus status, LocalDate pausedDate,
+            LocalDate date, Schedule schedule, PaymentMethod paymentMethod) {
+        RecurringPayee payee = new RecurringPayee();
+        payee.setPayeeId(100L);
+        payee.setOwner(owner);
+        payee.setRecipient(recipient);
+        payee.setPayeeName("My Buddy");
+        payee.setActive(true);
+        payee.setAmount(new BigDecimal("50.00"));
+        payee.setSchedule(schedule);
+        payee.setDate(date);
+        payee.setStatus(status);
+        payee.setPausedDate(pausedDate);
+        payee.setPaymentMethod(paymentMethod);
+        return payee;
+    }
+
+    private PaymentMethod activePaymentMethod() {
+        PaymentMethod paymentMethod = new PaymentMethod();
+        paymentMethod.setPaymentMethodId(5L);
+        paymentMethod.setActive(true);
+        paymentMethod.setBankDisplayName("TD");
+        return paymentMethod;
+    }
+
+    @Test
+    void pauseRecurringPayee_shouldSetStatusPausedAndRecordPausedDate_whenActive() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.ACTIVE, null,
+                LocalDate.now().plusDays(5), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.pauseRecurringPayee(1L, 100L);
+
+        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
+        assertNotNull(payee.getPausedDate());
+    }
+
+    @Test
+    void pauseRecurringPayee_shouldThrowRecurringPayeeAlreadyPaused_whenAlreadyPaused() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED, LocalDate.now(),
+                LocalDate.now().plusDays(5), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        assertThrows(RecurringPayeeAlreadyPaused.class,
+                () -> payeeService.pauseRecurringPayee(1L, 100L));
+    }
+
+    @Test
+    void pauseRecurringPayee_shouldThrowPayeeNotFoundException_whenPayeeDoesNotExist() {
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(999L, 1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(PayeeNotFoundException.class,
+                () -> payeeService.pauseRecurringPayee(1L, 999L));
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldReactivateAndRetainExistingDate_whenPausedSixMonthsOrLess() {
+        LocalDate existingDate = LocalDate.now().plusDays(3);
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(3), existingDate, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertEquals(existingDate, payee.getDate());
+        assertNull(payee.getPausedDate());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldRetainExistingDate_whenPausedExactlySixMonths() {
+        LocalDate existingDate = LocalDate.now().plusDays(3);
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(6), existingDate, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertEquals(existingDate, payee.getDate());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowScheduleDateRequired_whenPausedOverSixMonthsAndNoDateProvided() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(7), LocalDate.now().minusMonths(7), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        assertThrows(ScheduleDateRequiredException.class,
+                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
+
+        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowInvalidScheduleDate_whenNewDateIsNotInFuture() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(7), LocalDate.now().minusMonths(7), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        ResumeRecurringPayeeRequestDTO request = new ResumeRecurringPayeeRequestDTO();
+        request.setNextPaymentDate(LocalDate.now());
+
+        assertThrows(InvalidScheduleDateException.class,
+                () -> payeeService.resumeRecurringPayee(1L, 100L, request));
+
+        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldActivateWithNewDate_whenPausedOverSixMonthsAndValidDateProvided() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(7), LocalDate.now().minusMonths(7), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        LocalDate newDate = LocalDate.now().plusDays(10);
+        ResumeRecurringPayeeRequestDTO request = new ResumeRecurringPayeeRequestDTO();
+        request.setNextPaymentDate(newDate);
+
+        payeeService.resumeRecurringPayee(1L, 100L, request);
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertEquals(newDate, payee.getDate());
+        assertNull(payee.getPausedDate());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowRecurringPayeeNotPaused_whenStatusIsActive() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.ACTIVE, null,
+                LocalDate.now().plusDays(5), activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        assertThrows(RecurringPayeeNotPaused.class,
+                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowInvalidPaymentMethod_whenPaymentMethodIsNull() {
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(2), LocalDate.now().plusDays(5), null);
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        assertThrows(InvalidPaymentMethodException.class,
+                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
+
+        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowInvalidPaymentMethod_whenPaymentMethodInactive() {
+        PaymentMethod inactivePaymentMethod = new PaymentMethod();
+        inactivePaymentMethod.setPaymentMethodId(5L);
+        inactivePaymentMethod.setActive(false);
+
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                LocalDate.now().minusMonths(2), LocalDate.now().plusDays(5), inactivePaymentMethod);
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        assertThrows(InvalidPaymentMethodException.class,
+                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
+
+        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldThrowPayeeNotFoundException_whenPayeeDoesNotExist() {
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(999L, 1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(PayeeNotFoundException.class,
+                () -> payeeService.resumeRecurringPayee(1L, 999L, new ResumeRecurringPayeeRequestDTO()));
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldKeepOrAdvanceByExactlyOneInterval_whenScheduleDateIsToday() {
+        LocalDate today = LocalDate.now();
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                today.minusDays(1), today, Schedule.WEEKLY, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertTrue(payee.getDate().equals(today) || payee.getDate().equals(today.plusWeeks(1)));
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldRollDateForwardOneInterval_whenScheduleDateJustMissed() {
+        LocalDate today = LocalDate.now();
+        LocalDate staleDate = today.minusDays(3);
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                today.minusMonths(1), staleDate, Schedule.WEEKLY, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertEquals(staleDate.plusWeeks(1), payee.getDate());
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldRollDateForwardMultipleIntervals_whenSeveralCyclesMissed() {
+        LocalDate today = LocalDate.now();
+        LocalDate staleDate = today.minusDays(20);
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                today.minusMonths(2), staleDate, Schedule.WEEKLY, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        // 20 days missed on a 7-day schedule needs 3 rounds to catch up (21 days), landing 1 day after today
+        assertEquals(staleDate.plusWeeks(3), payee.getDate());
+        assertFalse(payee.getDate().isBefore(today));
+    }
+
+    @Test
+    void resumeRecurringPayee_shouldRollMonthlyDateForward_whenSeveralMonthsMissed() {
+        LocalDate today = LocalDate.now();
+        LocalDate staleDate = today.withDayOfMonth(1).minusMonths(3);
+        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
+                today.minusMonths(4), staleDate, Schedule.MONTHLY, activePaymentMethod());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
+                .thenReturn(Optional.of(payee));
+
+        payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO());
+
+        assertEquals(RecurringPaymentStatus.ACTIVE, payee.getStatus());
+        assertEquals(1, payee.getDate().getDayOfMonth());
+        assertFalse(payee.getDate().isBefore(today));
+        assertTrue(payee.getDate().isAfter(staleDate));
     }
 }

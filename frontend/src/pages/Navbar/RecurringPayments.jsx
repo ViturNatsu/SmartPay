@@ -145,9 +145,8 @@ export default function RecurringPayments({view}) {
         bankDisplayName: payee.paymentMethodBankDisplayName,
         account_type: payee.paymentMethodAccountType,
         account_number: payee.paymentMethodAccountNumberMasked,
-        pauseOverSixmonths: checkIfPausedOverSixMonths(payee),
+        pausedOverSixMonths: payee.pausedOverSixMonths,
       }));
-
       setPayees(mappedPayees);
     } catch (error) {
       setErrorMessage(
@@ -158,20 +157,6 @@ export default function RecurringPayments({view}) {
       setIsLoading(false);
     }
   };
-
-  const checkIfPausedOverSixMonths = (payee) => {
-    if(!payee || !payee.status){
-      return false;
-    }
-    if(payee.status !== "PAUSED"){
-      return false;
-    }
-
-    const SIX_MONTHS_AGO = new Date();
-    SIX_MONTHS_AGO.setMonth(SIX_MONTHS_AGO.getMonth() - 6);
-
-    return new Date(payee.date) < SIX_MONTHS_AGO;
-  }
 
   const handleEditRecurringPayee = payee => {
     setEditingPayee(payee);
@@ -345,7 +330,7 @@ export default function RecurringPayments({view}) {
     if(item.status !== "PAUSED"){
       return "pause";
     }
-    return item.pauseOverSixmonths ? "resumeWithSchedule" : "resume";
+    return item.pausedOverSixMonths ? "resumeWithSchedule" : "resume";
   };
 
   const validateForm = () => {
@@ -1199,7 +1184,16 @@ export default function RecurringPayments({view}) {
             onClose={() => setSuccessMessage("")}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           >
-            <Alert severity="success" onClose={() => setSuccessMessage("")}>
+            <Alert
+              severity="success"
+              onClose={() => setSuccessMessage("")}
+              sx={{
+                fontWeight: tokens.typography.fontWeight.bold,
+                backgroundColor: tokens.color.brand.cardNavy,
+                color: tokens.color.text.white,
+                "& .MuiAlert-icon": { color: tokens.color.text.white },
+              }}
+            >
               {successMessage}
             </Alert>
           </Snackbar>
