@@ -1100,14 +1100,14 @@ export default function RecurringPayments({view}) {
                 {activeTab === "subscriptions" &&
                   (subscriptionsList.length === 0 ? (
                     <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-                  ) : filteredSubscriptions.length === 0 &&
+                  ) : filterSubscriptionsByCategoryAndName.length === 0 &&
                     hasSubscriptionsSearch ? (
                     <RecurringEmptyState
                       message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
                     />
                   ) : (
                     <Stack spacing={2}>
-                      {filteredSubscriptions.map(subscription => (
+                      {filterSubscriptionsByCategoryAndName.map(subscription => (
                         <RecurringSubscriptionCard
                           key={subscription.id}
                           subscription={subscription}
@@ -1123,11 +1123,11 @@ export default function RecurringPayments({view}) {
                 {activeTab === "bills" &&
                   (billsList.length === 0 ? (
                     <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
-                  ) : filteredPayees.length === 0 && hasBillsSearch ? (
+                  ) : filterBillsByCategoryAndName.length === 0 && hasBillsSearch ? (
                     <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
                   ) : (
                     <Stack spacing={2}>
-                      {filteredPayees.map(payee => (
+                      {filterBillsByCategoryAndName.map(payee => (
                         <RecurringPayeeCard
                           key={payee.id}
                           payee={payee}
