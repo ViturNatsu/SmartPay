@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
 
 public interface RecurringPayeeService {
     RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO payeeRequestDTO);
@@ -20,7 +21,7 @@ public interface RecurringPayeeService {
 
     void pauseRecurringPayee(Long ownerId, Long payeeId);
 
-    void resumeRecurringPayee(Long ownerId, Long payeeId);
+    void resumeRecurringPayee(Long ownerId, Long payeeId, ResumeRecurringPayeeRequestDTO resumeRequestDTO);
 
 
     RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId);
