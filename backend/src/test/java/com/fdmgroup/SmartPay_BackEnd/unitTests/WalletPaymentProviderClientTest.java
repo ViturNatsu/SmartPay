@@ -1,6 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -73,6 +75,11 @@ public class WalletPaymentProviderClientTest {
         recipientWallet = new Wallet();
         recipientWallet.setUser(recipient);
         recipientWallet.setBalance(50.0);
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+        senderWallet.setCard(card);
+
 
         recurringPayee = new RecurringPayee();
         recurringPayee.setOwner(sender);

@@ -132,6 +132,11 @@ public class CardRequestServiceImpl implements CardRequestService {
         return mapToDto(savedRequest);
     }
 
+    @Override
+    public boolean CardHasPendingRequest(Card card) {
+        return cardRequestRepository.existsByCardAndRequestStatus(card, RequestStatus.PENDING);
+    }
+
     /**
      * Regenerates the card details for an approved card request and saves the updated card
      * The card request status is also updated to APPROVED with a resolved timestamp

@@ -1,6 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.CardRequest;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
@@ -10,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 public class RecurringChargeValidationUtilTest {
     private Wallet wallet;
@@ -23,6 +27,10 @@ public class RecurringChargeValidationUtilTest {
         wallet.setBalance(100.0);
         wallet.setDailySpentAmount(0.0);
         wallet.setDailySpentDate(processingDate);
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+        wallet.setCard(card);
     }
 
     //AC6
@@ -67,6 +75,9 @@ public class RecurringChargeValidationUtilTest {
     @Test
     void acceptsChargeWhenAmountMatchesPerTransactionLimit() {
         wallet.setPerTransactionLimit(80.0);
+
+//        when(RecurringChargeValidationUtil.).
+
         assertDoesNotThrow(() -> RecurringChargeValidationUtil.validate(
                 wallet, 80.0, processingDate));
     }

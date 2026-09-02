@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +62,11 @@ class RecurringWalletDebitTest {
         wallet.setBalance(100.0);
         wallet.setDailySpentAmount(0.0);
         when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(wallet));
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+        wallet.setCard(card);
+
     }
 
     @Test
