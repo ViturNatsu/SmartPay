@@ -26,12 +26,15 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedExceptio
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeAlreadyPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeNotPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -45,6 +48,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.ScheduleDateRequiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidScheduleDateException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPaymentMethodException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

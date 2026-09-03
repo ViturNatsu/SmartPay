@@ -21,7 +21,7 @@ const ACTIONS = [
   {
     text: "Send Money",
     icon: NorthEastIcon,
-    href: "/make-a-payment",
+    href: "/send-money",
   },
   {
     text: "Load Wallet",

@@ -1,6 +1,8 @@
 package com.fdmgroup.SmartPay_BackEnd.Utility;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
@@ -8,6 +10,9 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 
 public final class RecurringBillingScheduleUtil {
+
+    /** Must be kept in sync with RecurringPaymentScheduler's cron expression ("0 0 2 * * *"). */
+    public static final LocalTime DAILY_TRIGGER_TIME = LocalTime.of(2, 0);
 
     private RecurringBillingScheduleUtil() {
     }
@@ -75,5 +80,15 @@ public final class RecurringBillingScheduleUtil {
         LocalDate candidate = currentCycleDate.plusMonths(1);
         int billingDay = Math.min(anchor.getDayOfMonth(), candidate.lengthOfMonth());
         return LocalDate.of(candidate.getYear(), candidate.getMonth(), billingDay);
+    }
+
+    public static LocalDate resolveResumeCycleDate(RecurringPayee payee, LocalDateTime resumeMoment) {
+        LocalDate today = resumeMoment.toLocalDate();
+        boolean triggerTimePassedToday = !resumeMoment.toLocalTime().isBefore(DAILY_TRIGGER_TIME);
+        LocalDate cycleDate = payee.getDate();
+        while (cycleDate.isBefore(today) || (cycleDate.isEqual(today) && triggerTimePassedToday)) {
+            cycleDate = nextBillingCycleDate(payee, cycleDate);
+        }
+        return cycleDate;
     }
 }

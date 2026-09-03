@@ -19,6 +19,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.RecurringPayeeService;
@@ -128,16 +129,19 @@ public class PayeeController {
     }
 
 
-    @PutMapping("/recurring/pause/{ownerId}/{payeeId}")
-    public ResponseEntity<Void> pauseRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long ownerId, @PathVariable Long payeeId){
+    @PutMapping("/recurring/pause/{payeeId}")
+    public ResponseEntity<Void> pauseRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long payeeId){
         recurringPayeeService.pauseRecurringPayee(autehnticatedUser.getId(), payeeId);
         return ResponseEntity.noContent().build();
     }
 
 
-    @PutMapping("/recurring/resume/{ownerId}/{payeeId}")
-    public ResponseEntity<Void> resumeRecurringPayee(@AuthenticationPrincipal User autehnticatedUser, @PathVariable Long ownerId, @PathVariable Long payeeId){
-        recurringPayeeService.resumeRecurringPayee(autehnticatedUser.getId(), payeeId);
+    @PutMapping("/recurring/resume/{payeeId}")
+    public ResponseEntity<Void> resumeRecurringPayee(
+            @AuthenticationPrincipal User authenticatedUser,
+            @PathVariable Long payeeId,
+            @RequestBody(required = false) ResumeRecurringPayeeRequestDTO resumeRequestDTO) {
+        recurringPayeeService.resumeRecurringPayee(authenticatedUser.getId(), payeeId, resumeRequestDTO);
         return ResponseEntity.noContent().build();
     }
 }

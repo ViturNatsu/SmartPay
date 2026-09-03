@@ -16,12 +16,15 @@ import {
 import React, { useState } from "react";
 import { addPayee } from "../../api/payee/payeeApi";
 import SuccessCard from "../../components/SuccessCard";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { tokens } from "@/style/Theme.jsx";
 import {BasicPageLayout} from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 const AddPayee = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+   const returnTo = location.state?.returnTo;
   const [recipientName, setRecipientName] = useState("");
   const [recipientIdentifier, setRecipientIdentifier] = useState("");
 
@@ -256,7 +259,9 @@ const AddPayee = () => {
         <SuccessCard
           data={savedPayee?.payeeName}
           primaryButtonText={"Send Money"}
-          onPrimaryClick={() => navigate("/make-a-payment")}
+          onPrimaryClick={() =>
+            navigate(returnTo || "/make-a-payment")
+          }
           title={successTitle}
           message={successMessage}
           secondaryButtonText={""}
