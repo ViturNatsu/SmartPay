@@ -26,14 +26,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-//    private static final Map<NotificationType, Integer> PRIORITY_BY_TYPE = new EnumMap<>(NotificationType.class);
-//    static {
-//        PRIORITY_BY_TYPE.put(NotificationType.SECURITY, 0);
-//        PRIORITY_BY_TYPE.put(NotificationType.WARNING, 1);
-//        PRIORITY_BY_TYPE.put(NotificationType.SUCCESS, 2);
-//        PRIORITY_BY_TYPE.put(NotificationType.INFO, 3);
-//    }
-
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 

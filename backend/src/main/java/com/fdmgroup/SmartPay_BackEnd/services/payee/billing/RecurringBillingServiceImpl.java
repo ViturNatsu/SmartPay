@@ -144,13 +144,6 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
             notificationService.createNotification(notification);
 
-//            notificationService.createNotification(
-//                    request.getOwnerUserId(),
-//                    NotificationType.WARNING,
-//                    "Charge Unsuccessful",
-//                    ex.getMessage()
-//            );
-
             return BillingChargeOutcome.FAILED;
         }
     }

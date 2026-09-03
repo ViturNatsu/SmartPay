@@ -198,8 +198,7 @@ public class OtpServiceImpl implements OtpService {
             signInNotification.setType(NotificationType.SECURITY);
             signInNotification.setTitle("New sign-in detected");
             signInNotification.setTier(NotificationTier.T2.getValue());
-//            signInNotification.setRelatedEntityType("AUDIT_LOG");
-//            signInNotification.setRelatedEntityId(auditLogId.toString());
+            //set related entity
             NotificationEntityLinkUtil.link(signInNotification, NotificationRelatedEntityType.AUDIT_LOG, auditLogId);
             notificationService.createNotification(signInNotification);
         }

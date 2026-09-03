@@ -386,9 +386,7 @@ public class WalletServiceImpl implements WalletService {
         successNotification.setDetail("$" + String.format("%.2f", amountValue) + " sent to " + transferCounterparty);
         // TODO: confirm tier for successful transfer
         successNotification.setTier(NotificationTier.T3.getValue());
-        //TODO: set related entity
-//        successNotification.setRelatedEntityType("WALLET_TRANSACTION");
-//        successNotification.setRelatedEntityId(transferTx.getId().toString());
+        //set related entity
         NotificationEntityLinkUtil.link(successNotification, NotificationRelatedEntityType.WALLET_TRANSACTION, transferTx.getId());
 
         notificationService.createNotification(successNotification);
@@ -409,8 +407,7 @@ public class WalletServiceImpl implements WalletService {
             lowBalanceNotification.setDetail("Below $" + LOW_BALANCE_THRESHOLD.intValue());
             // TODO: Confirm tier assignment for low wallet balance notification
             lowBalanceNotification.setTier(NotificationTier.T2.getValue());
-//            lowBalanceNotification.setRelatedEntityType("WALLET");
-//            lowBalanceNotification.setRelatedEntityId(walletId.toString());
+            //set related entity
             NotificationEntityLinkUtil.link(lowBalanceNotification, NotificationRelatedEntityType.WALLET, walletId);
 
             notificationService.createNotification(lowBalanceNotification);
