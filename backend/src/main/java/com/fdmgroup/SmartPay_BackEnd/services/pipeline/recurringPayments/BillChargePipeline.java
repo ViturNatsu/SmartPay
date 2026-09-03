@@ -13,24 +13,24 @@ import java.time.LocalDate;
 
 
 /**
- *  A pipeline that handles the Billing logic.
+ * Pipeline responsible for validating and processing recurring bill charges.
+ *
+ * <p>Validates the sender's wallet and charge details before delegating
+ * payment processing to the bill payment service.
  */
 @Component
 @RequiredArgsConstructor
 public class BillChargePipeline implements ChargePipeline{
-    // This is designed to be extensible.
-    // By making the flow into a pipeline, features can be easily designed and added in the future.
-
 
     private final WalletRepository walletRepository;
     private final BillPaymentService billPaymentService;
     private final RecurringChargeValidationUtil recurringChargeValidationUtil;
 
     /**
-     * Starts the pipeline.
-     *
-     * @param requestContext
-     * @return ChargeExecutionResult
+     Validates and processes a recurring bill charge.
+
+     @param requestContext the recurring charge request to process
+     @return the result of the bill payment execution
      */
     @Override
     public ChargeExecutionResult execute(RecurringChargeRequest requestContext) {

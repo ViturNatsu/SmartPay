@@ -8,6 +8,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 
+/**
+
+ Resolves the appropriate {@link ChargePipeline} for a
+
+ {@link RecurringChargeRequest} based on its charge type.
+
+ <p>The resolver currently uses only the request type to determine
+ which pipeline should process the request. The full request is
+ accepted rather than only the type ~ this allows additional request
+ properties to be considered in the future.
+ */
 @Component
 @RequiredArgsConstructor
 public class ChargePipelineResolver {
@@ -16,11 +27,16 @@ public class ChargePipelineResolver {
     private final SubscriptionChargePipeline subscriptionChargePipeline;
 
 
-    public ChargePipeline resolve(RecurringChargeRequest requestContext) {
+    /**
 
-        // Currently, only the type is necessary to determine which pipeline the request will trigger.
-        // However, this may not be the case in the future
-        // - which is why the resolve function takes in the entire request instead of only the type.
+     Resolves the pipeline responsible for processing the given request.
+
+     @param requestContext the recurring charge request used to determine
+     the appropriate pipeline
+
+     @return the {@link ChargePipeline} corresponding to the request type
+     */
+    public ChargePipeline resolve(RecurringChargeRequest requestContext) {
 
         return switch (requestContext.getType()) {
             case BILL ->  billChargePipeline;

@@ -27,6 +27,9 @@ public class BillPaymentServiceImpl implements BillPaymentService {
     @Transactional
     public ChargeExecutionResult payBill(RecurringChargeRequest requestContext) {
 
+        // This whole process was copied from an old workflow.
+        // I suggest making a proper walletTransactionService that defines exactly how a transfer is done, then call it here.
+
         final String RECURRING_TXN_PREFIX = "RCP-";
 
         Wallet senderWallet = walletRepository.findByUserId(requestContext.getOwnerUserId())
