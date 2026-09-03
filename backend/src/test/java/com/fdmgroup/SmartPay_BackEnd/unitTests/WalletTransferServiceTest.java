@@ -26,7 +26,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
@@ -74,10 +74,12 @@ class WalletTransferServiceTest {
         User recipient = User.builder().id(2L).email("recipient@smartpay.com").build();
 
         senderWallet = new Wallet();
+        senderWallet.setWalletId(1L);
         senderWallet.setBalance(200.00);
         senderWallet.setUser(sender);
 
         recipientWallet = new Wallet();
+        recipientWallet.setWalletId(2L);
         recipientWallet.setBalance(50.00);
         recipientWallet.setUser(recipient);
 
@@ -86,15 +88,16 @@ class WalletTransferServiceTest {
         lenient().when(walletRepository.save(any(Wallet.class))).thenAnswer(inv -> inv.getArgument(0));
 
         WalletTransaction stubTx = new WalletTransaction();
+        stubTx.setId(123L);
         stubTx.setTransactionId("TXN-test1234");
         lenient().when(walletTransactionRepository.save(any(WalletTransaction.class))).thenReturn(stubTx);
         lenient().when(payeeRepository.findByOwnerIdAndRecipientId(anyLong(), anyLong()))
-        .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
         lenient().when(helper.fullName(any(User.class)))
-        .thenAnswer(inv -> {
-            User u = inv.getArgument(0);
-            return u.getFirstName() + " " + u.getLastName();
-        });
+                .thenAnswer(inv -> {
+                    User u = inv.getArgument(0);
+                    return u.getFirstName() + " " + u.getLastName();
+                });
     }
 
     @Test
@@ -167,7 +170,15 @@ class WalletTransferServiceTest {
         walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
         verify(notificationService, times(1))
-                .createNotification(eq(1L), eq(NotificationType.SUCCESS), anyString(), anyString());
+                .createNotification(argThat(request ->
+                        request != null
+                                && request.getUserId().equals(1L)
+                                && request.getType() == NotificationType.SUCCESS
+                                && request.getTier().equals(3)
+                                && request.getTitle().equals("Payment successful")
+                                && "WALLET_TRANSACTION".equals(request.getRelatedEntityType())
+                                && "123".equals(request.getRelatedEntityId())
+                ));
     }
 
     @Test
@@ -177,7 +188,15 @@ class WalletTransferServiceTest {
         walletService.transfer(1L, 2L, new BigDecimal("100.00"), null);
 
         verify(notificationService, times(1))
-                .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
+                .createNotification(argThat(request ->
+                        request != null
+                                && request.getUserId().equals(1L)
+                                && request.getType() == NotificationType.WARNING
+                                && request.getTitle().equals("Low wallet balance")
+                                && "WALLET".equals(request.getRelatedEntityType())
+                                && "1".equals(request.getRelatedEntityId())
+
+                ));
     }
 
     @Test
@@ -188,6 +207,12 @@ class WalletTransferServiceTest {
         walletService.transfer(1L, 2L, new BigDecimal("100.00"), null);
 
         verify(notificationService, never())
-                .createNotification(eq(1L), eq(NotificationType.WARNING), anyString(), anyString());
+                .createNotification(argThat(request ->
+                        request != null
+                                && request.getUserId().equals(1L)
+                                && request.getType() == NotificationType.WARNING
+                                && request.getTitle().equals("Low wallet balance")
+                ));
     }
 }
+                            

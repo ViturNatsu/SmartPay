@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
@@ -132,12 +134,15 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                     ex.getMessage());
             markFailed(charge);
 
-            notificationService.createNotification(
-                    request.getOwnerUserId(),
-                    NotificationType.WARNING,
-                    "Charge Unsuccessful",
-                    ex.getMessage()
-            );
+            NotificationCreateRequestDTO notification = new NotificationCreateRequestDTO();
+            notification.setUserId(request.getOwnerUserId());
+            notification.setType(NotificationType.WARNING);
+            notification.setTitle("Charge Unsuccessful");
+            notification.setDetail(ex.getMessage());
+            //TODO: to be validate if it's t1
+            notification.setTier(NotificationTier.T1.getValue());
+
+            notificationService.createNotification(notification);
 
             return BillingChargeOutcome.FAILED;
         }

@@ -2,7 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.notification;
 
 import java.time.Instant;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import jakarta.persistence.Column;
@@ -47,23 +47,38 @@ public class Notification {
     @Column(name = "detail")
     private String detail;
 
-    @Column(name = "priority", nullable = false)
-    private int priority;
+//    @Column(name = "priority", nullable = false)
+//    private int priority;
 
-    @Column(name = "is_dismissed", nullable = false)
-    private boolean dismissed = false;
+    @Column(name = "tier")
+    private Integer tier;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @Column(name = "is_read", nullable = false)
-    private boolean read = false;
+    @Column(name = "is_read")
+    private Boolean read = false;
 
     @Column(name = "read_at")
     private Instant readAt;
 
+    @Column(name = "is_dismissed", nullable = false)
+    private Boolean dismissed = false;
+
+    @Column(name = "dismissed_at")
+    private Instant dismissedAt;
+
+    @Column(name = "related_entity_type")
+    private String relatedEntityType;
+
+    @Column(name = "related_entity_id")
+    private String relatedEntityId;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
     @PrePersist
     protected void onCreate() {
+        if (read == null) {
+            read = false;
+        }
         if (createdAt == null) {
             createdAt = Instant.now();
         }

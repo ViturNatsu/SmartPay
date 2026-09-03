@@ -5,7 +5,14 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEntityLinkUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationRelatedEntityType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,6 +51,7 @@ public class OtpServiceImpl implements OtpService {
 	private PasswordEncoder argonPasswordEncoder;
 	private AuditService auditService;
 	private final EmailService emailService;
+    private final NotificationService notificationService;
 
 	@Override
 	public Optional<Otp> findByEmailAndOtpType(String email, EventType otpType) {
@@ -181,8 +189,21 @@ public class OtpServiceImpl implements OtpService {
 		otpRepository.save(otpRequest);
 
 		eventData.put("reason", "Verified");
-		auditService.logEvent(payload.getType(), AuditLog.OTP_VERIFICATION_PASSED, user, eventData, httpRequest);
-		return otpRequest;
+
+        //create sign-in notification
+		UUID auditLogId = auditService.logEvent(payload.getType(), AuditLog.OTP_VERIFICATION_PASSED, user, eventData, httpRequest);
+        if (payload.getType() == EventType.LOGIN && auditLogId != null) {
+            NotificationCreateRequestDTO signInNotification = new NotificationCreateRequestDTO();
+            signInNotification.setUserId(user.getId());
+            signInNotification.setType(NotificationType.SECURITY);
+            signInNotification.setTitle("New sign-in detected");
+            signInNotification.setTier(NotificationTier.T2.getValue());
+            //set related entity
+            NotificationEntityLinkUtil.link(signInNotification, NotificationRelatedEntityType.AUDIT_LOG, auditLogId);
+            notificationService.createNotification(signInNotification);
+        }
+
+        return otpRequest;
 	}
 
 	public String generateCode() {
