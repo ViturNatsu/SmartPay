@@ -3,14 +3,17 @@ package com.fdmgroup.SmartPay_BackEnd.unitTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +52,10 @@ class RecurringWalletDebitTest {
     @Mock private NotificationService notificationService;
     @Mock private StringHelper helper;
 
+    @Mock private CardRequestService cardRequestService;
+
+    @Mock private RecurringChargeValidationUtil recurringChargeValidationUtil;
+
     @InjectMocks private WalletServiceImpl walletService;
 
     private Wallet wallet;
@@ -60,6 +67,11 @@ class RecurringWalletDebitTest {
         wallet.setBalance(100.0);
         wallet.setDailySpentAmount(0.0);
         when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(wallet));
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+        wallet.setCard(card);
+
     }
 
     @Test
@@ -68,6 +80,7 @@ class RecurringWalletDebitTest {
         when(walletTransactionRepository.save(any(WalletTransaction.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         LocalDate processingDate = LocalDate.of(2026, 8, 12);
+
 
         walletService.debitRecurringPayment(1L, 25.0, "Internet", processingDate);
 
@@ -85,6 +98,12 @@ class RecurringWalletDebitTest {
     void enforcesDailySpendingLimitWithoutCreatingARecord() {
         wallet.setDailySpendingLimit(20.0);
 
+//        when(recurringChargeValidationUtil.validate(any(),any(),any()).
+//
+        doThrow(new InvalidWithdrawAmountException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(), anyDouble(), any());
+
         assertThrows(InvalidWithdrawAmountException.class,
                 () -> walletService.debitRecurringPayment(1L, 25.0, "Internet", LocalDate.of(2026, 8, 12)));
 
@@ -98,6 +117,10 @@ class RecurringWalletDebitTest {
     @Test
     void insufficientFundsDoesNotDebitWalletOrCreateTransaction() {
         LocalDate processingDate = LocalDate.of(2026, 8, 15);
+
+        doThrow(new InsufficientFundsException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(Wallet.class), eq(125.0), any(LocalDate.class));
 
         assertThrows(InsufficientFundsException.class,
                 () -> walletService.debitRecurringPayment(1L, 125.0, "Internet", processingDate));
@@ -128,6 +151,10 @@ class RecurringWalletDebitTest {
     void perTransactionLimitExceededDoesNotDebitWalletOrCreateTransaction() {
         wallet.setPerTransactionLimit(20.0);
         LocalDate processingDate = LocalDate.of(2026, 8, 15);
+
+        doThrow(new InvalidWithdrawAmountException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
 
         assertThrows(InvalidWithdrawAmountException.class,
                 () -> walletService.debitRecurringPayment(1L, 25.0, "Internet", processingDate));

@@ -4,6 +4,8 @@ package com.fdmgroup.SmartPay_BackEnd.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,6 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockActionsRequiresUserRoleException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockRequestInvalidType;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
@@ -373,42 +370,9 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         }
 
-        //US-NOTIF-BE-05
-        @ExceptionHandler(IllgealNotificationException.class)
-        public ResponseEntity<Map<String, String>> handleIllegalNotificationException(IllgealNotificationException ex) {
-                Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "400");
-                errorBody.put(ERROR, "Bad Request");
-                errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
-        }
-
-        // US-RECUR-FE-07
-        @ExceptionHandler(ScheduleDateRequiredException.class)
-        public ResponseEntity<Map<String, String>> handleScheduleDateRequired(ScheduleDateRequiredException ex) {
-                Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "400");
-                errorBody.put(ERROR, "Bad Request");
-                errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
-        }
-
-        @ExceptionHandler(InvalidScheduleDateException.class)
-        public ResponseEntity<Map<String, String>> handleInvalidScheduleDate(InvalidScheduleDateException ex) {
-                Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "400");
-                errorBody.put(ERROR, "Bad Request");
-                errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorBody);
-        }
-
-        @ExceptionHandler(InvalidPaymentMethodException.class)
-        public ResponseEntity<Map<String, String>> handleInvalidPaymentMethod(InvalidPaymentMethodException ex) {
-                Map<String, String> errorBody = new HashMap<>();
-                errorBody.put(STATUS, "422");
-                errorBody.put(ERROR, "Unprocessable Entity");
-                errorBody.put(MESSAGE, ex.getMessage());
-                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        @ExceptionHandler(IllegalCardChargeException.class)
+        public ResponseEntity<ExceptionShapeDTO> IllegalCardChargeException(RuntimeException ex){
+                return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
         }
 
         /**

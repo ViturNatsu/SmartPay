@@ -5,6 +5,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Component
 public class RegistrationHelper {
 
     public void registerOTP(PasswordEncoder passwordEncoder,

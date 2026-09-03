@@ -3,7 +3,14 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.*;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransactionType;
+import com.fdmgroup.SmartPay_BackEnd.integrationTests.integrationHelpers.RegistrationHelper;
+import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
+import com.fdmgroup.SmartPay_BackEnd.services.wallet.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,8 +18,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.fdmgroup.SmartPay_BackEnd.SmartPayBackEndApplication;
-import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
-import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
@@ -31,11 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
@@ -54,6 +59,9 @@ public class RecurringBillingLimitIntegrationTest {
     @Autowired
     private WalletRepository walletRepository;
 
+    @Autowired
+    private CardRepository cardRepository;
+
     @MockitoSpyBean
     private RecurringPayeeRepository recurringPayeeRepository;
 
@@ -65,6 +73,9 @@ public class RecurringBillingLimitIntegrationTest {
 
     @Autowired
     private IntegrationTestHelper helper;
+
+    @Autowired
+    private GenerateStringsHelper generateStringsHelper;
 
     private LocalDate processingDate;
     private User sender;
@@ -128,6 +139,15 @@ public class RecurringBillingLimitIntegrationTest {
         recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
 
         recurringPayee = recurringPayeeRepository.save(recurringPayee);
+
+        Card senderCard = new Card();
+        senderCard.setCardNumber(generateStringsHelper.generateCardNumber());
+        senderCard.setCvv("123");
+        senderCard.setExpirationDate(LocalDateTime.now().plusYears(2));
+        senderCard.setStatus(CardStatus.ACTIVE);
+        senderCard.setWallet(senderWallet);
+        cardRepository.save(senderCard);
+
     }
 
     @Test

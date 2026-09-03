@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     private final RecurringBillingChargeRepository chargeRepository;
     private final PaymentProviderClient paymentProviderClient;
     private final TransactionExecutor transactionExecutor;
+    private final NotificationService notificationService;
 
     @Override
     public void processDuePaymentsForDate(LocalDate processingDate) {
@@ -117,7 +121,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                 calculateAndSaveNextScheduledPayment(recurringPayee);
             });
             return BillingChargeOutcome.CHARGED;
-        } catch (InsufficientFundsException | InvalidWithdrawAmountException ex) {
+        } catch (InsufficientFundsException | InvalidWithdrawAmountException | IllegalCardChargeException ex) {
             log.warn(
                     "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
                     recurringPayee.getPayeeId(),
@@ -125,6 +129,14 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                     processingDate,
                     ex.getMessage());
             markFailed(charge);
+
+            notificationService.createNotification(
+                    request.getOwnerUserId(),
+                    NotificationType.WARNING,
+                    "Charge Unsuccessful",
+                    ex.getMessage()
+            );
+
             return BillingChargeOutcome.FAILED;
         }
     }
