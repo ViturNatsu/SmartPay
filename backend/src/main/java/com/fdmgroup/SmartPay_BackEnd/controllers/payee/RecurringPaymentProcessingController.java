@@ -18,16 +18,10 @@ import java.time.LocalDate;
 public class RecurringPaymentProcessingController {
 
     private final RecurringPaymentProcessor recurringPaymentProcessor;
-
     private final RecurringBillingService recurringBillingService;
-
-//    public RecurringPaymentProcessingController(RecurringPaymentProcessor recurringPaymentProcessor) {
-//        this.recurringPaymentProcessor = recurringPaymentProcessor;
-//    }
 
     @PostMapping("/process")
     public void processDuePayments() {
-//        return ResponseEntity.ok(recurringPaymentProcessor.processDuePayments());
 
         recurringBillingService.processDuePaymentsForDate(LocalDate.now());
     }
