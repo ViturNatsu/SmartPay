@@ -70,6 +70,8 @@ public class WalletServiceImpl implements WalletService {
     private final UserService userService;
     private final PaymentMethodService paymentMethodService;
     private final NotificationService notificationService;
+    private final RecurringChargeValidationUtil recurringChargeValidationUtil;
+
 
     private StringHelper helper;
 
@@ -211,7 +213,7 @@ public class WalletServiceImpl implements WalletService {
         }
 
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
-        RecurringChargeValidationUtil.validate(wallet, amount, processingDate);
+        recurringChargeValidationUtil.validate(wallet, amount, processingDate);
         resetDailySpendIfNeeded(wallet, processingDate);
 
         wallet.setBalance(wallet.getBalance() - amount);

@@ -18,6 +18,7 @@ import {CreateAccount} from "@/pages/Accounts/CreateAccount";
 import AddPayee from "@/pages/Payee/AddPayee";
 import PayeeList from "@/pages/Payee/PayeeList"
 import {MakeAPayment} from "@/pages/Accounts/MakeAPayment";
+import {SendMoney} from "@/pages/Accounts/SendMoney";
 import {ViewHistory} from "@/pages/Accounts/ViewHistory";
 import AccountDetails from "../pages/Accounts/AccountDetails";
 import PaymentMethods from "@/pages/PaymentMethods/PaymentMethods";
@@ -33,7 +34,7 @@ import AddUser from "../pages/Admin/AddUser";
 import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
 import RecurringPayments from "@/pages/Navbar/RecurringPayments";
 import Navbar from "@/components/Navbar.jsx";
-
+import {Transfers} from "@/pages/Navbar/Transfers";
 
 export default function AppRoutes() {
   return (
@@ -53,6 +54,7 @@ export default function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/wallet" element={<Wallet />} />
+          <Route path="/transfers" element={<Transfers />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
           <Route path="/reports" element={<Reports />} />
@@ -61,9 +63,12 @@ export default function AppRoutes() {
           <Route path="/create-account" element={<CreateAccount />} />
           <Route path="/view-history" element={<ViewHistory />} />
           <Route path="/make-a-payment" element={<MakeAPayment />} />
+          <Route path="/send-money" element={<SendMoney />} />
           <Route path="/add-payee" element={<AddPayee />} />
           <Route path="/payees" element={<PayeeList />} />
           <Route path="/recurring-payments" element={<RecurringPayments />} />
+          <Route path="/subscriptions" element={<RecurringPayments view="subscriptions" />} />
+          <Route path="/bills" element={<RecurringPayments view="bills" />} />
           <Route path="/simulatedbankauth/:selectedBank" element={<SimulatedBankAuthorization />} />
           <Route path="/linkbankaccount/:institutionNumber" element={<LinkBankAccount />}/>
           <Route path="/linkbankaccount" element={<LinkBankAccount />} />

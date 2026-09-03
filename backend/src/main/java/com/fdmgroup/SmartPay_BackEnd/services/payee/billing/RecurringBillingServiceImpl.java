@@ -5,8 +5,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +38,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     private final RecurringBillingChargeRepository chargeRepository;
     private final PaymentProviderClient paymentProviderClient;
     private final TransactionExecutor transactionExecutor;
+    private final NotificationService notificationService;
 
     @Override
     public void processDuePaymentsForDate(LocalDate processingDate) {
@@ -90,7 +96,9 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         }
 
         if (paymentProviderClient.confirmChargeSucceeded(charge.getProviderReferenceId())) {
-            markCompleted(charge, WalletPaymentProviderClient.toTransactionId(charge.getProviderReferenceId()));
+
+            // the markCompleted method might need to be changed as it is confusing whether the second parameter is strictly a transactionId.
+            markCompleted(charge, "RCP-" + charge.getProviderReferenceId());
             return BillingChargeOutcome.RECOVERED_AFTER_CRASH;
         }
 
@@ -117,7 +125,7 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                 calculateAndSaveNextScheduledPayment(recurringPayee);
             });
             return BillingChargeOutcome.CHARGED;
-        } catch (InsufficientFundsException | InvalidWithdrawAmountException ex) {
+        } catch (InsufficientFundsException | InvalidWithdrawAmountException | IllegalCardChargeException ex) {
             log.warn(
                     "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
                     recurringPayee.getPayeeId(),
@@ -125,6 +133,24 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                     processingDate,
                     ex.getMessage());
             markFailed(charge);
+
+            NotificationCreateRequestDTO notification = new NotificationCreateRequestDTO();
+            notification.setUserId(request.getOwnerUserId());
+            notification.setType(NotificationType.WARNING);
+            notification.setTitle("Charge Unsuccessful");
+            notification.setDetail(ex.getMessage());
+            //TODO: to be validate if it's t1
+            notification.setTier(NotificationTier.T1.getValue());
+
+            notificationService.createNotification(notification);
+
+//            notificationService.createNotification(
+//                    request.getOwnerUserId(),
+//                    NotificationType.WARNING,
+//                    "Charge Unsuccessful",
+//                    ex.getMessage()
+//            );
+
             return BillingChargeOutcome.FAILED;
         }
     }

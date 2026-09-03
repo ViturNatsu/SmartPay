@@ -26,4 +26,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     long countByUser_IdAndDismissedFalse(Long userId);
 
     boolean existsByUser_IdAndTypeAndDismissedFalse(Long userId, NotificationType type);
+
+    long countByUser_IdAndReadFalse(Long userId);
 }

@@ -16,6 +16,7 @@ export default function RecurringPaymentEditDialog({
   onSave,
   isSaving,
 }) {
+  const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -26,6 +27,7 @@ export default function RecurringPaymentEditDialog({
       return;
     }
 
+    setName(payee.name ?? "");
     setAmount(String(payee.amount ?? ""));
     setDate(payee.date ?? "");
     setEndDate(payee.endDate ?? "");
@@ -33,6 +35,16 @@ export default function RecurringPaymentEditDialog({
 
   const validate = () => {
     const newErrors = {};
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      newErrors.name = "Name is required.";
+    } else if (trimmedName.length > 30) {
+      newErrors.name = "Name cannot exceed 30 characters.";
+    } else if (!/^[A-Za-z0-9 ]+$/.test(trimmedName)) {
+      newErrors.name = "Name cannot contain special characters.";
+    }
 
     const amountValue = Number(amount);
 
@@ -86,11 +98,12 @@ export default function RecurringPaymentEditDialog({
     }
 
     return (
+      name.trim() !== (payee.name ?? "") ||
       Number(amount) !== Number(payee.amount) ||
       date !== (payee.date ?? "") ||
       endDate !== (payee.endDate ?? "")
     );
-  }, [amount, date, endDate, payee]);
+  }, [name, amount, date, endDate, payee]);
 
   const handleSave = () => {
     if (!validate()) {
@@ -98,6 +111,7 @@ export default function RecurringPaymentEditDialog({
     }
 
     onSave({
+      name: name.trim(),
       amount: Number(amount),
       date,
       endDate: endDate || null,
@@ -110,6 +124,18 @@ export default function RecurringPaymentEditDialog({
 
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField
+            label="Name"
+            value={name}
+            onChange={event => {
+              setName(event.target.value);
+              setErrors(prev => ({ ...prev, name: "" }));
+            }}
+            error={!!errors.name}
+            helperText={errors.name}
+            fullWidth
+          />
+
           <TextField
             label="Amount"
             type="number"

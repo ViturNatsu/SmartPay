@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.InvalidNotificationException;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.*;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,20 +24,18 @@ import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeMismatchException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccessCodeUsedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.AccountLockedException;
 import com.fdmgroup.SmartPay_BackEnd.exception.auth.EmailAlreadyVerifiedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockActionsRequiresUserRoleException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardLockRequestInvalidType;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardNotFoundException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardStatusOperationNotAllowedException;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.CardUnauthorizedAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidRecurringPayeeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeAlreadyExistsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.PayeeNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeAlreadyPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeForbiddenAccessException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.RecurringPayeeNotPaused;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.CustomerInfoNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.EmailNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.user.LoginAccountDisabledException;
@@ -50,6 +49,9 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.PaymentMethodNotFoundExcep
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionForbiddenAccessException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletTransactionNotFoundException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.ScheduleDateRequiredException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidScheduleDateException;
+import com.fdmgroup.SmartPay_BackEnd.exception.payee.InvalidPaymentMethodException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -372,6 +374,11 @@ public class GlobalExceptionHandler {
                 errorBody.put(ERROR, "Forbidden");
                 errorBody.put(MESSAGE, "Recurring Payement does not belong to User.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(errorBody);
+        }
+
+        @ExceptionHandler(IllegalCardChargeException.class)
+        public ResponseEntity<ExceptionShapeDTO> IllegalCardChargeException(RuntimeException ex){
+                return errorResponseBuilder(HttpStatus.FORBIDDEN, ex.getMessage());
         }
 
         /**

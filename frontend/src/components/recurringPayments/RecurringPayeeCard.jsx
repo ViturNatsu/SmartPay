@@ -4,6 +4,7 @@ import {
   formatRecurringAmount,
   formatRecurringDate,
   formatRecurringSchedule,
+  formatStatus,
 } from "@/utils/recurringPaymentFormatters";
 
 /**
@@ -22,10 +23,6 @@ export default function RecurringPayeeCard({ payee, onView, onEdit, onCancel }) 
       </Typography>
 
       <Typography variant="body2">
-        Account Number: {payee.accountNumber}
-      </Typography>
-
-      <Typography variant="body2">
         ${formatRecurringAmount(payee.amount)}
       </Typography>
 
@@ -34,7 +31,7 @@ export default function RecurringPayeeCard({ payee, onView, onEdit, onCancel }) 
       </Typography>
 
       <Typography variant="body2">
-        Status: {isCancelled ? "Cancelled" : "Active"}
+        Status: {formatStatus(payee.status)}
       </Typography>
 
       <Stack direction="row" spacing={tokens.card.actionGap} sx={{ mt: 1.5 }}>

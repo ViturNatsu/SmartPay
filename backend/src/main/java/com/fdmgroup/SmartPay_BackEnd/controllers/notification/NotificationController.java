@@ -40,4 +40,13 @@ public class NotificationController {
         notificationService.dismissNotification(authenticatedUser.getId(), id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<Void> markNotificationAsRead(
+        @AuthenticationPrincipal User authenticatedUser,
+        @PathVariable Long id){
+
+        notificationService.markNotificationAsRead(authenticatedUser.getId(), id);
+        return ResponseEntity.noContent().build();
+    }
 }

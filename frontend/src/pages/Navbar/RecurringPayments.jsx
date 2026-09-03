@@ -5,11 +5,11 @@ import {
   Button,
   Card,
   CardContent,
-  Container,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  Snackbar
 } from "@mui/material";
 import {  LocalizationProvider  } from "@mui/x-date-pickers/LocalizationProvider";
 import {  AdapterDayjs  } from "@mui/x-date-pickers/AdapterDayjs";
@@ -29,6 +29,8 @@ import {
   getRecurringPayees,
   updateRecurringPayee,
   cancelRecurringPayee,
+  pauseRecurringPayee,
+  resumeRecurringPayee
 } from "@/api/recurringPayment/recurringPayeeApi";
 import {  BasicPageLayout  } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
 import {  getPaymentMethodsForUserWithId  } from "@/api/paymentmethods/paymentmethodApi";
@@ -38,7 +40,7 @@ import RecurringPaymentDetail from "../../components/recurringPayments/Recurring
 import { FilterAltOutlined } from "@mui/icons-material";
 import RecurringBillFilterMenu from "../../components/recurringPayments/RecurringBillFilterMenu";
 import RecurringSubscriptionFilterMenu from "../../components/recurringPayments/CardEntry/RecurringSubscriptionFilterMenu.jsx";
-
+import ConfirmStatusDialog from "@/components/recurringPayments/ConfirmStatusDialog";
 
 const SUBSCRIPTIONS_EMPTY_MESSAGE =
   "No subscriptions found. Add or detect subscriptions.";
@@ -46,8 +48,13 @@ const BILLS_EMPTY_MESSAGE = "No bills found.";
 const NO_MATCHING_BILLS_MESSAGE = "No matching bills.";
 const NO_MATCHING_SUBSCRIPTIONS_MESSAGE = "No matching subscriptions.";
 
-export default function RecurringPayments() {
-  const {  activeTab, handleTabChange  } = useRecurringPaymentsTab();
+export default function RecurringPayments({view}) {
+  const {
+    activeTab: tabFromHook,
+    handleTabChange
+  } = useRecurringPaymentsTab();
+
+  const activeTab = view ?? tabFromHook;
   const {  tokenClaims  } = useAuth();
 
   const [editingPayee, setEditingPayee] = useState(null);
@@ -83,7 +90,6 @@ export default function RecurringPayments() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [viewingItem, setViewingItem] = useState(null);
 
   const [billFilters, setBillFilters] = useState({
     status: [],
@@ -102,6 +108,14 @@ export default function RecurringPayments() {
 
   const [filterOpen, setFilterOpen] = useState(false);
   const subscriptionFilterCount = filters.status.length + filters.schedule.length;
+  const [viewingId, setViewingId] = useState(null);
+  const [statusAction, setStatusAction] = useState(null);
+  const [statusError, setStatusError] = useState(null);
+
+  const viewingItem = useMemo(() => {
+    if (!viewingId) return null;
+    return payees.find((payee) => payee.id === viewingId) || null;
+  }, [viewingId, payees]);
 
   const loadRecurringPayees = async () => {
     setIsLoading(true);
@@ -131,8 +145,8 @@ export default function RecurringPayments() {
         bankDisplayName: payee.paymentMethodBankDisplayName,
         account_type: payee.paymentMethodAccountType,
         account_number: payee.paymentMethodAccountNumberMasked,
+        pausedOverSixMonths: payee.pausedOverSixMonths,
       }));
-
       setPayees(mappedPayees);
     } catch (error) {
       setErrorMessage(
@@ -156,7 +170,7 @@ export default function RecurringPayments() {
     setErrorMessage("");
 
     const payload = {
-      payeeName: editingPayee.name,
+      payeeName: changes.name ?? editingPayee.name,
       recipientIdentifier: editingPayee.accountNumber,
       amount: changes.amount,
       schedule: editingPayee.schedule,
@@ -206,7 +220,7 @@ export default function RecurringPayments() {
       await loadRecurringPayees();
 
       setCancellingPayee(null);
-      setViewingItem(null);
+      setViewingId(null);
       setSuccessMessage("Recurring payment cancelled successfully.");
     } catch (error) {
       setErrorMessage(
@@ -239,6 +253,51 @@ export default function RecurringPayments() {
     loadPaymentMethods();
   }, [tokenClaims?.userId]);
 
+  useEffect(() => {
+    setSubscriptionsSearchQuery("");
+    setBillsSearchQuery("");
+
+    setShowForm(false);
+    setErrors({});
+    setSubscriptionErrors({});
+
+    setBillFilters({
+      status: [],
+      schedule: [],
+    });
+
+    setFilters({
+      status: [],
+      schedule: [],
+    });
+
+    setShowBillFilters(false);
+    setFilterOpen(false);
+
+    setEditingPayee(null);
+    setCancellingPayee(null);
+    setViewingId(null);
+
+
+    setFormData({
+      name: "",
+      accountNumber: "99990001",
+      amount: "",
+      schedule: "",
+      date: "",
+      endDate: "",
+    });
+
+    setSubscriptionFormData({
+      name: "",
+      amount: "",
+      schedule: "",
+      date: "",
+      paymentMethodId: "",
+    });
+  }, [view]);
+  
+
   const handleInputChange = event => {
     const {name, value} = event.target;
 
@@ -267,6 +326,13 @@ export default function RecurringPayments() {
     }));
   };
 
+  const resolveStatusAction = (item) => {
+    if(item.status !== "PAUSED"){
+      return "pause";
+    }
+    return item.pausedOverSixMonths ? "resumeWithSchedule" : "resume";
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -276,10 +342,6 @@ export default function RecurringPayments() {
       newErrors.name = "Payee Name cannot exceed 30 characters.";
     } else if (!/^[A-Za-z0-9 ]+$/.test(formData.name.trim())) {
       newErrors.name = "Payee Name cannot contain special characters.";
-    }
-
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = "Account Number is required.";
     }
 
     if (!formData.amount) {
@@ -554,6 +616,35 @@ export default function RecurringPayments() {
     }
   };
 
+  const handleConfirmStatusChange = async (scheduleDate) => {
+    if (!statusAction) return;
+    
+    const { action, item } = statusAction;
+    
+    setStatusError(null);
+    try {
+      setIsSubmitting(true);
+      if (action === "pause") {
+        await pauseRecurringPayee(item.id);
+      } else {
+        await resumeRecurringPayee(item.id, scheduleDate ?? null);
+      }
+
+      await loadRecurringPayees();
+
+      setStatusAction(null);
+      setSuccessMessage(
+        `${item.name} ${action === "pause" ? "paused" : "resumed"} successfully.`,
+      );
+    } catch (error) {
+      setStatusError(
+        error?.data?.message || error?.message || `Unable to ${action} this payment.`,
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setErrors({});
@@ -581,7 +672,6 @@ export default function RecurringPayments() {
 
   const isFormComplete =
     formData.name.trim() &&
-    formData.accountNumber.trim() &&
     formData.amount &&
     // Number(formData.amount) >= 1  &&
     // Number(formData.amount) <= 10000 &&
@@ -735,9 +825,19 @@ export default function RecurringPayments() {
   return (
 
     <BasicPageLayout
-      title={"Recurring Payments"}
+      title={
+        view === "subscriptions"
+          ? "Subscriptions"
+          : view === "bills"
+            ? "Bills"
+            : "Recurring Payments"
+      }
       subtitle={
-        "Manage your subscriptions and recurring bill payments. Select view to see full details."
+        view === "subscriptions"
+          ? "Manage your recurring subscriptions."
+          : view === "bills"
+            ? "Manage and pay your recurring bills."
+            : "Manage your subscriptions and recurring bill payments. Select view to see full details."
       }
     >
       <Stack spacing={3}>
@@ -769,20 +869,22 @@ export default function RecurringPayments() {
                 justifyContent="space-between"
                 alignItems={{xs: "stretch", sm: "center"}}
               >
-                <ToggleButtonGroup
-                  value={activeTab}
-                  exclusive
-                  onChange={handleTabChange}
-                  aria-label="Recurring payment categories"
-                >
-                  <ToggleButton value="subscriptions">
-                    Subscriptions
-                  </ToggleButton>
+                {!view && (
+                  <ToggleButtonGroup
+                    value={activeTab}
+                    exclusive
+                    onChange={handleTabChange}
+                    aria-label="Recurring payment categories"
+                  >
+                    <ToggleButton value="subscriptions">
+                      Subscriptions
+                    </ToggleButton>
 
-                  <ToggleButton value="bills">
-                    Bills
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                    <ToggleButton value="bills">
+                      Bills
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                )}
 
               </Stack>
 
@@ -845,7 +947,7 @@ export default function RecurringPayments() {
                       alignSelf: { xs: "stretch", sm: "auto" },
                     }}
                   >
-                    Add New Payee
+                    ＋ Add New Payee
                   </Button>
                 )}
 
@@ -944,15 +1046,6 @@ export default function RecurringPayments() {
                   {errorMessage}
                 </Alert>
               )}
-
-              {successMessage && (
-                <Alert
-                  severity="success"
-                  onClose={() => setSuccessMessage("")}
-                >
-                  {successMessage}
-                </Alert>
-              )}
             </Stack>
           </CardContent>
         </Card>
@@ -999,70 +1092,106 @@ export default function RecurringPayments() {
                 aria-label="Search bill payees"
               />
             )}
-
-            {activeTab === "subscriptions" &&
-              (subscriptionsList.length === 0 ? (
-                <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
-              ) : filterSubscriptionsByCategoryAndName.length === 0 &&
-                hasSubscriptionsSearch ? (
-                <RecurringEmptyState
-                  message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
-                />
-              ) : (
-                <Stack spacing={2}>
-                  {filterSubscriptionsByCategoryAndName.map(subscription => (
-                    <RecurringSubscriptionCard
-                      key={subscription.id}
-                      subscription={subscription}
-                      onEdit={handleEditRecurringPayee}
-                      onCancel={handleCancelRecurringPayee}
-                      onView={setViewingItem}
+                {activeTab === "subscriptions" &&
+                  (subscriptionsList.length === 0 ? (
+                    <RecurringEmptyState message={SUBSCRIPTIONS_EMPTY_MESSAGE} />
+                  ) : filterSubscriptionsByCategoryAndName.length === 0 &&
+                    hasSubscriptionsSearch ? (
+                    <RecurringEmptyState
+                      message={NO_MATCHING_SUBSCRIPTIONS_MESSAGE}
                     />
+                  ) : (
+                    <Stack spacing={2}>
+                      {filterSubscriptionsByCategoryAndName.map(subscription => (
+                        <RecurringSubscriptionCard
+                          key={subscription.id}
+                          subscription={subscription}
+                          onEdit={handleEditRecurringPayee}
+                          onCancel={handleCancelRecurringPayee}
+                          onClose={() => setViewingId(null)}
+                          onView={(item) => setViewingId(item.id)}
+                        />
+                      ))}
+                    </Stack>
                   ))}
-                </Stack>
-              ))}
 
-            {activeTab === "bills" &&
-              (billsList.length === 0 ? (
-                <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
-              ) : filterBillsByCategoryAndName.length === 0 && hasBillsSearch ? (
-                <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
-              ) : (
-                <Stack spacing={2}>
-                  {filterBillsByCategoryAndName.map(payee => (
-                    <RecurringPayeeCard
-                      key={payee.id}
-                      payee={payee}
-                      onEdit={handleEditRecurringPayee}
-                      onCancel={handleCancelRecurringPayee}
-                      onView={setViewingItem}
-                    />
+                {activeTab === "bills" &&
+                  (billsList.length === 0 ? (
+                    <RecurringEmptyState message={BILLS_EMPTY_MESSAGE} />
+                  ) : filterBillsByCategoryAndName.length === 0 && hasBillsSearch ? (
+                    <RecurringEmptyState message={NO_MATCHING_BILLS_MESSAGE} />
+                  ) : (
+                    <Stack spacing={2}>
+                      {filterBillsByCategoryAndName.map(payee => (
+                        <RecurringPayeeCard
+                          key={payee.id}
+                          payee={payee}
+                          onEdit={handleEditRecurringPayee}
+                          onCancel={handleCancelRecurringPayee}
+                          onClose={() => setViewingId(null)}
+                          onView={(item) => setViewingId(item.id)}
+                        />
+                      ))}
+                    </Stack>
                   ))}
-                </Stack>
-              ))}
-          </CardContent>
-        </Card>
-      </Stack>
-      <RecurringPaymentEditDialog
-        open={Boolean(editingPayee)}
-        payee={editingPayee}
-        onClose={() => setEditingPayee(null)}
-        onSave={handleSaveRecurringPayee}
-        isSaving={isSubmitting}
-      />
-      <RecurringPaymentCancelDialog
-        open={Boolean(cancellingPayee)}
-        payee={cancellingPayee}
-        onClose={() => setCancellingPayee(null)}
-        onConfirm={handleConfirmCancelRecurringPayee}
-        isCancelling={isSubmitting}
-      />
-      <RecurringPaymentDetail
-        open={Boolean(viewingItem)}
-        item={viewingItem}
-        onClose={() => setViewingItem(null)}
-        onCancelPayment={() => setCancellingPayee(viewingItem)}
-      />
+              </CardContent>
+            </Card>
+          </Stack>
+          <RecurringPaymentEditDialog
+            open={Boolean(editingPayee)}
+            payee={editingPayee}
+            onClose={() => setEditingPayee(null)}
+            onSave={handleSaveRecurringPayee}
+            isSaving={isSubmitting}
+          />
+          <RecurringPaymentCancelDialog
+            open={Boolean(cancellingPayee)}
+            payee={cancellingPayee}
+            onClose={() => setCancellingPayee(null)}
+            onConfirm={handleConfirmCancelRecurringPayee}
+            isCancelling={isSubmitting}
+          />
+          <RecurringPaymentDetail
+            open={Boolean(viewingItem)}
+            item={viewingItem}
+            onClose={() => setViewingId(null)}
+            onCancelPayment={() => setCancellingPayee(viewingItem)}
+            onToggleStatus={() =>
+              setStatusAction({
+                action: resolveStatusAction(viewingItem),
+                item: viewingItem,
+              })
+            }
+          />
+          <ConfirmStatusDialog
+            action={statusAction?.action ?? null}
+            item={statusAction?.item ?? null}
+            onClose={() => { setStatusAction(null); setStatusError(null); }}
+            onConfirm={handleConfirmStatusChange}
+            pending={isSubmitting}
+            error={statusError}
+          />
+
+          {/* Success notification */}
+          <Snackbar
+            open={Boolean(successMessage)}
+            autoHideDuration={3000}
+            onClose={() => setSuccessMessage("")}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            <Alert
+              severity="success"
+              onClose={() => setSuccessMessage("")}
+              sx={{
+                fontWeight: tokens.typography.fontWeight.bold,
+                backgroundColor: tokens.color.brand.cardNavy,
+                color: tokens.color.text.white,
+                "& .MuiAlert-icon": { color: tokens.color.text.white },
+              }}
+            >
+              {successMessage}
+            </Alert>
+          </Snackbar>
     </BasicPageLayout>
   );
 }

@@ -2,21 +2,28 @@ package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.exception.payee.*;
 import jakarta.transaction.Transactional;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Payee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
@@ -38,11 +45,11 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
 @Service
 public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
-    // Subscriptions are billed to SmartPay's own seeded merchant account rather than a
-    // peer-to-peer recipient (see DataBaseInitializer) — this mirrors how the Bills form
-    // already hardcodes this same account number client-side, moved server-side so the
-    // frontend no longer needs to know a "merchant account" magic value.
-    private static final String SUBSCRIPTION_MERCHANT_ACCOUNT_NUMBER = "99990001";
+    // US 12-02-12: every recurring payee (bill or subscription) is routed to SmartPay's own
+    // seeded merchant account (see DataBaseInitializer) rather than a real peer-to-peer
+    // recipient. The destination is assigned server-side so the frontend never needs to know
+    // this "merchant account" magic value and cannot override the routing.
+    private static final String RECURRING_MERCHANT_ACCOUNT_NUMBER = "99990001";
 
     private final PayeeRepository payeeRepository;
     private final RecurringPayeeRepository recurringPayeeRepository;
@@ -119,7 +126,7 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
     @Override
     public List<PayeeResponseDTO> getPayeesForUser(Long ownerId) {
-        List<Payee> payees = payeeRepository.findByOwnerIdAndActiveTrue(ownerId);
+        List<Payee> payees = payeeRepository.findRegularPayeesByOwnerId(ownerId);
         return payees.stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
@@ -133,9 +140,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
     @Override
     public RecurringPayeeResponseDTO addRecurringPayee(Long ownerId, RecurringPayeeRequestDTO recurringPayeeRequestDTO) {
         String recurringPayeeName = recurringPayeeRequestDTO.getPayeeName();
-        String recipientIdentifier = recurringPayeeRequestDTO.getType() == RecurringPaymentType.SUBSCRIPTION
-                ? SUBSCRIPTION_MERCHANT_ACCOUNT_NUMBER
-                : recurringPayeeRequestDTO.getRecipientIdentifier();
+        // US 12-02-12: ignore any client-supplied destination and always route to the hardcoded
+        // merchant account, regardless of the display name or payee type (bill or subscription).
+        String recipientIdentifier = RECURRING_MERCHANT_ACCOUNT_NUMBER;
         BigDecimal recurringAmount=recurringPayeeRequestDTO.getAmount();
         LocalDate date = recurringPayeeRequestDTO.getDate();
         LocalDate endDate = recurringPayeeRequestDTO.getEndDate();
@@ -285,7 +292,16 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new InvalidRecurringPayeeException("Only active recurring payments can be updated");
         }
 
-        if (recurringPayee.getDate().equals(payeeRequestDTO.getDate())
+        // US 12-02-12: the display name is editable; a null/blank name means "keep the current
+        // label". Renaming only affects future charges — historical transactions already snapshot
+        // the name that was in effect at charge time, so they are left untouched.
+        String requestedName = payeeRequestDTO.getPayeeName();
+        boolean nameProvided = requestedName != null && !requestedName.isBlank();
+        String updatedName = nameProvided ? requestedName.trim() : recurringPayee.getPayeeName();
+        boolean nameChanged = !Objects.equals(updatedName, recurringPayee.getPayeeName());
+
+        if (!nameChanged
+                && recurringPayee.getDate().equals(payeeRequestDTO.getDate())
                 && recurringPayee.getAmount().compareTo(payeeRequestDTO.getAmount()) == 0
                 && Objects.equals(
                     recurringPayee.getEndDate(),
@@ -341,12 +357,14 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         }
 
 
-        if (Objects.equals(recurringPayee.getDate(), payeeRequestDTO.getDate())
+        if (!nameChanged
+            && Objects.equals(recurringPayee.getDate(), payeeRequestDTO.getDate())
             && Objects.equals(recurringPayee.getAmount(), payeeRequestDTO.getAmount())
             && Objects.equals(recurringPayee.getEndDate(), payeeRequestDTO.getEndDate())) {
             throw new InvalidRecurringPayeeException("No changes were detected");
         }
 
+        recurringPayee.setPayeeName(updatedName);
         recurringPayee.setDate(payeeRequestDTO.getDate());
         recurringPayee.setAmount(payeeRequestDTO.getAmount());
         recurringPayee.setEndDate(payeeRequestDTO.getEndDate());
@@ -435,6 +453,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                         ? paymentMethod.getAccount().getAccountType().name() : null)
                 .paymentMethodAccountNumberMasked(paymentMethod != null && paymentMethod.getAccount() != null
                         ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
+                .pausedDate(recurringPayee.getPausedDate())
+                .pausedOverSixMonths(recurringPayee.getPausedDate() != null &&
+                        Period.between(recurringPayee.getPausedDate(), LocalDate.now(ZoneOffset.UTC)).toTotalMonths() > 6)
                 .build();
     }
 
@@ -454,12 +475,13 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
         }
         recurringPayee.setStatus(RecurringPaymentStatus.PAUSED);
+        recurringPayee.setPausedDate(LocalDate.now(ZoneOffset.UTC));
     }
 
 
     @Override
     @Transactional
-    public void resumeRecurringPayee(Long ownerId, Long payeeId) {
+    public void resumeRecurringPayee(Long ownerId, Long payeeId, ResumeRecurringPayeeRequestDTO resumeRequestDTO) {
         RecurringPayee recurringPayee = recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(payeeId, ownerId)
                 .orElseThrow(() -> new PayeeNotFoundException("Payee not found"));
 
@@ -470,6 +492,31 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         if(!recurringPayee.isActive()){
             throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
         }
+        PaymentMethod paymentMethod = recurringPayee.getPaymentMethod();
+
+        if (paymentMethod == null || !Boolean.TRUE.equals(paymentMethod.getActive())) {
+            throw new InvalidPaymentMethodException("A valid payment method is required to resume this payment");
+        }
+
+        LocalDateTime today = LocalDateTime.now(ZoneOffset.UTC);
+        boolean overSixMonths = recurringPayee.getPausedDate() != null
+                && Period.between(recurringPayee.getPausedDate(), today.toLocalDate()).toTotalMonths() > 6;
+
+        LocalDate nextPaymentDate = resumeRequestDTO != null ? resumeRequestDTO.getNextPaymentDate() : null;
+
+        if (overSixMonths) {
+            if (nextPaymentDate == null) {
+                throw new ScheduleDateRequiredException("A new schedule date is required to resume this payment");
+            }
+            if (!nextPaymentDate.isAfter(today.toLocalDate())) {
+                throw new InvalidScheduleDateException("Schedule date must be in the future");
+            }
+            recurringPayee.setDate(nextPaymentDate);
+        } else {
+            recurringPayee.setDate(RecurringBillingScheduleUtil.resolveResumeCycleDate(recurringPayee, today));
+        }
+
         recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
+        recurringPayee.setPausedDate(null);
     }
 }

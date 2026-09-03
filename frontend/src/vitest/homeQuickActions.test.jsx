@@ -8,7 +8,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute.jsx";
 import { Login } from "@/pages/Login/Login";
 import { Home } from "@/pages/Navbar/Home";
 import AddPayee from "@/pages/Payee/AddPayee";
-import { MakeAPayment } from "@/pages/Accounts/MakeAPayment";
+import { SendMoney } from "@/pages/Accounts/SendMoney";
 import Forbidden from "@/pages/errors/Forbidden";
 
 import * as authApi from "@/api/authApi.js";
@@ -85,7 +85,7 @@ function AppHarness({ initialEntries = ["/app"] }) {
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<ProtectedPage />} />
             <Route path="/add-payee" element={<AddPayee />} />
-            <Route path="/make-a-payment" element={<MakeAPayment />} />
+            <Route path="/send-money" element={<SendMoney />} />
           </Route>
         </Routes>
       </AuthProvider>
@@ -112,7 +112,7 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     expect(within(dialog).getByText(/^Load Wallet$/i)).toBeInTheDocument();
   });
 
-  it("Scenario 2: Send Money link navigates to make a payment", async () => {
+  it("Scenario 2: Send Money link navigates to Send Money page", async () => {
     const user = userEvent.setup();
     addValidRefreshToken();
     setAccessToken(TEST_ACCESS_TOKEN);
@@ -126,7 +126,11 @@ describe("Home Dashboard Quick Link Acceptance", () => {
     });
     await user.click(sendMoneyLink);
 
-    expect(screen.getByText("Send Money")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Send money to a saved payee, or manage who you're able to send to."
+      )
+    ).toBeInTheDocument();
   });
 
   it("Scenario 3: Add a Payee link navigates to add payee", async () => {
