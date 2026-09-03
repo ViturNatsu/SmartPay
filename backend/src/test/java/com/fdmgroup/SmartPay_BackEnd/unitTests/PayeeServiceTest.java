@@ -587,6 +587,98 @@ class PayeeServiceTest {
     }
 
     @Test
+    void addRecurringPayee_shouldRouteToHardcodedMerchant_whenTypeIsBill() {
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Gym Membership");
+        // A client-supplied destination must be ignored in favour of the hardcoded merchant.
+        dto.setRecipientIdentifier("12345678");
+        dto.setAmount(new BigDecimal("40.00"));
+        dto.setSchedule(Schedule.MONTHLY);
+        dto.setDate(LocalDate.now().plusDays(1));
+        dto.setType(RecurringPaymentType.BILL);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+
+        Account merchantAccount = new CheckingAccount();
+        merchantAccount.setActive(true);
+        merchantAccount.getUsers().add(recipient);
+        when(accountRepository.findByAccountNumber("99990001"))
+                .thenReturn(Optional.of(merchantAccount));
+
+        when(recurringPayeeRepository
+                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
+                        1L, "99990001", "Gym Membership", new BigDecimal("40.00"),
+                        Schedule.MONTHLY, dto.getDate()))
+                .thenReturn(false);
+
+        when(recurringPayeeRepository.save(any(RecurringPayee.class)))
+                .thenAnswer(invocation -> {
+                    RecurringPayee payee = invocation.getArgument(0);
+                    payee.setPayeeId(300L);
+                    return payee;
+                });
+
+        RecurringPayeeResponseDTO result = payeeService.addRecurringPayee(1L, dto);
+
+        assertNotNull(result);
+        assertEquals("99990001", result.getRecipientIdentifier());
+        assertEquals("Gym Membership", result.getPayeeName());
+
+        // Only the merchant account is looked up; the client "12345678" is never used.
+        verify(accountRepository).findByAccountNumber("99990001");
+        verify(accountRepository, never()).findByAccountNumber("12345678");
+        verify(recurringPayeeRepository).save(any(RecurringPayee.class));
+    }
+
+    @Test
+    void updateRecurringPayee_shouldRenameDisplayName_whenNameChanged() {
+        RecurringPayee existing = buildRecurringPayee(RecurringPaymentStatus.ACTIVE, null,
+                LocalDate.now().plusDays(5), activePaymentMethod());
+        existing.setPayeeName("Netflix");
+        existing.setAccountNumber("99990001");
+
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Prime");
+        dto.setAmount(existing.getAmount());
+        dto.setDate(existing.getDate());
+        dto.setEndDate(existing.getEndDate());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerId(100L, 1L))
+                .thenReturn(Optional.of(existing));
+        when(recurringPayeeRepository.save(any(RecurringPayee.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        RecurringPayeeResponseDTO result = payeeService.updateRecurringPayee(1L, 100L, dto);
+
+        assertEquals("Prime", result.getPayeeName());
+        assertEquals("Prime", existing.getPayeeName());
+        // Renaming must never change the underlying (hardcoded) destination.
+        assertEquals("99990001", existing.getAccountNumber());
+        verify(recurringPayeeRepository).save(existing);
+    }
+
+    @Test
+    void updateRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenNothingChanged() {
+        RecurringPayee existing = buildRecurringPayee(RecurringPaymentStatus.ACTIVE, null,
+                LocalDate.now().plusDays(5), activePaymentMethod());
+        existing.setPayeeName("Netflix");
+
+        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
+        dto.setPayeeName("Netflix");
+        dto.setAmount(existing.getAmount());
+        dto.setDate(existing.getDate());
+        dto.setEndDate(existing.getEndDate());
+
+        when(recurringPayeeRepository.findByPayeeIdAndOwnerId(100L, 1L))
+                .thenReturn(Optional.of(existing));
+
+        assertThrows(InvalidRecurringPayeeException.class,
+                () -> payeeService.updateRecurringPayee(1L, 100L, dto));
+
+        verify(recurringPayeeRepository, never()).save(any());
+    }
+
+    @Test
     void addRecurringPayee_shouldThrowPaymentMethodNotFoundException_whenPaymentMethodMissing() {
         RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
         dto.setPayeeName("Netflix");

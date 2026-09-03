@@ -23,10 +23,6 @@ export default function RecurringPayeeCard({ payee, onView, onEdit, onCancel }) 
       </Typography>
 
       <Typography variant="body2">
-        Account Number: {payee.accountNumber}
-      </Typography>
-
-      <Typography variant="body2">
         ${formatRecurringAmount(payee.amount)}
       </Typography>
 
