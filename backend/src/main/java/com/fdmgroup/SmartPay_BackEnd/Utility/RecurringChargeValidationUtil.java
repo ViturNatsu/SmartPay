@@ -20,11 +20,11 @@ public class RecurringChargeValidationUtil {
     private final CardRequestService cardRequestService;
 
     public void validate(Wallet wallet, double amount, LocalDate processingDate) {
+        validateCardHasNoPendingReplacement(wallet);
+        validateCardIsNotLocked(wallet);
         validatePerTransactionLimit(wallet, amount);
         validateDailySpendingLimit(wallet, amount, processingDate);
         validateAvailableBalance(wallet, amount);
-        validateCardHasNoPendingReplacement(wallet);
-        validateCardIsNotLocked(wallet);
     }
 
     private void validatePerTransactionLimit(Wallet wallet, double amount) {
