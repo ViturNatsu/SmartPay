@@ -15,6 +15,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import java.math.BigDecimal;
 
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.BillingChargeOutcome
 import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.ChargeExecutionResult;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.PaymentProviderClient;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.RecurringBillingServiceImpl;
-import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.WalletPaymentProviderClient;
+//import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.WalletPaymentProviderClient;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringBillingServiceTest {
@@ -54,6 +55,9 @@ class RecurringBillingServiceTest {
 
     @Mock
     private TransactionExecutor transactionExecutor;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private RecurringBillingServiceImpl billingService;
@@ -170,7 +174,7 @@ class RecurringBillingServiceTest {
         verify(paymentProviderClient, never()).executeCharge(any());
         verify(chargeRepository).save(argThat(charge ->
                 charge.getStatus() == RecurringBillingStatus.COMPLETED
-                        && WalletPaymentProviderClient.toTransactionId("crash-charge")
+                        && "RCP-crash-charge"
                                 .equals(charge.getWalletTransactionId())));
     }
 

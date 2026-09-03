@@ -94,7 +94,9 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
         }
 
         if (paymentProviderClient.confirmChargeSucceeded(charge.getProviderReferenceId())) {
-            markCompleted(charge, WalletPaymentProviderClient.toTransactionId(charge.getProviderReferenceId()));
+
+            // the markCompleted method might need to be changed as it is confusing whether the second parameter is strictly a transactionId.
+            markCompleted(charge, "RCP-" + charge.getProviderReferenceId());
             return BillingChargeOutcome.RECOVERED_AFTER_CRASH;
         }
 

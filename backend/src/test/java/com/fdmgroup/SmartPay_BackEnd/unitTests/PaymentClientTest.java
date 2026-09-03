@@ -14,10 +14,8 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.billing.*;
-import com.fdmgroup.SmartPay_BackEnd.services.payment.BillPaymentService;
 import com.fdmgroup.SmartPay_BackEnd.services.payment.BillPaymentServiceImpl;
 import com.fdmgroup.SmartPay_BackEnd.services.pipeline.recurringPayments.BillChargePipeline;
-import com.fdmgroup.SmartPay_BackEnd.services.pipeline.recurringPayments.ChargePipeline;
 import com.fdmgroup.SmartPay_BackEnd.services.resolver.ChargePipelineResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class WalletPaymentProviderClientTest {
+public class PaymentClientTest {
     @Mock
     private WalletRepository walletRepository;
 
@@ -53,7 +51,7 @@ public class WalletPaymentProviderClientTest {
     private ChargePipelineResolver chargePipelineResolver;
 
     @InjectMocks
-    private PaymentClient paymentProviderClient;
+    private PaymentClient paymentClient;
 
     private Wallet senderWallet;
     private Wallet recipientWallet;
@@ -124,7 +122,7 @@ public class WalletPaymentProviderClientTest {
 
         RecurringChargeRequest request = billRequest(25.0);
 
-        ChargeExecutionResult result = paymentProviderClient.executeCharge(request);
+        ChargeExecutionResult result = paymentClient.executeCharge(request);
 
         assertEquals(75.0, senderWallet.getBalance());
         assertEquals(45.0, senderWallet.getDailySpentAmount());
@@ -150,7 +148,7 @@ public class WalletPaymentProviderClientTest {
                 .thenReturn(Optional.of(senderWallet));
         when(walletRepository.findByUserId(2L))
                 .thenReturn(Optional.of(recipientWallet));
-        paymentProviderClient.executeCharge(billRequest(25.0));
+        paymentClient.executeCharge(billRequest(25.0));
 
         assertEquals(0.0, senderWallet.getBalance());
         assertEquals(25.0, senderWallet.getDailySpentAmount());
@@ -174,7 +172,7 @@ public class WalletPaymentProviderClientTest {
                 .thenReturn(Optional.of(senderWallet));
         when(walletRepository.findByUserId(2L))
                 .thenReturn(Optional.of(recipientWallet));
-        paymentProviderClient.executeCharge(billRequest(25.0));
+        paymentClient.executeCharge(billRequest(25.0));
 
         assertEquals(75.0, senderWallet.getBalance());
         assertEquals(100.0, senderWallet.getDailySpentAmount());
@@ -199,7 +197,7 @@ public class WalletPaymentProviderClientTest {
         RecurringChargeRequest request = billRequest(25.0);
 
         assertThrows(InsufficientFundsException.class,
-                () -> paymentProviderClient.executeCharge(request));
+                () -> paymentClient.executeCharge(request));
         assertEquals(20.0, senderWallet.getBalance());
         assertEquals(0.0, senderWallet.getDailySpentAmount());
         verify(walletRepository, never())
@@ -224,7 +222,7 @@ public class WalletPaymentProviderClientTest {
                 .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
 
         assertThrows(InvalidWithdrawAmountException.class,
-                () -> paymentProviderClient.executeCharge(request));
+                () -> paymentClient.executeCharge(request));
         assertEquals(100.0, senderWallet.getBalance());
         assertEquals(0.0, senderWallet.getDailySpentAmount());
         verify(walletRepository, never())
@@ -251,7 +249,7 @@ public class WalletPaymentProviderClientTest {
                 .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
 
         assertThrows(InvalidWithdrawAmountException.class,
-                () -> paymentProviderClient.executeCharge(request));
+                () -> paymentClient.executeCharge(request));
         assertEquals(100.0, senderWallet.getBalance());
         assertEquals(80.0, senderWallet.getDailySpentAmount());
         assertEquals(processingDate, senderWallet.getDailySpentDate());
@@ -279,7 +277,7 @@ public class WalletPaymentProviderClientTest {
 
         RecurringChargeRequest request = billRequest(25.0);
 
-        paymentProviderClient.executeCharge(request);
+        paymentClient.executeCharge(request);
 
         assertEquals(75.0, senderWallet.getBalance());
         assertEquals(25.0, senderWallet.getDailySpentAmount());
