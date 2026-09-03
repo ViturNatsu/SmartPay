@@ -4,15 +4,24 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByUser_IdAndDismissedFalseOrderByPriorityAscCreatedAtDesc(Long userId, Pageable pageable);
+    @Query("""
+           select notif
+           from Notification notif
+           where notif.user.id = :userId
+               and notif.dismissed = false
+           order by notif.createdAt desc
+           """)
+    List<Notification> findActiveNotificationsByUserId(@Param("userId")Long userId, Pageable pageable);
 
     long countByUser_IdAndDismissedFalse(Long userId);
 

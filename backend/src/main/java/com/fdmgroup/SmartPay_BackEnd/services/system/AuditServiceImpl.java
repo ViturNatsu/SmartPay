@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +23,8 @@ public class AuditServiceImpl implements AuditService {
     private final AuditLogRepository auditLogRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void logEvent(EventType eventType, String eventStatus, User user, Map<String, Object> eventData,
-            HttpServletRequest request) {
+    public UUID logEvent(EventType eventType, String eventStatus, User user, Map<String, Object> eventData,
+                         HttpServletRequest request) {
         try {
             AuditLog auditLog = AuditLog.builder()
                     .eventType(eventType)
@@ -34,17 +35,19 @@ public class AuditServiceImpl implements AuditService {
                     .userAgent(request != null ? request.getHeader("User-Agent") : null)
                     .build();
 
-            auditLogRepository.save(auditLog);
+            AuditLog savedAuditLog = auditLogRepository.save(auditLog);
             log.info("Audit event logged: {} [{}] for user: {}", eventType, eventStatus,
                     user != null ? user.getEmail() : "unknown");
+            return savedAuditLog.getLogId();
         } catch (Exception e) {
             log.error("Failed to log audit event: {}", eventType, e);
+            return null;
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void logEvent(EventType eventType, String eventStatus, User user, HttpServletRequest request) {
-        logEvent(eventType, eventStatus, user, new HashMap<>(), request);
+    public UUID logEvent(EventType eventType, String eventStatus, User user, HttpServletRequest request) {
+        return logEvent(eventType, eventStatus, user, new HashMap<>(), request);
     }
 
     private String getClientIp(HttpServletRequest request) {

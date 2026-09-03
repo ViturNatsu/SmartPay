@@ -16,6 +16,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.user.UserNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.auth.OtpRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpServiceImpl;
 import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.system.AuditService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 
@@ -58,6 +59,9 @@ public class OtpServiceTest {
     private EmailService emailService;
 
     @Mock
+    private NotificationService notificationService;
+
+    @Mock
     private HttpServletRequest httpServletRequest;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -67,7 +71,7 @@ public class OtpServiceTest {
 
     @BeforeEach
     void setUp() {
-        otpService = new OtpServiceImpl(otpRepository, userService, passwordEncoder, auditService, emailService);
+        otpService = new OtpServiceImpl(otpRepository, userService, passwordEncoder, auditService, emailService, notificationService);
 
         // Initialize test data
         String testEmail = "test@example.com";

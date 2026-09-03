@@ -2,10 +2,8 @@ package com.fdmgroup.SmartPay_BackEnd.controllers.auth;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.services.card.CardService;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.LoginResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.auth.OtpRequestDto;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.card.CardResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Otp;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
@@ -30,7 +27,6 @@ import com.fdmgroup.SmartPay_BackEnd.services.auth.SessionService;
 import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.PasswordResetService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -104,9 +100,6 @@ public class OtpController {
                 String refreshToken = jwtSessionService.createRefreshToken(user);
 
                 sessionService.generateNewSession(user, refreshToken);
-
-                notificationService.createNotification(
-                        user.getId(), NotificationType.SECURITY, "New sign-in detected", null);
 
                 // Wallet logic for non admins
                 if(user.getRole().equals(Role.USER)){
