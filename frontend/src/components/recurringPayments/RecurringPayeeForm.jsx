@@ -18,7 +18,6 @@ export default function RecurringPayeeForm({
 
       <Stack spacing={2}>
         <TextField label="Name *" name="name" value={formData.name} onChange={onInputChange} error={!!errors.name} helperText={errors.name} fullWidth />
-        <TextField label="Account Number *" name="accountNumber" value={formData.accountNumber} fullWidth InputProps={{readOnly: true,}} helperText="Automatically assigned" />
         <TextField label="Amount *" name="amount" value={formData.amount} onChange={onInputChange} error={!!errors.amount} helperText={errors.amount || "Amount must be between $1.00 and $10,000.00."} fullWidth type="number" inputProps={{ min: 0, step: "0.01" }} />
 
         <TextField select label="Recurring Schedule *" name="schedule" value={formData.schedule} onChange={onInputChange} error={!!errors.schedule} helperText={errors.schedule} fullWidth>

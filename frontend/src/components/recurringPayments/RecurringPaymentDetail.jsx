@@ -13,7 +13,6 @@ import {
   formatRecurringAmount,
   formatRecurringDateWithYear,
   formatRecurringSchedule,
-  maskAccountNumber,
   formatStatus
 } from "@/utils/recurringPaymentFormatters";
 import CloseIcon from "@mui/icons-material/Close";
@@ -172,7 +171,6 @@ export default function RecurringPaymentDetail({
           ) : (
             <Section title="Biller Details">
               <DetailRow label="Biller Name:" value={item.name} />
-              <DetailRow label="Account / Reference #:" value={maskAccountNumber(item.accountNumber)} />
               {item.category ? (
                 <DetailRow label="Category:" value={item.category} />
               ) : (

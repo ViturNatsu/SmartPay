@@ -170,7 +170,7 @@ export default function RecurringPayments({view}) {
     setErrorMessage("");
 
     const payload = {
-      payeeName: editingPayee.name,
+      payeeName: changes.name ?? editingPayee.name,
       recipientIdentifier: editingPayee.accountNumber,
       amount: changes.amount,
       schedule: editingPayee.schedule,
@@ -342,10 +342,6 @@ export default function RecurringPayments({view}) {
       newErrors.name = "Payee Name cannot exceed 30 characters.";
     } else if (!/^[A-Za-z0-9 ]+$/.test(formData.name.trim())) {
       newErrors.name = "Payee Name cannot contain special characters.";
-    }
-
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = "Account Number is required.";
     }
 
     if (!formData.amount) {
@@ -676,7 +672,6 @@ export default function RecurringPayments({view}) {
 
   const isFormComplete =
     formData.name.trim() &&
-    formData.accountNumber.trim() &&
     formData.amount &&
     // Number(formData.amount) >= 1  &&
     // Number(formData.amount) <= 10000 &&
