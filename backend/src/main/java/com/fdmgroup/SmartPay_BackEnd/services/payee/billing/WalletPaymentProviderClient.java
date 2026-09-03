@@ -33,6 +33,7 @@ public class WalletPaymentProviderClient implements PaymentProviderClient {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
     private final AccountRepository accountRepository;
+    private final RecurringChargeValidationUtil recurringChargeValidationUtil;
 
     @Override
     @Transactional
@@ -72,7 +73,7 @@ public class WalletPaymentProviderClient implements PaymentProviderClient {
 //        }
         LocalDate processingDate = request.getProcessingDate();
 
-        RecurringChargeValidationUtil.validate(senderWallet, amount, processingDate);
+        recurringChargeValidationUtil.validate(senderWallet, amount, processingDate);
         resetDailySpendIfNeeded(senderWallet, processingDate);
 
         Wallet recipientWallet = walletRepository.findByUserId(request.getRecipientUserId())

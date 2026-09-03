@@ -1,6 +1,9 @@
 package com.fdmgroup.SmartPay_BackEnd.unitTests;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentType;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
@@ -40,6 +43,9 @@ public class WalletPaymentProviderClientTest {
     @Mock
     private AccountRepository accountRepository;
 
+    @Mock
+    private RecurringChargeValidationUtil recurringChargeValidationUtil;
+
     @InjectMocks
     private WalletPaymentProviderClient paymentProviderClient;
 
@@ -73,6 +79,11 @@ public class WalletPaymentProviderClientTest {
         recipientWallet = new Wallet();
         recipientWallet.setUser(recipient);
         recipientWallet.setBalance(50.0);
+
+        Card card = new Card();
+        card.setStatus(CardStatus.ACTIVE);
+        senderWallet.setCard(card);
+
 
         recurringPayee = new RecurringPayee();
         recurringPayee.setOwner(sender);
@@ -166,6 +177,10 @@ public class WalletPaymentProviderClientTest {
         when(walletRepository.findByUserId(1L))
                 .thenReturn(Optional.of(senderWallet));
 
+        doThrow(new InsufficientFundsException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
+
         RecurringChargeRequest request = billRequest(25.0);
 
         assertThrows(InsufficientFundsException.class,
@@ -189,6 +204,10 @@ public class WalletPaymentProviderClientTest {
 
         RecurringChargeRequest request = billRequest(25.0);
 
+        doThrow(new InvalidWithdrawAmountException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
+
         assertThrows(InvalidWithdrawAmountException.class,
                 () -> paymentProviderClient.executeCharge(request));
         assertEquals(100.0, senderWallet.getBalance());
@@ -211,6 +230,10 @@ public class WalletPaymentProviderClientTest {
                 .thenReturn(Optional.of(senderWallet));
 
         RecurringChargeRequest request = billRequest(25.0);
+
+        doThrow(new InvalidWithdrawAmountException(""))
+                .when(recurringChargeValidationUtil)
+                .validate(any(Wallet.class), eq(25.0), any(LocalDate.class));
 
         assertThrows(InvalidWithdrawAmountException.class,
                 () -> paymentProviderClient.executeCharge(request));
