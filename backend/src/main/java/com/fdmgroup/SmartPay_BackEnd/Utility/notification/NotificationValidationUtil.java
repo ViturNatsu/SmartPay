@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.Utility;
+package com.fdmgroup.SmartPay_BackEnd.Utility.notification;
 
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;

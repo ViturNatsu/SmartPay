@@ -2,7 +2,7 @@ package com.fdmgroup.SmartPay_BackEnd.domain.entities.notification;
 
 import java.time.Instant;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 
 import jakarta.persistence.Column;

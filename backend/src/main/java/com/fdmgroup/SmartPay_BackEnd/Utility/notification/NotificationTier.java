@@ -1,4 +1,4 @@
-package com.fdmgroup.SmartPay_BackEnd.Utility;
+package com.fdmgroup.SmartPay_BackEnd.Utility.notification;
 
 public enum NotificationTier {
     T1(1),

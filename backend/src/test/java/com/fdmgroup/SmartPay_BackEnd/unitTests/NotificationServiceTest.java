@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.InvalidNotificationException;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationListResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;

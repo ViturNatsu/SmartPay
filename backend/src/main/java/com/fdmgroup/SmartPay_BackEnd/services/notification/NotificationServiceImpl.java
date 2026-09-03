@@ -1,18 +1,16 @@
 package com.fdmgroup.SmartPay_BackEnd.services.notification;
 
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationValidationUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationListResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;

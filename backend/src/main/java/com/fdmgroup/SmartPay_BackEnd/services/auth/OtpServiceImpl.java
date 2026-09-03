@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEntityLinkUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationRelatedEntityType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.springframework.http.HttpStatus;
@@ -196,8 +198,9 @@ public class OtpServiceImpl implements OtpService {
             signInNotification.setType(NotificationType.SECURITY);
             signInNotification.setTitle("New sign-in detected");
             signInNotification.setTier(NotificationTier.T2.getValue());
-            signInNotification.setRelatedEntityType("AUDIT_LOG");
-            signInNotification.setRelatedEntityId(auditLogId.toString());
+//            signInNotification.setRelatedEntityType("AUDIT_LOG");
+//            signInNotification.setRelatedEntityId(auditLogId.toString());
+            NotificationEntityLinkUtil.link(signInNotification, NotificationRelatedEntityType.AUDIT_LOG, auditLogId);
             notificationService.createNotification(signInNotification);
         }
 

@@ -26,7 +26,7 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
@@ -74,10 +74,12 @@ class WalletTransferServiceTest {
         User recipient = User.builder().id(2L).email("recipient@smartpay.com").build();
 
         senderWallet = new Wallet();
+        senderWallet.setWalletId(1L);
         senderWallet.setBalance(200.00);
         senderWallet.setUser(sender);
 
         recipientWallet = new Wallet();
+        recipientWallet.setWalletId(2L);
         recipientWallet.setBalance(50.00);
         recipientWallet.setUser(recipient);
 
@@ -191,6 +193,9 @@ class WalletTransferServiceTest {
                                 && request.getUserId().equals(1L)
                                 && request.getType() == NotificationType.WARNING
                                 && request.getTitle().equals("Low wallet balance")
+                                && "WALLET".equals(request.getRelatedEntityType())
+                                && "1".equals(request.getRelatedEntityId())
+
                 ));
     }
 

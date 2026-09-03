@@ -2,18 +2,17 @@ package com.fdmgroup.SmartPay_BackEnd.services.wallet;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEntityLinkUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationRelatedEntityType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +49,7 @@ import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletTransactionPageDTO;
 
 import lombok.AllArgsConstructor;
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
 
 
@@ -191,7 +190,7 @@ public class WalletServiceImpl implements WalletService {
         wallet.setDailySpentDate(today);
         Wallet savedWallet = walletRepository.save(wallet);
 
-        maybeNotifyLowBalance(userId, savedWallet.getBalance());
+        maybeNotifyLowBalance(userId,  savedWallet.getBalance(), savedWallet.getWalletId());
 
         WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, amountValue, paymentMethod, RailType.BANK_TRANSFER);
 
@@ -214,19 +213,6 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
         RecurringChargeValidationUtil.validate(wallet, amount, processingDate);
         resetDailySpendIfNeeded(wallet, processingDate);
-
-//        if (wallet.getPerTransactionLimit() != null && amount > wallet.getPerTransactionLimit()) {
-//            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet per-transaction limit of $"
-//                    + String.format("%.2f", wallet.getPerTransactionLimit()));
-//        }
-//        if (wallet.getDailySpendingLimit() != null
-//                && wallet.getDailySpentAmount() + amount > wallet.getDailySpendingLimit()) {
-//            throw new InvalidWithdrawAmountException("This transaction exceeds your wallet daily spending limit of $"
-//                    + String.format("%.2f", wallet.getDailySpendingLimit()));
-//        }
-//        if (wallet.getBalance() == null || amount > wallet.getBalance()) {
-//            throw new InsufficientFundsException("Insufficient wallet balance");
-//        }
 
         wallet.setBalance(wallet.getBalance() - amount);
         wallet.setDailySpentAmount(wallet.getDailySpentAmount() + amount);
@@ -363,7 +349,7 @@ public class WalletServiceImpl implements WalletService {
         senderWallet.setDailySpentDate(today);
         Wallet savedSenderWallet = walletRepository.save(senderWallet);
 
-        maybeNotifyLowBalance(senderUserId, savedSenderWallet.getBalance());
+        maybeNotifyLowBalance(senderUserId, savedSenderWallet.getBalance(), savedSenderWallet.getWalletId());
 
         recipientWallet.setBalance(
             Math.round((recipientWallet.getBalance() + amountValue) * 100.0) / 100.0
@@ -399,8 +385,9 @@ public class WalletServiceImpl implements WalletService {
         // TODO: confirm tier for successful transfer
         successNotification.setTier(NotificationTier.T3.getValue());
         //TODO: set related entity
-        successNotification.setRelatedEntityType("WALLET_TRANSACTION");
-        successNotification.setRelatedEntityId(transferTx.getId().toString());
+//        successNotification.setRelatedEntityType("WALLET_TRANSACTION");
+//        successNotification.setRelatedEntityId(transferTx.getId().toString());
+        NotificationEntityLinkUtil.link(successNotification, NotificationRelatedEntityType.WALLET_TRANSACTION, transferTx.getId());
 
         notificationService.createNotification(successNotification);
 
@@ -409,7 +396,7 @@ public class WalletServiceImpl implements WalletService {
         return dto;
     }
 
-    private void maybeNotifyLowBalance(long userId, Double balance) {
+    private void maybeNotifyLowBalance(long userId, Double balance, Long walletId) {
         if (balance != null && balance < LOW_BALANCE_THRESHOLD
                 && !notificationService.hasActiveOfType(userId, NotificationType.WARNING)) {
 
@@ -420,6 +407,9 @@ public class WalletServiceImpl implements WalletService {
             lowBalanceNotification.setDetail("Below $" + LOW_BALANCE_THRESHOLD.intValue());
             // TODO: Confirm tier assignment for low wallet balance notification
             lowBalanceNotification.setTier(NotificationTier.T2.getValue());
+//            lowBalanceNotification.setRelatedEntityType("WALLET");
+//            lowBalanceNotification.setRelatedEntityId(walletId.toString());
+            NotificationEntityLinkUtil.link(lowBalanceNotification, NotificationRelatedEntityType.WALLET, walletId);
 
             notificationService.createNotification(lowBalanceNotification);
         }

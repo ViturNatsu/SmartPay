@@ -2,14 +2,14 @@ package com.fdmgroup.SmartPay_BackEnd.integrationTests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.auth.Role;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
