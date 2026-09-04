@@ -4,8 +4,12 @@ import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEntityLinkUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationMessageResolver;
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,14 +20,17 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationListRe
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.notification.Notification;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.IllgealNotificationException;
+import com.fdmgroup.SmartPay_BackEnd.exception.notification.InvalidNotificationException;
 import com.fdmgroup.SmartPay_BackEnd.exception.notification.NotificationNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.notification.NotificationRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.user.UserRepository;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -59,6 +66,52 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedEntityId(request.getRelatedEntityId());
 
         notificationRepository.save(notification);
+    }
+
+    @Override
+    public void createFromEvent(NotificationEventType eventType, Long userId, Object relatedEntityId,
+                                NotificationEventContext context) {
+        if (eventType == null) {
+            throw new InvalidNotificationException("Notification event type is required");
+        }
+
+        String relatedEntityTypeName = eventType.getRelatedEntityType().name();
+        String relatedEntityIdValue = relatedEntityId != null ? relatedEntityId.toString() : null;
+
+        // Duplicate prevention (Scenario 12). Reminders are deduplicated per billing cycle by the
+        // reminder scheduler (Scenarios 10–11), so they are exempt from the generic entity check
+        // which would otherwise block every cycle after the first.
+        if (relatedEntityIdValue != null
+                && eventType != NotificationEventType.RECURRING_PAYMENT_REMINDER
+                && notificationRepository.existsByUser_IdAndRelatedEntityTypeAndRelatedEntityId(
+                        userId, relatedEntityTypeName, relatedEntityIdValue)) {
+            return;
+        }
+
+        NotificationCreateRequestDTO request = new NotificationCreateRequestDTO();
+        request.setUserId(userId);
+        request.setType(eventType.getType());
+        request.setTitle(eventType.getTitle());
+        request.setDetail(NotificationMessageResolver.buildDetail(eventType, context));
+        request.setTier(eventType.getTier().getValue());
+        if (relatedEntityIdValue != null) {
+            NotificationEntityLinkUtil.link(request, eventType.getRelatedEntityType(), relatedEntityIdValue);
+        }
+
+        createNotification(request);
+    }
+
+    @Override
+    public void createFromEventSafely(NotificationEventType eventType, Long userId, Object relatedEntityId,
+                                      NotificationEventContext context) {
+        try {
+            createFromEvent(eventType, userId, relatedEntityId, context);
+        } catch (RuntimeException ex) {
+            // Failure isolation (Scenario 14): a notification failure must never break the account
+            // activity that triggered it, nor other notification requests.
+            log.warn("Failed to create notification for event {} (user {}): {}",
+                    eventType, userId, ex.getMessage());
+        }
     }
 
     @Override

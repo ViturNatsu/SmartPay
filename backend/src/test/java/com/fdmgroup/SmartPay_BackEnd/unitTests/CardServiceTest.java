@@ -15,6 +15,7 @@ import com.fdmgroup.SmartPay_BackEnd.exception.wallet.WalletNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.card.CardServiceImpl;
 import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +50,8 @@ class CardServiceTest {
     private CardServiceImpl cardService;
     @Mock
     private EmailService emailService;
+    @Mock
+    private NotificationService notificationService;
 
     private String baseCardNumber = "6400123412341234";
     private String baseCVV = "123";
@@ -328,5 +331,21 @@ class CardServiceTest {
         verify(emailService).sendSimpleMail(captor.capture());
         assertEquals("test@example.com", captor.getValue().getRecipient());
         assertEquals("Your Card Has Been Renewed", captor.getValue().getSubject());
+    }
+
+    @Test
+    @DisplayName("Scenario 4: renewing a card (CVV regen) notifies card details changed")
+    void renewIfExpired_whenRenewed_notifiesCardDetailsChanged() {
+        when(cardRepository.findByWalletWalletId(1L)).thenReturn(card);
+        when(generateStringsHelper.generateExpiryDate()).thenReturn(LocalDateTime.now().plusYears(2));
+        when(generateStringsHelper.generateCVV()).thenReturn("456");
+
+        cardService.renewIfExpired(1L);
+
+        verify(notificationService).createFromEventSafely(
+                eq(com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType.CARD_DETAILS_CHANGED),
+                any(),
+                any(),
+                any(com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext.class));
     }
 }

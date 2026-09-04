@@ -16,17 +16,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.StringHelper;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.account.Account;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.paymentMethod.PaymentMethod;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.RailType;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.WalletTransaction;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.LoadWalletRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WithdrawRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.account.AccountRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.PayeeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.paymentMethods.PaymentRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.wallet.WalletTransactionRepository;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import com.fdmgroup.SmartPay_BackEnd.services.paymentMethods.PaymentMethodService;
 import com.fdmgroup.SmartPay_BackEnd.services.user.UserService;
@@ -169,16 +175,99 @@ class WalletTransferServiceTest {
     void transfer_createsSuccessNotification_whenTransferSucceeds() {
         walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
 
+        // Scenario 6 — outbound send now routes through the shared event service (T3).
         verify(notificationService, times(1))
-                .createNotification(argThat(request ->
-                        request != null
-                                && request.getUserId().equals(1L)
-                                && request.getType() == NotificationType.SUCCESS
-                                && request.getTier().equals(3)
-                                && request.getTitle().equals("Payment successful")
-                                && "WALLET_TRANSACTION".equals(request.getRelatedEntityType())
-                                && "123".equals(request.getRelatedEntityId())
-                ));
+                .createFromEventSafely(
+                        eq(NotificationEventType.OUTBOUND_P2P_SEND_SUCCESS),
+                        eq(1L),
+                        eq(123L),
+                        any(NotificationEventContext.class));
+    }
+
+    @Test
+    void transfer_createsReceivedNotification_forRecipient_whenTransferSucceeds() {
+        walletService.transfer(1L, 2L, new BigDecimal("75.00"), "Dinner split");
+
+        // Scenario 7 — inbound received routes through the shared event service (T4).
+        verify(notificationService, times(1))
+                .createFromEventSafely(
+                        eq(NotificationEventType.INBOUND_P2P_RECEIVED),
+                        eq(2L),
+                        eq(123L),
+                        any(NotificationEventContext.class));
+    }
+
+    @Test
+    void transfer_createsFailedNotification_linkedToTransaction_whenBalanceTooLow() {
+        // Scenario 5 — the failed outcome is recorded as a transaction and the T2 notification links to it.
+        assertThrows(InsufficientFundsException.class,
+                () -> walletService.transfer(1L, 2L, new BigDecimal("250.00"), null));
+
+        verify(notificationService).createFromEventSafely(
+                eq(NotificationEventType.P2P_TRANSFER_FAILED), eq(1L), eq(123L),
+                any(NotificationEventContext.class));
+    }
+
+    @Test
+    void loadFunds_createsLoadSuccessNotification_whenLoadSucceeds() {
+        PaymentMethod pm = mock(PaymentMethod.class);
+        Account account = mock(Account.class);
+        when(pm.getActive()).thenReturn(true);
+        when(pm.getAccount()).thenReturn(account);
+        when(account.getBalance()).thenReturn(1000.0);
+        when(paymentRepository.findByPaymentMethodIdAndUser_Id(50L, 1L)).thenReturn(Optional.of(pm));
+
+        LoadWalletRequestDTO request = mock(LoadWalletRequestDTO.class);
+        when(request.getPaymentMethodId()).thenReturn(50L);
+        when(request.getAmount()).thenReturn(100.0);
+
+        walletService.loadFunds(1L, request);
+
+        // Scenario 7 — inbound wallet load confirmation (T4).
+        verify(notificationService).createFromEventSafely(
+                eq(NotificationEventType.WALLET_LOAD_SUCCESS), eq(1L), eq(123L),
+                any(NotificationEventContext.class));
+    }
+
+    @Test
+    void loadFunds_createsLoadFailedNotification_linkedToTransaction_whenBankBalanceInsufficient() {
+        PaymentMethod pm = mock(PaymentMethod.class);
+        Account account = mock(Account.class);
+        when(pm.getActive()).thenReturn(true);
+        when(pm.getAccount()).thenReturn(account);
+        when(account.getBalance()).thenReturn(10.0);
+        when(paymentRepository.findByPaymentMethodIdAndUser_Id(50L, 1L)).thenReturn(Optional.of(pm));
+
+        LoadWalletRequestDTO request = mock(LoadWalletRequestDTO.class);
+        when(request.getPaymentMethodId()).thenReturn(50L);
+        when(request.getAmount()).thenReturn(100.0);
+
+        assertThrows(InsufficientFundsException.class, () -> walletService.loadFunds(1L, request));
+
+        // Scenario 5 — failed wallet load (T2), linked to the recorded FAILED transaction.
+        verify(notificationService).createFromEventSafely(
+                eq(NotificationEventType.WALLET_LOAD_FAILED), eq(1L), eq(123L),
+                any(NotificationEventContext.class));
+    }
+
+    @Test
+    void withdrawFunds_createsWithdrawalSuccessNotification_whenWithdrawSucceeds() {
+        senderWallet.setBalance(5000.0);
+        PaymentMethod pm = mock(PaymentMethod.class);
+        when(pm.getUser()).thenReturn(User.builder().id(1L).build());
+        when(pm.getActive()).thenReturn(true);
+        when(paymentMethodService.findPaymentMethodById(50L)).thenReturn(pm);
+
+        WithdrawRequestDTO request = mock(WithdrawRequestDTO.class);
+        when(request.getAmount()).thenReturn(new BigDecimal("100.00"));
+        when(request.getPaymentMethodId()).thenReturn(50L);
+
+        walletService.withdrawFunds(1L, request);
+
+        // Scenario 6 — outbound withdrawal confirmation (T3).
+        verify(notificationService).createFromEventSafely(
+                eq(NotificationEventType.WALLET_WITHDRAWAL_SUCCESS), eq(1L), eq(123L),
+                any(NotificationEventContext.class));
     }
 
     @Test

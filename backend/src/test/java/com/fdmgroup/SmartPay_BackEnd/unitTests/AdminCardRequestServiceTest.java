@@ -10,9 +10,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestServiceImpl;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +40,9 @@ class AdminCardRequestServiceTest {
 
     @Mock
     private GenerateStringsHelper helper;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private CardRequestServiceImpl cardRequestService;
@@ -161,6 +167,24 @@ class AdminCardRequestServiceTest {
 
         verify(cardRepository).save(card);
         verify(cardRequestRepository).save(pendingRequest);
+    }
+
+    @Test
+    void approveRequest_notifiesCardDetailsChanged_forReplacementCardSource() {
+        when(cardRequestRepository.findById(1024L)).thenReturn(Optional.of(pendingRequest));
+        when(cardRequestRepository.countByUserAndRequestCreatedAtAfter(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(1L);
+        when(helper.generateCardNumber()).thenReturn("6400428690396428");
+        when(helper.generateCVV()).thenReturn("840");
+        when(helper.generateExpiryDate()).thenReturn(LocalDateTime.of(2028, 6, 9, 13, 54));
+        when(cardRequestRepository.save(pendingRequest)).thenReturn(pendingRequest);
+
+        cardRequestService.approveRequest(1024L);
+
+        // Scenario 4 — replacement card issued on approval is the second source of the card-change event.
+        verify(notificationService).createFromEventSafely(
+                eq(NotificationEventType.CARD_DETAILS_CHANGED), eq(1L), eq(1L),
+                any(NotificationEventContext.class));
     }
 
     @Test
