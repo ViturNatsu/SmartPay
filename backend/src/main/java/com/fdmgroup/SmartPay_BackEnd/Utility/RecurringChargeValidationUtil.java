@@ -1,17 +1,19 @@
 package com.fdmgroup.SmartPay_BackEnd.Utility;
 
+import java.time.LocalDate;
+
+import org.springframework.stereotype.Service;
+
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.CardStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.cardRequest.RequestStatus;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingFailureReason;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.wallet.Wallet;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.services.cardRequest.CardRequestService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +72,7 @@ public class RecurringChargeValidationUtil {
 
         // raise exception if status is locked
         if( card.getStatus() == CardStatus.LOCKED){
-            throw new IllegalCardChargeException("Card is currently locked and cannot be charged.", 0);
+            throw new IllegalCardChargeException("Card is currently locked and cannot be charged.", RecurringBillingFailureReason.CARD_LOCKED);
         }
 
     }
@@ -78,7 +80,7 @@ public class RecurringChargeValidationUtil {
     private void validateCardHasNoPendingReplacement(Wallet wallet) {
 
         if(cardRequestService.CardHasPendingRequest(wallet.getCard())){
-            throw new IllegalCardChargeException("Card has a pending charge request", 1);
+            throw new IllegalCardChargeException("Card has a pending charge request", RecurringBillingFailureReason.CARD_PENDING_REQUEST);
         }
 
     }

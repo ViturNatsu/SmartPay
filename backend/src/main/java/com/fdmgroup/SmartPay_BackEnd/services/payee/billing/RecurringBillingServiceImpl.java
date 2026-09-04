@@ -5,26 +5,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
-import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
-import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
-import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
-import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
-import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
-import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringBillingScheduleUtil;
-import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
+import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingFailureReason;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
+import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
+import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringBillingChargeRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPayeeRepository;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,13 +125,9 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
                 calculateAndSaveNextScheduledPayment(recurringPayee);
             });
             return BillingChargeOutcome.CHARGED;
-        } catch (InsufficientFundsException | InvalidWithdrawAmountException | IllegalCardChargeException ex) {
-            log.warn(
-                    "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
-                    recurringPayee.getPayeeId(),
-                    charge.getBillingCycleDate(),
-                    processingDate,
-                    ex.getMessage());
+        } catch (InsufficientFundsException ex) {
+            
+            charge.setFailureReason(RecurringBillingFailureReason.INSUFFICIENT_FUNDS);
             markFailed(charge);
 
             NotificationCreateRequestDTO notification = new NotificationCreateRequestDTO();
@@ -144,6 +140,72 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
             notificationService.createNotification(notification);
 
+            log.warn(
+                    "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
+                    recurringPayee.getPayeeId(),
+                    charge.getBillingCycleDate(),
+                    charge.getStatus(),
+                    charge.getFailureReason(),
+                    processingDate,
+                    ex.getMessage());
+            return BillingChargeOutcome.FAILED;
+        } catch (InvalidWithdrawAmountException ex){
+            
+            if(ex.getMessage().contains("wallet daily spending limit")){
+                charge.setFailureReason(RecurringBillingFailureReason.DAILY_LIMIT_EXCEEDED);
+            }
+            else {
+                charge.setFailureReason(RecurringBillingFailureReason.PER_TRANSACTION_LIMIT_EXCEEDED);
+            }
+            markFailed(charge);
+
+            NotificationCreateRequestDTO notification = new NotificationCreateRequestDTO();
+            notification.setUserId(request.getOwnerUserId());
+            notification.setType(NotificationType.WARNING);
+            notification.setTitle("Charge Unsuccessful");
+            notification.setDetail(ex.getMessage());
+            //TODO: to be validate if it's t1
+            notification.setTier(NotificationTier.T1.getValue());
+
+            notificationService.createNotification(notification);
+
+            log.warn(
+                    "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
+                    recurringPayee.getPayeeId(),
+                    charge.getBillingCycleDate(),
+                    charge.getStatus(),
+                    charge.getFailureReason(),
+                    processingDate,
+                    ex.getMessage());
+            return BillingChargeOutcome.FAILED;
+        } catch (IllegalCardChargeException ex){
+            
+            if(ex.failureReason == RecurringBillingFailureReason.CARD_LOCKED){
+                charge.setFailureReason(RecurringBillingFailureReason.CARD_LOCKED);
+            }
+            else if(ex.failureReason == RecurringBillingFailureReason.CARD_PENDING_REQUEST){
+                charge.setFailureReason(RecurringBillingFailureReason.CARD_PENDING_REQUEST);
+            }
+            markFailed(charge);
+
+            NotificationCreateRequestDTO notification = new NotificationCreateRequestDTO();
+            notification.setUserId(request.getOwnerUserId());
+            notification.setType(NotificationType.WARNING);
+            notification.setTitle("Charge Unsuccessful");
+            notification.setDetail(ex.getMessage());
+            //TODO: to be validate if it's t1
+            notification.setTier(NotificationTier.T1.getValue());
+
+            notificationService.createNotification(notification);
+
+            log.warn(
+                    "Recurring billing rejected for payee {} cycle {} on processing date {}: {}",
+                    recurringPayee.getPayeeId(),
+                    charge.getBillingCycleDate(),
+                    charge.getStatus(),
+                    charge.getFailureReason(),
+                    processingDate,
+                    ex.getMessage());
             return BillingChargeOutcome.FAILED;
         }
     }
