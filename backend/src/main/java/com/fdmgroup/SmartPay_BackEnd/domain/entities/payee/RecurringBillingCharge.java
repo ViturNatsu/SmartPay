@@ -69,6 +69,10 @@ public class RecurringBillingCharge {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "failure_reason")
+    private RecurringBillingFailureReason failureReason = RecurringBillingFailureReason.NONE;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
