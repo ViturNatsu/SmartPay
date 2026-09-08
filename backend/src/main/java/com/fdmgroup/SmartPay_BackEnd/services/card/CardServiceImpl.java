@@ -15,9 +15,12 @@ import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestReposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.card.Card;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.integration.EmailService;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -30,6 +33,7 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardRequestRepository cardRequestRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Autowired
     private GenerateStringsHelper helper;
@@ -107,6 +111,19 @@ public class CardServiceImpl implements CardService {
         ".\n\nThank you for using SmartPay!");
 
         emailService.sendSimpleMail(details);
+
+        // Scenario 4 — card details changed (CVV/expiry regenerated). Routed through the shared
+        // service; the message carries only the last four digits, never the CVV or full number, and
+        // links to the affected card (the wallet view reveals details under the 09-02-03 rules).
+        String cardNumber = card.getCardNumber();
+        String lastFour = cardNumber != null && cardNumber.length() >= 4
+                ? cardNumber.substring(cardNumber.length() - 4)
+                : null;
+        notificationService.createFromEventSafely(
+                NotificationEventType.CARD_DETAILS_CHANGED,
+                card.getWallet().getUser().getId(),
+                card.getCardId(),
+                NotificationEventContext.builder().cardLastFour(lastFour).build());
 
         return true;
     }

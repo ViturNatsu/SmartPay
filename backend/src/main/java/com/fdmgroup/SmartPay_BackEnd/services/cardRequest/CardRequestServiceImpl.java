@@ -14,9 +14,12 @@ import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestLimitExceededException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.CardRequestNotFoundException;
 import com.fdmgroup.SmartPay_BackEnd.exception.cardRequest.InvalidCardRequestStatusException;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import com.fdmgroup.SmartPay_BackEnd.repositories.card.CardRepository;
 import com.fdmgroup.SmartPay_BackEnd.repositories.cardRequest.CardRequestRepository;
 import com.fdmgroup.SmartPay_BackEnd.services.auth.OtpService;
+import com.fdmgroup.SmartPay_BackEnd.services.notification.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,7 @@ public class CardRequestServiceImpl implements CardRequestService {
     private final CardRequestRepository cardRequestRepository;
     private final CardRepository cardRepository;
     private final OtpService otpService;
+    private final NotificationService notificationService;
 
     @Autowired
     private GenerateStringsHelper helper;
@@ -156,6 +160,18 @@ public class CardRequestServiceImpl implements CardRequestService {
         cardRequest.setRequestResolvedAt(LocalDateTime.now());
 
         cardRepository.save(card);
+
+        // Scenario 4 — card details changed via the replacement-card-on-approval source. Same event
+        // as CVV regeneration; routed through the shared service with only the last four digits.
+        String cardNumber = card.getCardNumber();
+        String lastFour = cardNumber != null && cardNumber.length() >= 4
+                ? cardNumber.substring(cardNumber.length() - 4)
+                : null;
+        notificationService.createFromEventSafely(
+                NotificationEventType.CARD_DETAILS_CHANGED,
+                cardRequest.getUser().getId(),
+                card.getCardId(),
+                NotificationEventContext.builder().cardLastFour(lastFour).build());
     }
 
     /**

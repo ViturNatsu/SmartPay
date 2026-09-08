@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEntityLinkUtil;
+import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationRelatedEntityType;
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationTier;
 import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringChargeValidationUtil;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationCreateRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.wallet.WalletResponseDTO;
 
 import org.springframework.data.domain.PageRequest;
@@ -112,6 +114,18 @@ public class WalletServiceImpl implements WalletService {
         System.out.println("Account id = " + account.getAccountNumber());
 
         if (accountBalance < amount) {
+            // Scenario 5 — record the failed load outcome as a FAILED transaction and notify (T2)
+            // through the shared service, linking to that transaction (also the dedup key).
+            Wallet failedWallet = walletRepository.findByUserId(userId).orElseThrow();
+            WalletTransaction failedTx = recordFailedTransaction(
+                    failedWallet, WalletTransactionType.LOAD, amount,
+                    paymentMethod.getBankDisplayName(), RailType.BANK_TRANSFER);
+            notificationService.createFromEventSafely(
+                    NotificationEventType.WALLET_LOAD_FAILED, userId, failedTx.getId(),
+                    NotificationEventContext.builder()
+                            .amount(amount)
+                            .bankName(paymentMethod.getBankDisplayName())
+                            .build());
             throw new InsufficientFundsException(INSUFFICIENT_BANK_FUNDS_MESSAGE);
         }
 
@@ -124,6 +138,15 @@ public class WalletServiceImpl implements WalletService {
         Wallet savedWallet = walletRepository.save(wallet);
 
         WalletTransaction loadTx = recordTransaction(savedWallet, WalletTransactionType.LOAD, amount, paymentMethod, RailType.BANK_TRANSFER);
+
+        // Scenario 7 — inbound wallet load confirmation (T4), through the shared service.
+        notificationService.createFromEventSafely(
+                NotificationEventType.WALLET_LOAD_SUCCESS, userId, loadTx.getId(),
+                NotificationEventContext.builder()
+                        .amount(amount)
+                        .bankName(paymentMethod.getBankDisplayName())
+                        .build());
+
         WalletResponseDTO dto = mapToDto(savedWallet);
         dto.setTransactionId(loadTx.getTransactionId());
         return dto;
@@ -195,6 +218,14 @@ public class WalletServiceImpl implements WalletService {
         maybeNotifyLowBalance(userId,  savedWallet.getBalance(), savedWallet.getWalletId());
 
         WalletTransaction tx = recordTransaction(savedWallet, WalletTransactionType.WITHDRAW, amountValue, paymentMethod, RailType.BANK_TRANSFER);
+
+        // Scenario 6 — outbound withdrawal confirmation (T3), through the shared service.
+        notificationService.createFromEventSafely(
+                NotificationEventType.WALLET_WITHDRAWAL_SUCCESS, userId, tx.getId(),
+                NotificationEventContext.builder()
+                        .amount(amountValue)
+                        .bankName(paymentMethod.getBankDisplayName())
+                        .build());
 
         WithdrawResponseDTO response = new WithdrawResponseDTO();
         response.setTransactionId(tx.getTransactionId());
@@ -311,6 +342,7 @@ public class WalletServiceImpl implements WalletService {
         double amountValue = amount.doubleValue();
 
         if (senderWallet.getBalance() < amountValue) {
+            notifyP2pTransferFailed(senderWallet, senderUserId, amountValue);
             throw new InsufficientFundsException(
                 "Insufficient wallet balance"
             );
@@ -324,6 +356,7 @@ public class WalletServiceImpl implements WalletService {
 
         if (senderWallet.getPerTransactionLimit() != null
                 && amountValue > senderWallet.getPerTransactionLimit()) {
+            notifyP2pTransferFailed(senderWallet, senderUserId, amountValue);
             throw new InvalidWithdrawAmountException(
                     "This transfer exceeds your wallet per-transaction limit of $"
                             + String.format("%.2f", senderWallet.getPerTransactionLimit()));
@@ -332,6 +365,7 @@ public class WalletServiceImpl implements WalletService {
         if (senderWallet.getDailySpendingLimit() != null
                 && senderWallet.getDailySpentAmount() + amountValue
                         > senderWallet.getDailySpendingLimit()) {
+            notifyP2pTransferFailed(senderWallet, senderUserId, amountValue);
             throw new InvalidWithdrawAmountException(
                     "This transfer exceeds your wallet daily spending limit of $"
                             + String.format("%.2f", senderWallet.getDailySpendingLimit()));
@@ -376,24 +410,54 @@ public class WalletServiceImpl implements WalletService {
 
         
 
-        recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amountValue, depositCounterparty, RailType.WALLET_TRANSFER);
+        WalletTransaction depositTx = recordTransaction(savedRecipientWallet, WalletTransactionType.DEPOSIT, amountValue, depositCounterparty, RailType.WALLET_TRANSFER);
         WalletTransaction transferTx = recordTransaction(savedSenderWallet, WalletTransactionType.TRANSFER, amountValue ,transferCounterparty, RailType.WALLET_TRANSFER);
 
-        NotificationCreateRequestDTO successNotification = new NotificationCreateRequestDTO();
-        successNotification.setUserId(senderUserId);
-        successNotification.setType(NotificationType.SUCCESS);
-        successNotification.setTitle("Payment successful");
-        successNotification.setDetail("$" + String.format("%.2f", amountValue) + " sent to " + transferCounterparty);
-        // TODO: confirm tier for successful transfer
-        successNotification.setTier(NotificationTier.T3.getValue());
-        //set related entity
-        NotificationEntityLinkUtil.link(successNotification, NotificationRelatedEntityType.WALLET_TRANSACTION, transferTx.getId());
+        // Scenario 6 — outbound send confirmation (T3), through the shared service (replaces the
+        // previous inline notification path).
+        notificationService.createFromEventSafely(
+                NotificationEventType.OUTBOUND_P2P_SEND_SUCCESS, senderUserId, transferTx.getId(),
+                NotificationEventContext.builder()
+                        .amount(amountValue)
+                        .counterpartyName(transferCounterparty)
+                        .build());
 
-        notificationService.createNotification(successNotification);
+        // Scenario 7 — inbound received confirmation (T4), through the shared service.
+        notificationService.createFromEventSafely(
+                NotificationEventType.INBOUND_P2P_RECEIVED, recipientUserId, depositTx.getId(),
+                NotificationEventContext.builder()
+                        .amount(amountValue)
+                        .counterpartyName(depositCounterparty)
+                        .build());
 
         WalletResponseDTO dto = mapToDto(savedSenderWallet);
         dto.setTransactionId(transferTx.getTransactionId());
         return dto;
+    }
+
+    private void notifyP2pTransferFailed(Wallet senderWallet, long senderUserId, double amountValue) {
+        // Scenario 5 — record the failed outcome as a FAILED transaction and notify (T2) through the
+        // shared service, linking to that transaction. The unique transaction id is also the dedup
+        // key (Scenario 12), so distinct attempts each notify once and reprocessing does not.
+        WalletTransaction failedTx = recordFailedTransaction(
+                senderWallet, WalletTransactionType.TRANSFER, amountValue, null, RailType.WALLET_TRANSFER);
+        notificationService.createFromEventSafely(
+                NotificationEventType.P2P_TRANSFER_FAILED, senderUserId, failedTx.getId(),
+                NotificationEventContext.builder().amount(amountValue).build());
+    }
+
+    private WalletTransaction recordFailedTransaction(Wallet wallet, WalletTransactionType type,
+            double amount, String counterpartyName, RailType railType) {
+        WalletTransaction transaction = new WalletTransaction();
+        transaction.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
+        transaction.setWallet(wallet);
+        transaction.setType(type);
+        transaction.setAmount(amount);
+        transaction.setCounterpartyName(counterpartyName);
+        transaction.setRailType(railType);
+        transaction.setStatus("FAILED");
+        transaction.setCreatedAt(Instant.now());
+        return walletTransactionRepository.save(transaction);
     }
 
     private void maybeNotifyLowBalance(long userId, Double balance, Long walletId) {
