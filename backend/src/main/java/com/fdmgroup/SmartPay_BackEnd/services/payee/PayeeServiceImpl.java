@@ -328,24 +328,31 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
             }
         }
 
-        if (payeeRequestDTO.getDate().isBefore(today)) {
+        boolean dateChanged =
+            !Objects.equals(
+                recurringPayee.getDate(),
+                payeeRequestDTO.getDate()
+            );
+
+        if (dateChanged && payeeRequestDTO.getDate().isBefore(today)) {
             throw new InvalidRecurringPayeeException(
                 "Past payment dates are not allowed"
             );
         }
 
         
-        if (payeeRequestDTO.getEndDate() != null
+        boolean endDateChanged =
+            !Objects.equals(
+                recurringPayee.getEndDate(),
+                payeeRequestDTO.getEndDate()
+            );
+
+        if (endDateChanged
+                && payeeRequestDTO.getEndDate() != null
                 && payeeRequestDTO.getEndDate().isBefore(today)) {
+
             throw new InvalidRecurringPayeeException(
                 "Past end dates are not allowed"
-            );
-        }
-
-        if (payeeRequestDTO.getEndDate() != null
-                && !payeeRequestDTO.getEndDate().isAfter(payeeRequestDTO.getDate())) {
-            throw new InvalidRecurringPayeeException(
-                "End Date must be after Payment Date"
             );
         }
 
@@ -518,5 +525,24 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
         recurringPayee.setStatus(RecurringPaymentStatus.ACTIVE);
         recurringPayee.setPausedDate(null);
+    }
+
+    @Override
+    @Transactional
+    public void updateRecurringPayeeAmount(
+            Long userId,
+            Long payeeId,
+            BigDecimal amount) {
+
+        RecurringPayee payee = recurringPayeeRepository.findById(payeeId)
+            .orElseThrow(() -> new RuntimeException("Recurring payee not found"));
+
+        if (payee.getOwner().getId() != userId) {
+            throw new RuntimeException("Recurring payee does not belong to this user");
+        }
+
+        payee.setAmount(amount);
+
+        recurringPayeeRepository.save(payee);
     }
 }

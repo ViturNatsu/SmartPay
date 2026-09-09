@@ -39,7 +39,7 @@ export const RecurringPaymentsCardLayout = () => {
           alignItems="center"
         >
           <Typography variant="h6">
-            Recurring Payments
+            Recurring Subscription/Bills
           </Typography>
 
           <Stack
@@ -56,7 +56,7 @@ export const RecurringPaymentsCardLayout = () => {
           >
             <Typography variant="body2" color="text.secondary">
               <Link
-                href="/recurring-payments"
+                href="/transfers"
                 underline="hover"
               >
                 {"Manage All -->\n"}
@@ -101,7 +101,7 @@ export const RecurringPaymentsCardLayout = () => {
               <Typography variant="body2" color="text.secondary">
                 No recurring payments setup.{" "}
                 <Link
-                  href="/recurring-payments"
+                  href="/transfers"
                   underline="hover"
                 >
                   {"Set one up -->"}

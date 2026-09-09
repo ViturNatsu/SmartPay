@@ -363,6 +363,9 @@ export function SendMoney() {
 
                     setSelectedPayee(payee ?? null);
                     }}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
                     SelectProps={{
                     native: true,
                     }}

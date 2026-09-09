@@ -82,11 +82,6 @@ const adminNavItems = [
 
 const userSideMenuItems  = [
   {
-    label: "Recurring Payments",
-    path: "/recurring-payments",
-    icon: <SwapHorizRoundedIcon />,
-  },
-  {
     label: "Reports",
     path: "/reports",
     icon: <InsightsRoundedIcon />,
