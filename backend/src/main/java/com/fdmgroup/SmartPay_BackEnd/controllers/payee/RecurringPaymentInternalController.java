@@ -13,9 +13,9 @@ import com.fdmgroup.SmartPay_BackEnd.services.payee.RecurringPaymentProcessor;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("api/v1/admin/recurring-payments")
+@RequestMapping("api/v1/internal/recurring-payments")
 @RequiredArgsConstructor
-public class RecurringPaymentProcessingController {
+public class RecurringPaymentInternalController {
 
     private final RecurringBillingService recurringBillingService;
 

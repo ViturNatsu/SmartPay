@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPaymentProcessResultDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.*;
+import com.fdmgroup.SmartPay_BackEnd.repositories.payee.RecurringPaymentsExecutionRepository;
+import org.jspecify.annotations.NonNull;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +17,6 @@ import com.fdmgroup.SmartPay_BackEnd.Utility.RecurringPaymentStatus;
 import com.fdmgroup.SmartPay_BackEnd.Utility.TransactionExecutor;
 import com.fdmgroup.SmartPay_BackEnd.Utility.notification.NotificationEventType;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.notification.NotificationEventContext;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingCharge;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingFailureReason;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringBillingStatus;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.RecurringPayee;
-import com.fdmgroup.SmartPay_BackEnd.domain.entities.payee.Schedule;
 import com.fdmgroup.SmartPay_BackEnd.exception.card.IllegalCardChargeException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InsufficientFundsException;
 import com.fdmgroup.SmartPay_BackEnd.exception.wallet.InvalidWithdrawAmountException;
@@ -38,33 +37,54 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
     private final PaymentProviderClient paymentProviderClient;
     private final TransactionExecutor transactionExecutor;
     private final NotificationService notificationService;
+    private final RecurringPaymentsExecutionRepository recurringPaymentsExecutionRepository;
 
     @Override
-    public void processDuePaymentsForDate(LocalDate processingDate) {
+    public RecurringPaymentProcessResultDTO processDuePaymentsForDate(LocalDate processingDate) {
+
+        RecurringPaymentProcessResultDTO response = new RecurringPaymentProcessResultDTO();
+
         List<RecurringPayee> activePayees = recurringPayeeRepository
                 .findByActiveTrueAndStatus(RecurringPaymentStatus.ACTIVE);
+
+        response.setInvocationDate(processingDate);
+        response.setPaymentsActive(activePayees.size());
+
         for (RecurringPayee payee : activePayees) {
             RecurringBillingScheduleUtil.resolveDueBillingCycleDate(payee, processingDate)
-                    .ifPresent(cycleDate -> {
-                        try {
-                            processDuePayment(payee, cycleDate, processingDate);
-                        } catch (RuntimeException ex) {
-                            log.warn(
-                                    "Recurring billing failed for payee {} cycle {} on processing date {}: {}",
-                                    payee.getPayeeId(),
-                                    cycleDate,
-                                    processingDate,
-                                    ex.getMessage());
+                .ifPresent(cycleDate -> {
+                    try {
+                        response.setPaymentsFoundAtTrigger(response.getPaymentsFoundAtTrigger() + 1);
+                        BillingChargeOutcome outcome = processDuePayment(payee, cycleDate, processingDate);
+                        switch (outcome) {
+                            case CHARGED -> response.setSuccessfullyProcessedCount(response.getSuccessfullyProcessedCount() + 1);
+                            case ALREADY_COMPLETED -> response.setAlreadyChargedCount(response.getAlreadyChargedCount() + 1);
+                            case FAILED -> response.setFailedCount(response.getFailedCount() + 1);
+                            case RECOVERED_AFTER_CRASH -> response.setRecoveredAfterCrash(
+                                    response.getRecoveredAfterCrash() + 1
+                            );
                         }
-                    });
+                    } catch (RuntimeException ex) {
+                        log.warn(
+                                "Recurring billing failed for payee {} cycle {} on processing date {}: {}",
+                                payee.getPayeeId(),
+                                cycleDate,
+                                processingDate,
+                                ex.getMessage());
+                    }
+                });
         }
+
+        RecurringPaymentExecutionRecord executionRecord = getRecurringPaymentExecutionRecord(response);
+        recurringPaymentsExecutionRepository.save(executionRecord);
+
+        return response;
     }
 
     @Override
     public BillingChargeOutcome processDuePayment(RecurringPayee payee, LocalDate cycleDate) {
         return processDuePayment(payee, cycleDate, LocalDate.now());
     }
-
 
     private BillingChargeOutcome processDuePayment(RecurringPayee recurringPayee, LocalDate billingCycleDate,  LocalDate processingDate) {
         String idempotencyKey = RecurringBillingScheduleUtil.buildIdempotencyKey(
@@ -216,5 +236,18 @@ public class RecurringBillingServiceImpl implements RecurringBillingService {
 
         recurringPayee.setDate(paymentDate);
         recurringPayeeRepository.save(recurringPayee);
+    }
+
+    private static @NonNull RecurringPaymentExecutionRecord getRecurringPaymentExecutionRecord(RecurringPaymentProcessResultDTO response) {
+        RecurringPaymentExecutionRecord executionRecord = new RecurringPaymentExecutionRecord();
+
+        executionRecord.setInvocationDate(response.getInvocationDate());
+        executionRecord.setPaymentsActive(response.getPaymentsActive());
+        executionRecord.setPaymentsFoundAtTrigger(response.getPaymentsFoundAtTrigger());
+        executionRecord.setProcessedPaymentsCount(response.getSuccessfullyProcessedCount());
+        executionRecord.setAlreadyChargedCount(response.getAlreadyChargedCount());
+        executionRecord.setFailedCount(response.getFailedCount());
+        executionRecord.setRecoveredAfterCrash(response.getRecoveredAfterCrash());
+        return executionRecord;
     }
 }
