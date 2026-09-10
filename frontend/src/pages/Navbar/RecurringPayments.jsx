@@ -28,6 +28,7 @@ import {
   addRecurringPayee,
   getRecurringPayees,
   updateRecurringPayee,
+  updateRecurringPayeeAmount,
   cancelRecurringPayee,
   pauseRecurringPayee,
   resumeRecurringPayee
@@ -158,9 +159,59 @@ export default function RecurringPayments({view}) {
     }
   };
 
+  const handleSaveBillAmount = async (payee, newAmount) => {
+    setErrorMessage("");
+
+    const amount = Number(newAmount);
+
+    if (!newAmount || Number.isNaN(amount)) {
+      setErrorMessage("Amount must be a valid number.");
+      return false;
+    }
+
+    if (!/^\d+(\.\d{1,2})?$/.test(String(newAmount))) {
+      setErrorMessage("Amount can have a maximum of 2 decimal places.");
+      return false;
+    }
+
+    if (amount < 1) {
+      setErrorMessage("Amount must be at least $1.00.");
+      return false;
+    }
+
+    if (amount > 10000) {
+      setErrorMessage("Amount cannot exceed $10,000.00.");
+      return false;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      await updateRecurringPayeeAmount(payee.id, amount);
+
+      await loadRecurringPayees();
+
+      setSuccessMessage("Bill amount updated successfully.");
+
+      return true;
+    } catch (error) {
+      setErrorMessage(
+        error?.data?.message ||
+          error?.message ||
+          "Unable to update bill amount."
+      );
+
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   const handleEditRecurringPayee = payee => {
     setEditingPayee(payee);
   };
+  
 
   const handleSaveRecurringPayee = async changes => {
     if (!editingPayee) {
@@ -172,7 +223,10 @@ export default function RecurringPayments({view}) {
     const payload = {
       payeeName: changes.name ?? editingPayee.name,
       recipientIdentifier: editingPayee.accountNumber,
-      amount: changes.amount,
+      amount:
+        editingPayee.type === "SUBSCRIPTION"
+          ? changes.amount
+          : editingPayee.amount,
       schedule: editingPayee.schedule,
       date: changes.date,
       endDate: changes.endDate,
@@ -1126,6 +1180,7 @@ export default function RecurringPayments({view}) {
                         <RecurringPayeeCard
                           key={payee.id}
                           payee={payee}
+                          onAmountSave={handleSaveBillAmount}
                           onEdit={handleEditRecurringPayee}
                           onCancel={handleCancelRecurringPayee}
                           onClose={() => setViewingId(null)}

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeRequestDTO;
@@ -20,6 +21,7 @@ import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.PayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.ResumeRecurringPayeeRequestDTO;
+import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeAmountRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.entities.user.User;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.PayeeService;
 import com.fdmgroup.SmartPay_BackEnd.services.payee.RecurringPayeeService;
@@ -142,6 +144,21 @@ public class PayeeController {
             @PathVariable Long payeeId,
             @RequestBody(required = false) ResumeRecurringPayeeRequestDTO resumeRequestDTO) {
         recurringPayeeService.resumeRecurringPayee(authenticatedUser.getId(), payeeId, resumeRequestDTO);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/recurring/{payeeId}/amount")
+    public ResponseEntity<Void> updateRecurringPayeeAmount(
+            @AuthenticationPrincipal User authenticatedUser,
+            @PathVariable Long payeeId,
+            @Valid @RequestBody RecurringPayeeAmountRequestDTO requestDTO) {
+
+        recurringPayeeService.updateRecurringPayeeAmount(
+            authenticatedUser.getId(),
+            payeeId,
+            requestDTO.getAmount()
+        );
+
         return ResponseEntity.noContent().build();
     }
 }

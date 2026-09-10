@@ -69,6 +69,19 @@ export async function updateRecurringPayee(payeeId, payload) {
   }
 }
 
+export async function updateRecurringPayeeAmount(payeeId, amount) {
+  try {
+    const res = await axiosInstance.patch(
+      `${RECURRING_PAYEE_URL}/${payeeId}/amount`,
+      { amount },
+    );
+
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
+
 export async function cancelRecurringPayee(payeeId) {
   try {
     const res = await axiosInstance.put(

@@ -1,6 +1,7 @@
 package com.fdmgroup.SmartPay_BackEnd.services.payee;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeRequestDTO;
 import com.fdmgroup.SmartPay_BackEnd.domain.dtos.payee.RecurringPayeeResponseDTO;
@@ -25,4 +26,7 @@ public interface RecurringPayeeService {
 
 
     RecurringPayeeResponseDTO getRecurringPayeeDetails(Long ownerId, Long recurringPayeeId);
+
+    void updateRecurringPayeeAmount( Long userId, Long payeeId, BigDecimal amount);
+
 }
