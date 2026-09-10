@@ -545,7 +545,6 @@ class PayeeServiceTest {
         dto.setSchedule(Schedule.MONTHLY);
         dto.setDate(LocalDate.now().plusDays(1));
         dto.setType(RecurringPaymentType.SUBSCRIPTION);
-        dto.setPaymentMethodId(5L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
 
@@ -560,13 +559,6 @@ class PayeeServiceTest {
                         1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
                 .thenReturn(false);
 
-        PaymentMethod paymentMethod = new PaymentMethod();
-        paymentMethod.setPaymentMethodId(5L);
-        paymentMethod.setActive(true);
-        paymentMethod.setBankDisplayName("TD");
-        when(paymentRepository.findByPaymentMethodIdAndUser_Id(5L, 1L))
-                .thenReturn(Optional.of(paymentMethod));
-
         when(recurringPayeeRepository.save(any(RecurringPayee.class)))
                 .thenAnswer(invocation -> {
                     RecurringPayee payee = invocation.getArgument(0);
@@ -578,8 +570,8 @@ class PayeeServiceTest {
 
         assertNotNull(result);
         assertEquals("99990001", result.getRecipientIdentifier());
-        assertEquals(5L, result.getPaymentMethodId());
-        assertEquals("TD", result.getPaymentMethodBankDisplayName());
+        assertNull(result.getPaymentMethodId());
+        assertEquals("SmartPay Wallet", result.getPaymentMethodBankDisplayName());
         assertEquals(RecurringPaymentType.SUBSCRIPTION, result.getType());
 
         verify(accountRepository).findByAccountNumber("99990001");
@@ -674,73 +666,6 @@ class PayeeServiceTest {
 
         assertThrows(InvalidRecurringPayeeException.class,
                 () -> payeeService.updateRecurringPayee(1L, 100L, dto));
-
-        verify(recurringPayeeRepository, never()).save(any());
-    }
-
-    @Test
-    void addRecurringPayee_shouldThrowPaymentMethodNotFoundException_whenPaymentMethodMissing() {
-        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
-        dto.setPayeeName("Netflix");
-        dto.setAmount(new BigDecimal("15.00"));
-        dto.setSchedule(Schedule.MONTHLY);
-        dto.setDate(LocalDate.now().plusDays(1));
-        dto.setType(RecurringPaymentType.SUBSCRIPTION);
-        dto.setPaymentMethodId(999L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-
-        Account merchantAccount = new CheckingAccount();
-        merchantAccount.setActive(true);
-        merchantAccount.getUsers().add(recipient);
-        when(accountRepository.findByAccountNumber("99990001"))
-                .thenReturn(Optional.of(merchantAccount));
-
-        when(recurringPayeeRepository
-                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
-                        1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
-                .thenReturn(false);
-
-        when(paymentRepository.findByPaymentMethodIdAndUser_Id(999L, 1L))
-                .thenReturn(Optional.empty());
-
-        assertThrows(PaymentMethodNotFoundException.class,
-                () -> payeeService.addRecurringPayee(1L, dto));
-
-        verify(recurringPayeeRepository, never()).save(any());
-    }
-
-    @Test
-    void addRecurringPayee_shouldThrowInvalidRecurringPayeeException_whenPaymentMethodInactive() {
-        RecurringPayeeRequestDTO dto = new RecurringPayeeRequestDTO();
-        dto.setPayeeName("Netflix");
-        dto.setAmount(new BigDecimal("15.00"));
-        dto.setSchedule(Schedule.MONTHLY);
-        dto.setDate(LocalDate.now().plusDays(1));
-        dto.setType(RecurringPaymentType.SUBSCRIPTION);
-        dto.setPaymentMethodId(5L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
-
-        Account merchantAccount = new CheckingAccount();
-        merchantAccount.setActive(true);
-        merchantAccount.getUsers().add(recipient);
-        when(accountRepository.findByAccountNumber("99990001"))
-                .thenReturn(Optional.of(merchantAccount));
-
-        when(recurringPayeeRepository
-                .existsByOwnerIdAndAccountNumberAndPayeeNameAndAmountAndScheduleAndDateAndActiveTrue(
-                        1L, "99990001", "Netflix", new BigDecimal("15.00"), Schedule.MONTHLY, dto.getDate()))
-                .thenReturn(false);
-
-        PaymentMethod inactivePaymentMethod = new PaymentMethod();
-        inactivePaymentMethod.setPaymentMethodId(5L);
-        inactivePaymentMethod.setActive(false);
-        when(paymentRepository.findByPaymentMethodIdAndUser_Id(5L, 1L))
-                .thenReturn(Optional.of(inactivePaymentMethod));
-
-        assertThrows(InvalidRecurringPayeeException.class,
-                () -> payeeService.addRecurringPayee(1L, dto));
 
         verify(recurringPayeeRepository, never()).save(any());
     }
@@ -992,38 +917,6 @@ class PayeeServiceTest {
 
         assertThrows(RecurringPayeeNotPaused.class,
                 () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
-    }
-
-    @Test
-    void resumeRecurringPayee_shouldThrowInvalidPaymentMethod_whenPaymentMethodIsNull() {
-        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
-                LocalDate.now().minusMonths(2), LocalDate.now().plusDays(5), null);
-
-        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
-                .thenReturn(Optional.of(payee));
-
-        assertThrows(InvalidPaymentMethodException.class,
-                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
-
-        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
-    }
-
-    @Test
-    void resumeRecurringPayee_shouldThrowInvalidPaymentMethod_whenPaymentMethodInactive() {
-        PaymentMethod inactivePaymentMethod = new PaymentMethod();
-        inactivePaymentMethod.setPaymentMethodId(5L);
-        inactivePaymentMethod.setActive(false);
-
-        RecurringPayee payee = buildRecurringPayee(RecurringPaymentStatus.PAUSED,
-                LocalDate.now().minusMonths(2), LocalDate.now().plusDays(5), inactivePaymentMethod);
-
-        when(recurringPayeeRepository.findByPayeeIdAndOwnerIdAndActiveTrue(100L, 1L))
-                .thenReturn(Optional.of(payee));
-
-        assertThrows(InvalidPaymentMethodException.class,
-                () -> payeeService.resumeRecurringPayee(1L, 100L, new ResumeRecurringPayeeRequestDTO()));
-
-        assertEquals(RecurringPaymentStatus.PAUSED, payee.getStatus());
     }
 
     @Test

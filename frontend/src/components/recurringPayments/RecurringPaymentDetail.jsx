@@ -16,6 +16,7 @@ import {
   formatStatus
 } from "@/utils/recurringPaymentFormatters";
 import CloseIcon from "@mui/icons-material/Close";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 
 const STATUS_COLOR = {
   ACTIVE: "success.main",
@@ -54,38 +55,25 @@ function DetailRow({ label, value }) {
   );
 }
 
-function EmptyPaymentMethod({ onAddPaymentMethod }) {
+function WalletPaymentMethod() {
   return (
     <Box
       sx={{
         mt: tokens.spacing.sm,
-        p: tokens.spacing.md,
-        border: `1px dashed ${tokens.color.border.grayLight}`,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 1,
+        p: tokens.spacing.sm,
+        border: `1px solid ${tokens.color.border.grayLight}`,
         borderRadius: `${tokens.borderRadius.medium}px`,
         backgroundColor: tokens.color.background.stack,
+        color: tokens.color.text.primary,
       }}
     >
-      <Typography
-        sx={{
-          fontSize: tokens.typography.fontSize.extraSmall,
-          color: tokens.color.text.subdued,
-          mb: tokens.spacing.sm,
-        }}
-      >
-        No payment method linked to this bill
+      <AccountBalanceWalletOutlinedIcon fontSize="small" color="primary" />
+      <Typography fontWeight={tokens.typography.fontWeight.bold}>
+        SmartPay Wallet
       </Typography>
-      <Button
-        size="small"
-        onClick={onAddPaymentMethod}
-        sx={{
-          fontSize: tokens.typography.fontSize.extraSmall,
-          color: tokens.color.brand.primary,
-          border: `1px solid ${tokens.color.brand.primary}`,
-          backgroundColor: tokens.color.background.surface,
-        }}
-      >
-        + Add Payment Method
-      </Button>
     </Box>
   );
 }
@@ -93,7 +81,6 @@ function EmptyPaymentMethod({ onAddPaymentMethod }) {
 export default function RecurringPaymentDetail({
   open,
   onClose,
-  onAddPaymentMethod,
   onToggleStatus,
   item,
 }) {
@@ -101,7 +88,6 @@ export default function RecurringPaymentDetail({
 
   const statusColor = STATUS_COLOR[item.status] ?? "text.primary";
   const isSubscription = item.type === "SUBSCRIPTION";
-  const hasPaymentMethod = Boolean(item.paymentMethodId || item.bankDisplayName);
   const isCancelled = item.status === "CANCELLED";
   const isPaused = item.status === "PAUSED";
   const nextPaymentText = isCancelled
@@ -164,9 +150,7 @@ export default function RecurringPaymentDetail({
 
         {isSubscription ? (
             <Section title="Payment Method">
-              <Typography>{item.bankDisplayName}</Typography>
-              <Typography>{formatStatus(item.account_type)}</Typography>
-              {item.account_number && <Typography>{item.account_number.substring(2)}</Typography>}
+              <WalletPaymentMethod />
             </Section>
           ) : (
             <Section title="Biller Details">
@@ -177,17 +161,13 @@ export default function RecurringPaymentDetail({
                 <DetailRow label="Category:" value="—" />
               )}
 
-              {hasPaymentMethod ? (
-                <Stack sx={{ mt: tokens.spacing.sm }}>
-                  <Typography variant="body2">{item.bankDisplayName}</Typography>
-                  <Typography variant="body2">{item.account_type}</Typography>
-                  {item.account_number && (
-                    <Typography variant="body2">{item.account_number}</Typography>
-                  )}
-                </Stack>
-              ) : (
-                <EmptyPaymentMethod onAddPaymentMethod={onAddPaymentMethod} />
-              )}
+              <Typography
+                fontWeight={tokens.typography.fontWeight.bold}
+                sx={{ color: tokens.color.text.primary, mt: tokens.spacing.sm }}
+              >
+                Payment Method
+              </Typography>
+              <WalletPaymentMethod />
             </Section>
           )}
       </DialogContent>
