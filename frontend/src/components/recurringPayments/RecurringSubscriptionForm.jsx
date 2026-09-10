@@ -1,67 +1,72 @@
-import { Button, Card, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Button, Card, Grid, InputAdornment, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { tokens } from "@/style/Theme";
+
+const EMPTY_HELPER = " ";
 
 export default function RecurringSubscriptionForm({
   formData,
   errors,
   isFormComplete,
   isSubmitting,
-  paymentMethods,
   onInputChange,
   onConfirm,
   onCancel,
 }) {
-  const hasPaymentMethods = paymentMethods.length > 0;
-
   return (
     <Card sx={{ p: tokens.layout.pagePadding, mb: 3 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
         Add Subscription
       </Typography>
 
-      <Stack spacing={2}>
-        <TextField label="Name *" name="name" value={formData.name} onChange={onInputChange} error={!!errors.name} helperText={errors.name} fullWidth />
-        <TextField label="Amount *" name="amount" value={formData.amount} onChange={onInputChange} error={!!errors.amount} helperText={errors.amount || "Amount must be between $1.00 and $10,000.00."} fullWidth type="number" inputProps={{ min: 0, step: "0.01" }} />
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField label="Name *" name="name" value={formData.name} onChange={onInputChange} error={!!errors.name} helperText={errors.name || EMPTY_HELPER} fullWidth />
+        </Grid>
 
-        <TextField select label="Recurring Schedule *" name="schedule" value={formData.schedule} onChange={onInputChange} error={!!errors.schedule} helperText={errors.schedule} fullWidth>
-          <MenuItem value="weekly">Weekly</MenuItem>
-          <MenuItem value="biweekly">Bi-weekly</MenuItem>
-          <MenuItem value="monthly">Monthly</MenuItem>
-          <MenuItem value="yearly">Yearly</MenuItem>
-        </TextField>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField label="Amount *" name="amount" value={formData.amount} onChange={onInputChange} error={!!errors.amount} helperText={errors.amount || "Amount must be between $1.00 and $10,000.00."} fullWidth type="number" inputProps={{ min: 0, step: "0.01" }} />
+        </Grid>
 
-        <TextField label="Next Payment Date *" name="date" value={formData.date} onChange={onInputChange} error={!!errors.date} helperText={errors.date} fullWidth type="date" InputLabelProps={{ shrink: true }} />
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField select label="Recurring Schedule *" name="schedule" value={formData.schedule} onChange={onInputChange} error={!!errors.schedule} helperText={errors.schedule || EMPTY_HELPER} fullWidth>
+            <MenuItem value="weekly">Weekly</MenuItem>
+            <MenuItem value="biweekly">Bi-weekly</MenuItem>
+            <MenuItem value="monthly">Monthly</MenuItem>
+            <MenuItem value="yearly">Yearly</MenuItem>
+          </TextField>
+        </Grid>
 
-        <TextField
-          select
-          label="Payment Method *"
-          name="paymentMethodId"
-          value={formData.paymentMethodId}
-          onChange={onInputChange}
-          error={!!errors.paymentMethodId}
-          helperText={
-            errors.paymentMethodId ||
-            (!hasPaymentMethods ? "Link a payment method in Wallet to add a subscription." : "")
-          }
-          fullWidth
-          disabled={!hasPaymentMethods}
-        >
-          {paymentMethods.map((pm) => (
-            <MenuItem key={pm.paymentMethodId} value={pm.paymentMethodId}>
-              {pm.bankDisplayName} — {pm.accountName} ({pm.accountIdentifierMasked})
-            </MenuItem>
-          ))}
-        </TextField>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField label="Next Payment Date *" name="date" value={formData.date} onChange={onInputChange} error={!!errors.date} helperText={errors.date || EMPTY_HELPER} fullWidth type="date" InputLabelProps={{ shrink: true }} />
+        </Grid>
 
-        <Stack direction="row" spacing={1}>
-          <Button variant="contained" onClick={onConfirm} disabled={!isFormComplete || isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Confirm"}
-          </Button>
+        <Grid size={12}>
+          <TextField
+            label="Payment Method"
+            value="SmartPay Wallet"
+            disabled
+            fullWidth
+            helperText="Subscriptions are funded from your SmartPay Wallet."
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <LockOutlinedIcon fontSize="small" color="disabled" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
+      </Grid>
 
-          <Button variant="outlined" onClick={onCancel}>
-            Cancel
-          </Button>
-        </Stack>
+      <Stack direction="row" spacing={1} sx={{ mt: 3 }}>
+        <Button variant="contained" onClick={onConfirm} disabled={!isFormComplete || isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Confirm"}
+        </Button>
+
+        <Button variant="outlined" onClick={onCancel}>
+          Cancel
+        </Button>
       </Stack>
     </Card>
   );

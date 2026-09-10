@@ -21,7 +21,6 @@ import RecurringEmptyState from "@/components/recurringPayments/RecurringEmptySt
 import RecurringPaymentsSearchBar from "@/components/recurringPayments/RecurringPaymentsSearchBar";
 import Navbar from "@/components/Navbar";
 import {  tokens  } from "@/style/Theme";
-import {  useAuth  } from "@/context/AuthContext";
 import {  useRecurringPaymentsTab  } from "@/utils/useRecurringPaymentsTab";
 import {  filterItemsByName  } from "@/utils/recurringPaymentsSearchUtils";
 import {
@@ -34,7 +33,6 @@ import {
   resumeRecurringPayee
 } from "@/api/recurringPayment/recurringPayeeApi";
 import {  BasicPageLayout  } from "@/components/customComponents/pageLayout/BasicPageLayout.jsx";
-import {  getPaymentMethodsForUserWithId  } from "@/api/paymentmethods/paymentmethodApi";
 import RecurringPaymentEditDialog from "@/components/recurringPayments/RecurringPaymentEditDialog";
 import RecurringPaymentCancelDialog from "@/components/recurringPayments/RecurringPaymentCancelDialog";
 import RecurringPaymentDetail from "../../components/recurringPayments/RecurringPaymentDetail";
@@ -56,7 +54,6 @@ export default function RecurringPayments({view}) {
   } = useRecurringPaymentsTab();
 
   const activeTab = view ?? tabFromHook;
-  const {  tokenClaims  } = useAuth();
 
   const [editingPayee, setEditingPayee] = useState(null);
   const [cancellingPayee, setCancellingPayee] = useState(null);
@@ -81,11 +78,8 @@ export default function RecurringPayments({view}) {
     amount: "",
     schedule: "",
     date: "",
-    paymentMethodId: "",
   });
   const [subscriptionErrors, setSubscriptionErrors] = useState({});
-
-  const [paymentMethods, setPaymentMethods] = useState([]);
 
   const [payees, setPayees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -142,10 +136,6 @@ export default function RecurringPayments({view}) {
         startPaymentDate: payee.startDate,
         nextPaymentDate: payee.date,
         status: payee.status,
-        paymentMethodId: payee.paymentMethodId,
-        bankDisplayName: payee.paymentMethodBankDisplayName,
-        account_type: payee.paymentMethodAccountType,
-        account_number: payee.paymentMethodAccountNumberMasked,
         pausedOverSixMonths: payee.pausedOverSixMonths,
       }));
       setPayees(mappedPayees);
@@ -231,7 +221,6 @@ export default function RecurringPayments({view}) {
       date: changes.date,
       endDate: changes.endDate,
       type: editingPayee.type,
-      paymentMethodId: editingPayee.paymentMethodId,
     };
 
     try {
@@ -287,25 +276,9 @@ export default function RecurringPayments({view}) {
     }
   };
 
-  const loadPaymentMethods = async () => {
-    if (!tokenClaims?.userId) return;
-
-    try {
-      const res = await getPaymentMethodsForUserWithId(tokenClaims.userId, 0);
-      const active = (res.content ?? []).filter((m) => m.active);
-      setPaymentMethods(active);
-    } catch (error) {
-      console.error("Failed to fetch payment methods:", error);
-    }
-  };
-
   useEffect(() => {
     loadRecurringPayees();
   }, []);
-
-  useEffect(() => {
-    loadPaymentMethods();
-  }, [tokenClaims?.userId]);
 
   useEffect(() => {
     setSubscriptionsSearchQuery("");
@@ -347,7 +320,6 @@ export default function RecurringPayments({view}) {
       amount: "",
       schedule: "",
       date: "",
-      paymentMethodId: "",
     });
   }, [view]);
   
@@ -539,10 +511,6 @@ export default function RecurringPayments({view}) {
       }
     }
 
-    if (!subscriptionFormData.paymentMethodId) {
-      newErrors.paymentMethodId = "Please select a payment method.";
-    }
-
     const duplicateSubscription = subscriptionsList.some((subscription) => {
       const sameName =
         String(subscription.name ?? "").trim().toLowerCase() ===
@@ -642,7 +610,6 @@ export default function RecurringPayments({view}) {
       amount: Number(subscriptionFormData.amount),
       schedule: subscriptionFormData.schedule.toUpperCase(),
       date: subscriptionFormData.date,
-      paymentMethodId: Number(subscriptionFormData.paymentMethodId),
       type: "SUBSCRIPTION",
     };
 
@@ -658,7 +625,6 @@ export default function RecurringPayments({view}) {
         amount: "",
         schedule: "",
         date: "",
-        paymentMethodId: "",
       });
 
       setSubscriptionErrors({});
@@ -720,7 +686,6 @@ export default function RecurringPayments({view}) {
       amount: "",
       schedule: "",
       date: "",
-      paymentMethodId: "",
     });
   };
 
@@ -739,8 +704,7 @@ export default function RecurringPayments({view}) {
     // Number(subscriptionFormData.amount) >= 1 &&
     // Number(subscriptionFormData.amount) <= 10000 &&
     subscriptionFormData.schedule &&
-    subscriptionFormData.date &&
-    subscriptionFormData.paymentMethodId;
+    subscriptionFormData.date;
 
   const billsList = useMemo(
     () => payees.filter((payee) => payee.type !== "SUBSCRIPTION"),
@@ -1085,7 +1049,6 @@ export default function RecurringPayments({view}) {
                   errors={subscriptionErrors}
                   isFormComplete={isSubscriptionFormComplete}
                   isSubmitting={isSubmitting}
-                  paymentMethods={paymentMethods}
                   onInputChange={handleSubscriptionInputChange}
                   onConfirm={handleConfirmSubscription}
                   onCancel={resetSubscriptionForm}

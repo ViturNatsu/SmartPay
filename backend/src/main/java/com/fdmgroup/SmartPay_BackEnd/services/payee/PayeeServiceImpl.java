@@ -254,18 +254,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
         recurringPayee.setDate(date);
         recurringPayee.setEndDate(endDate);
 
-        if (recurringPayeeRequestDTO.getType() == RecurringPaymentType.SUBSCRIPTION) {
-            PaymentMethod paymentMethod = paymentRepository
-                    .findByPaymentMethodIdAndUser_Id(recurringPayeeRequestDTO.getPaymentMethodId(), ownerId)
-                    .orElseThrow(() -> new PaymentMethodNotFoundException("Payment method not found"));
-
-            if (!Boolean.TRUE.equals(paymentMethod.getActive())) {
-                throw new InvalidRecurringPayeeException("Payment method is not active");
-            }
-
-            recurringPayee.setPaymentMethod(paymentMethod);
-        }
-
         recurringPayeeRepository.save(recurringPayee);
         return toRecurringResponseDTO(recurringPayee);
     }
@@ -455,9 +443,9 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
                 .lastProcessedDate(recurringPayee.getLastProcessedDate())
                 .startDate(recurringPayee.getCreatedAt() != null ? recurringPayee.getCreatedAt().toLocalDate() : null)
                 .paymentMethodId(paymentMethod != null ? paymentMethod.getPaymentMethodId() : null)
-                .paymentMethodBankDisplayName(paymentMethod != null ? paymentMethod.getBankDisplayName() : null)
+                .paymentMethodBankDisplayName(paymentMethod != null ? paymentMethod.getBankDisplayName() : "SmartPay Wallet")
                 .paymentMethodAccountType(paymentMethod != null && paymentMethod.getAccount() != null
-                        ? paymentMethod.getAccount().getAccountType().name() : null)
+                        ? paymentMethod.getAccount().getAccountType().name() : "Wallet")
                 .paymentMethodAccountNumberMasked(paymentMethod != null && paymentMethod.getAccount() != null
                         ? maskingUtil.maskAccountNumber(paymentMethod.getAccount().getAccountNumber()).getFirst() : null)
                 .pausedDate(recurringPayee.getPausedDate())
@@ -498,11 +486,6 @@ public class PayeeServiceImpl implements PayeeService, RecurringPayeeService {
 
         if(!recurringPayee.isActive()){
             throw new InvalidRecurringPayeeException("Recurring Payee is already inactive");
-        }
-        PaymentMethod paymentMethod = recurringPayee.getPaymentMethod();
-
-        if (paymentMethod == null || !Boolean.TRUE.equals(paymentMethod.getActive())) {
-            throw new InvalidPaymentMethodException("A valid payment method is required to resume this payment");
         }
 
         LocalDateTime today = LocalDateTime.now(ZoneOffset.UTC);

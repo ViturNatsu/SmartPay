@@ -13,7 +13,6 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Digits;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -69,14 +68,4 @@ public class RecurringPayeeRequestDTO {
         }
         return recipientIdentifier != null && recipientIdentifier.matches("^\\d{8}$");
     }
-
-    @JsonIgnore
-    @AssertTrue(message = "A payment method is required for subscriptions.")
-    private boolean isPaymentMethodValidForType() {
-        if (type != RecurringPaymentType.SUBSCRIPTION) {
-            return true;
-        }
-        return paymentMethodId != null;
-    }
-
 }
