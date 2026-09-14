@@ -33,6 +33,7 @@ import SimulatedBankAuthSuccess from "../pages/PaymentMethods/SimulatedBankAuthS
 import AddUser from "../pages/Admin/AddUser";
 import RequestManagement from "@/pages/Admin/RequestManagement.jsx";
 import RecurringPayments from "@/pages/Navbar/RecurringPayments";
+import {Support} from "@/pages/Navbar/Support";
 import Navbar from "@/components/Navbar.jsx";
 import {Transfers} from "@/pages/Navbar/Transfers";
 
@@ -59,6 +60,7 @@ export default function AppRoutes() {
           <Route path="/transactions/:transactionId" element={<TransactionDetails />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/support" element={<Support />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/create-account" element={<CreateAccount />} />
           <Route path="/view-history" element={<ViewHistory />} />

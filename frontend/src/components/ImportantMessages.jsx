@@ -29,9 +29,11 @@ const VISIBLE_COUNT = 3;
 export const IMPORTANT_MESSAGES_PANEL_ID = "important-messages-panel";
 export const NOTIFICATIONS_COUNT_CHANGED_EVENT = "smartpay:notifications-count-changed";
 
-function broadcastCountChange(totalCount) {
+function broadcastCountChange(totalCount, unreadCount) {
   window.dispatchEvent(
-    new CustomEvent(NOTIFICATIONS_COUNT_CHANGED_EVENT, { detail: { totalCount } }),
+    new CustomEvent(NOTIFICATIONS_COUNT_CHANGED_EVENT, {
+      detail: { totalCount, unreadCount },
+    }),
   );
 }
 
@@ -138,10 +140,11 @@ function ImportantMessages() {
 
     const remaining = notifications.filter((n) => n.id !== id);
     const newTotalCount = Math.max(0, totalCount - 1);
+    const newUnreadCount = remaining.filter((n) => n.read === false).length;
 
     setNotifications(remaining);
     setTotalCount(newTotalCount);
-    broadcastCountChange(newTotalCount);
+    broadcastCountChange(newTotalCount, newUnreadCount);
 
     try {
       await dismissNotification(id);
@@ -153,7 +156,7 @@ function ImportantMessages() {
         const data = await getNotifications();
         setNotifications(data.notifications ?? []);
         setTotalCount(data.totalCount ?? 0);
-        broadcastCountChange(data.totalCount ?? 0);
+        broadcastCountChange(data.totalCount ?? 0, data.unreadCount);
       }
     } catch (err) {
       console.error("Failed to dismiss notification:", err);
@@ -163,7 +166,7 @@ function ImportantMessages() {
         const data = await getNotifications();
         setNotifications(data.notifications ?? []);
         setTotalCount(data.totalCount ?? 0);
-        broadcastCountChange(data.totalCount ?? 0);
+        broadcastCountChange(data.totalCount ?? 0, data.unreadCount);
       } catch {
         setNotifications((prev) => [...prev, dismissedNotification]);
         setTotalCount((prev) => {
