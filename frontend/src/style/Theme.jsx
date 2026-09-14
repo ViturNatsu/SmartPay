@@ -116,6 +116,11 @@ export const tokens = {
       background: "#FFFFFF",
       border: "#E2E8F0",
       avatarBg: "#0F7490",
+      railBackground: "#0d3b3b",
+      railText: "rgba(255,255,255,0.72)",
+      railActive: "rgba(255,255,255,0.12)",
+      railHover: "rgba(255,255,255,0.08)",
+      railMint: "#5fd0c0",
     },
     link: {
       primary: "#2563EB",
@@ -196,6 +201,9 @@ export const tokens = {
     pagePadding: 3,
     sectionGap: 4,
     cardGap: 2,
+    navRailExpanded: 224,
+    navRailCollapsed: 76,
+    navRailTransition: "width 0.22s ease",
   },
 
   card: {

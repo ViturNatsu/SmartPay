@@ -1,19 +1,8 @@
 import * as React from "react";
-import {Link as RouterLink, Outlet, useLocation, useNavigate} from "react-router-dom";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "@/context/AuthContext";
 
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Container from "@mui/material/Container";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Avatar from "@mui/material/Avatar";
-import Badge from "@mui/material/Badge";
-import Divider from "@mui/material/Divider";
-import BottomNavigation from "@mui/material/BottomNavigation";
-import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
@@ -22,29 +11,20 @@ import SwapHorizRoundedIcon from "@mui/icons-material/SwapHorizRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import GroupIcon from "@mui/icons-material/Group";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
 import { tokens } from "@/style/Theme";
-import { getNotifications } from "@/api/notifications/notificationApi";
+import { getNotifications, markNotificationAsRead } from "@/api/notifications/notificationApi";
 import {
   IMPORTANT_MESSAGES_PANEL_ID,
   NOTIFICATIONS_COUNT_CHANGED_EVENT,
 } from "@/components/ImportantMessages";
 
-import logo from "@/style/logo.png";
-import {Card} from "@mui/material";
 import {MobileNavbar} from "@/components/customComponents/navbars/MobileNavbar.jsx";
 import {DesktopNavbar} from "@/components/customComponents/navbars/DesktopNavbar.jsx";
+import {UserNavRail} from "@/components/customComponents/navbars/UserNavRail.jsx";
+import {UserDesktopTopBar} from "@/components/customComponents/navbars/UserDesktopTopBar.jsx";
 
-// Update these to match your real routes
 const userNavItems = [
   {label: "Dashboard", path: "/", icon: <HomeRoundedIcon />},
   {
@@ -111,15 +91,19 @@ function isPathActive(currentPath, targetPath) {
   return currentPath === targetPath || currentPath.startsWith(targetPath + "/");
 }
 
+function isDashboardPath(pathname) {
+  return pathname === "/" || pathname === "/home";
+}
 
-// might be better to rename as NavbarLayout
 export default function Navbar({isAdmin = false}) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // xs/sm => mobile
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
   const navigate = useNavigate();
-  const {logout, tokenClaims, loading: authLoading} = useAuth();
+  const {logout, tokenClaims, loading: authLoading, user} = useAuth();
   const [totalNotificationCount, setTotalNotificationCount] = React.useState(0);
+  const [unreadNotificationCount, setUnreadNotificationCount] = React.useState(0);
+  const [railCollapsed, setRailCollapsed] = React.useState(false);
 
   React.useEffect(() => {
     if (authLoading || !tokenClaims?.userId) return;
@@ -127,7 +111,10 @@ export default function Navbar({isAdmin = false}) {
     let cancelled = false;
     getNotifications()
       .then(data => {
-        if (!cancelled) setTotalNotificationCount(data.totalCount ?? 0);
+        if (!cancelled) {
+          setTotalNotificationCount(data.totalCount ?? 0);
+          setUnreadNotificationCount(data.unreadCount ?? 0);
+        }
       })
       .catch(() => {});
 
@@ -136,11 +123,14 @@ export default function Navbar({isAdmin = false}) {
     };
   }, [authLoading, tokenClaims?.userId]);
 
-  // Kept in sync with dismiss actions that happen inside ImportantMessages,
-  // which is a sibling component with its own independent fetch/state.
   React.useEffect(() => {
     const handleCountChanged = (event) => {
-      setTotalNotificationCount(event.detail?.totalCount ?? 0);
+      if (typeof event.detail?.totalCount === "number") {
+        setTotalNotificationCount(event.detail.totalCount);
+      }
+      if (typeof event.detail?.unreadCount === "number") {
+        setUnreadNotificationCount(event.detail.unreadCount);
+      }
     };
     window.addEventListener(NOTIFICATIONS_COUNT_CHANGED_EVENT, handleCountChanged);
     return () => {
@@ -151,16 +141,40 @@ export default function Navbar({isAdmin = false}) {
   const items = isAdmin ? adminNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : "/";
 
+  const scrollToNotifications = () => {
+    document
+      .getElementById(IMPORTANT_MESSAGES_PANEL_ID)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleBellClick = () => {
-    const isOnDashboard = location.pathname === "/" || location.pathname === "/home";
-    if (isOnDashboard) {
-      document
-        .getElementById(IMPORTANT_MESSAGES_PANEL_ID)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (isDashboardPath(location.pathname)) {
+      scrollToNotifications();
     } else {
-      // Navigation is async, so the panel isn't in the DOM yet at this
-      // point — hand off a flag via router state and let Home scroll once
-      // it's actually mounted, rather than guessing with a timeout.
+      navigate(homePath, { state: { scrollToNotifications: true } });
+    }
+  };
+
+  const handleOpenNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      const unread = (data.notifications ?? []).filter(notification => notification.read === false);
+      await Promise.all(unread.map(notification =>
+        markNotificationAsRead(notification.id).catch(() => {})
+      ));
+    } catch (_) {
+      // Viewing still proceeds even if mark-as-read fails.
+    }
+    setUnreadNotificationCount(0);
+    window.dispatchEvent(
+      new CustomEvent(NOTIFICATIONS_COUNT_CHANGED_EVENT, {
+        detail: { unreadCount: 0 },
+      }),
+    );
+
+    if (isDashboardPath(location.pathname)) {
+      scrollToNotifications();
+    } else {
       navigate(homePath, { state: { scrollToNotifications: true } });
     }
   };
@@ -174,9 +188,6 @@ export default function Navbar({isAdmin = false}) {
     return idx === -1 ? 0 : idx;
   }, [location.pathname, items]);
 
-  // -------------------------
-  // MOBILE: Top mini bar + Bottom nav
-  // -------------------------
   if (isMobile) {
     return (
       <Box>
@@ -195,10 +206,45 @@ export default function Navbar({isAdmin = false}) {
     );
   }
 
-  // -------------------------
-  // DESKTOP/TABLET: Top app bar with NO overlap
-  // - center nav scrolls horizontally if tight
-  // -------------------------
+  if (!isAdmin) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          width: "100%",
+          boxSizing: "border-box",
+          background: tokens.color.brand.primaryBackground,
+        }}
+      >
+        <UserNavRail
+          collapsed={railCollapsed}
+          onToggle={() => setRailCollapsed(prev => !prev)}
+          pathname={location.pathname}
+          user={user}
+        />
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <UserDesktopTopBar
+            unreadCount={unreadNotificationCount}
+            user={user}
+            logout={logout}
+            onOpenNotifications={handleOpenNotifications}
+          />
+          <Box component="main" sx={{flex: 1, minWidth: 0}}>
+            <Outlet />
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -207,7 +253,6 @@ export default function Navbar({isAdmin = false}) {
         minHeight: "100vh",
         width: "100%",
         boxSizing: "border-box",
-        // overflowY: "auto",
         scrollbarGutter: "stable",
       }}
     >

@@ -1,7 +1,7 @@
 import {test, expect} from "@playwright/test";
 import {setupAPIMocks, loginAndVerifyOtp} from "./helpers/auth.helpers.js";
 
-test("Navbar works (logo, highlight, logout)", async ({page}) => {
+test("Navbar works (rail, hamburger, logout)", async ({page}) => {
   test.setTimeout(60_000);
 
   await setupAPIMocks(page);
@@ -9,45 +9,42 @@ test("Navbar works (logo, highlight, logout)", async ({page}) => {
   const email = `nav_${Date.now()}@domain.com`;
   const password = "Password8!";
 
-  // Login and complete OTP to get to dashboard
   await loginAndVerifyOtp(page, {email, password});
 
   await page.setViewportSize({width: 1280, height: 720});
 
-  // Navbar should be visible on the dashboard
-  await expect(page.getByLabel("home")).toBeVisible({timeout: 15000});
-  await expect(page.getByLabel("logout")).toBeVisible({timeout: 15000});
+  await expect(page.getByTestId("nav-rail")).toBeVisible({timeout: 15000});
+  await expect(page.getByTestId("nav-toggle")).toBeVisible();
+  await expect(page.getByTestId("nav-hamburger")).toBeVisible();
 
-  // Click Payment Methods -> /payment-methods
-  await page.getByTestId("nav-payment-methods").click();
+  await page.getByTestId("nav-payment-method").click();
   await expect(page).toHaveURL(/\/payment-methods/);
+  await expect(page.getByTestId("nav-payment-method")).toHaveAttribute("aria-current", "page");
 
-  // Click Transactions -> /transactions
-  await page.getByTestId("nav-transactions").click();
-  await expect(page).toHaveURL(/\/transactions/);
-
-  // Click Wallet -> /wallet
   await page.getByTestId("nav-wallet").click();
   await expect(page).toHaveURL(/\/wallet/);
-  // Open hamburger menu
-  await page.getByLabel("menu").click();
 
-  // Click Reports -> /reports
-  await page.getByTestId("nav-reports").click();
-  await expect(page).toHaveURL(/\/reports/);
+  await page.getByTestId("nav-toggle").click();
+  await expect(page.getByTestId("nav-rail")).toHaveAttribute("data-collapsed", "true");
+  await page.getByTestId("nav-transfer").click();
+  await expect(page).toHaveURL(/\/transfers/);
+  await expect(page.getByTestId("nav-rail")).toHaveAttribute("data-collapsed", "true");
 
-  // Open hamburger menu again
-  await page.getByLabel("menu").click();
+  await page.getByTestId("nav-toggle").click();
+  await expect(page.getByTestId("nav-rail")).toHaveAttribute("data-collapsed", "false");
 
-  // Click Settings -> /settings
-  await page.getByTestId("nav-settings").click();
-  await expect(page).toHaveURL(/\/settings/);
+  await page.getByTestId("nav-hamburger").click();
+  await page.getByTestId("nav-transaction-history").click();
+  await expect(page).toHaveURL(/\/transactions/);
 
-  // Click logo/home -> /
-  await page.getByLabel("home").click();
+  await page.getByTestId("nav-hamburger").click();
+  await page.getByTestId("nav-support").click();
+  await expect(page).toHaveURL(/\/support/);
+
+  await page.getByTestId("nav-dashboard").click();
   await expect(page).toHaveURL(/\/$/);
 
-  // Logout -> /login
-  await page.getByLabel("logout").click();
+  await page.getByTestId("nav-hamburger").click();
+  await page.getByTestId("nav-logout").click();
   await expect(page).toHaveURL(/\/login/);
 });

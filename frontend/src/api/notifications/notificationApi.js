@@ -19,3 +19,12 @@ export async function dismissNotification(id) {
     throw handleAxiosError(err);
   }
 }
+
+export async function markNotificationAsRead(id) {
+  try {
+    const res = await axiosInstance.patch(`${NOTIFICATIONS_URL}/${id}/read`);
+    return res.data;
+  } catch (err) {
+    throw handleAxiosError(err);
+  }
+}
